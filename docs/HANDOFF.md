@@ -1,3 +1,23 @@
+# Radio Warder Evolution — test31 larger video artwork
+
+The receiver screenshot confirms test30’s song image is visible with the native
+MoviePlayer bar (Papa Roach / HELP, native bar reports 1920x1080). The owner asks
+to enlarge that image and move it slightly right. At Full HD the square grows
+180 to 240 px; x offset moves 40 to 80 px. The bottom edge retains the 12 px gap
+above the native bar, so the image grows upward. Geometry remains scaled and
+clamped at HD/FHD/WQHD/UHD, with the same aspect-preserving decoder, local image
+reuse, visibility hooks and cleanup. No video/background/skin assets are changed.
+
+An illustrative screenshot preview was generated separately from the exact
+selected screenshot. It is a visual preview, not a receiver rendering or runtime
+asset, and is not packaged. The code geometry is authoritative.
+
+Existing native geometry/visibility/lifecycle checks are used; expected size is
+updated to the requested 240 px. No new test suite is added for a placement-only
+change. Publication verification pending.
+
+---
+
 # Radio Warder Evolution — test30 artwork in the native video player
 
 Receiver confirmation 2026-11-03: the owner reports test29 opens extremely

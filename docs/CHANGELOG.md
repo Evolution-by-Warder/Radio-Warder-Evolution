@@ -1,3 +1,9 @@
+# 0.1.0-test31
+
+- Enlarge the YouTube song artwork from 180 to 240 px at Full HD.
+- Shift its left offset from 40 to 80 px while retaining the gap above the native information bar.
+- Preserve proportional scaling, aspect ratio and native show/hide behaviour.
+
 # 0.1.0-test30
 
 - Show the radio song’s downloaded cover or artist image beside the native YouTube information bar.
