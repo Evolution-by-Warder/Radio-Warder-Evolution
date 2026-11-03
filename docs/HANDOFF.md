@@ -1,5 +1,15 @@
 # Radio Warder Evolution — test28 recording dependency and deletion
 
+## Receiver confirmation — 2026-11-03
+
+The user confirms that video quality is good and that radio recording and
+recording deletion work on their receiver. These functional checks are now
+confirmed by receiver use, superseding the earlier pending recording/video-quality
+notes below. No exact output resolution, codec, audio-sync measurement or fresh
+installation dependency-resolution result was supplied; do not infer those from
+the confirmation. Artwork lookup speed and FullHDGlass Radio Mode review remain
+separate follow-up items.
+
 Streamripper is now in Depends rather than Suggests. Normal opkg install/update
 resolves it from the configured image feeds; no downloader, forced dependency
 bypass or shell hook is added. An unavailable feed dependency is an installation
@@ -29,8 +39,8 @@ CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/4
 Testing feed now offers test28. Local IPK, release API digest and pinned feed
 agree: 3095238 bytes; SHA-256
 04d28d09574be6c389d8cbc4dbec28f30eda90e8270718050ea7f659d04bfdf7.
-Stable feeds and immutable test11 migration bridge retained. Actual receiver
-feed resolution and real recorder output require physical receiver confirmation.
+Stable feeds and immutable test11 migration bridge retained. Recording and deletion
+are receiver-confirmed above; fresh dependency resolution was not separately reported.
 
 ---
 
