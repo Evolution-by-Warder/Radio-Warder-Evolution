@@ -30,6 +30,8 @@ jobs:
 
           artist, title = 'Kandráčovci', 'Hej, už je ňedaľeko'
           plans = [
+              ('Party-song', 'https', {'term':'Jason Derulo Want To Want Me Westfunk Remix','limit':20,'media':'music'}),
+              ('Party-artist', 'https', {'term':'Jason Derulo','limit':20,'media':'music','attribute':'artistTerm'}),
               ('Metal-song', 'https', {'term':'RUST 2 DUST My vs Oni','limit':20,'media':'music'}),
               ('Metal-artist', 'https', {'term':'RUST 2 DUST','limit':20,'media':'music','attribute':'artistTerm'}),
               ('Folk-song', 'https', {'term':artist+' '+title,'limit':20,'media':'music'}),
