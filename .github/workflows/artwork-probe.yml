@@ -1,0 +1,70 @@
+name: Artwork lookup comparison
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/artwork-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compare public artwork queries for receiver-reported song
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 - <<'PY'
+          import json, time
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from WarderRadio import song_identity as identity
+
+          artist, title = 'CHILL77', 'PAPAOUTAI'
+          plans = [
+              ('HDF-2.28.1-parameters-HTTP', 'http', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
+              ('HDF-2.28.1-parameters-HTTPS', 'https', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
+              ('Warder-test19-SK', 'https', {'entity':'song','limit':10,'country':'SK','term':artist+' '+title}),
+              ('Warder-test19-CZ', 'https', {'entity':'song','limit':10,'country':'CZ','term':artist+' '+title}),
+              ('Warder-test19-US', 'https', {'entity':'song','limit':10,'country':'US','term':artist+' '+title}),
+              ('Title-only-music', 'https', {'term':title,'limit':20,'media':'music'}),
+              ('Artist-only-music', 'https', {'term':artist,'limit':20,'media':'music'}),
+          ]
+          report = []
+          for name, scheme, params in plans:
+              url = scheme+'://itunes.apple.com/search?'+urlencode(params)
+              row = {'name':name,'request':url}
+              started = time.monotonic()
+              try:
+                  with urlopen(Request(url, headers={'User-Agent':'Radio-Warder-Evolution artwork comparison'}), timeout=8) as response:
+                      data = response.read(1024*1024+1)
+                      if len(data)>1024*1024: raise ValueError('Response exceeds 1 MiB')
+                      document = json.loads(data)
+                      row.update(status=response.status, final_url=response.url, count=document.get('resultCount'),
+                                 results=[dict(artist=item.get('artistName'), title=item.get('trackName'),
+                                               album=item.get('collectionName'), kind=item.get('kind'),
+                                               artwork=item.get('artworkUrl100'),
+                                               warder_test19_accepts=identity.same_recording(item,artist,title))
+                                          for item in document.get('results',[])[:20]])
+              except Exception as exc:
+                  row['error'] = type(exc).__name__+': '+str(exc)
+              row['seconds'] = round(time.monotonic()-started,3)
+              report.append(row)
+              print(json.dumps(row,ensure_ascii=False),flush=True)
+          Path('artwork-query-comparison.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+          if not any('count' in row for row in report):
+              raise SystemExit('No provider response: comparison is inconclusive')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: artwork-query-comparison
+          path: artwork-query-comparison.json
+          retention-days: 7
