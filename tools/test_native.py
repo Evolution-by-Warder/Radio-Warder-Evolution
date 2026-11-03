@@ -374,7 +374,22 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen.installing)
         self.assertTrue(screen['actions'].enabled)
         screen.update_installed('0.1.1', None)
-        self.assertEqual(session.dialogs[-1][-1]['type'], 2)
+        dialog = session.dialogs[-1]
+        self.assertEqual(dialog[-1]['type'], radio.MessageBox.TYPE_INFO)
+        self.assertEqual(dialog[-1]['timeout'], 3)
+        self.assertFalse(dialog[-1]['enable_input'])
+        self.assertTrue(dialog[-1]['timeout_default'])
+        self.assertIn('3', dialog[2][0])
+        self.assertTrue(screen.installing)
+        self.assertFalse(screen['actions'].enabled)
+        sentinel = object()
+        with patch.dict(sys.modules, {'Screens.Standby': NS(TryQuitMainloop=sentinel)}):
+            dialog[1](True)
+            self.assertTrue(screen.closed)
+            self.assertEqual(session.dialogs[-1], (sentinel, (3,), {}))
+            count = len(session.dialogs)
+            dialog[1](True)
+            self.assertEqual(len(session.dialogs), count)
 
     def test_country_header_opens_directly_and_selection_persists_without_interrupting_audio(self):
         screen, session, _ = self.new()

@@ -55,7 +55,7 @@
   "Install update {version}?": "Nainštalovať aktualizáciu {version}?",
   "Installing update…": "Inštalujem aktualizáciu…",
   "Update failed": "Aktualizácia zlyhala",
-  "Update installed. Restart GUI now?": "Aktualizácia je nainštalovaná. Reštartovať GUI?",
+  "Update installed. GUI will restart in 3 seconds.": "Aktualizácia nainštalovaná. GUI sa reštartuje o 3 sekundy.",
   "Not enough free space": "Nedostatok voľného miesta",
   "Invalid stream address": "Neplatná adresa streamu",
   "Cannot add station": "Stanicu sa nepodarilo pridať",

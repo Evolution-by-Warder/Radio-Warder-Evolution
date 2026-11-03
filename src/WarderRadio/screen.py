@@ -615,18 +615,24 @@ class WarderRadio(Screen):
             self.notify(t('Update failed'), True)
 
     def update_installed(self, version, error):
-        self.installing = False
-        self['actions'].setEnabled(True)
+        if self.closed:
+            return
         if error:
+            self.installing = False
+            self['actions'].setEnabled(True)
             self['status'].setText(t('Update failed'))
             self.notify(t('Update failed'), True)
             return
-        self['status'].setText(t('Update installed. Restart GUI now?'))
+        self.installing = True
+        self['actions'].setEnabled(False)
+        message = t('Update installed. GUI will restart in 3 seconds.')
+        self['status'].setText(message)
         self.session.openWithCallback(self.update_restart, MessageBox,
-            t('Update installed. Restart GUI now?'), type=MessageBox.TYPE_YESNO, default=False)
+            message, type=MessageBox.TYPE_INFO, timeout=3,
+            enable_input=False, timeout_default=True)
 
-    def update_restart(self, accepted):
-        if accepted and not self.closed:
+    def update_restart(self, _result=None):
+        if self.installing and not self.closed:
             from Screens.Standby import TryQuitMainloop
             self.cleanup()
             self.session.open(TryQuitMainloop, 3)

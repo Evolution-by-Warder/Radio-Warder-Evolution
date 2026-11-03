@@ -55,7 +55,7 @@
   "Install update {version}?": "Εγκατάσταση της ενημέρωσης {version};",
   "Installing update…": "Εγκατάσταση ενημέρωσης…",
   "Update failed": "Η ενημέρωση απέτυχε",
-  "Update installed. Restart GUI now?": "Η ενημέρωση εγκαταστάθηκε. Επανεκκίνηση του GUI;",
+  "Update installed. GUI will restart in 3 seconds.": "Η ενημέρωση εγκαταστάθηκε. Το GUI θα επανεκκινηθεί σε 3 δευτερόλεπτα.",
   "Not enough free space": "Ανεπαρκής ελεύθερος χώρος",
   "Invalid stream address": "Μη έγκυρη διεύθυνση ροής",
   "Cannot add station": "Αποτυχία προσθήκης σταθμού",

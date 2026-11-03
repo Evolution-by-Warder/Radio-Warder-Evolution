@@ -55,7 +55,7 @@
   "Install update {version}?": "安装更新 {version}？",
   "Installing update…": "正在安装更新…",
   "Update failed": "更新失败",
-  "Update installed. Restart GUI now?": "更新已安装。现在重启界面？",
+  "Update installed. GUI will restart in 3 seconds.": "更新已安装。图形界面将在 3 秒后重启。",
   "Not enough free space": "可用空间不足",
   "Invalid stream address": "流媒体地址无效",
   "Cannot add station": "无法添加电台",

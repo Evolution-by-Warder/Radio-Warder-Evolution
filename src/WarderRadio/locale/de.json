@@ -55,7 +55,7 @@
   "Install update {version}?": "Update {version} installieren?",
   "Installing update…": "Update wird installiert…",
   "Update failed": "Update fehlgeschlagen",
-  "Update installed. Restart GUI now?": "Update installiert. GUI jetzt neu starten?",
+  "Update installed. GUI will restart in 3 seconds.": "Update installiert. Die Benutzeroberfläche startet in 3 Sekunden neu.",
   "Not enough free space": "Nicht genügend freier Speicher",
   "Invalid stream address": "Ungültige Stream-Adresse",
   "Cannot add station": "Sender konnte nicht hinzugefügt werden",

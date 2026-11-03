@@ -55,7 +55,7 @@
   "Install update {version}?": "Telepíti a(z) {version} frissítést?",
   "Installing update…": "Frissítés telepítése…",
   "Update failed": "A frissítés sikertelen",
-  "Update installed. Restart GUI now?": "A frissítés települt. Újraindítja a kezelőfelületet?",
+  "Update installed. GUI will restart in 3 seconds.": "A frissítés telepítve. A kezelőfelület 3 másodperc múlva újraindul.",
   "Not enough free space": "Nincs elég szabad hely",
   "Invalid stream address": "Érvénytelen adatfolyamcím",
   "Cannot add station": "Az állomás nem adható hozzá",

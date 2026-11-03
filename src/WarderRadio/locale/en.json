@@ -55,7 +55,7 @@
   "Install update {version}?": "Install update {version}?",
   "Installing update…": "Installing update…",
   "Update failed": "Update failed",
-  "Update installed. Restart GUI now?": "Update installed. Restart GUI now?",
+  "Update installed. GUI will restart in 3 seconds.": "Update installed. GUI will restart in 3 seconds.",
   "Not enough free space": "Not enough free space",
   "Invalid stream address": "Invalid stream address",
   "Cannot add station": "Cannot add station",

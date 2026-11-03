@@ -55,7 +55,7 @@
   "Install update {version}?": "به‌روزرسانی {version} نصب شود؟",
   "Installing update…": "در حال نصب به‌روزرسانی…",
   "Update failed": "به‌روزرسانی ناموفق بود",
-  "Update installed. Restart GUI now?": "به‌روزرسانی نصب شد. رابط کاربری بازراه‌اندازی شود؟",
+  "Update installed. GUI will restart in 3 seconds.": "به‌روزرسانی نصب شد. رابط کاربری تا ۳ ثانیه دیگر راه‌اندازی مجدد می‌شود.",
   "Not enough free space": "فضای خالی کافی نیست",
   "Invalid stream address": "نشانی جریان نامعتبر است",
   "Cannot add station": "افزودن ایستگاه ممکن نشد",

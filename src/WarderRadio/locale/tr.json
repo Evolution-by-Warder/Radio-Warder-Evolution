@@ -55,7 +55,7 @@
   "Install update {version}?": "{version} güncellemesi yüklensin mi?",
   "Installing update…": "Güncelleme yükleniyor…",
   "Update failed": "Güncelleme başarısız",
-  "Update installed. Restart GUI now?": "Güncelleme yüklendi. Arayüz yeniden başlatılsın mı?",
+  "Update installed. GUI will restart in 3 seconds.": "Güncelleme yüklendi. Arayüz 3 saniye içinde yeniden başlatılacak.",
   "Not enough free space": "Yeterli boş alan yok",
   "Invalid stream address": "Geçersiz yayın adresi",
   "Cannot add station": "İstasyon eklenemedi",

@@ -1,3 +1,11 @@
+# 0.1.0-test10
+
+After a verified successful plugin update, display a localized information
+message for three seconds and automatically restart the GUI. There is no
+second confirmation. Failed updates leave the interface usable without a
+restart. The initial confirmation before installing remains. All 21 languages
+include the new message. Retains test9 menu placement and direct country selector.
+
 # 0.1.0-test9
 
 Moves Update below Settings as the sixth left-menu item and restores the four

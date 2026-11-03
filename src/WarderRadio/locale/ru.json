@@ -55,7 +55,7 @@
   "Install update {version}?": "Установить обновление {version}?",
   "Installing update…": "Установка обновления…",
   "Update failed": "Ошибка обновления",
-  "Update installed. Restart GUI now?": "Обновление установлено. Перезапустить GUI?",
+  "Update installed. GUI will restart in 3 seconds.": "Обновление установлено. Интерфейс перезапустится через 3 секунды.",
   "Not enough free space": "Недостаточно свободного места",
   "Invalid stream address": "Неверный адрес потока",
   "Cannot add station": "Не удалось добавить станцию",

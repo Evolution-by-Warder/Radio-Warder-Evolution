@@ -55,7 +55,7 @@
   "Install update {version}?": "Paigaldada uuendus {version}?",
   "Installing update…": "Uuenduse paigaldamine…",
   "Update failed": "Uuendamine nurjus",
-  "Update installed. Restart GUI now?": "Uuendus paigaldatud. Taaskäivitada kasutajaliides?",
+  "Update installed. GUI will restart in 3 seconds.": "Uuendus on paigaldatud. Kasutajaliides taaskäivitub 3 sekundi pärast.",
   "Not enough free space": "Vaba ruumi pole piisavalt",
   "Invalid stream address": "Vigane voo aadress",
   "Cannot add station": "Jaama lisamine nurjus",

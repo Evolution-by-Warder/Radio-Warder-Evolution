@@ -29,7 +29,9 @@ Each plugin opening schedules a background update check. MENU provides a manual
 check. A found update is offered for confirmation. Download size, SHA-256, IPK
 package identity/architecture/version, installed payload and final opkg status
 are verified. Installation runs off the GUI thread and disables this screen's
-controls while active; success offers a GUI restart. No forced installation or
+controls while active; success displays a localized information message for three seconds and then
+automatically restarts the GUI. No second confirmation is needed; failed
+updates restore the controls without restarting. No forced installation or
 restart is performed. Test2 must be installed manually over test1, which did not
 have the updater. Subsequent testing updates use the testing feed.
 

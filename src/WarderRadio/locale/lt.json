@@ -55,7 +55,7 @@
   "Install update {version}?": "Įdiegti naujinimą {version}?",
   "Installing update…": "Diegiamas naujinimas…",
   "Update failed": "Naujinimas nepavyko",
-  "Update installed. Restart GUI now?": "Naujinimas įdiegtas. Paleisti sąsają iš naujo?",
+  "Update installed. GUI will restart in 3 seconds.": "Atnaujinimas įdiegtas. Sąsaja bus paleista iš naujo po 3 sekundžių.",
   "Not enough free space": "Nepakanka laisvos vietos",
   "Invalid stream address": "Neteisingas srauto adresas",
   "Cannot add station": "Nepavyko pridėti stoties",

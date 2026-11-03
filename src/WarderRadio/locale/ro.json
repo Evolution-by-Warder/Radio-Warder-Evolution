@@ -55,7 +55,7 @@
   "Install update {version}?": "Instalați actualizarea {version}?",
   "Installing update…": "Se instalează actualizarea…",
   "Update failed": "Actualizare eșuată",
-  "Update installed. Restart GUI now?": "Actualizare instalată. Reporniți interfața?",
+  "Update installed. GUI will restart in 3 seconds.": "Actualizare instalată. Interfața va reporni în 3 secunde.",
   "Not enough free space": "Spațiu liber insuficient",
   "Invalid stream address": "Adresă de flux nevalidă",
   "Cannot add station": "Postul nu a putut fi adăugat",

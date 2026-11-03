@@ -55,7 +55,7 @@
   "Install update {version}?": "Të instalohet përditësimi {version}?",
   "Installing update…": "Po instalohet përditësimi…",
   "Update failed": "Përditësimi dështoi",
-  "Update installed. Restart GUI now?": "Përditësimi u instalua. Të riniset ndërfaqja?",
+  "Update installed. GUI will restart in 3 seconds.": "Përditësimi u instalua. Ndërfaqja do të riniset pas 3 sekondash.",
   "Not enough free space": "Nuk ka hapësirë të lirë të mjaftueshme",
   "Invalid stream address": "Adresë transmetimi e pavlefshme",
   "Cannot add station": "Stacioni nuk mund të shtohet",

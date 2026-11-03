@@ -55,7 +55,7 @@
   "Install update {version}?": "Установити оновлення {version}?",
   "Installing update…": "Установлення оновлення…",
   "Update failed": "Помилка оновлення",
-  "Update installed. Restart GUI now?": "Оновлення встановлено. Перезапустити GUI?",
+  "Update installed. GUI will restart in 3 seconds.": "Оновлення встановлено. Інтерфейс перезапуститься через 3 секунди.",
   "Not enough free space": "Недостатньо вільного місця",
   "Invalid stream address": "Неправильна адреса потоку",
   "Cannot add station": "Не вдалося додати станцію",

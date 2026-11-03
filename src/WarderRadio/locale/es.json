@@ -55,7 +55,7 @@
   "Install update {version}?": "¿Instalar la actualización {version}?",
   "Installing update…": "Instalando actualización…",
   "Update failed": "Error de actualización",
-  "Update installed. Restart GUI now?": "Actualización instalada. ¿Reiniciar la interfaz?",
+  "Update installed. GUI will restart in 3 seconds.": "Actualización instalada. La interfaz se reiniciará en 3 segundos.",
   "Not enough free space": "No hay espacio libre suficiente",
   "Invalid stream address": "Dirección del flujo no válida",
   "Cannot add station": "No se pudo añadir la emisora",

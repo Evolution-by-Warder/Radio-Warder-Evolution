@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test9**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test10**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ lyrics, a sleep timer or recording schedules.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-warderradio_0.1.0-test9_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-warderradio_0.1.0-test10_all.ipk
 ```
 
 Restart the GUI manually, then open **Warder Radio** from Plugins or Extensions.
@@ -84,7 +84,9 @@ Selecting a country preserves playback and saves the choice. Cancel keeps the
 previous selection. The smaller section label still identifies favourites,
 history, recordings and search results. CH+/CH− change pages. Yellow toggles a favourite;
 blue searches all stations. Update is the last left-menu entry, below Settings;
-activate it or press INFO to check/install plugin updates manually. The first MENU/Settings entry is Choose country and opens the same selector.
+activate it or press INFO to check/install plugin updates manually. After a verified
+successful installation, an information message appears for three seconds and
+the GUI restarts automatically. Failed updates do not restart the GUI. The first MENU/Settings entry is Choose country and opens the same selector.
 MENU also updates the catalogue, adds a
 station, controls recording and opens About. STOP stops radio playback and
 returns to the previous service. EXIT/red closes the plugin and restores the
