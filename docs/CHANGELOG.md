@@ -1,3 +1,9 @@
+# 0.1.0-test32
+
+- Enlarge the YouTube artwork by another 50%, from 240 to 360 px at Full HD.
+- Keep the same 80 px left alignment and 12 px gap above the native information bar.
+- Retain proportional scaling, aspect ratio, visibility and cleanup.
+
 # 0.1.0-test31
 
 - Enlarge the YouTube song artwork from 180 to 240 px at Full HD.

@@ -656,7 +656,7 @@ class NativeTests(unittest.TestCase):
             player.set_artwork(str(path))
             overlay = player.artwork_dialog
             position, size = overlay.instance.position(), overlay.instance.size()
-            self.assertEqual(size.width(), round(width * 240 / 1920))
+            self.assertEqual(size.width(), round(width * 360 / 1920))
             self.assertEqual(size.width(), size.height())
             self.assertGreaterEqual(position.x(), 0); self.assertGreaterEqual(position.y(), 0)
             self.assertLessEqual(position.x() + size.width(), width)

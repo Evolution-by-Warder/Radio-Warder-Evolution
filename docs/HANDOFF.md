@@ -1,3 +1,15 @@
+# Radio Warder Evolution — test32 artwork enlarged by 50%
+
+Owner requests another 50% increase from the receiver-confirmed test31 size and
+explicitly retains the left alignment. Full HD size is now 360x360 px, up from
+240x240. The x offset remains 80 px and the lower edge retains the 12 px gap
+above the native information bar. The cover therefore grows rightward/upward.
+Geometry still scales at HD/FHD/WQHD/UHD. No other behaviour or assets change.
+Existing native geometry expectations are updated; no new tests for this small
+layout edit. Publication verification pending.
+
+---
+
 # Radio Warder Evolution — test31 larger video artwork
 
 The receiver screenshot confirms test30’s song image is visible with the native

@@ -1,4 +1,4 @@
-# Current-song YouTube video — test31
+# Current-song YouTube video — test32
 
 Receiver screenshots confirm test24's actual YouTube video playback. Test25
 retains that resolver and uses the image's standard Screens.InfoBar.MoviePlayer
@@ -40,7 +40,7 @@ Actual quality depends on available formats, receiver codecs and connection.
 
 Song artwork is passed from the radio’s already downloaded current-song image;
 the neutral plugin logo is excluded. The optional VideoArtwork screen is created
-with instantiateDialog (no modal stack or ActionMap). Its transparent, 240 px at
+with instantiateDialog (no modal stack or ActionMap). Its transparent, 360 px at
 Full HD image sits above the left end of a bottom-anchored native information bar,
 with scaling at HD/WQHD/UHD and a conservative fallback for full-screen bar skins.
 It follows MoviePlayer onShow/onHide; late current-generation covers are forwarded.
