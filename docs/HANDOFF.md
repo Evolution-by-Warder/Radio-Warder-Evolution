@@ -30,7 +30,16 @@ The exact native Screen widgets/show/hide and MoviePlayer close handlers are
 replayed; image decoding/session boundary and MoviePlayer constructor/mixins are
 stubbed. Physical receiver cover positioning remains pending.
 
-Publication verification pending.
+Local and publication verification passed: 83 unit cases plus 40 native cases
+on each of three pinned image revisions (203 executions), 54 verified native
+fixture files, IPK/Python 3.9/owned paths/offline scripts, seven real artwork
+downloads and final public download/feed verification. Source:
+00c3752bfe35d3a6b6a4a4af05b8d9b425e835ed.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41690391473
+Testing feed offers test30. Local IPK, public asset digest and pinned feed agree:
+3097614 bytes; SHA-256 58d4c024d09bf7d9316d165176bb959f1fcb5db56f882aad7473fc77e8cbffb4.
+Stable feeds and immutable test11 migration bridge are retained. Actual video
+cover placement remains for receiver confirmation.
 
 ---
 
