@@ -23,8 +23,17 @@ Local verification: 54 unit cases, 22 native cases on each of three pinned
 OpenPLi/OpenATV revisions (120 executions), and package/Python 3.9/offline scripts.
 Publication additionally requires live two-request cover downloads for CHILL77,
 BCC Worship and Jackers Revenge, and a three-request artist fallback for Dianah
-Kay. Receiver latency and visual confirmation remain pending. Publication
-results will be recorded after public-byte and testing-feed verification.
+Kay. Receiver latency and visual confirmation remain pending. Source: 99e2728bf8edd32e84e9be3b53ba5614c660c1d6.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41658388330 — success.
+All build, native tests, four actual image downloads, publication and final
+public-download/feed verification steps passed. Measured hosted-runner network
+reads: CHILL77 0.240s, BCC Worship 0.647s, Jackers Revenge 0.388s and Dianah Kay
+0.361s. Counts: two requests for each song cover, three for the artist fallback.
+These are server measurements; receiver visual/latency confirmation is pending.
+The published v2 testing feed and IPK agree: 3,061,146 bytes; SHA-256
+`51afac80cabc6058e0797a5045e5aeebcd77ae1bdfc678a8902c9aa28dbde099`.
+IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test21/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test21_all.ipk
+Stable feeds and the immutable test11 bridge remain unchanged.
 
 ---
 

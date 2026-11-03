@@ -89,3 +89,6 @@ actions/runs/41655826061 (Jackers Revenge), actions/runs/41656630459 (Dianah Kay
 in the Radio Warder Evolution repository. Replays are public-API requests;
 they do not execute a receiver plugin. The publication workflow requires actual
 image downloads for all three cases plus CHILL77 before updating the test feed.
+
+Successful four-image test21 publication check:
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41658388330
