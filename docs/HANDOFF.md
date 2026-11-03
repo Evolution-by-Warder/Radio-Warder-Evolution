@@ -17,7 +17,7 @@ Local verification: 50 unit cases and 22 native replay cases on each of three
 pinned OpenPLi/OpenATV revisions (116 executions), plus IPK/Python 3.9 grammar,
 owned paths and offline install-script checks. The publication workflow now also
 requires a real CHILL77 cover download in two requests before publishing.
-Publication results will be appended after final public-byte/feed verification.
+Source: 145d3e24d5370134b1ac8bd44089bf2e0642c327.\nCI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41652995788 — success.\nAll build, native tests, live lookup, publication and public-feed steps passed.\nThe real cover downloaded in two requests: catalogue 0.331s, image 0.038s,\n59,310-byte JPEG. These are hosted-runner timings, not a receiver guarantee.\nPublic IPK and v2 feed agree: 3,060,018 bytes, SHA-256\n`a10571a830514bc36bee77f6bac6fa1b2d9aae8a897690e118466cff663798ad`.\nURL: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test20/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test20_all.ipk\nTesting feed now offers test20. Stable feeds and the immutable test11 migration\nbridge are retained.
 
 FullHDGlass Radio Mode follow-up is queued in both NEXT-RELEASE.md and
 PROJECT-CONTINUITY.md, commit 3d13f41e2d497dccbca78949e73d22783ed2cca9.

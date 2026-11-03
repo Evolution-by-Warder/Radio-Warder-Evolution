@@ -57,7 +57,10 @@ query durations are from a hosted runner, not a receiver performance guarantee.
 The separate public-query comparison is read-only and does not execute or trace
 a receiver plugin. Its report records requested/final URLs, timing, catalogue
 results and test19 acceptance decisions:
-See the Artwork lookup comparison workflow in the Radio Warder Evolution repository.
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41652995750
+
+The test20 publication check also downloaded the real cover in two requests:
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41652995788
 
 Optional `lookup_cover(..., trace=callback)` diagnostics report requests,
 responses, candidate rankings and the selected image URL. Callback errors are
