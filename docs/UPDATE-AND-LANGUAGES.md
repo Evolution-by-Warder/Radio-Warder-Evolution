@@ -43,3 +43,16 @@ part of this change.
 Validation: 25 unit cases, nine native replay cases on each of three pinned
 OpenPLi/OpenATV revisions (52 executions), and package payload/install-script
 verification. Hardware confirmation is pending.
+
+## Package rename in test12
+
+The browser name is Radio Warder Evolution. The canonical opkg ID is
+enigma2-plugin-extensions-radio-warder-evolution, replacing/conflicting with
+enigma2-plugin-extensions-warderradio. Owned files and settings paths are retained.
+The new updater uses update/v2/testing.json and update/v2/stable.json.
+The original testing.json serves the immutable old-ID test11 bridge because
+installed old updaters strictly validate that identity. Following GUI restart,
+the bridge offers the canonical test12 through v2. A direct test12 installation
+performs the rename in one opkg operation. Both public packages are verified
+before either feed is committed. Initial install confirmation remains; successful
+updates show a three-second notice and automatically restart the GUI.

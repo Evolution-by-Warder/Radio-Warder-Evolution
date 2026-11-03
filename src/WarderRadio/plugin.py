@@ -1,6 +1,5 @@
 """Lazy plugin entry: no network, playback or firmware changes at discovery."""
 from Plugins.Plugin import PluginDescriptor
-from .i18n import t
 
 
 def main(session, **kwargs):
@@ -9,7 +8,7 @@ def main(session, **kwargs):
 
 
 def Plugins(**kwargs):
-    return [PluginDescriptor(name='Warder Radio', description='World of Radio Stations',
+    return [PluginDescriptor(name='Radio Warder Evolution', description='World of Radio Stations',
                              where=PluginDescriptor.WHERE_PLUGINMENU, icon='plugin.png', fnc=main),
-            PluginDescriptor(name='Warder Radio', description='World of Radio Stations',
+            PluginDescriptor(name='Radio Warder Evolution', description='World of Radio Stations',
                              where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=main)]

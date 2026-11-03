@@ -46,7 +46,7 @@ class UpdateTests(unittest.TestCase):
         def opener(url):
             calls.append(url); return io.BytesIO(json.dumps(value).encode())
         self.assertIsNone(update.check_release('0.1.0-test2', opener))
-        self.assertTrue(calls[0].endswith('/update/testing.json'))
+        self.assertTrue(calls[0].endswith('/update/v2/testing.json'))
 
     def test_failed_hash_removes_staged_file_and_does_not_invoke_opkg(self):
         release = update.parse_release(json.dumps(manifest()), '0.1.0-test2')

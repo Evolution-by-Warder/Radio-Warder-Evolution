@@ -1,5 +1,4 @@
 """Native Enigma2 screen; workers never access widgets or session navigation."""
-import math
 import os
 import time
 
@@ -13,7 +12,6 @@ from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixm
 from Tools.LoadPixmap import LoadPixmap
 from Components.Pixmap import Pixmap
 from Components.ServiceEventTracker import ServiceEventTracker
-from Components.Sources.CanvasSource import CanvasSource
 from Screens.Screen import Screen
 from Screens.ChoiceBox import ChoiceBox
 from Screens.MessageBox import MessageBox
@@ -27,6 +25,7 @@ from .recording import Recording
 from .picons import path_for
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
+from .spectrum import Spectrum
 
 
 class Timer:
@@ -40,8 +39,8 @@ class Timer:
         else:
             self.connection = self.timer.timeout.connect(callback)
 
-    def start(self, milliseconds):
-        self.timer.start(milliseconds, False)
+    def start(self, milliseconds, single=False):
+        self.timer.start(milliseconds, single)
 
     def close(self):
         self.timer.stop()
@@ -109,7 +108,6 @@ class WarderRadio(Screen):
         self.active_group = self.store.group
         if self.active_group and self.active_group not in self.catalogue.groups() and self.active_group != 'Custom':
             self.active_group = self.catalogue.groups()[0]
-        self.frame = 0
         self.playing = False
         self.rows = []
         self.recording_was_running = False
@@ -124,7 +122,7 @@ class WarderRadio(Screen):
             self[name] = Label('')
         self['heading'] = Button('', onClick=[self.choose_group])
         self['art'] = Pixmap()
-        self['activity'] = CanvasSource()
+        self['activity'] = Pixmap()
         self['version'].setText('v' + VERSION)
         self['navtitle'].setText('')
         self['nowlabel'].setText(t('Now playing'))
@@ -151,7 +149,10 @@ class WarderRadio(Screen):
         self.events = ServiceEventTracker(screen=self, eventmap=events)
         self.poll_timer = Timer(self.poll)
         self.clock_timer = Timer(self.tick)
-        self.visual_timer = Timer(self.animate)
+        self.spectrum = Spectrum(self['activity'], lambda: self.playing and self.playback.owns(),
+                                 Timer, LoadPixmap)
+        self.onShow.append(self.spectrum.start)
+        self.onHide.append(self.spectrum.pause)
         self.onLayoutFinish.append(self.ready)
         self.onClose.append(self.cleanup)
 
@@ -160,10 +161,9 @@ class WarderRadio(Screen):
         self.refresh_rows()
         self.show_art(None)
         self.tick()
-        self.animate()
         self.poll_timer.start(150)
         self.clock_timer.start(1000)
-        self.visual_timer.start(180)
+        self.spectrum.start()
         self.resume_last_station()
         self.check_updates()
 
@@ -548,24 +548,6 @@ class WarderRadio(Screen):
                 self.recording_was_running = False
                 self.notify(t('Recording failed'), True)
 
-    def animate(self):
-        if self.closed:
-            return
-        self.frame += 1
-        source = self['activity']
-        width, height = round(580 * self.ui_scale), round(70 * self.ui_scale)
-        source.clear()
-        source.fill(0, 0, width, height, 0x081829)
-        playing = self.playing and self.playback.owns()
-        # Decorative activity indication, not an FFT/audio spectrum measurement.
-        for index in range(40):
-            value = (0.2 + 0.8 * abs(math.sin(index * 0.73 + self.frame * 0.21)
-                     * math.cos(index * 0.17 - self.frame * 0.13))) if playing else 0.05
-            bar = max(1, round((height - 4) * value))
-            x = round(index * width / 40)
-            source.fill(x, height - bar, max(1, width // 40 - 3), bar, 0x00cfff if playing else 0x1c4159)
-        source.flush()
-
     def poll(self):
         if not self.closed:
             self.jobs.poll()
@@ -647,7 +629,7 @@ class WarderRadio(Screen):
         self.closed = True
         self.poll_timer.close()
         self.clock_timer.close()
-        self.visual_timer.close()
+        self.spectrum.close()
         self.jobs.close()
         try:
             self.recording.stop()

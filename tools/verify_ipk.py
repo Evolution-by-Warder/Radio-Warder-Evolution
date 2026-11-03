@@ -52,6 +52,9 @@ with tempfile.TemporaryDirectory() as tmp:
     with tarfile.open(fileobj=io.BytesIO(parts['control.tar.gz']), mode='r:gz') as tar:
         control = tar.extractfile('./control').read().decode()
         assert 'Version: ' + VERSION + '-1\n' in control
+        assert 'Package: enigma2-plugin-extensions-radio-warder-evolution\n' in control
+        assert 'Replaces: enigma2-plugin-extensions-warderradio\n' in control
+        assert 'Conflicts: enigma2-plugin-extensions-warderradio\n' in control
         assert 'Architecture: all\n' in control
         for script in ('preinst', 'postinst'):
             body = tar.extractfile('./' + script).read()

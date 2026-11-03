@@ -13,11 +13,11 @@ from collections import namedtuple
 from urllib.request import Request, urlopen
 
 REPOSITORY = "Evolution-by-Warder/Radio-Warder-Evolution"
-PACKAGE_ID = "enigma2-plugin-extensions-warderradio"
+PACKAGE_ID = "enigma2-plugin-extensions-radio-warder-evolution"
 DOWNLOAD_PREFIX = PACKAGE_ID
 # Separate testing/stable feeds; CI advances the test feed only after the
 # exact public release IPK has been downloaded and verified.
-FEED_BASE = "https://raw.githubusercontent.com/" + REPOSITORY + "/main/update/"
+FEED_BASE = "https://raw.githubusercontent.com/" + REPOSITORY + "/main/update/v2/"
 MAX_IPK_BYTES = 128 * 1024 * 1024
 
 

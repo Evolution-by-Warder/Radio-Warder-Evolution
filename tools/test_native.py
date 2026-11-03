@@ -63,8 +63,9 @@ class Widget:
         self.attributes = {}
         self.text = ''; self.pixmap = None; self.content = None
         self.selectionChanged = Signal(); self.selected = Signal(); self.selectionEnabled = True
-    def show(self): pass
-    def hide(self): pass
+    def show(self): self.visible = True
+    def hide(self): self.visible = False
+    def isVisible(self): return getattr(self, "visible", True)
     def setText(self, text): self.text = text
     def setTitle(self, text): self.text = text
     def setForegroundColor(self, color): self.foreground = color
@@ -228,6 +229,10 @@ class NativeTests(unittest.TestCase):
         session = Session()
         screen = radio.WarderRadio(session)
         self.addCleanup(screen.cleanup)
+        # The archived test1 XML used a Canvas source; preserve its z-order
+        # fixture while adapting the removed component only in this replay.
+        if 'source="activity"' in screen.skin:
+            screen['activity'] = CanvasSource()
         root = mount(screen)
         return screen, session, root
 
@@ -251,14 +256,19 @@ class NativeTests(unittest.TestCase):
                         for item in widget.l.rows[:8]:
                             for entry in widget.l.build(*item)[1:]:
                                 self.assertLessEqual(entry[2] + entry[4], widget.l.height)
-                self.assertEqual(len(screen['activity'].drawlist[1]), 41)
+                self.assertIsInstance(screen['activity'], Pixmap)
+                screen.spectrum.tick()
+                self.assertFalse(screen['activity'].instance.isVisible())
+                screen.play_item(screen.current(), remember=False); screen.spectrum.tick()
+                self.assertTrue(screen['activity'].instance.isVisible())
+                self.assertIn('frame-', screen['activity'].instance.pixmap)
                 self.assertTrue(screen.rows)
                 self.assertTrue(screen['art'].instance.pixmap.endswith('plugin.png'))
                 self.assertIn(radio.VERSION, screen['version'].getText())
                 screen.cleanup()
                 self.assertFalse(screen.poll_timer.timer.active)
                 self.assertFalse(screen.clock_timer.timer.active)
-                self.assertFalse(screen.visual_timer.timer.active)
+                self.assertFalse(screen.spectrum.timer.timer.active)
 
     def test_play_metadata_favourites_history_and_return_to_tv(self):
         screen, session, _ = self.new(); original = session.nav.current
@@ -303,7 +313,7 @@ class NativeTests(unittest.TestCase):
         icon = getattr(descriptor, 'iconstr', None) or getattr(descriptor, 'iconString', None)
         self.assertEqual(icon, 'plugin.png')
         self.assertTrue(Path(ROOT, 'src/WarderRadio', icon).is_file())
-        self.assertEqual(descriptor.name, 'Warder Radio')
+        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors))
 
     def test_remote_context_is_private_and_each_action_is_bound(self):
         screen, _, _ = self.new()

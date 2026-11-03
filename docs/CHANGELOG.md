@@ -1,3 +1,18 @@
+# 0.1.0-test12
+
+The plugin and extensions menus now display Radio Warder Evolution. The
+installed package is radio-warder-evolution and replaces the old warderradio
+package. Test11 is the old-ID compatibility bridge for existing auto-updaters;
+it switches to the separate v2 feed before test12 changes the package identity.
+
+Replaces the cyan playback bars with the approved FullHDGlass multicolour
+segmented spectrum and peak markers, reusing its exact transparent frames.
+One native pixmap update per 100 ms; no per-segment canvas drawing. The shared
+48-frame cache has a fixed decoded pixel budget. Hidden screens pause, idle
+playback hides the animation, and an unavailable frame disables only the
+optional visual. The main layout and station playback remain unchanged.
+Includes test10's automatic GUI restart three seconds after a verified update.
+
 # 0.1.0-test10
 
 After a verified successful plugin update, display a localized information

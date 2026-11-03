@@ -29,6 +29,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 tools/build_ipk.py
+          python3 tools/build_ipk.py --legacy-bridge
           echo "RADIO_VERSION=$(cat src/WarderRadio/version.txt)" >> "$GITHUB_ENV"
       - name: Unit tests
         env:
@@ -64,6 +65,19 @@ jobs:
               --title "Warder Radio $RADIO_VERSION" --notes-file docs/CHANGELOG.md
           fi
           gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json --clobber
+          bridge_tag="warder-radio-v0.1.0-test11"
+          if ! gh release view "$bridge_tag" >/dev/null 2>&1; then
+            gh release create "$bridge_tag" --target "$GITHUB_SHA" --prerelease \
+              --title "Warder Radio package migration bridge" \
+              --notes "Compatibility bridge for the old warderradio package. Restarts into the v2 updater, which offers Radio Warder Evolution. Direct installations should use the latest renamed package."
+          fi
+          # The bridge is immutable once published; later builds keep its bytes.
+          if gh release view "$bridge_tag" --json assets --jq '.assets[].name' | grep -q '\.ipk$'; then
+            echo 'Existing immutable compatibility bridge retained.'
+            gh release download "$bridge_tag" --pattern build.json --dir dist/legacy --clobber
+          else
+            gh release upload "$bridge_tag" dist/legacy/*.ipk dist/legacy/SHA256SUMS dist/legacy/build.json
+          fi
       - name: Verify public download and advance testing feed
         env:
           GH_TOKEN: ${{ github.token }}
@@ -74,7 +88,7 @@ jobs:
           python3 tools/publish_feed.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- update/testing.json
+          git add -- update/testing.json update/v2/testing.json
           if ! git diff --cached --quiet; then
             git commit -m "Publish verified Warder Radio $RADIO_VERSION testing feed [skip ci]"
             git push origin HEAD:main

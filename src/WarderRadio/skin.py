@@ -38,7 +38,7 @@ def make_skin(width, height):
               label('artist', 1230, 603, 620, 48, 28, '#00ceff', 'center'),
               label('track', 1230, 656, 620, 96, 28, '#e7f4ff', 'center', True),
               label('details', 1230, 759, 620, 40, 23, '#a6bed1', 'center'),
-              label('activitylabel', 1230, 897, 620, 28, 18, '#87a4b9', 'center'),
+              label('activitylabel', 1230, 909, 620, 24, 18, '#87a4b9', 'center'),
               label('count', 530, 891, 620, 32, 23, '#9bbad0'),
               label('status', 60, 946, 1800, 40, 24, '#d6e9f7', 'center'),
               label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'right')]
@@ -55,7 +55,7 @@ def make_skin(width, height):
                  'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
                  % (n(55), n(307), n(390), n(94) * 6))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1350, 300, 360, 180))
-    parts.append('<widget source="activity" render="Canvas" zPosition="2" %s />' % rect(1250, 813, 580, 70))
+    parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1365, 779, 350, 126))
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
         parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))

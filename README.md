@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test10**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test12**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ lyrics, a sleep timer or recording schedules.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-warderradio_0.1.0-test10_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test12_all.ipk
 ```
 
 Restart the GUI manually, then open **Warder Radio** from Plugins or Extensions.
@@ -129,3 +129,17 @@ The full logo master is retained in `artwork/warder-radio-logo.png`; the plugin
 uses `plugin.png`. No existing unrelated logos were changed.
 
 License: GPL-2.0-or-later. Copyright 2026 Warder.
+
+The plugin and extensions menus display Radio Warder Evolution.
+
+The playback visual reuses the approved FullHDGlass multicolour segmented spectrum
+with peak markers. Prepared transparent frames play at up to 10 frames per second,
+with a shared bounded cache. It pauses while hidden or idle. This is a decorative
+playback animation, not a measured audio spectrum.
+
+The installed package is named radio-warder-evolution. Its IPK replaces and
+conflicts with the former warderradio package, taking over the same owned files
+and preserving /etc/enigma2/warder-radio. It can be installed directly over an
+older build. Older in-plugin updaters first offer the test11 compatibility bridge
+under the original package name; after the GUI restart it uses the v2 feed and
+offers the renamed test12 package. This avoids bypassing package identity checks.

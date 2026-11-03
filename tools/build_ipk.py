@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Deterministic architecture-independent IPK; only owned plugin files."""
 import ast
+import argparse
 import gzip
 import hashlib
 import io
@@ -13,10 +14,16 @@ import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'src/WarderRadio'
-VERSION = (SOURCE / 'version.txt').read_text().strip()
+parser = argparse.ArgumentParser()
+parser.add_argument('--legacy-bridge', action='store_true')
+args = parser.parse_args()
+VERSION = '0.1.0-test11' if args.legacy_bridge else (SOURCE / 'version.txt').read_text().strip()
 assert re.fullmatch(r'\d+\.\d+\.\d+-test\d+', VERSION), VERSION
 EPOCH = int(os.environ.get('SOURCE_DATE_EPOCH', '1793664000'))
-PACKAGE = 'enigma2-plugin-extensions-warderradio'
+PACKAGE = ('enigma2-plugin-extensions-warderradio' if args.legacy_bridge
+           else 'enigma2-plugin-extensions-radio-warder-evolution')
+MIGRATION = ('' if args.legacy_bridge else
+             'Replaces: enigma2-plugin-extensions-warderradio\nConflicts: enigma2-plugin-extensions-warderradio\n')
 FILES = {}
 for path in sorted(SOURCE.rglob('*')):
     if not path.is_file() or '__pycache__' in path.parts or path.suffix in ('.pyc', '.pyo'):
@@ -26,7 +33,8 @@ for path in sorted(SOURCE.rglob('*')):
     if path.suffix == '.py':
         ast.parse(path.read_text(), filename=str(path), feature_version=(3, 9))
     name = 'usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/' + path.relative_to(SOURCE).as_posix()
-    FILES[name] = (path.read_bytes(), 0o644)
+    data = (VERSION + '\n').encode() if path.name == 'version.txt' else path.read_bytes()
+    FILES[name] = (data, 0o644)
 FILES['usr/share/doc/warder-radio/README.md'] = ((ROOT / 'README.md').read_bytes(), 0o644)
 FILES['usr/share/doc/warder-radio/COPYING'] = ((ROOT / 'COPYING').read_bytes(), 0o644)
 installed = sum(len(data) for data, _ in FILES.values())
@@ -38,7 +46,7 @@ Section: extra
 Priority: optional
 License: GPL-2.0-or-later
 Depends: enigma2, python3-core, python3-compression, python3-crypt, python3-io, python3-json, python3-math, python3-netclient, python3-threading, python3-xml
-Suggests: streamripper
+{MIGRATION}Suggests: streamripper
 Installed-Size: {installed}
 Description: Warder Radio - World of Radio Stations
  Native internet radio player for OpenPLi and OpenATV, with the Warder catalogue,
@@ -86,7 +94,7 @@ def ar_member(name, content):
     return header + content + (b'\n' if len(content) % 2 else b'')
 
 
-out = ROOT / 'dist'; out.mkdir(exist_ok=True)
+out = ROOT / ('dist/legacy' if args.legacy_bridge else 'dist'); out.mkdir(exist_ok=True)
 name = f'{PACKAGE}_{VERSION}_all.ipk'
 content = b'!<arch>\n' + ar_member('debian-binary', b'2.0\n') + ar_member('control.tar.gz', archive({
     'control': (control, 0o644), 'preinst': (preinst, 0o755), 'postinst': (postinst, 0o755)})) + ar_member('data.tar.gz', archive(FILES))
