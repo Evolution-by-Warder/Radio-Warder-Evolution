@@ -1,3 +1,19 @@
+## Country catalogue quality checkpoint — 3 November 2026
+
+This supersedes the 71,303-row country catalogue recorded below. Source observations remain in the central master; only the user-facing country catalogue is filtered. The current country view contains **35,870 stations across 219 country/territory codes**, each with a confirmed bounded audio sample. Slovakia has **72 rows**, Czechia **234**. Exact stream aliases and **3,084 station variants** were merged with country/site/transport evidence, preserving curated identities where applicable. Case, accents, spacing, encoding labels and redundant directory prefixes do not create additional rows. Distinct thematic programmes and regional names remain separate; uncertain homonyms, country evidence and broadcaster channel bindings are held for review.
+
+The live gate held 2,288 confirmed unavailable/non-audio entries, 80 other-station redirects and 4,535 entries without confirmed audio. These are review records, not a claim that every timeout or access-restricted station is dead. Seventeen reported thematic broadcaster bindings await identity confirmation. Master/source observations and saved favourites are not erased. Verified alternate stream selection recovered 201 primary URLs. Picons are explicitly deferred until the owner checks the cleaned catalogue on the receiver.
+
+The separately requested **HDF Radio zoznam** is the last group, with **5,344 original-source entries**, preserving names, stream URLs and sequence. This is an unfiltered source view, separately namespaced to avoid reference collisions; it is not part of the verified-country station count. Technical source-local placeholder headings are not playable entries.
+
+Data revision: `4ba0ca2cc66c60905d4d4c19f71fb5f40d5cfae8`; compiler source merge: `b90bca1072d62d0b969722b069978f9da372d403`. [Catalogue workflow](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/41729720264) passed 71 tests, including an actual loopback slow-header deadline fixture. Two bounded audit passes reuse fresh statuses without converting uncertainty into success. Deferred URLs are explicitly marked, excluded from country publication and prioritised on a later cycle. Unexpected later loss of a large share of the live catalogue blocks publication.
+
+The public receiver gzip is **1,270,236 bytes**, decoded **6,421,612 bytes**, SHA-256 `ac9dfab604bd69f20ff81ee20c40a20be150d6234701e79d506439d5443ff386`. It contains **41,214 rows including the separate original-source view**. The actual public download passed hash/size, the existing test33 importer, disk-cache reopen, reference uniqueness, zero normalised country-name duplicates, country ordering and exact original-source name/URL/order checks. These are host/network checks, not physical receiver confirmation or a guarantee of every programme's semantic identity.
+
+No new IPK is needed: test33 users select **MENU → Aktualizovať katalóg**. Plugin source, artwork, stable/testing package feeds and the immutable compatibility bridge are unchanged by this data checkpoint. Public verification is recorded centrally in `picons/IPTV-SK-CZ/catalog/quality-verification-20261103.json`. The weekly catalogue pipeline retains the quality gate and original-source view.
+
+---
+
 ## 0.1.0-test33 — full central country catalogue (3 November 2026)
 
 The central PiconHub pipeline now keeps one compressed master of supported source observations, a deduplicated metadata database and a lean receiver catalogue. Active inputs are the existing Warder catalogue, the complete Radio Browser export and the complete laut.fm inventory. Other researched directories remain candidates; they are not claimed as imported. Genre, language, bitrate, codec, provenance and available logo links are retained for later views.
