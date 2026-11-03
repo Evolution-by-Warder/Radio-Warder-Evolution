@@ -92,3 +92,25 @@ image downloads for all three cases plus CHILL77 before updating the test feed.
 
 Successful four-image test21 publication check:
 https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41658388330
+
+
+## Spoken-programme label: 2026-11-03 check
+
+Receiver metadata: Rozpravka na celu / Chore slniecko. Global, SK/CZ/US combined
+music searches and title-only searches with/without diacritics returned no
+matches. A broad artist-only query returned Radnica by Rozprávka na hrade Ľubovňa,
+on Múdry Maťko a blázni alebo U nás v Hlupákove, with an image for that different
+release. This is not a verified match to either the requested artist or title;
+the existing exact-artist fallback correctly excludes it.
+
+The spoken-word check also returned no matches for Choré slniečko in the global
+and Slovak audiobook catalogues or media=all; a Slovak audiobook search for
+Kukučkový dedko was also empty. The publisher lists Choré slniečko in Kukučkový
+dedko, but no matching image was obtained through the integrated APIs. Retain
+neutral fallback rather than displaying an unrelated work. No runtime, package
+version or update feed is changed by this diagnostic.
+
+Query evidence:
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41659918232
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41660309627
+Publisher: https://www.rozpravkypredeti.sk/kukuckovy-dedko-cd/
