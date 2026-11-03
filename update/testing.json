@@ -3,12 +3,12 @@
   "product": "Warder Radio",
   "channel": "testing",
   "release": {
-    "version": "0.1.0-test9",
-    "tag": "warder-radio-v0.1.0-test9",
-    "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test9/enigma2-plugin-extensions-warderradio_0.1.0-test9_all.ipk",
-    "sha256": "e2ec97d9ae11c491603579bbb6c05915479e09ef9f72f0fda14f643c7fa3efaf",
-    "bytes": 2798214,
-    "notes": "Warder Radio 0.1.0-test9",
+    "version": "0.1.0-test10",
+    "tag": "warder-radio-v0.1.0-test10",
+    "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test10/enigma2-plugin-extensions-warderradio_0.1.0-test10_all.ipk",
+    "sha256": "fc62f94da0fe31cc7b7a8d0ce4f78299d5234a0069d6a1e35f2875d057ff30ba",
+    "bytes": 2798596,
+    "notes": "Warder Radio 0.1.0-test10",
     "notes_i18n": {}
   }
 }
