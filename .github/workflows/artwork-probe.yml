@@ -28,7 +28,7 @@ jobs:
           from WarderRadio import song_identity as identity
           from WarderRadio.covers import cover_rank
 
-          artist, title = 'Dianah Kay', 'ILLUMIN8'
+          artist, title = 'Rozpravka na celu', 'Chore slniecko'
           plans = [
               ('Global-music-HTTP', 'http', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
               ('Global-music-HTTPS', 'https', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
@@ -37,6 +37,7 @@ jobs:
               ('Warder-test19-US', 'https', {'entity':'song','limit':10,'country':'US','term':artist+' '+title}),
               ('Title-only-music', 'https', {'term':title,'limit':20,'media':'music'}),
               ('Artist-only-music', 'https', {'term':artist,'limit':20,'media':'music'}),
+              ('Story-title-variant', 'https', {'term':'Choré slniečko','limit':20,'media':'music'}),
           ]
           report = []
           for name, scheme, params in plans:
