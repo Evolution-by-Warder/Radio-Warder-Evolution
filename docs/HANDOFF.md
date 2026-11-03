@@ -1,3 +1,20 @@
+# Radio Warder Evolution — test15 navigation correction
+
+User confirmed on the receiver that the plugin name Radio Warder Evolution and playing-song text now work in test14. Their screenshot also confirms the cyan panel outlines and multicolour spectrum are visible. They reported UP from the first left-menu item incorrectly opened country choices.
+
+Fixed the UP condition to apply the country shortcut only when focus is the centre station list. Left-menu UP/DOWN now wrap and move solely inside its six function entries, including first-to-last and last-to-first. RIGHT from the left still returns to the same selected station. Centre UP from its first row and RIGHT from any station still open country choices immediately. No layout, metadata, naming or updater changes.
+
+Source: `cadedbcf419fb1e3fc458897a18ae341024c16cb`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41631505922 — success.
+36 unit cases plus 17 native cases on each of three pinned OpenPLi/OpenATV revisions: 87 executions. The new regression cycles the entire left menu in both directions, checks there is no country dialog, and verifies station position/playback are preserved, then checks the centre shortcut. Package/Python/install-script validation passed. CI downloaded and verified public IPKs and advanced the v2 test feed; connector release asset digest/size match the live feed. Physical confirmation of the left-menu fix remains pending.
+
+Latest IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test15/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test15_all.ipk
+SHA-256 `22f8e7c57ff49375018f3ec8bd23869a54c997c20abaa0f8c16bd38a65d46dc4`; 3047892 bytes.
+
+---
+
+Prior release records follow.
+
 # Radio Warder Evolution — test14 metadata correction
 
 User requires ICY as the primary source because this plugin plays internet-radio streams. Implemented that exact priority: ICY StreamTitle from the playing URL first; native Enigma2 artist/title tags only while ICY is absent, unavailable or pending. The reader and separator repair come from the existing FullHDGlass radio implementation. A standalone ICY announcement remains current display text even without a separate artist.
