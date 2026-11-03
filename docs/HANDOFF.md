@@ -38,7 +38,16 @@ rendered widgets before work starts, no eager unused worker, duplicate layout,
 late close, external navigation/user input and failure/exit. Existing last-station
 resume and all recording/video/update behaviours are retained.
 
-Publication verification pending.
+Local and publication verification passed: 83 unit cases plus 35 native cases
+on each of three pinned image revisions (188 executions), 54 pinned fixture
+files, package/Python 3.9/owned-path/offline scripts, seven real artwork downloads
+and final public download/feed verification. Source: c899baaf891a745f0d0e7d4096855339ea3fea8b.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41688071179
+Testing feed offers test29. Local IPK, public asset API digest and pinned feed
+agree: 3096402 bytes; SHA-256
+0a3fb667bd310746582287d933f6279f637cfd53c8f0c0959fa23c430ad13e9f.
+Stable feeds and immutable test11 migration bridge retained. Physical receiver
+startup timing remains pending.
 
 ---
 
