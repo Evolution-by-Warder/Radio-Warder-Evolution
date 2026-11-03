@@ -1,0 +1,89 @@
+name: Warder Radio TEST
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'tests/**'
+      - 'README.md'
+      - 'COPYING'
+      - '.github/workflows/radio-test.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build test payload
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 tools/build_ipk.py
+          echo "RADIO_VERSION=$(cat src/WarderRadio/version.txt)" >> "$GITHUB_ENV"
+      - name: Unit tests
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          PYTHONPATH: src
+        run: python3 -m unittest discover -s tests -v
+      - name: Fetch and verify pinned native fixtures
+        run: python3 tools/fetch_native.py
+      - name: Native OpenPLi and OpenATV replays
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 tools/test_native.py --upstream fixtures/openpli-release-9.2 -v
+          python3 tools/test_native.py --upstream fixtures/openatv-81-reviewed-base -v
+          python3 tools/test_native.py --upstream fixtures/openatv-8.0-next -v
+      - name: Build and verify independent IPK
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 tools/verify_ipk.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warder-radio-${{ env.RADIO_VERSION }}
+          path: dist/*
+      - name: Publish receiver-test prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="warder-radio-v$RADIO_VERSION"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --prerelease \
+              --title "Warder Radio $RADIO_VERSION" --notes-file docs/CHANGELOG.md
+          fi
+          gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json --clobber
+      - name: Set repository About metadata
+        if: github.run_number == 1
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh repo edit "$GH_REPO" --description "Warder Radio - native Enigma2 internet radio for OpenATV and OpenPLi, with picons, favourites, history, optional recording, 21 languages, last-station resume and verified automatic updates." --homepage "https://github.com/$GH_REPO/releases" --add-topic 'enigma2,radio,openatv,openpli,python,picons,internet-radio'
+      - name: Verify public download and advance testing feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin main
+          git switch -C warder-radio-feed origin/main
+          test "$(cat src/WarderRadio/version.txt)" = "$RADIO_VERSION"
+          python3 tools/publish_feed.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- update/testing.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified Warder Radio $RADIO_VERSION testing feed [skip ci]"
+            git push origin HEAD:main
+          fi

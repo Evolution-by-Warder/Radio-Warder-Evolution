@@ -6,7 +6,17 @@ Official source: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution
 
 Releases and IPKs: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases
 
- Current receiver-test candidate:
+ Warder Radio brings internet radio to Enigma2 receivers in the Warder graphic
+style: functions on the left, stations in the centre and live playback on the
+right. It combines the owned PiconHub catalogue with persistent favourites,
+listening history, native picons, recording support and verified updates.
+
+**Slovensky:** Samostatný rádiový plugin pre OpenATV a OpenPLi s našou grafikou,
+rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históriou a
+piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
+aktualizáciu. Nahrávanie využíva voliteľný streamripper.
+
+Current receiver-test candidate:
 **0.1.0-test7**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live

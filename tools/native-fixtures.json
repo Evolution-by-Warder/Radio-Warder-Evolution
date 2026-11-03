@@ -1,0 +1,68 @@
+[
+  {
+    "name": "openpli-release-9.2",
+    "repository": "OpenPLi/enigma2",
+    "commit": "65dc39356b2863915745176a16a562ec1aa366b4",
+    "files": {
+      "Components/Element.py": "0d9b7c41135810e30edcdca357573cf320ca797797b81c053b755eb538da0b92",
+      "Components/GUIComponent.py": "cfcc1013434315b297b64ca996f004def757550790d9cc97b74d6c9950e7ec62",
+      "Components/Label.py": "567da8b0981323818e0b089b83f2e3da7f941d7ed265531cec79ac4b844568e6",
+      "Components/MenuList.py": "b49ee4a90cd5729472cfe7c9e2b1a7073c6ccab1a96dabd37572a74420beeb9d",
+      "Components/MultiContent.py": "ff4c92434fb51d4e1905c9d812201cff814b513c0b42fb63422cd66b2a355ba2",
+      "Components/Pixmap.py": "61fcfc6a99185db3c47bd7eb60c0d9caabe122a95f6911e75cb0e8a500440d65",
+      "Components/ServiceEventTracker.py": "6fff82f66ede6140bacfed62cc3f0b32428632a6641940d9a08823a6387c66f2",
+      "Components/Sources/CanvasSource.py": "43d234c8211f31bf7a25b52c1c045b3dc68fb8b198b322ec0dae6bdb0a857e00",
+      "Components/Sources/Source.py": "7803fe01e02f64972709f1968d691e29d27878fc0dc7f115f78059b5a0b97572",
+      "Components/Sources/StaticText.py": "cfd666e77b9f10970892153fe8f8d55f9d9c6e893d59ee1c6904380a636e9bd6",
+      "Components/VariableText.py": "e5679d97aedcd9ab74f07c9b6436febabe22f7fd3acd72238382c7751f273148",
+      "Plugins/Plugin.py": "7f2e9e82dc7efe3d8a6a1305332188d6a827ba6dc2fd304ded215a7d0c7271e8",
+      "Screens/Screen.py": "3b4b88fe33e51fe543602f12ca86f1cde65c2d1ffa1a1d9f80f98fc22dbfff31",
+      "Tools/CList.py": "138b58b8b5488a26acb095785a281b6fad6617391f99a8048bbbafa885c31cdf",
+      "Components/Button.py": "1faa07cda705ddc45d1703b868ba8a48faaa282b58465e20f2fd8d67002b9577"
+    }
+  },
+  {
+    "name": "openatv-81-reviewed-base",
+    "repository": "openatv/enigma2",
+    "commit": "266beaa50c464f1a6983a3a64133f6047482aee8",
+    "files": {
+      "Components/Element.py": "f2b0045bdb2d4399430ef1cb65d1355887f9dc1e34f968a9178a600a698c288d",
+      "Components/GUIComponent.py": "93abe69e6f10de1929aeaf3a291d8b73fe769e1197e8f523e3d0cdc4e4f11ab7",
+      "Components/Label.py": "7aaaa1831d903b0953abf3fd57f62ed3148e1d8a7a6e5192f0cf6bb556a2a88c",
+      "Components/MenuList.py": "abe4edfc4aab2b98a25ca722100c26e35d214f0c87a653ef2ed500d30922b106",
+      "Components/MultiContent.py": "70539b88cf5f26b317d0516da360f53abfee74319a8a6e58fd2ba2533dade719",
+      "Components/Pixmap.py": "2f381f10fc168e0ff797c0b4d33975618498cd62057339a431676dda22e4113a",
+      "Components/ServiceEventTracker.py": "fef58f65575c40682c0d28ab1fbcac6f9649512f6c3140d7493a6a3864fce661",
+      "Components/Sources/CanvasSource.py": "4c8e251b3c5f8e96d5fcf432cb6afae71265378a7f959fc89f630083924b4aa9",
+      "Components/Sources/Source.py": "7803fe01e02f64972709f1968d691e29d27878fc0dc7f115f78059b5a0b97572",
+      "Components/Sources/StaticText.py": "4143bc5f432c142f8d650a9eae3acaa05b9674948731b7c58017c5ad85962c42",
+      "Components/VariableText.py": "31c251d0abd3444879e93ff8d5e2075ad163e8f46bbca4bc59db222203e318f1",
+      "Plugins/Plugin.py": "605844b8a39860504b5eccf1d112ab12e0cf3a6a75bf5597423f2b5568083bc1",
+      "Screens/Screen.py": "1c887a40aae3cc5e0120ae35d0d82fe4fcafac8dd45c72d7cc816fa152f4fcc0",
+      "Tools/CList.py": "138b58b8b5488a26acb095785a281b6fad6617391f99a8048bbbafa885c31cdf",
+      "Components/Button.py": "4df482731990e0c1766a2ecfd6dd8d028be3d9c7fe6fee803f224ed636b8c951"
+    }
+  },
+  {
+    "name": "openatv-8.0-next",
+    "repository": "openatv/enigma2",
+    "commit": "da455f57dda38b5f0de0744c913ee2270b7dc2ba",
+    "files": {
+      "Components/Element.py": "f2b0045bdb2d4399430ef1cb65d1355887f9dc1e34f968a9178a600a698c288d",
+      "Components/GUIComponent.py": "93abe69e6f10de1929aeaf3a291d8b73fe769e1197e8f523e3d0cdc4e4f11ab7",
+      "Components/Label.py": "7aaaa1831d903b0953abf3fd57f62ed3148e1d8a7a6e5192f0cf6bb556a2a88c",
+      "Components/MenuList.py": "abe4edfc4aab2b98a25ca722100c26e35d214f0c87a653ef2ed500d30922b106",
+      "Components/MultiContent.py": "70539b88cf5f26b317d0516da360f53abfee74319a8a6e58fd2ba2533dade719",
+      "Components/Pixmap.py": "2f381f10fc168e0ff797c0b4d33975618498cd62057339a431676dda22e4113a",
+      "Components/ServiceEventTracker.py": "fef58f65575c40682c0d28ab1fbcac6f9649512f6c3140d7493a6a3864fce661",
+      "Components/Sources/CanvasSource.py": "4c8e251b3c5f8e96d5fcf432cb6afae71265378a7f959fc89f630083924b4aa9",
+      "Components/Sources/Source.py": "7803fe01e02f64972709f1968d691e29d27878fc0dc7f115f78059b5a0b97572",
+      "Components/Sources/StaticText.py": "4143bc5f432c142f8d650a9eae3acaa05b9674948731b7c58017c5ad85962c42",
+      "Components/VariableText.py": "31c251d0abd3444879e93ff8d5e2075ad163e8f46bbca4bc59db222203e318f1",
+      "Plugins/Plugin.py": "605844b8a39860504b5eccf1d112ab12e0cf3a6a75bf5597423f2b5568083bc1",
+      "Screens/Screen.py": "1c887a40aae3cc5e0120ae35d0d82fe4fcafac8dd45c72d7cc816fa152f4fcc0",
+      "Tools/CList.py": "138b58b8b5488a26acb095785a281b6fad6617391f99a8048bbbafa885c31cdf",
+      "Components/Button.py": "4df482731990e0c1766a2ecfd6dd8d028be3d9c7fe6fee803f224ed636b8c951"
+    }
+  }
+]
