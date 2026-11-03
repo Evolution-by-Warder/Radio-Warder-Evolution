@@ -86,6 +86,9 @@ class Widget:
     def size(self):
         w, h = map(int, self.attributes.get('size', '400,400').split(','))
         return NS(width=lambda: w, height=lambda: h)
+    def position(self):
+        x, y = map(int, self.attributes.get('position', '0,0').split(','))
+        return NS(x=lambda: x, y=lambda: y)
     def calculateSize(self):
         font = int(self.attributes.get('font', 'Regular;31').split(';')[1])
         return NS(width=lambda: round(len(self.text) * font * .55))
@@ -142,7 +145,19 @@ class Navigation:
 
 
 class Session:
-    def __init__(self): self.nav = Navigation(); self.dialog_stack = []; self.dialogs = []; self.modal_callbacks = {}
+    def __init__(self):
+        self.nav = Navigation(); self.dialog_stack = []; self.dialogs = []; self.modal_callbacks = {}
+        self.auxiliary, self.deleted_auxiliary = [], []
+    def instantiateDialog(self, screen, *args, **kwargs):
+        dialog = screen(self, *args, **kwargs)
+        mount(dialog)
+        self.auxiliary.append(dialog)
+        return dialog
+    def deleteDialog(self, dialog):
+        dialog.hide()
+        for callback in list(dialog.onClose): callback()
+        self.auxiliary.remove(dialog)
+        self.deleted_auxiliary.append(dialog)
     def open(self, screen, *args, **kwargs): self.dialogs.append((screen, args, kwargs))
     def openWithCallback(self, callback, screen, *args, **kwargs):
         self.dialogs.append((screen, callback, args, kwargs))
@@ -153,6 +168,7 @@ class Session:
             self.current_dialog = dialog
             self.modal_callbacks[id(dialog)] = callback
             for shown in list(dialog.onShown): shown()
+            dialog.show()
             return dialog
     def close(self, screen, *args):
         screen.execing = False
@@ -595,6 +611,122 @@ class NativeTests(unittest.TestCase):
         self.assertIsNone(screen.video_dialog)
         screen.cleanup(); callbacks[-1]({'url':'https://rr1.googlevideo.com/video','title':'Late'},None)
         self.assertEqual(session.nav.current,external)
+
+    def video_with_artwork(self, session=None, image=True):
+        session = session or Session()
+        original = session.nav.current
+        radio_ref = Reference('radio'); session.nav.current = radio_ref
+        path = Path(self.tmp.name, 'song.jpg'); path.write_bytes(b'jpeg fixture')
+        video = {'title': 'Singer - Song', 'url': 'https://rr1.googlevideo.com/high',
+                 'urls': ['https://rr1.googlevideo.com/high', 'https://rr1.googlevideo.com/low']}
+        if image:
+            video['artwork'] = str(path)
+        player = radio.VideoPlayer(session, video, radio_ref, original, lambda: False)
+        mount(player); player.execing = True
+        player.show()
+        self.addCleanup(lambda: player.close() if not player.finished else None)
+        return player, session, path, radio_ref
+
+    def test_video_artwork_follows_native_infobar_visibility_without_modal_keys(self):
+        player, session, path, radio_ref = self.video_with_artwork()
+        artwork = player.artwork_dialog
+        self.assertIsNotNone(artwork)
+        self.assertTrue(artwork.shown)
+        self.assertEqual(artwork.display.path, str(path))
+        self.assertEqual(artwork['image'].instance.pixmap, str(path))
+        self.assertNotIn('actions', artwork)
+        self.assertEqual(session.dialogs, [])
+        self.assertTrue(player.owns())
+        player.hide(); self.assertFalse(artwork.shown)
+        player.show(); self.assertTrue(artwork.shown)
+        player.error()
+        self.assertIs(player.artwork_dialog, artwork)
+        self.assertTrue(player.owns())
+        player.doEofInternal(True)
+        self.assertEqual(session.nav.current, radio_ref)
+        self.assertEqual(session.auxiliary, [])
+        self.assertTrue(artwork.display.closed)
+
+    def test_video_artwork_scales_and_sits_above_bottom_native_bar(self):
+        for width, height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:] = width, height
+            player, session, path, _ = self.video_with_artwork(image=False)
+            bar_top = round(height * 787 / 1080)
+            player.instance.move(NS(x=lambda: 0, y=lambda: bar_top))
+            player.set_artwork(str(path))
+            overlay = player.artwork_dialog
+            position, size = overlay.instance.position(), overlay.instance.size()
+            self.assertEqual(size.width(), round(width * 180 / 1920))
+            self.assertEqual(size.width(), size.height())
+            self.assertGreaterEqual(position.x(), 0); self.assertGreaterEqual(position.y(), 0)
+            self.assertLessEqual(position.x() + size.width(), width)
+            self.assertLess(position.y() + size.height(), bar_top)
+            player.close()
+
+    def test_video_artwork_optional_failures_and_missing_files_leave_video_usable(self):
+        from WarderRadio import video_artwork
+        player, session, path, radio_ref = self.video_with_artwork(image=False)
+        self.assertEqual(session.auxiliary, [])
+        for invalid in ('https://example.org/cover.jpg', str(path.parent), str(path)+'-missing.jpg'):
+            player.set_artwork(invalid)
+            self.assertIsNone(player.artwork_dialog)
+            self.assertTrue(player.owns())
+        with patch.object(session, 'instantiateDialog', side_effect=RuntimeError('optional GUI unavailable')):
+            player.set_artwork(str(path))
+        self.assertTrue(player.owns()); self.assertIsNone(player.artwork_dialog)
+        class BrokenPicture(PicLoad):
+            def getData(self): return None
+        with patch.object(video_artwork, 'ePicLoad', BrokenPicture):
+            player.set_artwork(str(path))
+        self.assertFalse(player.artwork_dialog['image'].instance.isVisible())
+        self.assertTrue(player.owns())
+        player.set_artwork('')
+        self.assertEqual(session.auxiliary, [])
+        player.close(); self.assertEqual(session.nav.current, radio_ref)
+
+    def test_video_artwork_late_decode_after_exit_and_external_navigation_are_safe(self):
+        from WarderRadio import video_artwork
+        decoders = []
+        class SlowPicture(PicLoad):
+            def __init__(self): super().__init__(); decoders.append(self)
+            def startDecode(self, path): self.path = path; return 0
+        player, session, path, _ = self.video_with_artwork(image=False)
+        with patch.object(video_artwork, 'ePicLoad', SlowPicture):
+            player.set_artwork(str(path))
+        image = player.artwork_dialog['image'].instance
+        decoder = decoders[-1]; late = decoder.PictureData.get()[0]
+        external = Reference('external TV'); session.nav.current = external
+        player.close()
+        self.assertEqual(session.nav.current, external)
+        self.assertEqual(decoder.PictureData.get(), [])
+        late('')
+        self.assertIsNone(image.pixmap)
+        self.assertEqual(session.auxiliary, [])
+        player.set_artwork(str(path))
+        self.assertEqual(session.auxiliary, [])
+
+    def test_radio_passes_current_cover_to_video_and_late_cover_without_new_lookup(self):
+        screen, session, _ = self.new(); screen.play()
+        callbacks = []
+        screen.video_jobs.submit = lambda key,work,callback: callbacks.append(callback) or True
+        screen.youtube_video()
+        callbacks[-1]({'title':'Singer - Song','url':'https://rr1.googlevideo.com/video',
+                       'artwork': str(Path(radio.ROOT, 'plugin.png'))}, None)
+        player = screen.video_dialog
+        self.assertIsNone(player.artwork_dialog)  # Neutral logo is not a song cover.
+        path = Path(self.tmp.name, 'late-cover.jpg'); path.write_bytes(b'jpeg fixture')
+        with patch.object(screen.cover_jobs, 'submit') as lookup:
+            screen.cover_loaded(screen.cover_generation, (str(path), 'iTunes'), None)
+            lookup.assert_not_called()
+        self.assertEqual(player.artwork_dialog.display.path, str(path))
+        screen.cover_loaded(screen.cover_generation - 1, ('/tmp/unrelated.jpg', 'iTunes'), None)
+        self.assertEqual(player.artwork_dialog.display.path, str(path))
+        player.close()
+        screen.youtube_video()
+        callbacks[-1]({'title':'Singer - Song','url':'https://rr1.googlevideo.com/video'}, None)
+        self.assertEqual(screen.video_dialog.artwork_dialog.display.path, str(path))
+        screen.cleanup()
+        self.assertEqual(session.auxiliary, [])
 
     def test_classic_movieplayer_skin_constructor_and_native_return_handler(self):
         for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):

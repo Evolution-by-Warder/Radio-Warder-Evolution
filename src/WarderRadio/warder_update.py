@@ -195,7 +195,7 @@ def validate_ipk(path, release):
 def verify_payload(expected_version=None, runtime=None):
     runtime = pathlib.Path(runtime) if runtime is not None else pathlib.Path(__file__).parent
     for name in ('plugin.py', '__init__.py', 'screen.py', 'skin.py', 'model.py',
-                 'warder_update.py', 'i18n.py', 'metadata.py', 'spectrum.py', 'covers.py', 'cover_display.py', 'song_identity.py', 'cache.py', 'update_progress.py', 'update_state.py', 'version.txt', 'locale/en.json'):
+                 'warder_update.py', 'i18n.py', 'metadata.py', 'spectrum.py', 'covers.py', 'cover_display.py', 'video_artwork.py', 'song_identity.py', 'cache.py', 'update_progress.py', 'update_state.py', 'version.txt', 'locale/en.json'):
         path = runtime / name
         if not path.is_file() or path.stat().st_size == 0:
             raise UpdateError('Incomplete Warder Radio installation: missing ' + name)

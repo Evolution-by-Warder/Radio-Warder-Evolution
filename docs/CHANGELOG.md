@@ -1,3 +1,10 @@
+# 0.1.0-test30
+
+- Show the radio song’s downloaded cover or artist image beside the native YouTube information bar.
+- Follow the native bar’s visibility and accept a cover that arrives during the clip.
+- Retain native controls and video quality; no additional artwork search before playback.
+- Hide absent/failed images and clean up the cover window and decoder on return to radio.
+
 # 0.1.0-test29
 
 - Show the radio window before loading and validating the station catalogue.

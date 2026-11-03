@@ -41,12 +41,68 @@ class VideoPlayer(MoviePlayer):
             kwargs['fromMovieSelection'] = False
         MoviePlayer.__init__(self, session, self.reference, **kwargs)
         self.skinName = ['MoviePlayer']
+        self.artwork_path = video.get('artwork', '')
+        self.artwork_dialog = None
+        self.artwork_layout_ready = self.artwork_bar_visible = False
+        self.onLayoutFinish.append(self.artwork_ready)
+        self.onShow.append(self.show_artwork)
+        self.onHide.append(self.hide_artwork)
         # Run before the native close handler, which restores lastservice.
         self.onClose.insert(0, self.prepare_return)
         events = {iPlayableService.evTuneFailed:self.error}
         if hasattr(iPlayableService,'evUser'):
             events[iPlayableService.evUser+12] = self.error  # ServiceApp decoder/network error.
         self.video_events = ServiceEventTracker(screen=self,eventmap=events)
+
+    def artwork_ready(self):
+        self.artwork_layout_ready = True
+        self.set_artwork(self.artwork_path)
+
+    def set_artwork(self, path):
+        if self.finished:
+            return
+        # Imported only when a video is opened, preserving fast radio startup.
+        from .video_artwork import VideoArtwork, image_file, placement
+        if not image_file(path):
+            self.artwork_path = ''
+            self.close_artwork()
+            return
+        self.artwork_path = path
+        if not self.artwork_layout_ready:
+            return
+        try:
+            if self.artwork_dialog is None:
+                self.artwork_dialog = self.session.instantiateDialog(VideoArtwork, path, placement(self))
+                self.artwork_dialog.hide()
+            else:
+                self.artwork_dialog.set_artwork(path)
+            if self.artwork_bar_visible:
+                self.artwork_dialog.show()
+        except Exception:
+            self.close_artwork()  # Optional artwork must never interrupt video.
+
+    def show_artwork(self):
+        self.artwork_bar_visible = True
+        if self.finished:
+            return
+        if self.artwork_dialog is not None:
+            self.artwork_dialog.show()
+        elif self.artwork_path:
+            self.set_artwork(self.artwork_path)
+
+    def hide_artwork(self):
+        self.artwork_bar_visible = False
+        if self.artwork_dialog is not None:
+            self.artwork_dialog.hide()
+
+    def close_artwork(self):
+        dialog, self.artwork_dialog = self.artwork_dialog, None
+        if dialog is not None:
+            for operation in (dialog.hide, dialog.release, lambda: self.session.deleteDialog(dialog)):
+                try:
+                    operation()
+                except Exception:
+                    pass
 
     def owns(self):
         current = self.session.nav.getCurrentlyPlayingServiceReference()
@@ -56,6 +112,7 @@ class VideoPlayer(MoviePlayer):
         if self.finished:
             return
         self.finished = True
+        self.close_artwork()
         current = self.session.nav.getCurrentlyPlayingServiceReference()
         if self.owns() or current is None:
             self.lastservice = self.original_reference if self.parent_closed() else self.radio_reference

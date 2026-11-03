@@ -545,6 +545,8 @@ class WarderRadio(Screen):
         if path and os.path.isfile(path):
             self['nowlabel'].setText('iTunes · ' + t('Artist artwork') if source == 'iTunes artist' else source)
             self.cover_display.show(path)
+            if self.video_active and self.video_dialog is not None:
+                self.video_dialog.set_artwork(path)
             self.cover_attempts = 2
         else:
             self.cover_next = time.monotonic() + 60
@@ -581,8 +583,13 @@ class WarderRadio(Screen):
             return
         self.video_active = True
         try:
+            video = dict(result)
+            video.pop('artwork', None)
+            path = self.cover_display.path
+            if path and path != self.cover_display.fallback and os.path.isfile(path):
+                video['artwork'] = path
             self.video_dialog = self.session.openWithCallback(self.youtube_returned,VideoPlayer,
-                result,self.playback.reference,self.playback.previous,lambda:self.closed)
+                video,self.playback.reference,self.playback.previous,lambda:self.closed)
         except Exception:
             self.video_active = False
             # A failed screen creation must leave/recover our existing radio.

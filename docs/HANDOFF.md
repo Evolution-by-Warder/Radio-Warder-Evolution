@@ -1,3 +1,39 @@
+# Radio Warder Evolution — test30 artwork in the native video player
+
+Receiver confirmation 2026-11-03: the owner reports test29 opens extremely
+quickly. Earlier native video quality, radio recording and deletion checks are
+also receiver-confirmed. No exact speed or video-resolution measurement was supplied.
+
+The requested cover is for a clip launched from this radio plugin. FullHDGlass’s
+current MoviePlayer layout has no song-art widget, so the plugin retains the
+native MoviePlayer and adds its own optional, transparent, non-modal image screen.
+No FullHDGlass skin runtime or image-global player skin is changed.
+
+The radio passes its current downloaded image into the player, excluding its
+neutral fallback. A later current-generation cover result is forwarded to an
+active player. No second lookup or video-start wait is added. Placement uses the
+native bar window’s top when bottom-anchored, with a conservative full-screen
+fallback; left offset 40 px and square 180 px at Full HD scale to GUI resolution.
+The image keeps its aspect ratio using the existing bounded ePicLoad display.
+MoviePlayer onShow/onHide controls visibility; native keys, progress, quality,
+seek/pause and service ownership stay native. The cover dialog never enters the
+modal stack and has no ActionMap. Missing files, decode failures and optional
+GUI creation failures leave playback usable. Closing the player hides/releases/
+deletes the dialog before the native service restoration handler; late decode
+callbacks cannot paint after release. Payload verification requires the module.
+
+Native tests add five cases on each image covering visibility, no modal/keys,
+HD/FHD/WQHD/UHD positioning above a bottom bar, absent/invalid images, GUI/decode
+failure, late decode, quality retry, EOF/external navigation, reuse of the radio
+image, neutral exclusion, late current image, stale generation and parent close.
+The exact native Screen widgets/show/hide and MoviePlayer close handlers are
+replayed; image decoding/session boundary and MoviePlayer constructor/mixins are
+stubbed. Physical receiver cover positioning remains pending.
+
+Publication verification pending.
+
+---
+
 # Radio Warder Evolution — test29 faster window opening
 
 Startup review found synchronous validation of all 5,444 stations in the Screen
@@ -27,8 +63,7 @@ Development-host measurements, seven iterations: old seed-read/validation median
 median 0.667 ms for the same 5,444 stations. These measure catalogue loading only,
 not actual receiver window opening or C++ painting/skin decode. First import,
 state read, native background decode and visible picon disk access remain; no
-visual assets or native image/codec handling are changed. Receiver startup-speed
-confirmation is pending. test28 video quality/recording/deletion confirmations
+visual assets or native image/codec handling are changed. On 2026-11-03 the user confirmed that the plugin now opens extremely quickly. test28 video quality/recording/deletion confirmations
 remain valid, with no new claim about exact video resolution.
 
 Tests cover placeholder zero-read, one-time validation, independent row copies,

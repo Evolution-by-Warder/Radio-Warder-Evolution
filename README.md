@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current receiver-test candidate:
-**0.1.0-test29**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test30**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -69,7 +69,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test29_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test30_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -111,6 +111,13 @@ its playback; listening to another radio station continues. Only listed, unchang
 audio files inside the configured recording folder can be removed. Symlinks and
 other files are rejected. If the image feed does not provide streamripper, opkg
 reports the missing dependency and installation cannot complete.
+
+YouTube videos reuse the current radio song’s downloaded cover/artist image.
+A small transparent image appears on the left above the native information bar,
+scales with the GUI resolution and follows the bar’s show/hide controls. A cover
+that finishes loading during the clip is added then. No extra artwork lookup or
+video-start delay is introduced; a missing image leaves the player clear. Closing
+the player removes the image. The image’s MoviePlayer skin and controls remain.
 
 Opening the window does not wait for validation of the full station catalogue.
 The catalogue loads on the existing I/O worker after the initial layout; the

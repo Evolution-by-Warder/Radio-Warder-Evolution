@@ -1,4 +1,4 @@
-# Current-song YouTube video — test27
+# Current-song YouTube video — test30
 
 Receiver screenshots confirm test24's actual YouTube video playback. Test25
 retains that resolver and uses the image's standard Screens.InfoBar.MoviePlayer
@@ -18,7 +18,7 @@ seek, audio/subtitle and info-bar controls are inherited. A pre-close ownership
 guard preserves external navigation and returns to the pre-plugin service if
 the parent closes. The adapter leaves the native close handler in place. On
 images exposing fromMovieSelection it passes False, and transient-stream resume
-prompts are disabled. The custom two-line video overlay/keymap is removed.
+prompts are disabled. The former custom two-line video controls/keymap are removed.
 
 Search reads at most 3 MiB of public result HTML and parses ytInitialData as JSON.
 A common 30-second I/O deadline, five-second socket timeouts, verified TLS and
@@ -38,12 +38,23 @@ There is no forced installation or change to image-global backend settings.
 Yellow is station Search; blue is YouTube, with captions following the language.
 Actual quality depends on available formats, receiver codecs and connection.
 
+Song artwork is passed from the radio’s already downloaded current-song image;
+the neutral plugin logo is excluded. The optional VideoArtwork screen is created
+with instantiateDialog (no modal stack or ActionMap). Its transparent, 180 px at
+Full HD image sits above the left end of a bottom-anchored native information bar,
+with scaling at HD/WQHD/UHD and a conservative fallback for full-screen bar skins.
+It follows MoviePlayer onShow/onHide; late current-generation covers are forwarded.
+No new network request, temporary cover convention or image-global skin patch is
+used. ePicLoad retains image aspect. Missing/failed images do not interrupt video.
+EOF/EXIT/error/parent close remove the dialog and disconnect pending decoders.
+The new module is lazy-loaded only for video and is checked in installed payloads.
+
 Native replays cover blue/yellow/menu handling, radio continuation, stale callbacks,
 constructor signatures, skin selection, EOF/failure/exit and external/parent-close
 restoration on three pinned image revisions. Actual UI/mixin constructors and
 C++ rendering are outside these replays; native MoviePlayer close handlers are
-executed from the pinned upstream files. Receiver verification of the new native
-information-bar layout remains necessary.
+executed from the pinned upstream files. The user has confirmed native video
+quality; physical verification of the new optional cover placement remains pending.
 
 Hosted public search found the expected Westfunk remix. Player API requests from
 the hosted runner returned anti-bot LOGIN_REQUIRED responses. That does not
