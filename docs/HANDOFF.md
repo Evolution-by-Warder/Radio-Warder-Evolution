@@ -1,53 +1,29 @@
-# Warder Radio 0.1.0-test9
+# Radio Warder Evolution — test12 release
 
-Source: `54cc070aacfc34dc49135f6828576ac53ecc92f3`.
-CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41626359127 — success, including public download/size/SHA-256 verification and testing-feed publication.
-
-- Update is below Settings as the sixth left-menu item. OK starts the existing verified manual updater. INFO remains an alternate shortcut; the footer has four colour controls again.
-- RIGHT from any station and UP from the first row immediately open the country list. No additional OK is required. Cancelling restores the selected station/scroll position without interrupting playback.
-- The focus pointer is beside the cyan country name only. The white Select country caption is unchanged.
-- All 21 languages retain 67 complete UI strings. No catalogue, stream, playback backend or unrelated production-feed changes.
-
-25 unit cases and 15 native replay cases on each of three pinned OpenPLi/OpenATV revisions passed (70 executions), plus IPK payload/Python 3.9 checks. Native replay stubs C++/OS boundaries; receiver confirmation of this change remains pending.
-
-Published IPK: 2798214 bytes; SHA-256 `e2ec97d9ae11c491603579bbb6c05915479e09ef9f72f0fda14f643c7fa3efaf`.
-Release: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.0-test9
-The connector independently confirmed the published asset digest/size match the live testing feed. A second direct download from this workspace timed out; the successful CI public-download verification is the distribution evidence.
-
-The user set the About description to Warder Radio - World of Radio Stations; this is the approved branding text.
-
----
-
-Historical test8 handoff (behaviour below superseded by test9 where noted):
-
-# Warder Radio 0.1.0-test8 — verified standalone handoff
-
-The owner created the public Radio-Warder-Evolution repository and authorized all setup. The independent project is now imported at its root with README, licence, source, approved artwork, full catalogue/provenance, tests, documentation, CI, releases and separate testing/stable update feeds.
-
-Source: `9a5908f0464d5683aaef4b940839f44ed30956a5`.
-Build/release CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41624499197 — success.
-Legacy bridge: https://github.com/Evolution-by-Warder/FullHDGlass-Warder-Evolution/actions/runs/41624775734 — success.
+Source: `28a40b067935ba9793811d2c57a13c5946f962da`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41628526134 — success, including both public package downloads and feed publication.
 
 ## Current behaviour
 
-- RIGHT from any station focuses Select country; OK opens the selector. RIGHT or DOWN returns to exactly the same row and scroll position. LEFT from the list still opens the function panel; RIGHT from that panel returns to stations. Hints are localized.
-- Country control sits in the centre only: white Select country/separator, cyan selected country and arrow. Settings uses Choose country. Now playing remains on the right.
-- Opening resumes the user's last played radio station, preferring refreshed catalogue data. Fresh users remain idle. Closing restores the previous service when still owned.
-- Footer retains the four colour actions and adds native INFO · Update. INFO/click/manual Settings checks share the verified updater, with no duplicate check if an automatic request is in flight.
-- All 21 languages contain all 67 UI strings. Catalogue: 5,444 station references in 203 country/themed groups; no identity/classification rewrite. Favourites, history, custom stations and optional recording are retained.
+- Plugin browser and extensions menu: Radio Warder Evolution.
+- Canonical opkg identity: enigma2-plugin-extensions-radio-warder-evolution. Conflicts/Replaces the old enigma2-plugin-extensions-warderradio, with the same owned runtime files and unchanged user state path. Direct installation of the test12 IPK performs this transition in one opkg operation.
+- LEFT menu ends with Settings, Update. Footer has the original four colour controls. INFO is an alternate manual update shortcut.
+- RIGHT from any station or UP from the first row immediately opens country choices. White Select country stays unchanged; only the cyan country receives the focus pointer. Cancel preserves station/scroll position and audio.
+- The former cyan Canvas animation is replaced with the exact 48 approved FullHDGlass transparent spectrum frames: 84 fine multicolour segmented columns and peaks. Native Pixmap, one paint per 100 ms, lazy shared cache bounded at 8,467,200 decoded pixel bytes. It pauses when hidden, hides while idle and disables itself on an unavailable frame without affecting playback. No audio analysis or per-segment GUI drawing. The original 350x126 aspect ratio is retained in the player panel.
+- Last-station resume, 21 languages (67 complete strings), catalogue, picons, favourites, history and optional recording remain.
+- After a verified in-plugin installation, a localized INFO message lasts three seconds and automatically restarts the GUI. The initial installation approval remains. Failure restores controls and never schedules restart. Repeated completion callbacks cannot restart twice.
 
-## Verification and distribution
+## Package migration feeds
 
-25 unit cases plus 15 native cases on each of three pinned OpenPLi/OpenATV revisions: 70 executions. Package verification and public downloads passed.
+Installed old updaters validate the old package name and exact release URL. The immutable test11 bridge is therefore still served by update/testing.json. It carries the same new features, retains the old opkg identity, and embeds the v2 updater. After GUI restart it offers canonical test12 from update/v2/testing.json. Installing the renamed test12 IPK directly bypasses this extra compatibility step. The v2 stable feed is empty; other products' production feeds are untouched. Older FullHDGlass-hosted radio test builds still migrate through the previously published test8 bridge before reaching the dedicated repository.
 
-IPK: 2,798,248 bytes; SHA-256 `5d9f3dd951baf1ff0fd052b750a397d5322dbe199b1a08ecfd3e5c6a9a79d5a5`.
+Canonical test12: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test12/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test12_all.ipk
+SHA-256 `5697273f0713631b91a20f923dd014eae68dce15928098619055cbe0da22e7b5`; 3045420 bytes.
+Bridge test11: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test11/enigma2-plugin-extensions-warderradio_0.1.0-test11_all.ipk
+SHA-256 `65f7238e6953b05465e3f707a13f226ca70050c660198efa1f34415166a059c5`; 3045392 bytes.
 
-New repository and legacy release URLs both serve identical verified bytes. End-to-end checking as installed test6 offers test8 through the old feed; checking test7 offers test8 through the new feed. The migration IPK embeds the new repository updater. Archived legacy radio builds were retired so they cannot replace the migration feed with an older version. Other plugin/skin production feeds are unaffected. Radio stable feed is empty pending approval.
+31 unit cases plus 15 native cases on each of three pinned OpenPLi/OpenATV revisions: 76 executions. Tests include the actual frozen old updater accepting/verifying the bridge, the v2 updater accepting the renamed payload, controls containing both migration fields, frame hashes/PNG format, bounded cache, hidden/idle lifecycle, safe failure, ping-pong continuity, descriptor names and restart behaviour. IPK scope/Python 3.9/install-script verification passed. CI independently downloaded and checked both public packages; connector asset digests/sizes also match both published feeds. Real receiver package-manager migration and visual confirmation remain to be tested by the user; C++/OS boundary is stubbed in native replay.
 
-Release: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.0-test8
+Test10 automatic restart source was `e27fa6c51c8c6120ae72483c32ee14f26f380f38`, CI https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41626857539 — success. Superseded by test12 and the test11 compatibility bridge.
 
-## Repository metadata limitation
-
-README/project description and documentation are completed. The About field still reads Warder Radio - World of Radio Stations; homepage/topics remain unset. An authorized one-time About update was attempted in Actions but GitHub returned HTTP 403 Resource not accessible by integration (token metadata permission is read-only). No success is claimed for that field. The owner was given the exact local PowerShell/gh command; tools/set-repository-about.ps1 contains the same reviewed setup operation for description, release homepage and topics. The unsupported Actions metadata attempt was removed from future builds.
-
-Physical receiver confirmation of the new RIGHT shortcut is pending. Native replay stubs the C++/OS boundary; screenshots already show the mixed header colours and five footer controls rendering on the test6 receiver.
+The user set the repository About description to Warder Radio - World of Radio Stations; this matches the approved branding. No further About edit was requested.
