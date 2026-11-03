@@ -390,7 +390,8 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.focus, 'country')
         self.assertFalse(screen['stations'].instance.selectionEnabled)
         self.assertEqual(screen['heading'].instance.foreground, 0xffffff)
-        screen.ok()
+        self.assertTrue(screen['heading'].getText().startswith('\\c00ffffff' + radio.t('Select country') + ' – '))
+        self.assertIn('\\c0000ceff› ' + radio.group_label(screen.active_group), screen['heading'].getText())
         dialog = session.dialogs[-1]
         self.assertEqual(dialog[-1]['title'], radio.t('Choose country'))
         self.assertEqual(dialog[-1]['list'][dialog[-1]['selection']][1], screen.active_group)
@@ -401,7 +402,7 @@ class NativeTests(unittest.TestCase):
         self.assertIn(radio.group_label('Čechy'), screen['heading'].getText())
         self.assertEqual(Store(self.tmp.name).group, 'Čechy')
         self.assertIs(session.nav.current, playing)
-        screen.up(); screen.down()
+        screen.up(); screen.country_done(None)
         self.assertEqual(screen.focus, 'stations')
         self.assertEqual(screen['stations'].getSelectionIndex(), 0)
 
@@ -454,11 +455,11 @@ class NativeTests(unittest.TestCase):
             self.assertEqual(failed['status'].getText(), radio.t('Cannot play station'))
             self.assertFalse(failed.playback.owns())
 
-    def test_footer_update_button_and_info_key_use_manual_check_without_duplicate_jobs(self):
+    def test_left_menu_update_and_info_key_use_manual_check_without_duplicate_jobs(self):
         screen, session, root = self.new()
-        self.assertIsInstance(screen['update'], Button)
-        self.assertIn(radio.t('Update'), screen['update'].getText())
-        self.assertIn('INFO', screen['update'].getText())
+        self.assertEqual(screen['functions'].list[-2:], [(radio.t('Settings'), 'settings'), (radio.t('Update'), 'plugin-update')])
+        self.assertNotIn('update', screen)
+        self.assertEqual(int(root.find("widget[@name='functions']").attrib['size'].split(',')[1]), screen['functions'].l.height * 6)
         screen['actions'].actions['update']()
         self.assertTrue(screen.update_manual)
         self.assertEqual(screen['status'].getText(), radio.t('Checking for updates…'))
@@ -467,37 +468,40 @@ class NativeTests(unittest.TestCase):
         queued = []
         screen.jobs.close()
         screen.jobs.submit = lambda key, work, callback: queued.append(key) or True
-        for callback in list(screen['update'].instance.selected.get()): callback()
+        screen.left()
+        screen['functions'].moveToIndex(5)
+        screen.ok()
+        self.assertEqual(screen.focus, 'functions')
+        self.assertEqual(screen.mode, 'radio')
         self.assertEqual(queued, ['plugin-update-check'])
         screen['actions'].actions['update']()
         self.assertEqual(queued, ['plugin-update-check'])
         buttons = [node for node in root.findall('widget')
                    if node.attrib.get('name') in ('red', 'green', 'yellow', 'blue', 'update')]
-        self.assertEqual(len(buttons), 5)
+        self.assertEqual(len(buttons), 4)
         for previous, following in zip(buttons, buttons[1:]):
             x, _ = map(int, previous.attrib['position'].split(','))
             width, _ = map(int, previous.attrib['size'].split(','))
             next_x = int(following.attrib['position'].split(',')[0])
             self.assertLess(x + width, next_x)
 
-    def test_right_reaches_country_from_any_station_and_returns_without_scrolling(self):
+    def test_right_opens_country_immediately_from_any_station_and_cancel_preserves_position(self):
         screen, session, _ = self.new()
         screen.play()
         playing = session.nav.current
         for index in (0, 18, len(screen.rows) - 1):
-            screen.set_focus('stations')
             screen['stations'].moveToIndex(index)
             selected = screen.current()
+            before = len(session.dialogs)
             screen.right()
+            self.assertEqual(len(session.dialogs), before + 1)
+            self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
             self.assertEqual(screen.focus, 'country')
             self.assertEqual(screen['stations'].getSelectionIndex(), index)
-            screen.right()
+            self.assertTrue(screen['heading'].getText().startswith('\\c00ffffff' + radio.t('Select country') + ' – '))
+            self.assertIn('\\c0000ceff› ', screen['heading'].getText())
+            screen.country_done(None)
             self.assertEqual(screen.focus, 'stations')
-            self.assertEqual(screen.current(), selected)
-            screen.right(); screen.down()
-            self.assertEqual(screen.focus, 'stations')
-            self.assertEqual(screen.current(), selected)
-            screen.right(); screen.ok(); screen.country_done(None); screen.down()
             self.assertEqual(screen.current(), selected)
             self.assertIs(session.nav.current, playing)
         screen.left(); screen.right()

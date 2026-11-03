@@ -116,14 +116,13 @@ class WarderRadio(Screen):
         self.last_art = None
         self['functions'] = RadioList([(t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
                                       (t('History'), 'history'), (t('Recordings'), 'recordings'),
-                                      (t('Settings'), 'settings')], self.ui_scale, True)
+                                      (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
         for name in ('date', 'clock', 'version', 'navtitle', 'section', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'activitylabel', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
             self[name] = Label('')
         self['heading'] = Button('', onClick=[self.choose_group])
-        self['update'] = Button('INFO · ' + t('Update'), onClick=[self.manual_update])
         self['art'] = Pixmap()
         self['activity'] = CanvasSource()
         self['version'].setText('v' + VERSION)
@@ -187,13 +186,16 @@ class WarderRadio(Screen):
         self.set_focus('functions')
 
     def right(self):
-        self.set_focus('country' if self.focus == 'stations' else 'stations')
+        if self.focus == 'stations':
+            self.choose_group()
+        else:
+            self.set_focus('stations')
 
     def up(self):
         if self.focus == 'country':
             return
         if self[self.focus].getSelectionIndex() == 0 or not self[self.focus].list:
-            self.set_focus('country')
+            self.choose_group()
         else:
             self[self.focus].up()
         self.update_count()
@@ -230,6 +232,9 @@ class WarderRadio(Screen):
         mode = selected[1]
         if mode == 'settings':
             self.options()
+            return
+        if mode == 'plugin-update':
+            self.manual_update()
             return
         self.mode, self.query = mode, ''
         self.refresh_rows()
@@ -431,8 +436,8 @@ class WarderRadio(Screen):
     def update_country_caption(self):
         country = group_label(self.active_group) if self.active_group else t('All groups')
         prefix = '› ' if self.focus == 'country' else ''
-        self['heading'].setText('\\c00ffffff' + prefix + t('Select country') + ' – '
-                                + '\\c0000ceff' + country + '  ▾' + '\\C')
+        self['heading'].setText('\\c00ffffff' + t('Select country') + ' – '
+                                + '\\c0000ceff' + prefix + country + '  ▾' + '\\C')
         if self['heading'].instance:
             color = 0xffffff
             self['heading'].instance.setForegroundColor(enigma.gRGB(color))

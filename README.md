@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test8**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test9**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ lyrics, a sleep timer or recording schedules.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-warderradio_0.1.0-test8_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-warderradio_0.1.0-test9_all.ipk
 ```
 
 Restart the GUI manually, then open **Warder Radio** from Plugins or Extensions.
@@ -70,21 +70,21 @@ No stream starts during installation or plugin discovery. On opening the plugin,
 the last played radio station resumes automatically and is selected in its list.
 On first use, choose a station and press OK or green. Resume uses the newest
 catalogue URL for the remembered identity where available, with the saved entry
-as fallback. It makes one attempt and leaves the interface usable on failure. Left/right switch between the function and station panels;
-up/down move within a panel. From any station, RIGHT focuses the country
-selector immediately; OK opens the selection. DOWN or RIGHT returns to the
-exact same station and scroll position. UP from the first station also reaches
-the country selector. The native country button also supports its click action.
+as fallback. It makes one attempt and leaves the interface usable on failure. LEFT
+opens the function panel; RIGHT from that panel returns to stations. Up/down
+move within a panel. From any station, RIGHT opens the country list immediately,
+without an extra OK. UP from the first row opens the same list. Cancel returns
+to the exact same station and scroll position. The native country button also supports its click action.
 The centre header reads Select country – Slovakia ▾ (translated for the receiver
 language and current country). Select country and the separator are white; the country and down arrow are
 cyan blue, using the native Enigma2 inline text colours. The permanent down
-arrow marks the selectable value; remote focus adds a leading pointer. The former Country
+arrow marks the selectable value; remote focus adds a pointer beside only the cyan country name. The former Country
 heading on the left is blank; Now playing stays on the right.
 Selecting a country preserves playback and saves the choice. Cancel keeps the
 previous selection. The smaller section label still identifies favourites,
 history, recordings and search results. CH+/CH− change pages. Yellow toggles a favourite;
-blue searches all stations. The fifth footer button is INFO · Update; press
-INFO or activate the button to check/install plugin updates manually. The first MENU/Settings entry is Choose country and opens the same selector.
+blue searches all stations. Update is the last left-menu entry, below Settings;
+activate it or press INFO to check/install plugin updates manually. The first MENU/Settings entry is Choose country and opens the same selector.
 MENU also updates the catalogue, adds a
 station, controls recording and opens About. STOP stops radio playback and
 returns to the previous service. EXIT/red closes the plugin and restores the

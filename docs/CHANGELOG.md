@@ -1,3 +1,12 @@
+# 0.1.0-test9
+
+Moves Update below Settings as the sixth left-menu item and restores the four
+colour buttons across the footer. INFO remains a manual-update shortcut.
+RIGHT from any station and UP from the first row now open the country selector
+immediately, without an extra OK. The focus marker appears only beside the cyan
+country name; the white Select country caption remains unchanged. Cancelling
+restores the exact selected station and playback continues.
+
 # 0.1.0-test8
 
 RIGHT now moves directly from any station row to the Select country control.
