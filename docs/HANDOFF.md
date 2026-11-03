@@ -1,3 +1,46 @@
+# Radio Warder Evolution — test18 update-progress window
+
+The requested installer flow is complete: existing confirmation, then a modal
+progress window before I/O, real download bytes/percentage, live package/opkg/
+installed-state phases, then the three-second restart notice in that window.
+Only its successful close callback opens the standard GUI restart. Failures
+show the reason and restore control with no restart. OK/EXIT cannot dismiss an
+active install; a failed dialog can be closed normally. Unknown installation
+percentages are not fabricated: those phases hide the byte bar and show an
+animated activity indicator. Worker reports use a single-slot locked mailbox;
+all widget updates occur through the GUI timer. Downloads report in 32 KiB chunks.
+
+Four new translated phase/wait strings are present in all 21 languages: 71 keys
+per locale. ProgressBar/VariableValue are pinned to the exact same three native
+fixture revisions as the other Enigma2 classes. The popup supports both eTimer
+signal APIs and four display resolutions. Native replay caught/fixed the Screen
+shown-property collision and pixel-rounded border overflow before publication.
+Main layout/artwork were not redesigned; the user wants graphics work after this.
+
+Source: `29a65f544b435d201f4c064ae66aa9036daca3ce`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41639642305 — success.
+46 unit cases plus 22 native cases on each of three pinned OpenPLi/OpenATV
+revisions: 112 executions. Coverage includes modal-before-I/O ordering, actual
+byte counts, phase ordering around real IPK validation and mocked opkg, failed
+installed-state verification (no complete event), mailbox coalescing, busy input,
+queue rejection, both timer APIs, error return, modal close-before-restart,
+duplicate/late callbacks, cleanup and HD/FHD/WQHD/UHD geometry. Package/Python 3.9
+and install-script checks pass. Physical receiver confirmation is pending.
+
+The old updater already running in test17 cannot display newly installed code
+before its own restart: the new window is used by updates initiated from test18
+or later. A manual test18 install plus GUI restart is also supported. Existing
+immutable old-ID bridge and separate stable feeds remain unchanged.
+
+Latest IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test18/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test18_all.ipk
+SHA-256 `797e8dcddcddb8919f22e9ef5c358ad37bded822889e3793cb4de64b2c259de6`; 3058538 bytes. CI downloaded/verified public IPKs before
+advancing the v2 test feed; connector release size/digest independently match.
+More implementation/transition notes: docs/UPDATE-PROGRESS.md.
+
+---
+
+Prior release records follow.
+
 # Radio Warder Evolution — test17 artwork and layout
 
 Latest user requests are implemented together:
