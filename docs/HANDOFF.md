@@ -6,7 +6,16 @@ explicitly retains the left alignment. Full HD size is now 360x360 px, up from
 above the native information bar. The cover therefore grows rightward/upward.
 Geometry still scales at HD/FHD/WQHD/UHD. No other behaviour or assets change.
 Existing native geometry expectations are updated; no new tests for this small
-layout edit. Publication verification pending.
+layout edit. Local geometry/lifecycle checks passed on all three native images.
+Publication passed 83 unit cases and 40 native cases per image (203 executions),
+54 pinned fixtures, IPK/Python 3.9/offline scripts, seven real cover downloads
+and final public download/feed verification.
+Source: ff3dd114991a60dbde15131395752d5d60f17aa5.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41693071085
+Testing feed offers test32; local IPK, release API and pinned feed agree:
+3097614 bytes; SHA-256 9b9bb3551bd4ae011dabe9c1548d570b889a7942bc2222726c035b1225b8dbb8.
+Stable feeds and immutable test11 migration bridge retained. Physical receiver
+confirmation of the 360 px placement remains pending.
 
 ---
 
