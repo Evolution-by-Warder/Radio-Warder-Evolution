@@ -1,3 +1,22 @@
+# Radio Warder Evolution — test14 metadata correction
+
+User requires ICY as the primary source because this plugin plays internet-radio streams. Implemented that exact priority: ICY StreamTitle from the playing URL first; native Enigma2 artist/title tags only while ICY is absent, unavailable or pending. The reader and separator repair come from the existing FullHDGlass radio implementation. A standalone ICY announcement remains current display text even without a separate artist.
+
+One bounded daemon worker per screen probes at most once per 15 seconds for a station; only the GUI timer paints returned text. Reads use Icy-MetaData: 1, 3-second socket timeout, a six-second read deadline and a maximum 256 KiB metadata interval. There are no GUI/network calls on the same thread. Station changes, stop/end/failure and close invalidate old results; late replies cannot display under the next station. The audio service itself is untouched. Streams with no ICY/native title retain No track information. Actual receiver confirmation of broadcaster metadata remains pending; tests use fragmented protocol fixtures and controlled asynchronous reads, not claims of a live stream audit.
+
+The user's screenshot still showed Warder Radio. The previously published test13 IPK was opened and its digest checked against the public asset: both PluginDescriptor entries already say Radio Warder Evolution. The screenshot alone does not establish installed version, cached in-memory descriptor or cause. Test14 postinst clears only this plugin's .pyc/.pyo cache, retaining settings; successful in-plugin updates restart GUI automatically after the existing three-second notice. A manual opkg installation still needs a GUI restart. Canonical opkg identity remains enigma2-plugin-extensions-radio-warder-evolution.
+
+Source: `70264a512d399447e67832629e5fed0ec41d7184`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41630197919 — success.
+36 unit cases plus 16 native cases on each of three pinned OpenPLi/OpenATV revisions: 84 executions, plus IPK and install-script validation. Tests cover primary ICY/native fallback priority, absent song data, callbacks after station changes/close, 15-second throttling, one worker, failed reads, bounds/deadline, fragmented reads, UTF-8/legacy text, announcement/separator handling and unchanged plugin descriptors. Both metadata.py and spectrum.py are now required by post-install payload verification.
+
+Latest IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test14/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test14_all.ipk
+SHA-256 `5a15bfe1a64295430dbce1f73bb806e0b57cf480d99a039838e07b0c00707d05`; 3047842 bytes. CI verified public download/size/hash and updated v2 testing feed. Connector metadata independently matches. The immutable test11 old-ID bridge is unchanged and leads to test14; stable feeds remain empty.
+
+---
+
+Previous release records follow; the native-metadata-only behaviour before test14 is superseded above.
+
 # Radio Warder Evolution — test13
 
 All three main panels now have a thin cyan outline in the PiconHub/Warder style. Geometry and controls are retained. Native opaque borders are drawn above the panel fills and below live text, with width scaled from 2 px at Full HD.
