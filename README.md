@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test25**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test26**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -34,8 +34,12 @@ registered in the plugin browser.
   stream URLs and service references. Updates are explicit, from the same Git
   bouquet; the bundled/cached list remains usable without the catalogue server.
 - Native Enigma2/GStreamer playback, station and available ICY artist/title data.
-- Yellow: current-song YouTube video in the receiver's standard MoviePlayer and
-  active skin, with native progress/time/video details. Favourite is in MENU.
+- Yellow: station Search. Blue: current-song YouTube video in the receiver's
+  standard MoviePlayer and active skin, with native progress/time/video details.
+  Favourite is in MENU. DASH video plus separate audio is preferred when the
+  Exteplayer3 executable and registered ServiceApp 5002 backend are available;
+  otherwise combined video/audio or HLS uses the native backend. No image-wide
+  player settings are changed and optional backends are not auto-installed.
 - Persistent favourites, last 100 played stations, accent-insensitive search
   across the catalogue and custom HTTP/HTTPS stations.
 - Native/PiconHub picon lookup, with a neutral Warder Radio fallback logo.
@@ -64,7 +68,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test25_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test26_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.

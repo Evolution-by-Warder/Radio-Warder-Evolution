@@ -1,4 +1,4 @@
-# Current-song YouTube video — test25
+# Current-song YouTube video — test26
 
 Receiver screenshots confirm test24's actual YouTube video playback. Test25
 retains that resolver and uses the image's standard Screens.InfoBar.MoviePlayer
@@ -6,7 +6,7 @@ with the active MoviePlayer skin. The image supplies its information bar,
 progress, elapsed/remaining/total time, aspect, resolution/quality, clock and
 native playback controls according to available metadata and skin design.
 
-Yellow searches the playing station's artist/title and starts the first organic
+Blue searches the playing station's artist/title and starts the first organic
 YouTube result. File underscores and track-number prefixes are cleaned for the
 query; remix/version words remain. Favourite is in MENU. Radio continues during
 background lookup. Song/station/screen generations discard stale results. A
@@ -27,14 +27,18 @@ resolver/interpreter are bundled; upstream revision, local changes and full
 license are in youtube_engine/NOTICE and COPYING.GPLv2. Image-global TLS and
 YouTube settings are untouched. No API key, cookies, account login, external
 plugin installation, JavaScript runtime installation or video download is used.
-Adaptive HLS is preferred when available, exposing the full quality range to the
-native demuxer. Combined MP4 formats are ranked highest-first without the former
-720p cap. Up to six validated addresses are retained; a native playback failure
-tries the next lower combined format before returning to radio. Separate video-
-only/suburi tracks are rejected so higher resolution does not silently lose audio.
+DASH pairs precede HLS/combined fallbacks when supported; otherwise adaptive HLS
+is preferred when available, exposing its quality range to the native demuxer. DASH video-only formats are ranked by resolution and paired with audio when
+both the exteplayer3 executable and registered 5002 service are available.
+Every component of a video&suburi=audio pair must be a validated Googlevideo HTTPS
+URL. A DASH candidate without audio is rejected. Up to eight paired/combined/HLS
+choices are retained. Pairs use Exteplayer service 5002; combined/HLS use 4097.
+Playback failure advances to the next option while preserving radio return.
+There is no forced installation or change to image-global backend settings.
+Yellow is station Search; blue is YouTube, with captions following the language.
 Actual quality depends on available formats, receiver codecs and connection.
 
-Native replays cover yellow/menu handling, radio continuation, stale callbacks,
+Native replays cover blue/yellow/menu handling, radio continuation, stale callbacks,
 constructor signatures, skin selection, EOF/failure/exit and external/parent-close
 restoration on three pinned image revisions. Actual UI/mixin constructors and
 C++ rendering are outside these replays; native MoviePlayer close handlers are

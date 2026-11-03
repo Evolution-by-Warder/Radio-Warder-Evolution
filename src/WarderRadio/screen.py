@@ -28,7 +28,7 @@ from .skin import make_skin, geometry
 from .spectrum import Spectrum
 from .covers import lookup_cover
 from .youtube import find_video, song_query
-from .video_player import VideoPlayer
+from .video_player import VideoPlayer, dash_available
 from .cover_display import CoverDisplay
 from .update_progress import UpdateProgress
 from .update_state import UpdateState
@@ -149,12 +149,12 @@ class WarderRadio(Screen):
         self['hint'].setText(t('Use left/right to switch panels · MENU: options'))
         self['red'].setText(t('Close'))
         self['green'].setText(t('Play'))
-        self['yellow'].setText(t('YouTube video'))
-        self['blue'].setText(t('Search'))
+        self['yellow'].setText(t('Search'))
+        self['blue'].setText(t('YouTube video'))
         self['actions'] = ActionMap(['WarderRadioActions'], {
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
-            'green': self.play, 'yellow': self.youtube_video, 'blue': self.search,
+            'green': self.play, 'yellow': self.search, 'blue': self.youtube_video,
             'menu': self.options, 'pageDown': self.page_down, 'pageUp': self.page_up,
             'instantRecord': self.toggle_recording, 'stop': self.stop, 'update': self.manual_update,
         }, -2)
@@ -291,7 +291,7 @@ class WarderRadio(Screen):
         self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
         if not self.rows:
             self['count'].setText(t('No recordings' if self.mode == 'recordings' else 'No stations'))
-        self['yellow'].setText('' if self.mode == 'recordings' else t('YouTube video'))
+        self['blue'].setText('' if self.mode == 'recordings' else t('YouTube video'))
 
     def current(self):
         row = self['stations'].getCurrent()
@@ -469,7 +469,8 @@ class WarderRadio(Screen):
         station = self.playback.key(self.playback.reference)
         self.video_pending = True
         self['status'].setText(t('Finding YouTube video…'))
-        submitted = self.video_jobs.submit('video',lambda: find_video(artist,title),
+        dash = dash_available()
+        submitted = self.video_jobs.submit('video',lambda: find_video(artist,title,dash=dash),
             lambda result,error: self.youtube_ready(generation,station,artist,title,result,error))
         if not submitted:
             self.video_pending = False

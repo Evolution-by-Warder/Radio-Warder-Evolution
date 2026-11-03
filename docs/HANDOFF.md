@@ -1,3 +1,30 @@
+# Radio Warder Evolution — test26 paired DASH and button swap
+
+User receiver evidence shows separate high-resolution DASH video/audio is the
+missing path. Test25 only removed a progressive-format ceiling and rejected
+paired URLs. Test26 enables paired extraction when GUI-thread detection finds
+both exteplayer3 and a registered service-5002 factory. Both Googlevideo URLs
+are validated. No executable, setting, system player mapping or backend is
+installed/changed. Unavailable backend retains combined/HLS native playback.
+
+Up to four DASH video candidates are paired with audio and up to three combined
+fallbacks are retained, plus HLS (at most eight validated choices). Missing audio
+rejects the video-only candidate. Requested DASH options use 5002; combined/HLS
+use 4097. Native MoviePlayer/skin, ownership-safe return, failure retry and parent
+close remain. Yellow now opens Search; blue opens YouTube; captions and callbacks
+are swapped together, including recording-mode availability. Existing 21-language
+keys are reused, 75 keys each.
+
+Local verification passed: 73 unit cases, 29 native cases on each of three
+pinned image revisions (160 executions), plus IPK/Python 3.9/owned-path/offline
+install checks. Publication record follows after CI. Receiver UHD playback and audio sync require
+physical confirmation after this change. Public source for the ServiceApp audio
+URI handoff and registered factory behavior:
+https://github.com/mx3L/serviceapp/blob/master/src/serviceapp/exteplayer3.cpp
+https://github.com/mx3L/serviceapp/blob/master/src/serviceapp/serviceapp.h
+
+---
+
 # Radio Warder Evolution — test25 standard MoviePlayer
 
 Receiver screenshots confirm that test24 plays YouTube video. The requested UI

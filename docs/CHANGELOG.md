@@ -1,3 +1,12 @@
+# 0.1.0-test26
+
+Enables separate DASH video/audio pairing for high-resolution YouTube playback
+when the registered Exteplayer/5002 backend and executable are available. Ranks
+video formats by resolution, pairs every DASH candidate with audio, validates
+both addresses and retains lower-quality/native fallbacks. The system MoviePlayer
+and active skin remain. UHD requires a matching source and receiver support.
+Yellow is now Search; blue is YouTube video, including captions in all languages.
+
 # 0.1.0-test25
 
 Adds current-song YouTube playback under yellow, with Favourite in MENU.

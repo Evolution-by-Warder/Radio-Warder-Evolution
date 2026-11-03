@@ -136,3 +136,40 @@ class YouTubeTests(unittest.TestCase):
             def extract(self,identifier):return 'https://rr1.googlevideo.com/high'
         found=find_video('Singer','Song',Network(),Resolver)
         self.assertEqual(found['urls'],['https://rr1.googlevideo.com/high','https://rr1.googlevideo.com/low'])
+
+    def test_dash_uhd_and_hd_are_paired_with_audio_before_progressive_fallback(self):
+        from WarderRadio.youtube_engine.extractor import YouTubeVideoUrl
+        resolver=YouTubeVideoUrl()
+        response={'videoDetails':{'videoId':'abcdefghijk'},'playabilityStatus':{'status':'OK'},
+          'streamingData':{'formats':[{'itag':18,'mimeType':'video/mp4','height':360,'url':'https://rr1.googlevideo.com/sd'}],
+            'adaptiveFormats':[
+              {'itag':137,'height':1080,'mimeType':'video/mp4','url':'https://rr1.googlevideo.com/hd'},
+              {'itag':266,'height':2160,'mimeType':'video/mp4','url':'https://rr1.googlevideo.com/uhd'},
+              {'itag':140,'mimeType':'audio/mp4','audioQuality':'AUDIO_QUALITY_MEDIUM','url':'https://rr1.googlevideo.com/aac'}]}}
+        resolver._extract_player_response=lambda *a,**k:(response,None)
+        expected=['https://rr1.googlevideo.com/uhd&suburi=https://rr1.googlevideo.com/aac',
+                  'https://rr1.googlevideo.com/hd&suburi=https://rr1.googlevideo.com/aac',
+                  'https://rr1.googlevideo.com/sd']
+        self.assertEqual(resolver.extract('abcdefghijk'),expected[0])
+        self.assertEqual(resolver.playback_urls,expected)
+        self.assertEqual(len(response['streamingData']['formats']),1)  # No input mutation.
+        resolver.enable_dash=False
+        self.assertEqual(resolver.extract('abcdefghijk'),expected[-1])
+        resolver.enable_dash=True
+        response['streamingData']['adaptiveFormats'].pop()
+        self.assertEqual(resolver.extract('abcdefghijk'),expected[-1])  # No silent UHD.
+
+    def test_dash_pair_validation_requires_backend_and_checks_both_origins(self):
+        class Network:
+            def page(self,*a,**k):return page(video())
+        class Resolver:
+            playback_urls=['https://rr1.googlevideo.com/uhd&suburi=https://rr1.googlevideo.com/aac',
+                           'https://rr1.googlevideo.com/hd&suburi=https://attacker.example/audio',
+                           'https://rr1.googlevideo.com/sd']
+            def extract(self,identifier):return self.playback_urls[0]
+        result=find_video('Singer','Song',Network(),Resolver,dash=True)
+        self.assertEqual(result['streams'],[
+            {'url':Resolver.playback_urls[0],'service_type':5002},
+            {'url':'https://rr1.googlevideo.com/sd','service_type':4097}])
+        result=find_video('Singer','Song',Network(),Resolver,dash=False)
+        self.assertEqual(result['streams'],[{'url':'https://rr1.googlevideo.com/sd','service_type':4097}])

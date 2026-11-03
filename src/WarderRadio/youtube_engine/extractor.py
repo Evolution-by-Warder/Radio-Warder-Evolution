@@ -62,6 +62,7 @@ create_priority_formats()
 
 class YouTubeVideoUrl():
 	def __init__(self):
+		self.enable_dash = config.plugins.YouTube.useDashMP4.value
 		self.use_dash_mp4 = ()
 		self._code_cache = {}
 		self._player_cache = {}
@@ -312,7 +313,7 @@ class YouTubeVideoUrl():
 	@staticmethod
 	def _video_pref(fmt, prefer):
 		if prefer == 100:
-			prefer = 20 if 'video/mp4' in fmt.get('mimeType').lower() else 200
+			prefer = 20 if 'video/mp4' in str(fmt.get('mimeType') or '').lower() else 200
 		return prefer
 
 	@staticmethod
@@ -323,7 +324,7 @@ class YouTubeVideoUrl():
 		if audio_track.get('audioIsDefault'):
 			prefer -= 20
 		if prefer == 100:
-			prefer = 20 if 'audio/mp4' in fmt.get('mimeType').lower() else 200
+			prefer = 20 if 'audio/mp4' in str(fmt.get('mimeType') or '').lower() else 200
 		return prefer
 
 	def _sort_formats(self, priority_formats, streaming_formats, get_audio=None):
@@ -337,28 +338,47 @@ class YouTubeVideoUrl():
 			if prefer < 200:
 				fmt['preference'] = prefer
 				sorted_fmt.append(fmt)
+		if get_audio is None:
+			fallback_heights = {'18':360,'22':720,'37':1080,'38':3072,'59':480,'78':480,
+				'133':240,'134':360,'135':480,'136':720,'137':1080,'138':2160,
+				'264':1440,'266':2160,'298':720,'299':1080,'313':2160,'315':2160}
+			return sorted(sorted_fmt, key=lambda k: (-int(k.get('height') or fallback_heights.get(str(k.get('itag')),0)), k['preference']))
 		return sorted(sorted_fmt, key=lambda k: k['preference'])
 
-	def _extract_fmt_video_format(self, streaming_formats, player_id):
+	def _extract_fmt_video_format(self, streaming_formats, player_id, lang='en'):
 		print('[YouTubeVideoUrl] Try fmt url')
 		self.format_urls = []
 		selected_itag = ''
+		audio_url = None
+		dash_count = combined_count = 0
 		for fmt in self._sort_formats(PRIORITY_VIDEO_FORMAT, streaming_formats):
-			if not config.plugins.YouTube.useDashMP4.value:
-				muxed = str(fmt.get('itag')) in ('5','6','17','18','22','34','35','36','37','38','59','78')
-				if not muxed and not (fmt.get('audioQuality') or fmt.get('audioChannels') or 'mp4a' in fmt.get('mimeType','')):
-					continue
+			combined = str(fmt.get('itag')) in ('5','6','17','18','22','34','35','36','37','38','59','78')
+			combined = combined or bool(fmt.get('audioQuality') or fmt.get('audioChannels') or 'mp4a' in str(fmt.get('mimeType') or ''))
+			if combined and combined_count >= 3:
+				continue
+			if not combined and (not self.enable_dash or dash_count >= 4):
+				continue
+			if not combined:
+				if audio_url is None:
+					try:
+						audio_url = self._extract_dash_audio_format(streaming_formats,player_id,lang) or ''
+					except Exception:
+						audio_url = ''
+				if not audio_url:
+					continue  # Never return a silent, video-only DASH stream.
 			try:
 				url = self._extract_url(fmt, player_id)
 			except Exception:
 				continue  # A failed high-quality format must not hide a lower one.
 			if url:
+				if not combined:
+					url += SUBURI + audio_url
 				if not selected_itag:
 					selected_itag = str(fmt.get('itag'))
 				if url not in self.format_urls:
 					self.format_urls.append(url)
-				if len(self.format_urls) >= 5:
-					break
+					if combined: combined_count += 1
+					else: dash_count += 1
 		return (self.format_urls[0], selected_itag) if self.format_urls else ('', '')
 
 	def _extract_dash_audio_format(self, streaming_formats, player_id, lang):
@@ -492,7 +512,7 @@ class YouTubeVideoUrl():
 		url = ''
 		lang = config.plugins.YouTube.searchLanguage.value
 
-		if config.plugins.YouTube.useDashMP4.value:
+		if self.enable_dash:
 			self.use_dash_mp4 = ()
 		else:
 			print('[YouTubeVideoUrl] skip DASH MP4 format')
@@ -532,7 +552,7 @@ class YouTubeVideoUrl():
 			raise RuntimeError(self.try_get(player_response, ('playabilityStatus', 'reason')) or 'YouTube sign-in is required')
 
 		streaming_data = player_response.get('streamingData', {})
-		streaming_formats = streaming_data.get('formats', [])
+		streaming_formats = list(streaming_data.get('formats', []))
 		self.playback_urls = []
 
 		# If priority format changed in config, recreate priority list
@@ -541,19 +561,17 @@ class YouTubeVideoUrl():
 
 		if not is_live:
 			streaming_formats.extend(streaming_data.get('adaptiveFormats', []))
-			url, our_format = self._extract_fmt_video_format(streaming_formats, player_id)
-			if url and our_format in DASHMP4_FORMAT:
-				audio_url = self._extract_dash_audio_format(streaming_formats, player_id, lang)
-				if audio_url:
-					url += SUBURI + audio_url
+			url, our_format = self._extract_fmt_video_format(streaming_formats, player_id, lang)
 			self.playback_urls = list(getattr(self, 'format_urls', []))
 
 		# Prefer adaptive HLS when provided: it exposes the full quality range
 		# to the native demuxer instead of imposing a fixed 720p ceiling.
 		hls_manifest_url = streaming_data.get('hlsManifestUrl')
 		if hls_manifest_url:
-			self.playback_urls.insert(0, hls_manifest_url)
-			url = hls_manifest_url
+			index = next((i for i,value in enumerate(self.playback_urls) if SUBURI not in value),len(self.playback_urls))
+			self.playback_urls.insert(index, hls_manifest_url)
+		if self.playback_urls:
+			url = self.playback_urls[0]
 
 		if not url:
 			playability_status = player_response.get('playabilityStatus', {})

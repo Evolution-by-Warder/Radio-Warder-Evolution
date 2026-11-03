@@ -1,7 +1,20 @@
 """Use the image's MoviePlayer and skin; retain ownership-safe radio return."""
+import shutil
+import enigma
 from enigma import eServiceReference, iPlayableService
 from Components.ServiceEventTracker import ServiceEventTracker
 from Screens.InfoBar import MoviePlayer
+
+
+def dash_available():
+    """A registered Exteplayer backend and its executable are both required."""
+    if not shutil.which('exteplayer3'):
+        return False
+    try:
+        center = enigma.eServiceCenter.getInstance()
+        return center.info(eServiceReference(5002,0,'https://www.youtube.com/')) is not None
+    except (AttributeError, RuntimeError, TypeError):
+        return False
 
 
 class VideoPlayer(MoviePlayer):
@@ -10,10 +23,14 @@ class VideoPlayer(MoviePlayer):
     def __init__(self, session, video, radio_reference, original_reference, parent_closed):
         self.radio_reference, self.original_reference = radio_reference, original_reference
         self.parent_closed = parent_closed
-        self.reference = eServiceReference(4097, 0, video['url'])
-        self.reference.setName(video['title'])
         self.video_title = video['title']
-        self.urls = list(dict.fromkeys([video['url']] + list(video.get('urls', []))))[:6]
+        self.streams = list(video.get('streams') or [
+            {'url':url,'service_type':4097} for url in dict.fromkeys([video['url']] + list(video.get('urls', [])))])[:8]
+        if any(s.get('service_type') not in (4097,5002) for s in self.streams):
+            raise ValueError('Unsupported video player backend')
+        self.urls = [s['url'] for s in self.streams]
+        self.reference = eServiceReference(self.streams[0]['service_type'],0,self.urls[0])
+        self.reference.setName(self.video_title)
         self.url_index = 0
         self.video_reference_keys = {self.reference.toString()}
         self.finished = self.failed = False
@@ -65,7 +82,7 @@ class VideoPlayer(MoviePlayer):
             return
         while self.url_index + 1 < len(self.urls):
             self.url_index += 1
-            self.reference = eServiceReference(4097, 0, self.urls[self.url_index])
+            self.reference = eServiceReference(self.streams[self.url_index]['service_type'],0,self.urls[self.url_index])
             self.reference.setName(self.video_title)
             self.cur_service = self.reference
             self.video_reference_keys.add(self.reference.toString())

@@ -97,7 +97,7 @@ class Transport:
         return b''.join(chunks).decode('utf-8', 'replace')
 
 
-def find_video(artist, title, transport=None, resolver_factory=None):
+def find_video(artist, title, transport=None, resolver_factory=None, dash=False):
     query = song_query(artist, title)
     if not query:
         raise ValueError('Current song information is unavailable')
@@ -110,19 +110,26 @@ def find_video(artist, title, transport=None, resolver_factory=None):
         from .youtube_engine.extractor import YouTubeVideoUrl
         resolver_factory = YouTubeVideoUrl
     resolver = resolver_factory()
+    resolver.enable_dash = bool(dash)
     resolver._download_webpage = transport.page
     result = matches[0]
     url = resolver.extract(result['id'])
-    urls = []
+    urls, streams = [], []
     for candidate in [url] + list(getattr(resolver, 'playback_urls', [])):
-        if not isinstance(candidate, str) or '&suburi=' in candidate or candidate in urls:
+        if not isinstance(candidate, str) or candidate in urls:
             continue
         try:
-            urls.append(allowed_url(candidate, media=True))
+            parts = candidate.split('&suburi=')
+            if len(parts)>2 or (len(parts)==2 and not dash):
+                continue
+            for part in parts:
+                allowed_url(part,media=True)
+            urls.append(candidate)
+            streams.append({'url':candidate,'service_type':5002 if len(parts)==2 else 4097})
         except ValueError:
             continue
-        if len(urls) >= 6:
+        if len(urls) >= 8:
             break
     if not urls:
         raise ValueError('Unsupported YouTube stream address')
-    return dict(result, url=urls[0], urls=urls)
+    return dict(result, url=urls[0], urls=urls, streams=streams)

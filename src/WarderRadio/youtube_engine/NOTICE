@@ -15,3 +15,7 @@ Highest-first combined-format ranking, adaptive HLS preference and bounded
 lower-quality retry candidates are added. Sign-in demands are reported directly.
 No global SSL/configuration mutations or external plugin installation.
 The interpreter is otherwise retained from the pinned upstream source.
+
+Paired DASH candidates are now selected per call, validated on both origins and
+passed to a detected Exteplayer backend; image-global settings remain untouched.
+Video format height ranks quality. Missing audio rejects a video-only candidate.

@@ -407,14 +407,17 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(actions, set(screen['actions'].actions))
         self.assertEqual(screen['actions'].contexts, ['WarderRadioActions'])
 
-    def test_yellow_search_is_async_retains_radio_and_favourites_remain_in_menu(self):
+    def test_blue_video_search_is_async_retains_radio_and_favourites_remain_in_menu(self):
         screen, session, _ = self.new(); screen.play()
         original = screen.playback.previous
         callbacks=[]
         screen.video_jobs.submit = lambda key,work,callback: callbacks.append(callback) or True
         screen.youtube_video()
         self.assertTrue(screen.video_pending); self.assertTrue(screen.playback.owns())
-        self.assertEqual(screen['yellow'].getText(),radio.t('YouTube video'))
+        self.assertEqual(screen['blue'].getText(),radio.t('YouTube video'))
+        self.assertEqual(screen['yellow'].getText(),radio.t('Search'))
+        self.assertEqual(screen['actions'].actions['yellow'],screen.search)
+        self.assertEqual(screen['actions'].actions['blue'],screen.youtube_video)
         screen.youtube_video(); self.assertEqual(len(callbacks),1)
         screen.options()
         self.assertIn((radio.t('Favourite'),'favourite'),session.dialogs[-1][-1]['list'])
@@ -485,6 +488,40 @@ class NativeTests(unittest.TestCase):
         player.error()
         self.assertTrue(player.finished); self.assertTrue(player.failed)
         self.assertEqual(session.nav.current,radio_ref)
+
+    def test_dash_backend_detection_requires_registered_factory_and_executable(self):
+        from WarderRadio import video_player
+        center=NS(info=Mock(return_value=object()))
+        factory=NS(getInstance=lambda:center)
+        with patch.object(video_player.shutil,'which',return_value='/usr/bin/exteplayer3'), \
+             patch.object(sys.modules['enigma'],'eServiceCenter',factory,create=True):
+            self.assertTrue(video_player.dash_available())
+            self.assertEqual(center.info.call_args[0][0].args[0],5002)
+            center.info.return_value=None
+            self.assertFalse(video_player.dash_available())
+        with patch.object(video_player.shutil,'which',return_value=None):
+            self.assertFalse(video_player.dash_available())
+
+    def test_blue_dash_request_uses_exteplayer_with_audio_then_native_fallback(self):
+        screen,session,_=self.new();screen.play(); radio_ref=screen.playback.reference
+        work=[]
+        screen.video_jobs.submit=lambda key,fn,callback:work.append((fn,callback)) or True
+        result={'id':'abcdefghijk','title':'UHD video','url':'https://rr1.googlevideo.com/uhd&suburi=https://rr1.googlevideo.com/audio',
+            'streams':[
+              {'url':'https://rr1.googlevideo.com/uhd&suburi=https://rr1.googlevideo.com/audio','service_type':5002},
+              {'url':'https://rr1.googlevideo.com/hd&suburi=https://rr1.googlevideo.com/audio','service_type':5002},
+              {'url':'https://rr1.googlevideo.com/sd','service_type':4097}]}
+        with patch.object(radio,'dash_available',return_value=True),patch.object(radio,'find_video',return_value=result) as lookup:
+            screen['actions'].actions['blue']()
+            found=work[0][0]()
+            lookup.assert_called_once_with('Singer','Real title',dash=True)
+            work[0][1](found,None)
+        player=screen.video_dialog
+        self.assertEqual(player.reference.args[0],5002)
+        self.assertIn('&suburi=',player.reference.args[-1])
+        player.error();self.assertEqual(player.reference.args[0],5002)
+        player.error();self.assertEqual(player.reference.args[0],4097)
+        player.leavePlayer();self.assertEqual(session.nav.current,radio_ref)
 
     def test_live_widgets_are_above_static_artwork_in_native_creation_order(self):
         # Real createGUIScreen creates additionalWidgets after named components.
