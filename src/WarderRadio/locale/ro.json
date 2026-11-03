@@ -65,5 +65,9 @@
   "Slovakia": "Slovacia",
   "Czechia": "Cehia",
   "Update": "Actualizează",
-  "LEFT: menu · RIGHT: country · MENU: options": "STÂNGA: meniu · DREAPTA: țară · MENU: opțiuni"
+  "LEFT: menu · RIGHT: country · MENU: options": "STÂNGA: meniu · DREAPTA: țară · MENU: opțiuni",
+  "Please wait…": "Vă rugăm așteptați…",
+  "Downloading update…": "Se descarcă actualizarea…",
+  "Verifying package…": "Se verifică pachetul…",
+  "Verifying installation…": "Se verifică instalarea…"
 }

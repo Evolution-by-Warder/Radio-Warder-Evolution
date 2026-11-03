@@ -65,5 +65,9 @@
   "Slovakia": "Slovakija",
   "Czechia": "Čekija",
   "Update": "Atnaujinti",
-  "LEFT: menu · RIGHT: country · MENU: options": "KAIRĖN: meniu · DEŠINĖN: šalis · MENU: parinktys"
+  "LEFT: menu · RIGHT: country · MENU: options": "KAIRĖN: meniu · DEŠINĖN: šalis · MENU: parinktys",
+  "Please wait…": "Palaukite…",
+  "Downloading update…": "Atsisiunčiamas atnaujinimas…",
+  "Verifying package…": "Tikrinamas paketas…",
+  "Verifying installation…": "Tikrinamas diegimas…"
 }

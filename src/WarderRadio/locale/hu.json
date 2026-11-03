@@ -65,5 +65,9 @@
   "Slovakia": "Szlovákia",
   "Czechia": "Csehország",
   "Update": "Frissítés",
-  "LEFT: menu · RIGHT: country · MENU: options": "BALRA: menü · JOBBRA: ország · MENU: lehetőségek"
+  "LEFT: menu · RIGHT: country · MENU: options": "BALRA: menü · JOBBRA: ország · MENU: lehetőségek",
+  "Please wait…": "Kérjük, várjon…",
+  "Downloading update…": "Frissítés letöltése…",
+  "Verifying package…": "Csomag ellenőrzése…",
+  "Verifying installation…": "Telepítés ellenőrzése…"
 }

@@ -1,3 +1,13 @@
+# 0.1.0-test18
+
+Opens a modal progress window immediately after update approval, before starting
+background I/O. Displays real download bytes/percentage, then package checking,
+opkg installation and installed-state verification with activity feedback.
+Successful verification shows the three-second notice and restarts GUI after
+the modal window closes. Failures show the reason and restore controls without
+restart. Worker progress is delivered through a bounded thread-safe mailbox;
+GUI components are touched only on the GUI thread. All 21 locales updated.
+
 # 0.1.0-test17
 
 Replaces the upper Now playing/station-logo block with a 520px square current-song

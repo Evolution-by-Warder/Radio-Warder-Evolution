@@ -65,5 +65,9 @@
   "Slovakia": "Slowakije",
   "Czechia": "Tsjechië",
   "Update": "Bijwerken",
-  "LEFT: menu · RIGHT: country · MENU: options": "LINKS: menu · RECHTS: land · MENU: opties"
+  "LEFT: menu · RIGHT: country · MENU: options": "LINKS: menu · RECHTS: land · MENU: opties",
+  "Please wait…": "Even geduld…",
+  "Downloading update…": "Update downloaden…",
+  "Verifying package…": "Pakket controleren…",
+  "Verifying installation…": "Installatie controleren…"
 }

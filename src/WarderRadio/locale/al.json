@@ -65,5 +65,9 @@
   "Slovakia": "Sllovakia",
   "Czechia": "Çekia",
   "Update": "Përditëso",
-  "LEFT: menu · RIGHT: country · MENU: options": "MAJTAS: menu · DJATHTAS: vendi · MENU: opsionet"
+  "LEFT: menu · RIGHT: country · MENU: options": "MAJTAS: menu · DJATHTAS: vendi · MENU: opsionet",
+  "Please wait…": "Ju lutemi prisni…",
+  "Downloading update…": "Po shkarkohet përditësimi…",
+  "Verifying package…": "Po verifikohet paketa…",
+  "Verifying installation…": "Po verifikohet instalimi…"
 }

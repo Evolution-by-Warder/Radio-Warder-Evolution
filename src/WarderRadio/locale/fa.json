@@ -65,5 +65,9 @@
   "Slovakia": "اسلواکی",
   "Czechia": "چک",
   "Update": "به‌روزرسانی",
-  "LEFT: menu · RIGHT: country · MENU: options": "چپ: منو · راست: کشور · MENU: گزینه‌ها"
+  "LEFT: menu · RIGHT: country · MENU: options": "چپ: منو · راست: کشور · MENU: گزینه‌ها",
+  "Please wait…": "لطفاً صبر کنید…",
+  "Downloading update…": "در حال دریافت به‌روزرسانی…",
+  "Verifying package…": "در حال بررسی بسته…",
+  "Verifying installation…": "در حال بررسی نصب…"
 }

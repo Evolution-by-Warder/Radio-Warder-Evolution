@@ -77,3 +77,43 @@ class UpdateTests(unittest.TestCase):
         runner.return_value.stdout = runner.return_value.stdout.replace('install ok installed', 'install ok unpacked')
         with self.assertRaises(update.UpdateError):
             update.verify_installation(VERSION, runner=runner, runtime=root)
+
+
+    def test_verified_install_reports_actual_download_bytes_and_ordered_real_phases(self):
+        root = Path(__file__).resolve().parents[1]
+        build = json.loads((root / 'dist/build.json').read_text())
+        body = (root / 'dist' / build['file']).read_bytes()
+        release = update.Release(VERSION, '', hashlib.sha256(body).hexdigest(), len(body))
+        progress = []
+        def report(stage, done=0, total=0): progress.append((stage, done, total))
+        def runner(command, **kwargs):
+            self.assertEqual(command[:2], ['opkg', 'install'])
+            self.assertEqual(progress[-1][0], 'install')
+            return Mock(returncode=0, stdout='installed')
+        def verify(version, **kwargs):
+            self.assertEqual(version, VERSION)
+            self.assertEqual(progress[-1][0], 'installed')
+        result = update.install_release(release, opener=lambda *a, **k: io.BytesIO(body),
+                                        runner=runner, verifier=verify, progress=report)
+        self.assertEqual(result, VERSION)
+        downloads = [(done,total) for stage,done,total in progress if stage == 'download']
+        self.assertEqual(downloads[0], (0, len(body)))
+        self.assertEqual(downloads[-1], (len(body), len(body)))
+        self.assertEqual([done for done,total in downloads], sorted(done for done,total in downloads))
+        self.assertTrue(all(total == len(body) for done,total in downloads))
+        self.assertEqual([stage for stage,done,total in progress if stage != 'download'],
+                         ['verify', 'install', 'installed', 'complete'])
+
+    def test_failed_installed_state_never_reports_complete(self):
+        root = Path(__file__).resolve().parents[1]
+        build = json.loads((root / 'dist/build.json').read_text())
+        body = (root / 'dist' / build['file']).read_bytes()
+        release = update.Release(VERSION, '', hashlib.sha256(body).hexdigest(), len(body))
+        phases = []
+        def failed(*args, **kwargs): raise update.UpdateError('not completely installed')
+        with self.assertRaises(update.UpdateError):
+            update.install_release(release, opener=lambda *a, **k: io.BytesIO(body),
+                runner=lambda *a, **k: Mock(returncode=0, stdout=''), verifier=failed,
+                progress=lambda stage,*args: phases.append(stage))
+        self.assertIn('installed', phases)
+        self.assertNotIn('complete', phases)

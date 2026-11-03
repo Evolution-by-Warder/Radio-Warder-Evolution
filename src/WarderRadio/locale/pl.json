@@ -65,5 +65,9 @@
   "Slovakia": "Słowacja",
   "Czechia": "Czechy",
   "Update": "Aktualizuj",
-  "LEFT: menu · RIGHT: country · MENU: options": "LEWO: menu · PRAWO: kraj · MENU: opcje"
+  "LEFT: menu · RIGHT: country · MENU: options": "LEWO: menu · PRAWO: kraj · MENU: opcje",
+  "Please wait…": "Proszę czekać…",
+  "Downloading update…": "Pobieranie aktualizacji…",
+  "Verifying package…": "Sprawdzanie pakietu…",
+  "Verifying installation…": "Sprawdzanie instalacji…"
 }

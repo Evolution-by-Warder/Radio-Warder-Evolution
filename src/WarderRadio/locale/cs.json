@@ -65,5 +65,9 @@
   "Slovakia": "Slovensko",
   "Czechia": "Česko",
   "Update": "Aktualizovat",
-  "LEFT: menu · RIGHT: country · MENU: options": "VLEVO: nabídka · VPRAVO: země · MENU: možnosti"
+  "LEFT: menu · RIGHT: country · MENU: options": "VLEVO: nabídka · VPRAVO: země · MENU: možnosti",
+  "Please wait…": "Prosím, čekejte…",
+  "Downloading update…": "Stahování aktualizace…",
+  "Verifying package…": "Ověřování balíčku…",
+  "Verifying installation…": "Ověřování instalace…"
 }

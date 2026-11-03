@@ -49,8 +49,8 @@ class Signal:
 
 
 class Timer:
-    def __init__(self): self.callback = []; self.active = False
-    def start(self, *args): self.active = True
+    def __init__(self): self.callback = []; self.active = False; self.starts = []
+    def start(self, *args): self.active = True; self.starts.append(args)
     def stop(self): self.active = False
 
 
@@ -101,6 +101,8 @@ class Widget:
     def moveSelection(self, direction):
         if self.content.rows:
             self.content.index = (self.content.index + direction) % len(self.content.rows)
+    def setRange(self, *args): self.range = args
+    def setValue(self, value): self.value = value
     def setFocus(self, *args): pass
     def goLineDown(self): self.moveSelection(1)
     def goLineUp(self): self.moveSelection(-1)
@@ -138,18 +140,30 @@ class Navigation:
 
 
 class Session:
-    def __init__(self): self.nav = Navigation(); self.dialog_stack = []; self.dialogs = []
+    def __init__(self): self.nav = Navigation(); self.dialog_stack = []; self.dialogs = []; self.modal_callbacks = {}
     def open(self, screen, *args, **kwargs): self.dialogs.append((screen, args, kwargs))
-    def openWithCallback(self, callback, screen, *args, **kwargs): self.dialogs.append((screen, callback, args, kwargs))
+    def openWithCallback(self, callback, screen, *args, **kwargs):
+        self.dialogs.append((screen, callback, args, kwargs))
+        if screen is radio.UpdateProgress:
+            dialog = screen(self, *args, **kwargs)
+            mount(dialog)
+            dialog.execing = True
+            self.current_dialog = dialog
+            self.modal_callbacks[id(dialog)] = callback
+            for shown in list(dialog.onShown): shown()
+            return dialog
     def close(self, screen, *args):
+        screen.execing = False
         for callback in list(screen.onClose): callback()
+        callback = self.modal_callbacks.pop(id(screen), None)
+        if callback is not None: callback(*args)
 
 
 DESKTOP = [1920, 1080]
 getDesktop = lambda unused: NS(size=lambda: NS(width=lambda: DESKTOP[0], height=lambda: DESKTOP[1]))
 gfont = lambda name, size: (name, size)
 module('enigma', ePicLoad=PicLoad,
-       ePoint=lambda x,y: NS(x=lambda:x,y=lambda:y),
+       eSlider=Widget, ePoint=lambda x,y: NS(x=lambda:x,y=lambda:y),
        eSize=lambda w,h: NS(width=lambda:w,height=lambda:h), eTimer=Timer, eServiceReference=Reference, eListboxPythonMultiContent=Content,
        eListboxPythonStringContent=Content, gFont=gfont, getDesktop=getDesktop, gRGB=lambda value: value,
        RT_HALIGN_LEFT=1, RT_VALIGN_CENTER=2, RT_ELLIPSIS=4,
@@ -167,6 +181,8 @@ def apply_attributes(widget, desktop, attributes, scale):
 GUIComponent = native('Components/GUIComponent.py', 'GUIComponent',
     {'skin': NS(applyAllAttributes=apply_attributes), 'applyAllAttributes': apply_attributes})
 VariableText = native('Components/VariableText.py', 'VariableText', {})
+VariableValue = native('Components/VariableValue.py', 'VariableValue', {})
+ProgressBar = native('Components/ProgressBar.py', 'ProgressBar', {'GUIComponent': GUIComponent, 'VariableValue': VariableValue, 'eSlider': Widget})
 Label = native('Components/Label.py', 'Label', {'VariableText': VariableText, 'GUIComponent': GUIComponent, 'eLabel': Widget})
 Button = native('Components/Button.py', 'Button', {'VariableText': VariableText, 'GUIComponent': GUIComponent, 'eButton': Widget})
 Pixmap = native('Components/Pixmap.py', 'Pixmap', {'GUIComponent': GUIComponent, 'ePixmap': Widget})
@@ -188,6 +204,7 @@ ServiceEventTracker.event.__globals__['ServiceEventTracker'] = ServiceEventTrack
 PluginDescriptor = native('Plugins/Plugin.py', 'PluginDescriptor', {'os': os})
 module('Components.MenuList', MenuList=MenuList)
 module('Components.Label', Label=Label)
+module('Components.ProgressBar', ProgressBar=ProgressBar)
 module('Components.Button', Button=Button)
 module('Components.Pixmap', Pixmap=Pixmap)
 MultiContentEntryPixmapAlphaBlend = native('Components/MultiContent.py', 'MultiContentEntryPixmapAlphaBlend',
@@ -393,11 +410,10 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(len(obscured(before)), 6)
         self.assertEqual(obscured(after), [])
 
-    def test_update_checks_automatically_and_install_requires_acceptance(self):
+    def test_update_modal_opens_before_io_shows_real_progress_and_restarts_after_success_only(self):
         screen, session, _ = self.new()
         self.assertTrue(screen.update_pending)
-        release = NS(version='0.1.1')
-        screen.update_checked(release, None)
+        screen.update_checked(NS(version='0.1.1'), None)
         self.assertIn('0.1.1', session.dialogs[-1][2][0])
         screen.update_answered(False)
         self.assertFalse(screen.installing)
@@ -405,28 +421,105 @@ class NativeTests(unittest.TestCase):
         captured = []
         screen.jobs.submit = lambda key, work, callback: captured.append((key, work, callback)) or True
         screen.update_answered(True)
+        window = screen.update_window
+        self.assertIsInstance(window, radio.UpdateProgress)
+        self.assertEqual(captured, [])  # The window exists before worker submission.
         self.assertTrue(screen.installing)
         self.assertFalse(screen['actions'].enabled)
+        window.close_failed()
+        self.assertFalse(window.disposed)
+        window.tick()
+        self.assertEqual(len(captured), 1)
+        screen.update_state.report('download', 25, 100)
+        self.assertEqual(window['bar'].getValue(), 0)
+        screen.poll()
+        self.assertEqual(window['bar'].getValue(), 25)
+        self.assertEqual(window['percent'].getText(), '25 %')
+        screen.update_state.report('install')
+        screen.poll()
+        self.assertEqual(window['phase'].getText(), radio.t('Installing update…'))
+        self.assertEqual(window['percent'].getText(), '')
+        self.assertFalse(window['bar'].instance.isVisible())
         screen.update_installed(None, 'opkg error')
         self.assertFalse(screen.installing)
         self.assertTrue(screen['actions'].enabled)
+        self.assertEqual(window.mode, 'failed')
+        self.assertIn('opkg error', window['detail'].getText())
+        self.assertFalse(window.timer.active)
+        window.close_failed()
+        self.assertIsNone(screen.update_window)
+        self.assertFalse(screen.update_restart_ready)
+        screen.update_answered(True)
+        window = screen.update_window
+        window.tick()
         screen.update_installed('0.1.1', None)
-        dialog = session.dialogs[-1]
-        self.assertEqual(dialog[-1]['type'], radio.MessageBox.TYPE_INFO)
-        self.assertEqual(dialog[-1]['timeout'], 3)
-        self.assertFalse(dialog[-1]['enable_input'])
-        self.assertTrue(dialog[-1]['timeout_default'])
-        self.assertIn('3', dialog[2][0])
+        self.assertEqual(window.mode, 'success')
+        self.assertEqual(window.timer.starts[-1], (3000, True))
+        self.assertIn('3', window['phase'].getText())
         self.assertTrue(screen.installing)
         self.assertFalse(screen['actions'].enabled)
         sentinel = object()
         with patch.dict(sys.modules, {'Screens.Standby': NS(TryQuitMainloop=sentinel)}):
-            dialog[1](True)
+            window.tick()
             self.assertTrue(screen.closed)
+            self.assertTrue(window.disposed)
+            self.assertIsNone(screen.update_window)
             self.assertEqual(session.dialogs[-1], (sentinel, (3,), {}))
             count = len(session.dialogs)
-            dialog[1](True)
+            window.tick(); screen.update_progress_closed(True)
             self.assertEqual(len(session.dialogs), count)
+
+    def test_update_window_geometry_activity_and_cleanup_at_all_resolutions(self):
+        for width, height in [(1280, 720), (1920, 1080), (2560, 1440), (3840, 2160)]:
+            with self.subTest(width=width):
+                DESKTOP[:] = width, height
+                session = Session(); started = []
+                window = radio.UpdateProgress(session, '0.1.0-test18', lambda: started.append(True))
+                self.addCleanup(window.cleanup)
+                root = mount(window)
+                w, h = map(int, root.attrib['size'].split(','))
+                for node in root:
+                    x, y = map(int, node.attrib['position'].split(','))
+                    rw, rh = map(int, node.attrib['size'].split(','))
+                    self.assertGreaterEqual(x, 0); self.assertGreaterEqual(y, 0)
+                    self.assertLessEqual(x + rw, w); self.assertLessEqual(y + rh, h)
+                window.on_shown(); window.tick(); window.tick()
+                self.assertEqual(started, [True])
+                self.assertTrue(window['activity'].getText())
+                for phase in ('verify', 'install', 'installed'):
+                    window.set_stage(phase)
+                    self.assertFalse(window['percent'].getText())
+                window.fail('reason')
+                window.set_stage('download', 50, 100)
+                self.assertEqual(window['phase'].getText(), radio.t('Update failed'))
+                window.cleanup(); window.tick()
+                self.assertFalse(window.timer.active)
+                self.assertEqual(window.timer.callback, [])
+
+    def test_update_window_modern_timer_signal_and_queue_rejection_do_not_restart(self):
+        from WarderRadio import update_progress
+        class SignalTimer:
+            def __init__(self): self.timeout = Signal(); self.active = False
+            def start(self, *args): self.active = True
+            def stop(self): self.active = False
+        with patch.object(update_progress, 'eTimer', SignalTimer):
+            screen, session, _ = self.new()
+            screen.update_release = NS(version='0.1.1')
+            screen.jobs.close()
+            screen.jobs.submit = lambda *args: False
+            screen.update_answered(True)
+            window = screen.update_window
+            self.assertEqual(len(window.timer.timeout.callbacks), 1)
+            window.tick()
+            self.assertEqual(window.mode, 'failed')
+            self.assertFalse(screen.installing)
+            self.assertTrue(screen['actions'].enabled)
+            self.assertFalse(screen.update_restart_ready)
+            self.assertFalse(window.timer.active)
+            window.close_failed()
+            self.assertEqual(window.timer.timeout.callbacks, [])
+            self.assertIsNone(screen.update_window)
+            self.assertFalse(screen.closed)
 
     def test_country_focus_requires_ok_and_selection_persists_without_interrupting_audio(self):
         screen, session, _ = self.new()

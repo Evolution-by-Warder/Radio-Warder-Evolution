@@ -65,5 +65,9 @@
   "Slovakia": "Slovakya",
   "Czechia": "Çekya",
   "Update": "Güncelle",
-  "LEFT: menu · RIGHT: country · MENU: options": "SOL: menü · SAĞ: ülke · MENU: seçenekler"
+  "LEFT: menu · RIGHT: country · MENU: options": "SOL: menü · SAĞ: ülke · MENU: seçenekler",
+  "Please wait…": "Lütfen bekleyin…",
+  "Downloading update…": "Güncelleme indiriliyor…",
+  "Verifying package…": "Paket doğrulanıyor…",
+  "Verifying installation…": "Kurulum doğrulanıyor…"
 }

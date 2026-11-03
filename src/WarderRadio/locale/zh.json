@@ -65,5 +65,9 @@
   "Slovakia": "斯洛伐克",
   "Czechia": "捷克",
   "Update": "更新",
-  "LEFT: menu · RIGHT: country · MENU: options": "左：菜单 · 右：国家 · MENU：选项"
+  "LEFT: menu · RIGHT: country · MENU: options": "左：菜单 · 右：国家 · MENU：选项",
+  "Please wait…": "请稍候…",
+  "Downloading update…": "正在下载更新…",
+  "Verifying package…": "正在验证软件包…",
+  "Verifying installation…": "正在验证安装…"
 }

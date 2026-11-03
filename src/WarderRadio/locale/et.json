@@ -65,5 +65,9 @@
   "Slovakia": "Slovakkia",
   "Czechia": "Tšehhi",
   "Update": "Uuenda",
-  "LEFT: menu · RIGHT: country · MENU: options": "VASAKULE: menüü · PAREMALE: riik · MENU: valikud"
+  "LEFT: menu · RIGHT: country · MENU: options": "VASAKULE: menüü · PAREMALE: riik · MENU: valikud",
+  "Please wait…": "Palun oodake…",
+  "Downloading update…": "Uuenduse allalaadimine…",
+  "Verifying package…": "Paketi kontrollimine…",
+  "Verifying installation…": "Paigalduse kontrollimine…"
 }

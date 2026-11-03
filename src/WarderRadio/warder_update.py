@@ -108,16 +108,18 @@ def check_release(current_version, opener=_open):
     return parse_release(payload, current_version)
 
 
-def download_release(release, destination, opener=_open):
+def download_release(release, destination, opener=_open, progress=None):
     """Write only to the private staging area; validate before invoking opkg."""
     path = pathlib.Path(destination)
     digest, count, created = hashlib.sha256(), 0, False
+    if progress is not None:
+        progress("download", 0, release.bytes)
     try:
         with path.open("xb") as target:
             created = True
             with opener(release.url, timeout=15) as response:
                 while True:
-                    data = response.read(128 * 1024)
+                    data = response.read(32 * 1024)
                     if not data:
                         break
                     count += len(data)
@@ -125,6 +127,8 @@ def download_release(release, destination, opener=_open):
                         raise UpdateError("Package exceeds published size")
                     digest.update(data)
                     target.write(data)
+                    if progress is not None:
+                        progress("download", count, release.bytes)
         if count != release.bytes or digest.hexdigest() != release.sha256:
             raise UpdateError("Package size or SHA256 mismatch")
         return path
@@ -191,7 +195,7 @@ def validate_ipk(path, release):
 def verify_payload(expected_version=None, runtime=None):
     runtime = pathlib.Path(runtime) if runtime is not None else pathlib.Path(__file__).parent
     for name in ('plugin.py', '__init__.py', 'screen.py', 'skin.py', 'model.py',
-                 'warder_update.py', 'i18n.py', 'metadata.py', 'spectrum.py', 'covers.py', 'cover_display.py', 'song_identity.py', 'cache.py', 'version.txt', 'locale/en.json'):
+                 'warder_update.py', 'i18n.py', 'metadata.py', 'spectrum.py', 'covers.py', 'cover_display.py', 'song_identity.py', 'cache.py', 'update_progress.py', 'update_state.py', 'version.txt', 'locale/en.json'):
         path = runtime / name
         if not path.is_file() or path.stat().st_size == 0:
             raise UpdateError('Incomplete Warder Radio installation: missing ' + name)
@@ -218,16 +222,24 @@ def verify_installation(expected_version, runner=subprocess.run, runtime=None):
     raise UpdateError('Warder Radio package is not completely installed')
 
 
-def install_release(release, opener=_open, runner=subprocess.run, verifier=verify_installation):
+def install_release(release, opener=_open, runner=subprocess.run, verifier=verify_installation, progress=None):
     """Called only after the UI accepts installation; never force or reboot."""
     with tempfile.TemporaryDirectory(prefix="warder-radio-update-") as temporary:
-        path = download_release(release, pathlib.Path(temporary) / "update.ipk", opener)
+        path = download_release(release, pathlib.Path(temporary) / "update.ipk", opener, progress)
+        if progress is not None:
+            progress("verify")
         validate_ipk(path, release)
+        if progress is not None:
+            progress("install")
         result = runner(["opkg", "install", str(path)], stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT, text=True, timeout=300)
         if result.returncode != 0:
             raise UpdateError("opkg failed (%s): %s" % (result.returncode, result.stdout[-2000:]))
+        if progress is not None:
+            progress("installed")
         verifier(release.version, runner=runner)
+        if progress is not None:
+            progress("complete")
     return release.version
 
 

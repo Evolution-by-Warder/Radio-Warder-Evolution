@@ -28,6 +28,8 @@ from .skin import make_skin, geometry
 from .spectrum import Spectrum
 from .covers import lookup_cover
 from .cover_display import CoverDisplay
+from .update_progress import UpdateProgress
+from .update_state import UpdateState
 from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair
 
 
@@ -109,6 +111,9 @@ class WarderRadio(Screen):
         self.update_pending = False
         self.update_manual = False
         self.installing = False
+        self.update_window = None
+        self.update_state = UpdateState()
+        self.update_restart_ready = False
         self.mode = 'radio'
         self.query = ''
         self.focus = 'stations'
@@ -620,6 +625,9 @@ class WarderRadio(Screen):
 
     def poll(self):
         if not self.closed:
+            progress = self.update_state.take()
+            if progress is not None and self.update_window is not None:
+                self.update_window.set_stage(*progress)
             self.jobs.poll()
             self.cover_jobs.poll()
 
@@ -658,34 +666,54 @@ class WarderRadio(Screen):
     def update_answered(self, accepted):
         if not accepted or self.closed or self.installing:
             return
-        release = self.update_release
-        self.installing = self.jobs.submit('plugin-update-install',
-            lambda: install_release(release), self.update_installed)
-        if self.installing:
-            self['actions'].setEnabled(False)
-            self['status'].setText(t('Installing update…'))
-        else:
-            self.notify(t('Update failed'), True)
+        self.installing = True
+        self.update_restart_ready = False
+        self.update_state = UpdateState()
+        self['actions'].setEnabled(False)
+        self['status'].setText(t('Installing update…'))
+        self.update_window = self.session.openWithCallback(self.update_progress_closed,
+            UpdateProgress, self.update_release.version, self.begin_update)
+
+    def begin_update(self):
+        if self.closed or not self.installing:
+            return
+        release, progress = self.update_release, self.update_state
+        queued = self.jobs.submit('plugin-update-install',
+            lambda: install_release(release, progress=progress.report), self.update_installed)
+        if not queued:
+            self.update_installed(None, t('Update failed'))
 
     def update_installed(self, version, error):
         if self.closed:
             return
         if error:
             self.installing = False
+            self.update_restart_ready = False
             self['actions'].setEnabled(True)
             self['status'].setText(t('Update failed'))
-            self.notify(t('Update failed'), True)
+            if self.update_window is not None:
+                self.update_window.fail(error)
+            else:
+                self.notify(t('Update failed') + '\n' + str(error)[-200:], True)
             return
         self.installing = True
+        self.update_restart_ready = True
         self['actions'].setEnabled(False)
-        message = t('Update installed. GUI will restart in 3 seconds.')
-        self['status'].setText(message)
-        self.session.openWithCallback(self.update_restart, MessageBox,
-            message, type=MessageBox.TYPE_INFO, timeout=3,
-            enable_input=False, timeout_default=True)
+        self['status'].setText(t('Update installed. GUI will restart in 3 seconds.'))
+        if self.update_window is not None:
+            self.update_window.succeed()
+        else:
+            self.session.openWithCallback(self.update_restart, MessageBox,
+                t('Update installed. GUI will restart in 3 seconds.'), type=MessageBox.TYPE_INFO,
+                timeout=3, enable_input=False, timeout_default=True)
+
+    def update_progress_closed(self, completed=False):
+        self.update_window = None
+        if completed and self.update_restart_ready:
+            self.update_restart()
 
     def update_restart(self, _result=None):
-        if self.installing and not self.closed:
+        if self.installing and self.update_restart_ready and not self.closed:
             from Screens.Standby import TryQuitMainloop
             self.cleanup()
             self.session.open(TryQuitMainloop, 3)
@@ -698,6 +726,8 @@ class WarderRadio(Screen):
         if self.closed:
             return
         self.closed = True
+        if self.update_window is not None:
+            self.update_window.cleanup()
         self.poll_timer.close()
         self.clock_timer.close()
         self.spectrum.close()
