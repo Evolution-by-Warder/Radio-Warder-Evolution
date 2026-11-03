@@ -1,3 +1,25 @@
+# Warder Radio 0.1.0-test9
+
+Source: `54cc070aacfc34dc49135f6828576ac53ecc92f3`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41626359127 — success, including public download/size/SHA-256 verification and testing-feed publication.
+
+- Update is below Settings as the sixth left-menu item. OK starts the existing verified manual updater. INFO remains an alternate shortcut; the footer has four colour controls again.
+- RIGHT from any station and UP from the first row immediately open the country list. No additional OK is required. Cancelling restores the selected station/scroll position without interrupting playback.
+- The focus pointer is beside the cyan country name only. The white Select country caption is unchanged.
+- All 21 languages retain 67 complete UI strings. No catalogue, stream, playback backend or unrelated production-feed changes.
+
+25 unit cases and 15 native replay cases on each of three pinned OpenPLi/OpenATV revisions passed (70 executions), plus IPK payload/Python 3.9 checks. Native replay stubs C++/OS boundaries; receiver confirmation of this change remains pending.
+
+Published IPK: 2798214 bytes; SHA-256 `e2ec97d9ae11c491603579bbb6c05915479e09ef9f72f0fda14f643c7fa3efaf`.
+Release: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.0-test9
+The connector independently confirmed the published asset digest/size match the live testing feed. A second direct download from this workspace timed out; the successful CI public-download verification is the distribution evidence.
+
+The user set the About description to Warder Radio - World of Radio Stations; this is the approved branding text.
+
+---
+
+Historical test8 handoff (behaviour below superseded by test9 where noted):
+
 # Warder Radio 0.1.0-test8 — verified standalone handoff
 
 The owner created the public Radio-Warder-Evolution repository and authorized all setup. The independent project is now imported at its root with README, licence, source, approved artwork, full catalogue/provenance, tests, documentation, CI, releases and separate testing/stable update feeds.
