@@ -1,3 +1,19 @@
+# Radio Warder Evolution — test13
+
+All three main panels now have a thin cyan outline in the PiconHub/Warder style. Geometry and controls are retained. Native opaque borders are drawn above the panel fills and below live text, with width scaled from 2 px at Full HD.
+
+Source: `f7637a9cdb59eca2f517e2df09daae0caef9db43`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41628985504 — success. All 76 existing cases and IPK validation passed. The public package was downloaded and size/SHA-256 verified in CI; connector release metadata matches the live v2 feed. The test11 old-ID bridge remains byte-identical.
+
+Latest IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test13/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test13_all.ipk
+SHA-256 `f112282cd121f2465bf16c10c2b78a2860d63fbbd4914f2d95f163b2a0353b3c`; 3045580 bytes.
+
+Direct installation over old warderradio performs the renamed-package transition in one operation. The old updater still offers the immutable test11 bridge first; after restart its v2 updater offers test13. User receiver confirmation of outlines/spectrum/package migration remains pending.
+
+The browser name, canonical package name, spectrum and automatic restart described below remain current; the prior test12 release evidence is retained for history.
+
+---
+
 # Radio Warder Evolution — test12 release
 
 Source: `28a40b067935ba9793811d2c57a13c5946f962da`.
