@@ -28,12 +28,12 @@ jobs:
           from WarderRadio import song_identity as identity
           from WarderRadio.covers import cover_rank
 
-          artist, title = 'Rozpravka na celu', 'Chore slniecko'
+          artist, title = 'Kandráčovci', 'Hej, už je ňedaľeko'
           plans = [
-              ('Title-audiobook-global', 'https', {'term':'Choré slniečko','limit':20,'media':'audiobook'}),
-              ('Title-audiobook-SK', 'https', {'term':'Choré slniečko','limit':20,'media':'audiobook','country':'SK'}),
-              ('Title-all-global', 'https', {'term':'Choré slniečko','limit':20,'media':'all'}),
-              ('Publisher-album-audiobook', 'https', {'term':'Kukučkový dedko','limit':20,'media':'audiobook','country':'SK'}),
+              ('Folk-song', 'https', {'term':artist+' '+title,'limit':20,'media':'music'}),
+              ('Folk-artist', 'https', {'term':artist,'limit':20,'media':'music','attribute':'artistTerm'}),
+              ('Junior-title-all', 'https', {'term':'V lese žije drak','limit':20,'media':'all','country':'SK'}),
+              ('Junior-author-all', 'https', {'term':'Peter Karpinský V lese žije drak','limit':20,'media':'all'}),
           ]
           report = []
           for name, scheme, params in plans:
