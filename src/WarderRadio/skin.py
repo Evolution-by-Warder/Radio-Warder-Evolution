@@ -27,6 +27,13 @@ def make_skin(width, height):
              % (canvas_w, canvas_h, escape(ROOT, {'"': '&quot;'}))]
     for x, y, w, h in [(32, 204, 440, 730), (500, 204, 680, 730), (1200, 204, 688, 730)]:
         parts.append('<eLabel zPosition="1" %s backgroundColor="#00081829" />' % rect(x, y, w, h))
+        # Native opaque edge widgets preserve the thin cyan panel outline on
+        # both the TV compositor and Webif, at every supported resolution.
+        px, py, pw, ph, edge = n(x), n(y), n(w), n(h), n(2)
+        for bx, by, bw, bh in [(px, py, pw, edge), (px, py + ph - edge, pw, edge),
+                               (px, py, edge, ph), (px + pw - edge, py, edge, ph)]:
+            parts.append('<eLabel zPosition="1" position="%d,%d" size="%d,%d" '
+                         'backgroundColor="#0045c7e6" />' % (bx, by, bw, bh))
     parts += [label('date', 1080, 26, 390, 42, 24, align='right'),
               label('clock', 1490, 20, 206, 60, 38, '#ffffff', 'right'),
               label('version', 1720, 28, 175, 38, 22, '#00ceff', 'right'),

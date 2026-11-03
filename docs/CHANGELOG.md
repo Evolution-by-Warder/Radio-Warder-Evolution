@@ -1,3 +1,10 @@
+# 0.1.0-test13
+
+Adds a thin cyan outline to each of the three main panels, matching the Warder
+plugin family/PiconHub style. Native opaque edge widgets scale with resolution.
+Panel sizes, positions, content and controls are unchanged. Retains the renamed
+radio-warder-evolution package, FullHDGlass spectrum and three-second restart.
+
 # 0.1.0-test12
 
 The plugin and extensions menus now display Radio Warder Evolution. The

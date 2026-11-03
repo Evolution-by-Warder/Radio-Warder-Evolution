@@ -343,7 +343,7 @@ class NativeTests(unittest.TestCase):
                 bw, bh = map(int, background.attributes['size'].split(','))
                 if x < bx + bw and x + w > bx and y < by + bh and y + h > by:
                     self.assertGreater(order(widget), order(background), node.attrib['name'])
-        panels = [node for node in root.findall('eLabel') if node.attrib.get('size', '').endswith(',730')]
+        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == '#00081829']
         self.assertEqual(len(panels), 3)
         self.assertTrue(all(node.attrib['backgroundColor'].startswith('#00') for node in panels))
 
