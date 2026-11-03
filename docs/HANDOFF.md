@@ -1,3 +1,15 @@
+# Radio Warder Evolution — test23 spectrum without caption
+
+User requested removal of Playback activity beneath the spectrum. Removes the
+current skin widget, component registration and all 21 unused translations.
+Preserves spectrum dimensions, rendering, playback and panel layout. The native
+harness supplies the removed label only to the archived test1 XML fixture and
+checks absence in current layouts at every supported resolution. All test22
+metadata and artwork fixes are included. There are 71 active translation keys.
+Publication verification is pending below.
+
+---
+
 # Radio Warder Evolution — test22 broadcast file tags
 
 Completes four scoped fixes: Central European metadata decoding/guarded repair,
@@ -16,8 +28,15 @@ pattern; the live first-block trace contained a different, valid UTF-8 song.
 Publication requires seven real image downloads, including the three newly
 reported music examples, followed by public package/feed verification. Receiver
 rendering and actual receiver latency still require user confirmation.
-Publication record will follow after CI; stable feeds and the immutable legacy
-bridge are retained.
+test22 published successfully from source 2dfc6aba49cb4f2810e1bc3c0370f9becb83bc70.
+CI https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41664055093
+passed every step, including seven actual JPEG downloads and final public
+package/feed verification. New examples: Rust2Dust 61,612 bytes in two requests;
+Jason Derulo's Westfunk remix 65,409 bytes in two; corrected Folk artist artwork
+108,206 bytes in three. These are runner checks, not receiver latency claims.
+test22 IPK: 3,062,230 bytes, SHA-256
+480b7a77ecf0effc7ebb6e7ab2e14ea0b3442dd4382104a6c9a86ccf09569862.
+Stable feeds and the immutable legacy bridge are retained.
 
 ---
 

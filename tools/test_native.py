@@ -277,6 +277,7 @@ class NativeTests(unittest.TestCase):
         # fixture while adapting the removed component only in this replay.
         if 'source="activity"' in screen.skin:
             screen['activity'] = CanvasSource()
+            screen['activitylabel'] = radio.Label('')  # Removed current widget, archived XML only.
         root = mount(screen)
         return screen, session, root
 
@@ -287,6 +288,7 @@ class NativeTests(unittest.TestCase):
                 screen, session, root = self.new()
                 self.assertEqual(session.nav.calls, [])
                 self.assertIsInstance(screen.scale, tuple)  # Native Screen owns this; UI scale must be separate.
+                self.assertIsNone(root.find("widget[@name='activitylabel']"))
                 self.assertEqual(screen.ui_scale, width / 1920)
                 for node in root.findall('widget'):
                     x, y = map(int, node.attrib['position'].split(','))

@@ -1,3 +1,9 @@
+# 0.1.0-test23
+
+Removes the Playback activity caption beneath the spectrum, including the unused
+widget and translation key in all 21 languages. Keeps the spectrum and panel
+geometry. Includes all test22 metadata and artwork-query fixes.
+
 # 0.1.0-test22
 
 Repairs reversible Central European metadata damage for Slovak/Czech stations,

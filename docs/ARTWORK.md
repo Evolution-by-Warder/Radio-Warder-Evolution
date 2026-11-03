@@ -1,4 +1,7 @@
-# Current-song artwork (test22)
+# Current-song artwork (test23)
+
+The spectrum has no caption underneath it. Its Playback activity widget and
+translation key were removed; the spectrum and panel geometry stay unchanged.
 
 ## Broadcast file tags and Central European encoding
 

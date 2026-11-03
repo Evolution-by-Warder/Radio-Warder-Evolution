@@ -128,7 +128,7 @@ class WarderRadio(Screen):
                                       (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
         for name in ('date', 'clock', 'version', 'navtitle', 'section', 'countrycaption', 'nowlabel', 'station',
-                     'artist', 'track', 'details', 'activitylabel', 'count', 'status', 'hint',
+                     'artist', 'track', 'details', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
             self[name] = Label('')
         self['heading'] = Button('', onClick=[self.choose_group])
@@ -142,7 +142,6 @@ class WarderRadio(Screen):
         self['station'].setText(t('Ready to listen'))
         self['track'].setText(t('Select a station and press OK'))
         self['hint'].setText(t('Use left/right to switch panels · MENU: options'))
-        self['activitylabel'].setText(t('Playback activity'))
         self['red'].setText(t('Close'))
         self['green'].setText(t('Play'))
         self['yellow'].setText(t('Favourite'))
