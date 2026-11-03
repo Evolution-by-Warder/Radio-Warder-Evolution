@@ -415,14 +415,19 @@ class YouTubeVideoUrl():
 			headers['Authorization'] = yt_auth
 		if client == 3:
 			VERSION = '20.32.35'
-			USER_AGENT = 'com.google.android.youtube/%s (Linux; U; Android 11) gzip' % VERSION
+			USER_AGENT = 'com.google.android.youtube/%s (Linux; U; Android 15) gzip' % VERSION
 			CLIENT_CONTEXT = {
 				'clientName': 'ANDROID',
-				'androidSdkVersion': 30,
+				'androidSdkVersion': 35,
 				'osName': 'Android',
-				'osVersion': '11'
+				'osVersion': '15'
 			}
 			data['params'] = '2AMB'
+		elif client == 101:
+			VERSION = '1.02'
+			USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15'
+			CLIENT_CONTEXT = {'clientName': 'VISIONOS', 'deviceMake': 'Apple',
+				'deviceModel': 'RealityDevice17,1', 'osName': 'visionOS', 'osVersion': '26.5.23O471'}
 		elif client == 5:
 			VERSION = '20.03.02'
 			USER_AGENT = 'com.google.ios.youtube/%s (iPhone16,2; U; CPU iOS 18_2_1 like Mac OS X;)' % VERSION
@@ -481,6 +486,12 @@ class YouTubeVideoUrl():
 			self.use_dash_mp4 = DASHMP4_FORMAT
 
 		player_response, player_id = self._extract_player_response(video_id, None, 3, lang)
+		if player_response and self.try_get(player_response, ('playabilityStatus', 'status')) != 'OK':
+			# A current public client profile can remain usable when the legacy
+			# Android profile is retired. No cookies, tokens or account changes.
+			alternate, alternate_player = self._extract_player_response(video_id, None, 101, lang)
+			if alternate and self.try_get(alternate, ('playabilityStatus', 'status')) == 'OK':
+				player_response, player_id = alternate, alternate_player
 		if not player_response:
 			raise RuntimeError('Player response not found!')
 
@@ -530,10 +541,9 @@ class YouTubeVideoUrl():
 			print('[YouTubeVideoUrl] Try manifest url')
 			hls_manifest_url = streaming_data.get('hlsManifestUrl')
 			if hls_manifest_url:
-				for fmt in self._extract_from_m3u8(hls_manifest_url):
-					url = fmt.get('url')
-					print('[YouTubeVideoUrl] Found manifest url')
-					break
+				# Let the native HLS demuxer select compatible video and audio
+				# together; separate suburi tracks require image-specific players.
+				url = hls_manifest_url
 
 		if not url:
 			playability_status = player_response.get('playabilityStatus', {})
