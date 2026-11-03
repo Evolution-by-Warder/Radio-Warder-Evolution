@@ -6,7 +6,18 @@ Preserves spectrum dimensions, rendering, playback and panel layout. The native
 harness supplies the removed label only to the archived test1 XML fixture and
 checks absence in current layouts at every supported resolution. All test22
 metadata and artwork fixes are included. There are 71 active translation keys.
-Publication verification is pending below.
+Local verification passed: 62 unit cases, 23 native cases on each of three
+pinned OpenPLi/OpenATV revisions (131 executions), and IPK/Python 3.9/owned-path/
+offline install-script verification. The full publication workflow passed every
+step including seven real image downloads and public package/feed verification.
+Source: 65db3ad684180b9480b5d9158254be7ee5979d26.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41664480105
+Testing feed now offers test23. Public release asset, testing feed and local
+build agree: 3,061,954 bytes; SHA-256
+5664e7c99f72935ff3e0ea13cd8dffd9434745c44415cb2954fe655dc9b7dc92.
+IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test23/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test23_all.ipk
+Stable feeds and the immutable test11 migration bridge are retained. Receiver
+visual confirmation and latency remain unmeasured here.
 
 ---
 
