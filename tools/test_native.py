@@ -9,6 +9,7 @@ import json
 import os
 import sys
 import tempfile
+import threading
 import time
 import types
 import unittest
@@ -306,7 +307,7 @@ class NativeTests(unittest.TestCase):
         self.cover_patch.start(); self.addCleanup(self.cover_patch.stop)
         DESKTOP[:] = 1920, 1080
 
-    def new(self):
+    def new(self, wait_ready=True):
         session = Session()
         screen = radio.WarderRadio(session)
         self.addCleanup(screen.cleanup)
@@ -316,7 +317,84 @@ class NativeTests(unittest.TestCase):
             screen['activity'] = CanvasSource()
             screen['activitylabel'] = radio.Label('')  # Removed current widget, archived XML only.
         root = mount(screen)
+        if wait_ready:
+            screen.finish_startup()
+            self.wait_for_catalogue(screen)
+            screen.finish_startup()
         return screen, session, root
+
+    def wait_for_catalogue(self, screen):
+        deadline = time.monotonic() + 2
+        while screen.starting and time.monotonic() < deadline:
+            screen.poll()
+            time.sleep(0.001)
+        self.assertFalse(screen.starting, 'Catalogue worker did not finish')
+
+    def test_startup_paints_before_catalogue_work_and_close_cancels_late_results(self):
+        original = radio.Catalogue
+        entered, release = threading.Event(), threading.Event()
+        caller = threading.get_ident()
+        workers = []
+        def catalogue(directory, load=True):
+            if load:
+                workers.append(threading.get_ident())
+                entered.set()
+                release.wait(2)
+            return original(directory, load=load)
+        with patch.object(radio, 'Catalogue', side_effect=catalogue):
+            screen, session, root = self.new(wait_ready=False)
+            self.assertTrue(root.findall('widget'))
+            self.assertTrue(screen.starting)
+            self.assertEqual(screen.rows, [])
+            self.assertEqual(screen['count'].getText(), radio.t('Please wait…'))
+            self.assertEqual(session.nav.calls, [])
+            self.assertEqual(workers, [])
+            self.assertIsNone(screen.cover_jobs.thread)
+            self.assertIsNone(screen.video_jobs.thread)
+            screen.finish_startup()
+            self.assertTrue(entered.wait(1))
+            self.assertNotEqual(workers[0], caller)
+            screen.ready(); screen.finish_startup()
+            self.assertEqual(len(workers), 1)
+            screen.cleanup()
+            release.set()
+            screen.startup_loaded(original(self.tmp.name), None)
+            screen.finish_startup()
+            self.assertEqual(screen.rows, [])
+            self.assertEqual(session.nav.calls, [])
+            self.assertFalse(screen.startup_timer.timer.active)
+
+    def test_startup_user_navigation_and_external_service_prevent_late_autoplay(self):
+        from WarderRadio.model import Catalogue
+        item = Catalogue(self.tmp.name).search(group='Čechy')[7]
+        store = Store(self.tmp.name); store.played(item)
+        for navigate in (True, False):
+            screen, session, _ = self.new(wait_ready=False)
+            screen.finish_startup()
+            if navigate:
+                screen.left(); screen['functions'].moveToIndex(1); screen.ok()
+            else:
+                session.nav.current = Reference('externally selected TV')
+            current = session.nav.current
+            self.wait_for_catalogue(screen)
+            screen.finish_startup()
+            self.assertIs(session.nav.current, current)
+            self.assertEqual(session.nav.calls, [])
+            if navigate:
+                self.assertEqual(screen.mode, 'favourites')
+            screen.cleanup()
+
+    def test_startup_error_remains_closable_and_does_not_check_network_before_catalogue(self):
+        screen, session, _ = self.new(wait_ready=False)
+        with patch.object(screen, 'check_updates') as check:
+            screen.ready()
+            check.assert_not_called()
+        screen.startup_loaded(None, 'unreadable catalogue')
+        self.assertEqual(screen['status'].getText(), radio.t('Cannot update catalogue'))
+        self.assertEqual(session.nav.calls, [])
+        screen.execing = True
+        screen.exit()
+        self.assertTrue(screen.closed)
 
     def test_real_native_widgets_bind_and_open_at_every_resolution_without_partial_rows(self):
         for width, height in [(1280, 720), (1920, 1080), (2560, 1440), (3840, 2160)]:

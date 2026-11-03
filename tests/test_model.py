@@ -178,6 +178,13 @@ class PlaybackTests(unittest.TestCase):
 
 
 class JobsTests(unittest.TestCase):
+    def test_idle_workers_are_not_started_and_closed_idle_worker_stays_closed(self):
+        jobs = Jobs()
+        self.assertIsNone(jobs.thread)
+        jobs.close()
+        self.assertFalse(jobs.submit('late', lambda: None, lambda *args: None))
+        self.assertIsNone(jobs.thread)
+
     def test_callback_is_delivered_on_callers_thread_and_not_after_close(self):
         jobs = Jobs(); self.addCleanup(jobs.close)
         completed = threading.Event(); delivered = []

@@ -100,8 +100,13 @@ class WarderRadio(Screen):
         Screen.__init__(self, session)
         self.setTitle('Warder Radio')
         self.store = Store()
-        self.catalogue = Catalogue(self.store.directory)
+        # Build the window before reading/validating thousands of station rows.
+        self.catalogue = Catalogue(self.store.directory, load=False)
         self.playback = Playback(session.nav, eServiceReference)
+        self.starting, self.startup_autoplay = True, True
+        self.startup_submitted = False
+        self.startup_navigation = self.playback.key(session.nav.getCurrentlyPlayingServiceReference())
+        self.ready_done = False
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
         self.cover_jobs = Jobs()
@@ -123,8 +128,6 @@ class WarderRadio(Screen):
         self.query = ''
         self.focus = 'stations'
         self.active_group = self.store.group
-        if self.active_group and self.active_group not in self.catalogue.groups() and self.active_group != 'Custom':
-            self.active_group = self.catalogue.groups()[0]
         self.playing = False
         self.rows = []
         self.recording_was_running = False
@@ -166,6 +169,7 @@ class WarderRadio(Screen):
         self.events = ServiceEventTracker(screen=self, eventmap=events)
         self.poll_timer = Timer(self.poll)
         self.clock_timer = Timer(self.tick)
+        self.startup_timer = Timer(self.finish_startup)
         self.spectrum = Spectrum(self['activity'], lambda: self.playing and self.playback.owns(),
                                  Timer, LoadPixmap)
         self.onShow.append(self.spectrum.start)
@@ -174,15 +178,54 @@ class WarderRadio(Screen):
         self.onClose.append(self.cleanup)
 
     def ready(self):
+        if self.ready_done or self.closed:
+            return
+        self.ready_done = True
         self.set_focus('stations')
         self.refresh_rows()
         self.reset_artwork()
         self.tick()
-        self.poll_timer.start(150)
+        self['status'].setText(t('Please wait…'))
+        self.poll_timer.start(40)
         self.clock_timer.start(1000)
         self.spectrum.start()
-        self.resume_last_station()
-        self.check_updates()
+        self.startup_timer.start(1, True)
+
+    def finish_startup(self):
+        self.startup_timer.timer.stop()
+        if self.closed:
+            return
+        if self.starting:
+            if self.startup_submitted:
+                return
+            directory = self.store.directory
+            self.startup_submitted = self.jobs.submit('startup-catalogue', lambda: Catalogue(directory), self.startup_loaded)
+            if not self.startup_submitted:
+                self.startup_loaded(None, 'Startup queue unavailable')
+            return
+        # Resume only after the populated window has had a chance to paint.
+        current = self.playback.key(self.session.nav.getCurrentlyPlayingServiceReference())
+        if self.startup_autoplay and current == self.startup_navigation and not self.playback.current:
+            self.resume_last_station()
+        self.startup_autoplay = False
+        self.check_updates(manual=self.update_manual)
+
+    def startup_loaded(self, catalogue, error):
+        if self.closed or not self.starting:
+            return
+        self.starting = False
+        self.poll_timer.start(150)
+        if error or catalogue is None:
+            self['status'].setText(t('Cannot update catalogue'))
+            self.update_count()
+            return
+        self.catalogue = catalogue
+        groups = self.catalogue.groups()
+        if self.active_group and self.active_group not in groups and self.active_group != 'Custom':
+            self.active_group = groups[0]
+        self['status'].setText('')
+        self.refresh_rows()
+        self.startup_timer.start(1, True)
 
     def notify(self, message, error=False):
         if not self.closed:
@@ -200,15 +243,18 @@ class WarderRadio(Screen):
         self['hint'].setText(t(hint))
 
     def left(self):
+        self.startup_autoplay = False
         self.set_focus('functions')
 
     def right(self):
+        self.startup_autoplay = False
         if self.focus == 'stations':
             self.set_focus('country')
         else:
             self.set_focus('stations')
 
     def up(self):
+        self.startup_autoplay = False
         if self.focus == 'country':
             return
         if self.focus == 'stations' and (self['stations'].getSelectionIndex() == 0 or not self['stations'].list):
@@ -218,6 +264,7 @@ class WarderRadio(Screen):
         self.update_count()
 
     def down(self):
+        self.startup_autoplay = False
         if self.focus == 'country':
             self.set_focus('stations')
         else:
@@ -225,18 +272,21 @@ class WarderRadio(Screen):
         self.update_count()
 
     def page_up(self):
+        self.startup_autoplay = False
         if self.focus == 'country':
             self.set_focus('stations')
         self[self.focus].pageUp()
         self.update_count()
 
     def page_down(self):
+        self.startup_autoplay = False
         if self.focus == 'country':
             self.set_focus('stations')
         self[self.focus].pageDown()
         self.update_count()
 
     def ok(self):
+        self.startup_autoplay = False
         if self.focus == 'country':
             self.choose_group()
             return
@@ -290,7 +340,8 @@ class WarderRadio(Screen):
         index = self['stations'].getSelectionIndex() if self.rows else -1
         self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
         if not self.rows:
-            self['count'].setText(t('No recordings' if self.mode == 'recordings' else 'No stations'))
+            self['count'].setText(t('Please wait…') if self.starting and self.mode == 'radio' else
+                                  t('No recordings' if self.mode == 'recordings' else 'No stations'))
         self['blue'].setText(t('Delete') if self.mode == 'recordings' else t('YouTube video'))
 
     def blue_pressed(self):
@@ -352,6 +403,7 @@ class WarderRadio(Screen):
         self.play_item(item, remember=False)
 
     def play(self):
+        self.startup_autoplay = False
         self.play_item(self.current())
 
     def play_item(self, item, remember=True):
@@ -450,6 +502,7 @@ class WarderRadio(Screen):
             self['track'].setText(t('Cannot play station'))
 
     def stop(self):
+        self.startup_autoplay = False
         self.video_generation += 1
         self.video_pending = False
         self.playing = False
@@ -560,6 +613,7 @@ class WarderRadio(Screen):
             self.update_count()
 
     def search(self):
+        self.startup_autoplay = False
         self.session.openWithCallback(self.search_done, VirtualKeyBoard,
                                       title=t('Search all stations'), text=self.query)
 
@@ -571,6 +625,7 @@ class WarderRadio(Screen):
         self.set_focus('stations')
 
     def options(self):
+        self.startup_autoplay = False
         choices = [(t('Choose country'), 'group'), (t('Update catalogue'), 'update'),
                    (t('Favourite'), 'favourite'),
                    (t('Add station'), 'add'), (t('Check for updates'), 'plugin-update'),
@@ -623,7 +678,7 @@ class WarderRadio(Screen):
             value.setTransparent(0 if focused else 1)
 
     def choose_group(self):
-        if self.closed or self.installing:
+        if self.closed or self.installing or self.starting:
             return
         self.country_return_focus = self.focus
         self.set_focus('country')
@@ -676,7 +731,7 @@ class WarderRadio(Screen):
         self.set_focus('stations')
 
     def update_catalogue(self):
-        if self.updating:
+        if self.updating or self.starting:
             return
         self.updating = self.jobs.submit('catalogue', Catalogue.fetch, self.catalogue_loaded)
         if self.updating:
@@ -750,6 +805,9 @@ class WarderRadio(Screen):
 
     def check_updates(self, manual=False):
         if self.installing or self.closed:
+            return
+        if self.starting:
+            self.update_manual = self.update_manual or manual
             return
         if self.update_pending:
             if manual:
@@ -850,6 +908,7 @@ class WarderRadio(Screen):
             self.update_window.cleanup()
         self.poll_timer.close()
         self.clock_timer.close()
+        self.startup_timer.close()
         self.spectrum.close()
         self.cover_display.close()
         self.cover_jobs.close()

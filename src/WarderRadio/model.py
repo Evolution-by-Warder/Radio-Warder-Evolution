@@ -3,7 +3,9 @@ import hashlib
 import json
 import os
 import tempfile
+import threading
 import unicodedata
+from collections import OrderedDict
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
@@ -182,14 +184,48 @@ class Store:
 
 
 class Catalogue:
-    def __init__(self, directory):
+    _snapshots = OrderedDict()
+    _snapshot_lock = threading.Lock()
+
+    def __init__(self, directory, load=True):
         self.cache = os.path.join(directory, 'catalogue.json')
-        seeds = read_json(os.path.join(ROOT, 'seed.json'), [])
-        cached = read_json(self.cache, None)
-        items = Store._items(cached, 20000) if isinstance(cached, list) else []
-        self.items = items or Store._items(seeds, 20000)
-        if not self.items:
+        self.items = []
+        if load:
+            self.items = self._read_items(self.cache) or self._read_items(os.path.join(ROOT, 'seed.json'))
+        if load and not self.items:
             raise ValueError('Missing bundled radio catalogue')
+
+    @staticmethod
+    def _stamp(path):
+        details = os.stat(path)
+        return (details.st_dev, details.st_ino, details.st_size,
+                details.st_mtime_ns, details.st_ctime_ns)
+
+    @classmethod
+    def _read_items(cls, path):
+        """Reuse at most two validated file snapshots; each caller owns its rows."""
+        path = os.path.abspath(path)
+        try:
+            stamp = cls._stamp(path)
+        except OSError:
+            return []
+        with cls._snapshot_lock:
+            cached = cls._snapshots.get(path)
+            if cached is not None and cached[0] == stamp:
+                cls._snapshots.move_to_end(path)
+                return [dict(item) for item in cached[1]]
+            data = read_json(path, None)
+            items = Store._items(data, 20000) if isinstance(data, list) else []
+            try:
+                unchanged = cls._stamp(path) == stamp
+            except OSError:
+                unchanged = False
+            if unchanged:
+                cls._snapshots[path] = (stamp, tuple(items))
+                cls._snapshots.move_to_end(path)
+                while len(cls._snapshots) > 2:
+                    cls._snapshots.popitem(last=False)
+            return [dict(item) for item in items]
 
     def groups(self):
         return list(dict.fromkeys(item['group'] for item in self.items))

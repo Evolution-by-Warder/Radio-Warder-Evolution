@@ -1,3 +1,11 @@
+# 0.1.0-test29
+
+- Show the radio window before loading and validating the station catalogue.
+- Reuse bounded validated snapshots on reopening; changed catalogue files are revalidated.
+- Defer automatic last-station playback and update checks until the catalogue is displayed.
+- Preserve user input and external channel changes during startup; ignore late callbacks after closing.
+- Create idle I/O workers only when needed.
+
 # 0.1.0-test28
 
 - Install streamripper automatically as a required package dependency through the receiver’s configured feeds.

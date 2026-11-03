@@ -10,8 +10,7 @@ class Jobs:
         self.closed = threading.Event()
         self.serial = 0
         self.latest = {}
-        self.thread = threading.Thread(target=self._work, name='WarderRadioIO', daemon=True)
-        self.thread.start()
+        self.thread = None
 
     def submit(self, key, function, callback):
         if self.closed.is_set():
@@ -23,6 +22,9 @@ class Jobs:
         except queue.Full:
             return False
         self.latest[key] = token
+        if self.thread is None:
+            self.thread = threading.Thread(target=self._work, name='WarderRadioIO', daemon=True)
+            self.thread.start()
         return True
 
     def _work(self):

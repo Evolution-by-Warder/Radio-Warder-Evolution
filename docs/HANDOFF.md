@@ -1,3 +1,47 @@
+# Radio Warder Evolution — test29 faster window opening
+
+Startup review found synchronous validation of all 5,444 stations in the Screen
+constructor, an unconditional seed read even when a valid local catalogue exists,
+repeated validation on every reopening, three eagerly started idle I/O workers,
+and resume-last-service/update checking in the initial layout callback.
+
+The constructor now uses an unloaded Catalogue placeholder. The initial layout
+shows translated Please wait, starts GUI timers and schedules catalogue loading
+on the existing Jobs worker. Results are applied only by GUI polling. Last-service
+resume and update checking are scheduled after the populated layout returns to
+the event loop. The startup timer and queued callbacks are invalidated on close.
+User navigation/playback during loading cancels autoplay; external navigation is
+compared against the opening service before resume. A failed catalogue load
+leaves the window closable, without silently starting network fallback reads.
+
+Catalogue uses at most two process-local validated snapshots. Fingerprints cover
+absolute file path, device/inode, size, nanosecond mtime and ctime; a changed file
+is re-read and validated with the original rules. Each window receives its own
+row dictionaries. A valid local catalogue avoids opening the bundled seed.
+Disk persistence, catalogue identities and search/group order are retained.
+Jobs starts its bounded worker on first submission, so unused video/artwork
+queues do not start threads merely because the radio window is constructed.
+
+Development-host measurements, seven iterations: old seed-read/validation median
+76.691 ms; new cold catalogue load 79.304 ms (now on a worker); unchanged reopen
+median 0.667 ms for the same 5,444 stations. These measure catalogue loading only,
+not actual receiver window opening or C++ painting/skin decode. First import,
+state read, native background decode and visible picon disk access remain; no
+visual assets or native image/codec handling are changed. Receiver startup-speed
+confirmation is pending. test28 video quality/recording/deletion confirmations
+remain valid, with no new claim about exact video resolution.
+
+Tests cover placeholder zero-read, one-time validation, independent row copies,
+local-cache preference, changed/invalid/deleted files, update invalidation and
+bounded snapshots. Native replays cover a deliberately blocked background load,
+rendered widgets before work starts, no eager unused worker, duplicate layout,
+late close, external navigation/user input and failure/exit. Existing last-station
+resume and all recording/video/update behaviours are retained.
+
+Publication verification pending.
+
+---
+
 # Radio Warder Evolution — test28 recording dependency and deletion
 
 ## Receiver confirmation — 2026-11-03
