@@ -54,6 +54,16 @@ class Timer:
     def stop(self): self.active = False
 
 
+class PicLoad:
+    def __init__(self): self.PictureData = Signal(); self.path = ''
+    def setPara(self, params): self.params = params
+    def startDecode(self, path):
+        self.path = path
+        for callback in list(self.PictureData.get()): callback('')
+        return 0
+    def getData(self): return self.path
+
+
 class Widget:
     serial = 0
     pageUp, pageDown, moveUp, moveDown = -6, 6, -1, 1
@@ -69,6 +79,16 @@ class Widget:
     def setText(self, text): self.text = text
     def setTitle(self, text): self.text = text
     def setForegroundColor(self, color): self.foreground = color
+    def setBackgroundColor(self, color): self.background = color
+    def setTransparent(self, value): self.transparent = value
+    def size(self):
+        w, h = map(int, self.attributes.get('size', '400,400').split(','))
+        return NS(width=lambda: w, height=lambda: h)
+    def calculateSize(self):
+        font = int(self.attributes.get('font', 'Regular;31').split(';')[1])
+        return NS(width=lambda: round(len(self.text) * font * .55))
+    def move(self, point): self.attributes['position'] = '%d,%d' % (point.x(), point.y())
+    def resize(self, size): self.attributes['size'] = '%d,%d' % (size.width(), size.height())
     def setPixmap(self, value): self.pixmap = value
     def setPixmapFromFile(self, path):
         assert Path(path).is_file(), path
@@ -128,7 +148,9 @@ class Session:
 DESKTOP = [1920, 1080]
 getDesktop = lambda unused: NS(size=lambda: NS(width=lambda: DESKTOP[0], height=lambda: DESKTOP[1]))
 gfont = lambda name, size: (name, size)
-module('enigma', eTimer=Timer, eServiceReference=Reference, eListboxPythonMultiContent=Content,
+module('enigma', ePicLoad=PicLoad,
+       ePoint=lambda x,y: NS(x=lambda:x,y=lambda:y),
+       eSize=lambda w,h: NS(width=lambda:w,height=lambda:h), eTimer=Timer, eServiceReference=Reference, eListboxPythonMultiContent=Content,
        eListboxPythonStringContent=Content, gFont=gfont, getDesktop=getDesktop, gRGB=lambda value: value,
        RT_HALIGN_LEFT=1, RT_VALIGN_CENTER=2, RT_ELLIPSIS=4,
        BT_SCALE=1, BT_KEEP_ASPECT_RATIO=2, BT_HALIGN_CENTER=4, BT_VALIGN_CENTER=8,
@@ -226,6 +248,8 @@ class NativeTests(unittest.TestCase):
         self.update_patch.start(); self.addCleanup(self.update_patch.stop)
         self.metadata_patch = patch.object(radio, 'IcyMonitor', lambda: IcyMonitor(fetch=lambda url: ('', '')))
         self.metadata_patch.start(); self.addCleanup(self.metadata_patch.stop)
+        self.cover_patch = patch.object(radio, 'lookup_cover', return_value=('', ''))
+        self.cover_patch.start(); self.addCleanup(self.cover_patch.stop)
         DESKTOP[:] = 1920, 1080
 
     def new(self):
@@ -407,11 +431,12 @@ class NativeTests(unittest.TestCase):
     def test_country_focus_requires_ok_and_selection_persists_without_interrupting_audio(self):
         screen, session, _ = self.new()
         self.assertEqual(screen['navtitle'].getText(), '')
-        self.assertIn(radio.t('Select country'), screen['heading'].getText())
+        self.assertEqual(screen['countrycaption'].getText(), radio.t('Select country') + ' – ')
         self.assertIn('▾', screen['heading'].getText())
-        self.assertTrue(screen['heading'].getText().startswith('\\c00ffffff'))
-        self.assertIn('\\c0000ceff' + radio.group_label(screen.active_group), screen['heading'].getText())
-        self.assertEqual(screen['nowlabel'].getText(), radio.t('Now playing'))
+        self.assertEqual(screen['heading'].instance.foreground, 0x00ceff)
+        self.assertEqual(screen['heading'].instance.transparent, 1)
+        self.assertIn(radio.group_label(screen.active_group), screen['heading'].getText())
+        self.assertEqual(screen['nowlabel'].getText(), '')
         screen.play()
         playing = session.nav.current
         dialog_count = len(session.dialogs)
@@ -419,9 +444,11 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(len(session.dialogs), dialog_count)
         self.assertEqual(screen.focus, 'country')
         self.assertFalse(screen['stations'].instance.selectionEnabled)
-        self.assertEqual(screen['heading'].instance.foreground, 0xffffff)
-        self.assertTrue(screen['heading'].getText().startswith('\\c00ffffff' + radio.t('Select country') + ' – '))
-        self.assertIn('\\c0000ceff› ' + radio.group_label(screen.active_group), screen['heading'].getText())
+        self.assertEqual(screen['heading'].instance.foreground, 0x00ceff)
+        self.assertEqual(screen['heading'].instance.transparent, 0)
+        self.assertEqual(screen['heading'].instance.background, 0x004461)
+        self.assertEqual(screen['countrycaption'].getText(), radio.t('Select country') + ' – ')
+        self.assertIn('› ' + radio.group_label(screen.active_group), screen['heading'].getText())
         self.assertIn(' ‹', screen['heading'].getText())
         screen.ok()
         self.assertEqual(len(session.dialogs), dialog_count + 1)
@@ -566,8 +593,8 @@ class NativeTests(unittest.TestCase):
             self.assertEqual(screen.focus, 'country')
             self.assertFalse(screen['stations'].instance.selectionEnabled)
             self.assertEqual(screen['stations'].getSelectionIndex(), index)
-            self.assertTrue(screen['heading'].getText().startswith('\\c00ffffff' + radio.t('Select country') + ' – '))
-            self.assertIn('\\c0000ceff› ' + radio.group_label(screen.active_group) + ' ‹', screen['heading'].getText())
+            self.assertEqual(screen['countrycaption'].getText(), radio.t('Select country') + ' – ')
+            self.assertIn('› ' + radio.group_label(screen.active_group) + ' ‹', screen['heading'].getText())
             screen.right()
             self.assertEqual(screen.focus, 'stations')
             self.assertEqual(screen.current(), selected)
@@ -584,6 +611,81 @@ class NativeTests(unittest.TestCase):
             self.assertIs(session.nav.current, playing)
         screen.left(); screen.right()
         self.assertEqual(screen.focus, 'stations')
+
+    def test_country_value_uses_list_selection_blue_while_white_caption_stays_separate(self):
+        screen, session, root = self.new()
+        caption = screen['countrycaption'].instance
+        value = screen['heading'].instance
+        self.assertEqual(caption.attributes['foregroundColor'], '#ffffff')
+        self.assertEqual(value.transparent, 1)
+        before = len(session.dialogs)
+        screen.right()
+        self.assertEqual(value.transparent, 0)
+        self.assertEqual(value.background, 0x004461)
+        self.assertEqual(value.foreground, 0x00ceff)
+        self.assertEqual(caption.attributes['foregroundColor'], '#ffffff')
+        self.assertEqual(len(session.dialogs), before)
+        cx, cy = map(int, caption.attributes['position'].split(','))
+        cw, _ = map(int, caption.attributes['size'].split(','))
+        vx, vy = map(int, value.attributes['position'].split(','))
+        vw, _ = map(int, value.attributes['size'].split(','))
+        self.assertEqual((cx + cw, cy), (vx, vy))
+        self.assertEqual(vx + vw, 1150)
+        screen.down()
+        self.assertEqual(value.transparent, 1)
+        self.assertEqual(len(session.dialogs), before)
+
+    def test_extended_layout_fits_cover_details_left_spectrum_and_seven_whole_stations(self):
+        screen, session, root = self.new()
+        nodes = {node.attrib.get('name'): node for node in root.findall('widget')}
+        def box(name):
+            item = nodes[name].attrib
+            return tuple(map(int, item['position'].split(',') + item['size'].split(',')))
+        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == '#00081829']
+        self.assertEqual(len(panels), 3)
+        self.assertTrue(all(node.attrib['size'].endswith(',790') for node in panels))
+        self.assertEqual(box('stations')[3], 7 * screen['stations'].l.height)
+        self.assertEqual(box('functions')[1], 230)
+        self.assertEqual(box('art')[2:], (520, 520))
+        self.assertLess(box('activity')[0] + box('activity')[2], 472)
+        previous_bottom = 0
+        for name in ('art', 'nowlabel', 'station', 'artist', 'track', 'details'):
+            x, y, w, h = box(name)
+            self.assertGreaterEqual(x, 1202)
+            self.assertLessEqual(x + w, 1886)
+            self.assertGreaterEqual(y, previous_bottom)
+            self.assertLessEqual(y + h, 992)
+            previous_bottom = y + h
+        screen.play()
+        self.assertEqual(screen['status'].getText(), '')
+        self.assertLess(box('status')[0] + box('status')[2], 472)
+        self.assertLess(994, box('red')[1])
+
+    def test_late_artwork_job_is_ignored_after_song_change_and_neutral_resets_on_stop(self):
+        screen, session, root = self.new()
+        screen.cover_jobs.close()
+        requests = []
+        screen.cover_jobs.submit = lambda key, worker, callback: requests.append(callback) or True
+        screen.play()
+        self.assertEqual(len(requests), 1)
+        screen.metadata_monitor.song = Mock(return_value=('New singer', 'New song'))
+        screen.metadata()
+        stale = Path(self.tmp.name, 'stale.jpg'); stale.write_bytes(b'old')
+        requests[0]((str(stale), 'iTunes'), None)
+        self.assertTrue(screen['art'].instance.pixmap.endswith('plugin.png'))
+        self.assertEqual(screen['nowlabel'].getText(), '')
+        screen.metadata()
+        self.assertEqual(len(requests), 2)
+        fresh = Path(self.tmp.name, 'fresh.jpg'); fresh.write_bytes(b'new')
+        requests[1]((str(fresh), 'TheAudioDB'), None)
+        self.assertEqual(screen['art'].instance.pixmap, str(fresh))
+        self.assertEqual(screen['nowlabel'].getText(), 'TheAudioDB')
+        screen.stop()
+        self.assertTrue(screen['art'].instance.pixmap.endswith('plugin.png'))
+        self.assertEqual(screen['nowlabel'].getText(), '')
+        screen.cleanup()
+        requests[1]((str(fresh), 'TheAudioDB'), None)
+        self.assertTrue(screen['art'].instance.pixmap.endswith('plugin.png'))
 
     def test_icy_is_primary_native_tags_are_fallback_and_old_station_data_is_cleared(self):
         screen, session, _ = self.new()

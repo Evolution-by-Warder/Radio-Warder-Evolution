@@ -1,3 +1,17 @@
+# 0.1.0-test17
+
+Replaces the upper Now playing/station-logo block with a 520px square current-song
+cover or matching artist image. Station name, artist, title and country fit below
+it. Complete recording identity is reused from FullHDGlass. Lookups run in a
+separate worker; a bounded RAM cache, neutral fallback, provider credit and stale
+request/decoder guards keep playback independent of optional artwork.
+
+Removes the separate Playing row, extends all three panels, and displays seven
+complete stations. The left menu starts higher with the spectrum beneath it.
+Action/error feedback stays in that panel. Only the focused country value now
+has the same blue selection background as a list row; its white caption remains
+unchanged and only OK opens choices.
+
 # 0.1.0-test16
 
 UP from the first centre station row and RIGHT from any station now focus the

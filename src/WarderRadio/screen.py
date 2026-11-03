@@ -3,7 +3,7 @@ import os
 import time
 
 import enigma
-from enigma import eTimer, eServiceReference, eListboxPythonMultiContent, gFont, getDesktop
+from enigma import ePicLoad, ePoint, eSize, eTimer, eServiceReference, eListboxPythonMultiContent, gFont, getDesktop
 from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Components.Button import Button
@@ -26,6 +26,8 @@ from .picons import path_for
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .spectrum import Spectrum
+from .covers import lookup_cover
+from .cover_display import CoverDisplay
 from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair
 
 
@@ -98,6 +100,9 @@ class WarderRadio(Screen):
         self.playback = Playback(session.nav, eServiceReference)
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
+        self.cover_jobs = Jobs()
+        self.cover_key, self.cover_generation = '', 0
+        self.cover_pending, self.cover_attempts, self.cover_next = False, 0, 0.0
         self.metadata_monitor = IcyMonitor()
         self.closed = False
         self.updating = False
@@ -113,21 +118,22 @@ class WarderRadio(Screen):
         self.playing = False
         self.rows = []
         self.recording_was_running = False
-        self.last_art = None
         self['functions'] = RadioList([(t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
                                       (t('History'), 'history'), (t('Recordings'), 'recordings'),
                                       (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
-        for name in ('date', 'clock', 'version', 'navtitle', 'section', 'nowlabel', 'station',
+        for name in ('date', 'clock', 'version', 'navtitle', 'section', 'countrycaption', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'activitylabel', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
             self[name] = Label('')
         self['heading'] = Button('', onClick=[self.choose_group])
         self['art'] = Pixmap()
+        self.cover_display = CoverDisplay(self['art'], ePicLoad, os.path.join(ROOT, 'plugin.png'),
+                                          lambda: self['nowlabel'].setText(''))
         self['activity'] = Pixmap()
         self['version'].setText('v' + VERSION)
         self['navtitle'].setText('')
-        self['nowlabel'].setText(t('Now playing'))
+        self['nowlabel'].setText('')
         self['station'].setText(t('Ready to listen'))
         self['track'].setText(t('Select a station and press OK'))
         self['hint'].setText(t('Use left/right to switch panels · MENU: options'))
@@ -161,7 +167,7 @@ class WarderRadio(Screen):
     def ready(self):
         self.set_focus('stations')
         self.refresh_rows()
-        self.show_art(None)
+        self.reset_artwork()
         self.tick()
         self.poll_timer.start(150)
         self.clock_timer.start(1000)
@@ -310,7 +316,7 @@ class WarderRadio(Screen):
         self['station'].setText(item['name'])
         self['details'].setText(group_label(item.get('group', '')))
         self['status'].setText(t('Connecting…'))
-        self.show_art(item)
+        self.reset_artwork()
         try:
             if 'path' in item:
                 self.playback.play_file(item)
@@ -330,7 +336,7 @@ class WarderRadio(Screen):
     def started(self):
         if self.playback.owns():
             self.playing = True
-            self['status'].setText(t('Playing'))
+            self['status'].setText('')
 
     def metadata(self):
         if not self.playback.owns():
@@ -363,9 +369,12 @@ class WarderRadio(Screen):
         self.playing = True
         self['artist'].setText(artist[:240])
         self['track'].setText(title[:480] or t('No track information'))
-        self['status'].setText(t('Playing'))
+        self.update_artwork(artist, title)
+        if self['status'].getText() == t('Connecting…'):
+            self['status'].setText('')
 
     def ended(self):
+        self.reset_artwork()
         self.playing = False
         self.metadata_monitor.clear()
         if self.playback.current and self.playback.owns():
@@ -373,6 +382,7 @@ class WarderRadio(Screen):
             self['track'].setText(t('Playback ended'))
 
     def failed(self):
+        self.reset_artwork()
         self.playing = False
         self.metadata_monitor.clear()
         if self.playback.current and self.playback.owns():
@@ -388,13 +398,41 @@ class WarderRadio(Screen):
         self['track'].setText(t('Select a station and press OK'))
         self['details'].setText('')
         self['status'].setText(t('Stopped'))
-        self.show_art(None)
+        self.reset_artwork()
 
-    def show_art(self, item):
-        path = path_for(item)
-        if path != self.last_art and self['art'].instance:
-            self['art'].instance.setPixmapFromFile(path)
-            self.last_art = path
+    def reset_artwork(self):
+        self.cover_generation += 1
+        self.cover_key, self.cover_attempts, self.cover_next = '', 0, 0.0
+        self['nowlabel'].setText('')
+        self.cover_display.show(None)
+
+    def update_artwork(self, artist, title):
+        if self.closed:
+            return
+        station = (self.playback.current or {}).get('id', '')
+        key = (station, artist.casefold(), title.casefold()) if artist else ''
+        if key != self.cover_key:
+            self.reset_artwork()
+            self.cover_key = key
+        if not key or self.cover_pending or self.cover_attempts >= 2 or time.monotonic() < self.cover_next:
+            return
+        generation = self.cover_generation
+        self.cover_pending = self.cover_jobs.submit('cover', lambda: lookup_cover(artist, title),
+            lambda result, error: self.cover_loaded(generation, result, error))
+        if self.cover_pending:
+            self.cover_attempts += 1
+
+    def cover_loaded(self, generation, result, error):
+        self.cover_pending = False
+        if self.closed or generation != self.cover_generation:
+            return
+        path, source = result if not error and result else ('', '')
+        if path and os.path.isfile(path):
+            self['nowlabel'].setText(source)
+            self.cover_display.show(path)
+            self.cover_attempts = 2
+        else:
+            self.cover_next = time.monotonic() + 60
 
     def favourite(self):
         item = self.current()
@@ -453,13 +491,20 @@ class WarderRadio(Screen):
 
     def update_country_caption(self):
         country = group_label(self.active_group) if self.active_group else t('All groups')
-        prefix = '› ' if self.focus == 'country' else ''
-        suffix = ' ‹' if self.focus == 'country' else ''
-        self['heading'].setText('\\c00ffffff' + t('Select country') + ' – '
-                                + '\\c0000ceff' + prefix + country + suffix + '  ▾' + '\\C')
-        if self['heading'].instance:
-            color = 0xffffff
-            self['heading'].instance.setForegroundColor(enigma.gRGB(color))
+        focused = self.focus == 'country'
+        prefix, suffix = ('› ', ' ‹') if focused else ('', '')
+        self['countrycaption'].setText(t('Select country') + ' – ')
+        self['heading'].setText(prefix + country + suffix + '  ▾')
+        caption, value = self['countrycaption'].instance, self['heading'].instance
+        if caption is not None and value is not None:
+            n = lambda pixels: max(1, round(pixels * self.ui_scale))
+            width = min(n(440), max(n(160), caption.calculateSize().width() + n(10)))
+            caption.resize(eSize(width, n(52)))
+            value.move(ePoint(n(530) + width, n(220)))
+            value.resize(eSize(n(620) - width, n(52)))
+            value.setForegroundColor(enigma.gRGB(0x00ceff))
+            value.setBackgroundColor(enigma.gRGB(0x004461))
+            value.setTransparent(0 if focused else 1)
 
     def choose_group(self):
         if self.closed or self.installing:
@@ -564,6 +609,8 @@ class WarderRadio(Screen):
             self.metadata()
         elif not self.playback.owns():
             self.metadata_monitor.clear()
+            if self.cover_key:
+                self.reset_artwork()
         if self.recording_was_running:
             if self.recording.running():
                 self['details'].setText('● REC  ' + time.strftime('%H:%M:%S', time.gmtime(time.monotonic() - self.recording.started)))
@@ -574,6 +621,7 @@ class WarderRadio(Screen):
     def poll(self):
         if not self.closed:
             self.jobs.poll()
+            self.cover_jobs.poll()
 
     def manual_update(self):
         self.check_updates(manual=True)
@@ -653,6 +701,8 @@ class WarderRadio(Screen):
         self.poll_timer.close()
         self.clock_timer.close()
         self.spectrum.close()
+        self.cover_display.close()
+        self.cover_jobs.close()
         self.metadata_monitor.close()
         self.jobs.close()
         try:

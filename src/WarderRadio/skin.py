@@ -25,7 +25,7 @@ def make_skin(width, height):
              'title="Warder Radio" flags="wfNoBorder" backgroundColor="#000b19">' % (canvas_w, canvas_h),
              '<ePixmap zPosition="0" position="0,0" size="%d,%d" pixmap="%s/artwork/background.png" scale="1" />'
              % (canvas_w, canvas_h, escape(ROOT, {'"': '&quot;'}))]
-    for x, y, w, h in [(32, 204, 440, 730), (500, 204, 680, 730), (1200, 204, 688, 730)]:
+    for x, y, w, h in [(32, 204, 440, 790), (500, 204, 680, 790), (1200, 204, 688, 790)]:
         parts.append('<eLabel zPosition="1" %s backgroundColor="#00081829" />' % rect(x, y, w, h))
         # Native opaque edge widgets preserve the thin cyan panel outline on
         # both the TV compositor and Webif, at every supported resolution.
@@ -38,16 +38,17 @@ def make_skin(width, height):
               label('clock', 1490, 20, 206, 60, 38, '#ffffff', 'right'),
               label('version', 1720, 28, 175, 38, 22, '#00ceff', 'right'),
               label('navtitle', 62, 220, 380, 52, 29, '#00ceff'),
-              label('heading', 530, 220, 620, 52, 31, '#00ceff'),
+              label('countrycaption', 530, 220, 270, 52, 31, '#ffffff'),
+              label('heading', 800, 220, 350, 52, 31, '#00ceff'),
               label('section', 530, 278, 620, 26, 19, '#a6bed1'),
-              label('nowlabel', 1230, 220, 610, 52, 27, '#00ceff'),
-              label('station', 1230, 503, 620, 90, 36, '#ffffff', 'center', True),
-              label('artist', 1230, 603, 620, 48, 28, '#00ceff', 'center'),
-              label('track', 1230, 656, 620, 96, 28, '#e7f4ff', 'center', True),
-              label('details', 1230, 759, 620, 40, 23, '#a6bed1', 'center'),
-              label('activitylabel', 1230, 909, 620, 24, 18, '#87a4b9', 'center'),
-              label('count', 530, 891, 620, 32, 23, '#9bbad0'),
-              label('status', 60, 946, 1800, 40, 24, '#d6e9f7', 'center'),
+              label('nowlabel', 1230, 744, 620, 18, 14, '#87a4b9', 'center'),
+              label('station', 1230, 768, 620, 30, 24, '#a6bed1', 'center'),
+              label('artist', 1230, 806, 620, 40, 28, '#00ceff', 'center'),
+              label('track', 1230, 854, 620, 80, 27, '#e7f4ff', 'center', True),
+              label('details', 1230, 944, 620, 34, 22, '#a6bed1', 'center'),
+              label('activitylabel', 62, 969, 380, 22, 18, '#87a4b9', 'center'),
+              label('count', 530, 966, 620, 26, 22, '#9bbad0'),
+              label('status', 62, 796, 380, 44, 18, '#d6e9f7', 'left', True),
               label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'right')]
     row_h = n(94)
     # Height is derived from the actual scaled row height, never rounded separately.
@@ -55,14 +56,14 @@ def make_skin(width, height):
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                 % (n(530), n(307), n(620), row_h * 6))
+                 % (n(530), n(307), n(620), row_h * 7))
     parts.append('<widget name="functions" zPosition="2" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (n(55), n(307), n(390), n(94) * 6))
-    parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1350, 300, 360, 180))
-    parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1365, 779, 350, 126))
+                 % (n(55), n(230), n(390), n(94) * 6))
+    parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
+    parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
         parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))

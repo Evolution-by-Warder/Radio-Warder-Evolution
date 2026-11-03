@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test16**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test17**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -47,25 +47,25 @@ registered in the plugin browser.
   `al` and `sq` codes. The approved subtitle stays in English.
 - Automatic update check on opening, plus MENU → Check for updates. Installation
   is offered with confirmation, then size, SHA-256, package identity/version and
-  installed opkg status are verified. GUI restart is offered after success.
+  installed opkg status are verified. After success an information message lasts three seconds and GUI restarts automatically.
   Test builds use the testing channel; stable builds use the separate stable
   channel. The feed advances only after the public IPK download is verified.
 - Native layouts at 1280×720, 1920×1080, 2560×1440 and 3840×2160; list heights
   always contain an exact number of complete rows.
 
 The animated bars indicate playback activity. They are decorative and are not a
-measured audio spectrum. This first candidate does not include cover-art lookup,
-lyrics, a sleep timer or recording schedules.
+measured audio spectrum. Cover-art lookup is available from test17. Lyrics,
+a sleep timer and recording schedules are not included.
 
 ## Install and use
 
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test16_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test17_all.ipk
 ```
 
-Restart the GUI manually, then open **Warder Radio** from Plugins or Extensions.
+Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
 No stream starts during installation or plugin discovery. On opening the plugin,
 the last played radio station resumes automatically and is selected in its list.
 On first use, choose a station and press OK or green. Resume uses the newest
@@ -74,15 +74,15 @@ as fallback. It makes one attempt and leaves the interface usable on failure. LE
 opens the function panel; RIGHT from that panel returns to stations. Up/down
 move within a panel. From any station, RIGHT focuses the cyan country value. UP from the first
 station row does the same. Focus adds › country ‹ markers only around that
-value, leaving the white caption unchanged. Press OK to open country choices;
+value, with a blue field background and the white caption unchanged. Press OK to open country choices;
 DOWN or RIGHT returns to the same station without opening a dialog. In the left menu, UP/DOWN
 move only between function entries, wrapping from first to last and back. Cancel returns
 to the exact same station and scroll position. The native country button also supports its click action.
 The centre header reads Select country – Slovakia ▾ (translated for the receiver
-language and current country). Select country and the separator are white; the country and down arrow are
-cyan blue, using the native Enigma2 inline text colours. The permanent down
-arrow marks the selectable value; remote focus adds a pointer beside only the cyan country name. The former Country
-heading on the left is blank; Now playing stays on the right.
+language and current country). Select country and the separator are white; the separate country value and down
+arrow are cyan blue. The permanent down
+arrow marks the selectable value; remote focus adds a pointer beside only the cyan country name. Only the focused country value gets the blue selection background; the white
+caption stays on the panel background. The left menu is separate.
 Selecting a country preserves playback and saves the choice. Cancel keeps the
 previous selection. The smaller section label still identifies favourites,
 history, recordings and search results. CH+/CH− change pages. Yellow toggles a favourite;
@@ -153,3 +153,29 @@ tags are the fallback when ICY is absent, unavailable or still loading. ICY read
 on one background worker, with a 15-second refresh interval; station changes
 and closing discard stale results. Streams without song metadata still show
 No track information. No extra audio playback is started for the metadata probe.
+
+The player panel now places a square current-song cover above the artist/title
+and a compact station name. iTunes regional search uses the same strict full
+recording identity as FullHDGlass; TheAudioDB artist thumbs are a fallback when
+the entire artist credit matches. Provider attribution appears beneath images.
+Unavailable/unknown artwork shows the neutral Warder graphic, never another
+song's cover. Lookups run in a separate bounded worker and cached JPEGs stay in
+a bounded RAM cache. Country navigation and the four colour actions are retained.
+
+The separate Playing status row is removed. All three panels extend downward;
+the station list shows seven complete rows. A 520-pixel square cover at Full HD
+fits above all track details. The spectrum is in the left panel. Action/error feedback is retained
+inside the left panel instead of using a separate full-width row.
+
+When focused, only the country value has the same blue background as a selected
+menu/station row; the white Select country caption stays on the panel background.
+The value field is positioned using the rendered caption width for each locale.
+Country choices still open only with OK.
+
+The function menu starts higher in the left panel. Its lower area contains the
+multicolour spectrum, leaving the right panel for the larger square cover and
+track information.
+
+Artwork provider details: [iTunes Search API](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/index.html)
+and [TheAudioDB](https://www.theaudiodb.com/docs_json). Provider artwork remains
+the property of its respective owners; it is fetched on demand, not bundled.
