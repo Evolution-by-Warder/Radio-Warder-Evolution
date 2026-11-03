@@ -1,3 +1,9 @@
+# 0.1.0-test27
+
+Handles ServiceApp's decoder/network error event as well as native tune failure,
+so DASH playback can retry the next format and return to radio on final failure.
+Includes paired DASH/UHD support and yellow Search / blue YouTube from test26.
+
 # 0.1.0-test26
 
 Enables separate DASH video/audio pairing for high-resolution YouTube playback

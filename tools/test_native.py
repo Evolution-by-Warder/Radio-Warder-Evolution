@@ -169,7 +169,7 @@ module('enigma', ePicLoad=PicLoad,
        eListboxPythonStringContent=Content, gFont=gfont, getDesktop=getDesktop, gRGB=lambda value: value,
        RT_HALIGN_LEFT=1, RT_VALIGN_CENTER=2, RT_ELLIPSIS=4,
        BT_SCALE=1, BT_KEEP_ASPECT_RATIO=2, BT_HALIGN_CENTER=4, BT_VALIGN_CENTER=8,
-       iPlayableService=NS(evStart=0, evUpdatedInfo=1, evEOF=2, evTuneFailed=3),
+       iPlayableService=NS(evStart=0, evUpdatedInfo=1, evEOF=2, evTuneFailed=3, evUser=100),
        iServiceInformation=NS(sTagTitle='title', sTagArtist='artist', sTagAlbum='album'))
 CList = native('Tools/CList.py', 'CList', {})
 Element = native('Components/Element.py', 'Element', {'CList': CList, 'reduce': reduce})
@@ -519,7 +519,9 @@ class NativeTests(unittest.TestCase):
         player=screen.video_dialog
         self.assertEqual(player.reference.args[0],5002)
         self.assertIn('&suburi=',player.reference.args[-1])
-        player.error();self.assertEqual(player.reference.args[0],5002)
+        error_callbacks=[entry[2] for entry in ServiceEventTracker.EventMap[112] if entry[2]==player.error]
+        self.assertEqual(len(error_callbacks),1)
+        error_callbacks[0]();self.assertEqual(player.reference.args[0],5002)
         player.error();self.assertEqual(player.reference.args[0],4097)
         player.leavePlayer();self.assertEqual(session.nav.current,radio_ref)
 

@@ -1,4 +1,4 @@
-# Current-song YouTube video — test26
+# Current-song YouTube video — test27
 
 Receiver screenshots confirm test24's actual YouTube video playback. Test25
 retains that resolver and uses the image's standard Screens.InfoBar.MoviePlayer

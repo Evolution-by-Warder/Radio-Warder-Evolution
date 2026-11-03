@@ -1,3 +1,13 @@
+# Radio Warder Evolution — test27 ServiceApp error fallback
+
+ServiceApp emits decoder/network errors as evUser+12. Register this alongside
+evTuneFailed so the native MoviePlayer wrapper retries paired/lower/combined
+formats on the actual Exteplayer error signal. Native replay checks the registered
+112 callback, invokes it and verifies 5002-to-5002-to-4097 fallback and radio return.
+Includes all test26 DASH and color-button changes. Publication record follows.
+
+---
+
 # Radio Warder Evolution — test26 paired DASH and button swap
 
 User receiver evidence shows separate high-resolution DASH video/audio is the
@@ -17,7 +27,12 @@ keys are reused, 75 keys each.
 
 Local verification passed: 73 unit cases, 29 native cases on each of three
 pinned image revisions (160 executions), plus IPK/Python 3.9/owned-path/offline
-install checks. Publication record follows after CI. Receiver UHD playback and audio sync require
+install checks. test26 publication passed all checks from source
+3a15e954331641d20a695ce68882fb5f1bf1a824. CI:
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41682572354
+IPK: 3,092,886 bytes; SHA-256
+9abf93e8f4eb6b272c483cd62a06e18de8b0291615afd18b2ab4a639d33f7c42.
+Receiver UHD playback and audio sync require
 physical confirmation after this change. Public source for the ServiceApp audio
 URI handoff and registered factory behavior:
 https://github.com/mx3L/serviceapp/blob/master/src/serviceapp/exteplayer3.cpp

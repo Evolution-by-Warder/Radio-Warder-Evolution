@@ -43,8 +43,10 @@ class VideoPlayer(MoviePlayer):
         self.skinName = ['MoviePlayer']
         # Run before the native close handler, which restores lastservice.
         self.onClose.insert(0, self.prepare_return)
-        self.video_events = ServiceEventTracker(screen=self, eventmap={
-            iPlayableService.evTuneFailed: self.error})
+        events = {iPlayableService.evTuneFailed:self.error}
+        if hasattr(iPlayableService,'evUser'):
+            events[iPlayableService.evUser+12] = self.error  # ServiceApp decoder/network error.
+        self.video_events = ServiceEventTracker(screen=self,eventmap=events)
 
     def owns(self):
         current = self.session.nav.getCurrentlyPlayingServiceReference()
