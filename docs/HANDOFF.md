@@ -1,3 +1,19 @@
+## Original Slovak restoration and catalogue identity checkpoint — 3 November 2026
+
+This supersedes the strict audio-only and 72-row Slovak policy in the historical checkpoint below. The owner's original **88 Slovak stations are restored with exact names, primary URLs and references**. Three verified additions bring Slovakia to **91**. Remote timeouts, access restrictions or transient server failures must not remove or rewrite the original Slovak list. The owner will review playback on the receiver.
+
+Other previously known working stations retain their identity through temporary probe failures. Withholding for persistent unavailability requires failures on three distinct UTC dates spanning at least 48 hours. Cached same-day retries, deferred requests, regional access restrictions and unverified playlists do not age this history. New imports still require audio evidence. Wrong-programme redirects and unresolved thematic bindings remain subject to identity review; this is not a universal programme correctness or receiver playback guarantee.
+
+Current main view: **35,563 stations**, including **35,519 with current bounded audio evidence** and **44 known stations retained during outage**. Czechia has **250**. Confirmed Classic Praha/Classic Prague and foreign-service ČRo Rádio Praha/Radio Prague International aliases merge by concrete programme resources; regional Rádio Praha remains separate. Programme subdirectories, channel numbers, ports, meaningful query parameters and distinct language channels are retained. Published identities survive alternate-profile recovery. Original Slovak rows remain protected. The separately requested original-source view is still last, preserving all **5,344** original names, URLs and sequence.
+
+Data revision: `35cb11eeac0dff6111b7df4521bd33e56841199b`. Source merges: `a3598519c242c73ee700d2fe9c7e12e9b26df09b` and `c4e33b4cad42b3f804c7f3e611130fa405403270`. [Catalogue workflow](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/41737962134) succeeded with **84 tests**. Two full static cached-input builds produced identical receiver data (40,594 rows for that earlier cached snapshot); later live source updates naturally change the published count.
+
+The actual public gzip contains **40,907 rows**, is **1,264,237 bytes** (6,373,051 decoded), SHA-256 `b4e8448800436e0d8845343e7c6b792d3d1412da6f6c49609500e991f95184bb`. The public download passed size/hash, exact original Slovak tuples, original-source ordering, reference uniqueness, test33 import and disk-cache reopen, Czech alias checks and sampled network subchannel checks. Physical receiver playback remains for the owner to review. Central evidence: `picons/IPTV-SK-CZ/catalog/quality-restoration-20261103.json`.
+
+Use **MENU → Aktualizovať katalóg** in the existing test33 plugin. No new IPK, package-feed change, receiver restart or artwork work is needed. Catalogue cleanup remains the priority; picons follow the owner's review.
+
+---
+
 ## Country catalogue quality checkpoint — 3 November 2026
 
 This supersedes the 71,303-row country catalogue recorded below. Source observations remain in the central master; only the user-facing country catalogue is filtered. The current country view contains **35,870 stations across 219 country/territory codes**, each with a confirmed bounded audio sample. Slovakia has **72 rows**, Czechia **234**. Exact stream aliases and **3,084 station variants** were merged with country/site/transport evidence, preserving curated identities where applicable. Case, accents, spacing, encoding labels and redundant directory prefixes do not create additional rows. Distinct thematic programmes and regional names remain separate; uncertain homonyms, country evidence and broadcaster channel bindings are held for review.
