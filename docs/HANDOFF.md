@@ -1,3 +1,33 @@
+# Radio Warder Evolution — test21 omitted version and artist artwork
+
+Receiver screenshots reproduced three additional misses in test20:
+BCC Worship / Si pri mne blízko; Jackers Revenge / Comin Out (Once Again)
+(Original Mix); Dianah Kay / ILLUMIN8. Independent live public API queries found:
+- The BCC song is the sole matching result, labelled Live Chapel, with the same
+  suffix in its album. A unique exact-artist/title-base album family can now
+  provide that cover when ICY omitted the live suffix.
+- The Jackers Revenge catalogue title omits Original Mix. Only terminal default
+  Original Mix/Original Version labels are normalized; meaningful title
+  parentheses are preserved and explicit conflicting remixes remain rejected.
+- The Dianah Kay song is unavailable in the queried catalogues. An exact-artist
+  query returns jazvy. Early artist fallback now provides that image with the
+  translated Artist artwork credit rather than claiming it is an ILLUMIN8 cover.
+
+No song-specific hardcoded matching aliases were added. Shared lyrics/recording
+identity and ICY display are unchanged. Positive artist-fallback JPEGs use the
+same bounded RAM cache and stale-result guards. One new key is translated in
+all 21 catalogues (72 keys each); native replay verifies the Slovak fallback
+credit and cleanup on stop/late callbacks.
+
+Local verification: 54 unit cases, 22 native cases on each of three pinned
+OpenPLi/OpenATV revisions (120 executions), and package/Python 3.9/offline scripts.
+Publication additionally requires live two-request cover downloads for CHILL77,
+BCC Worship and Jackers Revenge, and a three-request artist fallback for Dianah
+Kay. Receiver latency and visual confirmation remain pending. Publication
+results will be recorded after public-byte and testing-feed verification.
+
+---
+
 # Radio Warder Evolution — test20 short-credit artwork lookup
 
 Fix the receiver-reported CHILL77 / PAPAOUTAI miss. A live public iTunes query

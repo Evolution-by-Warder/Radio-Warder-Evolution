@@ -20,6 +20,40 @@ _SUFFIX = re.compile(r'\s*(?:\([^()]*\)|\[[^\[\]]*\])\s*$')
 _DIFFERENT_VERSION = re.compile(
     r'\b(?:remix|mix|mixed|live|acoustic|instrumental|karaoke|tribute|cover|'
     r'recorded|concert|sped|slowed|reverb|edit|extended|demo|unplugged)\b', re.I)
+_ORIGINAL = re.compile(r'\s*(?:\(original\s+(?:mix|version)\)|\[original\s+(?:mix|version)\])\s*$', re.I)
+
+
+def default_title(value):
+    """A catalogue's unlabelled default equals an explicit Original Mix tag."""
+    return _ORIGINAL.sub('', str(value or '')).strip()
+
+
+def album_candidate(item, artist, title):
+    """Recognize a corroborated live-album image when ICY omits its suffix."""
+    if not isinstance(item, dict) or item.get('kind', 'song') != 'song':
+        return False
+    names = identity.roster(artist)
+    if not names or names != identity.roster(item.get('artistName', '')):
+        return False
+    # A listener-supplied performance/version is never replaced by this fallback.
+    if default_title(title) != str(title or '').strip():
+        return False
+    requested_suffix = _SUFFIX.search(str(title or ''))
+    if requested_suffix and _DIFFERENT_VERSION.search(requested_suffix.group()):
+        return False
+    track = str(item.get('trackName', '')).strip()
+    suffix = _SUFFIX.search(track)
+    if not suffix:
+        return False
+    label = identity.norm(suffix.group().strip()[1:-1])
+    if not re.match(r'^live(?:\s|$)', label):
+        return False
+    if _DIFFERENT_VERSION.search(re.sub(r'^live\b', '', label)):
+        return False
+    album = identity.norm(item.get('collectionName', ''))
+    if not album or label not in album:
+        return False
+    return identity.title_key(track[:suffix.start()]) == identity.title_key(title)
 
 
 def cover_rank(item, artist, title):
@@ -32,15 +66,15 @@ def cover_rank(item, artist, title):
     requested = set(identity.roster(artist))
     if not requested or not requested.issubset(credited):
         return 0
-    wanted = identity.title_key(title)
-    found = identity.title_key(item.get('trackName', ''))
+    wanted = identity.title_key(default_title(title))
+    found = identity.title_key(default_title(item.get('trackName', '')))
     if not wanted or not found:
         return 0
     if wanted == found:
         return 1
     # Only a missing trailing descriptive subtitle is tolerated. A queried
     # explicit version must still match; a remix/live/etc. cannot replace it.
-    track = str(item.get('trackName', '')).strip()
+    track = default_title(item.get('trackName', ''))
     suffixes = []
     while True:
         match = _SUFFIX.search(track)
@@ -63,7 +97,7 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
     if os.path.islink(directory):
         return '', ''
     os.makedirs(directory, mode=0o700, exist_ok=True)
-    for kind, source in [('album', 'iTunes'), ('artist', 'TheAudioDB')]:
+    for kind, source in [('album', 'iTunes'), ('performer', 'iTunes artist'), ('artist', 'TheAudioDB')]:
         path = os.path.join(directory, key + '-' + kind + '.jpg')
         if os.path.isfile(path) and not os.path.islink(path):
             return path, source
@@ -106,7 +140,7 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
     def save(url, kind, provider):
         parts = urlsplit(url)
         allowed = (parts.hostname and (parts.hostname == 'mzstatic.com' or parts.hostname.endswith('.mzstatic.com'))
-                   if kind == 'album' else parts.hostname in ('theaudiodb.com', 'www.theaudiodb.com'))
+                   if kind in ('album', 'performer') else parts.hostname in ('theaudiodb.com', 'www.theaudiodb.com'))
         if parts.scheme == 'http' and allowed:
             url = 'https://' + url[len('http://'):]
             parts = urlsplit(url)
@@ -117,7 +151,7 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
             return '', ''
         path = os.path.join(directory, key + '-' + kind + '.jpg')
         write_atomic(path, data)
-        prune(directory, r'[0-9a-f]{64}-(?:album|artist)\.jpg', 64, 16 * 1024 * 1024, keep=(path,))
+        prune(directory, r'[0-9a-f]{64}-(?:album|artist|performer)\.jpg', 64, 16 * 1024 * 1024, keep=(path,))
         return path, provider
 
     # First query the default iTunes storefront with media=music, limit=20.
@@ -125,6 +159,7 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
     # Regional searches remain fallbacks; US would duplicate the first query.
     if title:
         plans = [dict(term=artist + ' ' + title, limit=20, media='music')]
+        plans.append(dict(term=artist, limit=20, media='music', attribute='artistTerm'))
         plans += [dict(entity='song', limit=10, country=country, term=artist + ' ' + title)
                   for country in ('SK', 'CZ')]
         plans.append(dict(entity='song', limit=25, country='SK', term=identity.site_titles(artist, title)[0]))
@@ -139,12 +174,28 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
                            title=item.get('trackName') if isinstance(item, dict) else None, rank=rank)
                     if rank:
                         ranked.append((rank, item))
+                artist_lookup = params.get('attribute') == 'artistTerm'
+                if not ranked:
+                    albums = [item for item in rows[:params['limit']] if album_candidate(item, artist, title)] if isinstance(rows, list) else []
+                    identities = {(identity.roster(item.get('artistName', '')),
+                                   identity.title_key(item.get('trackName', '')),
+                                   identity.norm(item.get('collectionName', ''))) for item in albums}
+                    # Only one matching recording/album family may fill an
+                    # unspecified performance. Competing live releases stay unknown.
+                    if len(identities) == 1:
+                        ranked = [(0.5, item) for item in albums]
+                        report('album_fallback', candidates=len(albums))
+                if not ranked and artist_lookup:
+                    ranked = [(0.25, item) for item in rows[:params['limit']]
+                              if isinstance(item, dict) and item.get('kind', 'song') == 'song'
+                              and identity.roster(item.get('artistName', '')) == identity.roster(artist)] if isinstance(rows, list) else []
                 for rank, item in sorted(ranked, key=lambda pair: pair[0], reverse=True):
                     url = (item.get('artworkUrl100') or '').replace('100x100bb', '600x600bb')
-                    found = save(url, 'album', 'iTunes')
+                    provider = 'iTunes artist' if rank == 0.25 else 'iTunes'
+                    found = save(url, 'performer' if rank == 0.25 else 'album', provider)
                     if found[0]:
                         report('selected', artist=item.get('artistName'), title=item.get('trackName'),
-                               rank=rank, image_url=url, provider='iTunes')
+                               rank=rank, image_url=url, provider=provider)
                         return found
             except Exception as exc:
                 report('failure', url=url, error=type(exc).__name__)

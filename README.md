@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test20**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test21**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test20_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test21_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -159,7 +159,11 @@ and a compact station name. iTunes search uses the same strict full
 recording identity as FullHDGlass, with artwork-specific handling of abbreviated
 ICY credits and descriptive song subtitles. An initial global iTunes music
 query avoids regional retries for a usable first result. TheAudioDB artist thumbs are a fallback when
-the entire artist credit matches. Provider attribution appears beneath images.
+the entire artist credit matches. An early iTunes exact-artist fallback is
+labelled as artist artwork in the receiver's language. Default Original Mix
+suffixes may be omitted by the catalogue. A unique live recording may supply
+its album cover when the album corroborates the omitted performance suffix.
+Provider attribution appears beneath images.
 Unavailable/unknown artwork shows the neutral Warder graphic. Candidate checks
 reject unrelated artists and conflicting versions. Lookups run in a separate bounded worker and cached JPEGs stay in
 a bounded RAM cache. Country navigation and the four colour actions are retained.

@@ -59,21 +59,30 @@ jobs:
           import hashlib, json, tempfile
           from pathlib import Path
           from WarderRadio.covers import lookup_cover
-          events = []
-          with tempfile.TemporaryDirectory() as cache:
-              path, provider = lookup_cover('CHILL77', 'PAPAOUTAI', directory=cache, trace=events.append)
-              assert path and provider == 'iTunes', events
-              data = Path(path).read_bytes()
-              assert data.startswith(b'\xff\xd8') and len(data) > 1024
-              selected = [event for event in events if event['event'] == 'selected']
-              assert selected and selected[-1]['rank'] >= 1, events
-              requests = [event for event in events if event['event'] == 'request']
-              assert len(requests) == 2, events
-              report = dict(provider=provider, selected=selected[-1], events=events,
-                            bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
-              Path('dist/artwork-live-proof.json').write_text(json.dumps(report, ensure_ascii=False, indent=2))
-              Path('dist/artwork-live-cover.jpg').write_bytes(data)
-              print(json.dumps(report, ensure_ascii=False))
+          cases = [
+              ('chill77', 'CHILL77', 'PAPAOUTAI', 'iTunes', 2),
+              ('bcc-worship', 'BCC Worship', 'Si pri mne blízko', 'iTunes', 2),
+              ('jackers-revenge', 'Jackers Revenge', 'Comin Out (Once Again) (Original Mix)', 'iTunes', 2),
+              ('dianah-kay', 'Dianah Kay', 'ILLUMIN8', 'iTunes artist', 3),
+          ]
+          reports = []
+          for slug, artist, title, expected, request_count in cases:
+              events = []
+              with tempfile.TemporaryDirectory() as cache:
+                  path, provider = lookup_cover(artist, title, directory=cache, trace=events.append)
+                  assert path and provider == expected, (slug, events)
+                  data = Path(path).read_bytes()
+                  assert data.startswith(b'\xff\xd8') and len(data) > 1024
+                  selected = [event for event in events if event['event'] == 'selected']
+                  assert selected and selected[-1]['rank'] > 0, (slug, events)
+                  requests = [event for event in events if event['event'] == 'request']
+                  assert len(requests) == request_count, (slug, events)
+                  report = dict(case=slug, provider=provider, selected=selected[-1], events=events,
+                                bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
+                  Path('dist/artwork-live-'+slug+'.jpg').write_bytes(data)
+                  print(json.dumps(report, ensure_ascii=False))
+                  reports.append(report)
+          Path('dist/artwork-live-proof.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:

@@ -778,6 +778,8 @@ class NativeTests(unittest.TestCase):
         requests[1]((str(fresh), 'TheAudioDB'), None)
         self.assertEqual(screen['art'].instance.pixmap, str(fresh))
         self.assertEqual(screen['nowlabel'].getText(), 'TheAudioDB')
+        screen.cover_loaded(screen.cover_generation, (str(fresh), 'iTunes artist'), None)
+        self.assertEqual(screen['nowlabel'].getText(), 'iTunes · Obrázok interpreta')
         screen.stop()
         self.assertTrue(screen['art'].instance.pixmap.endswith('plugin.png'))
         self.assertEqual(screen['nowlabel'].getText(), '')

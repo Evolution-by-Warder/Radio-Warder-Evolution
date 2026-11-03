@@ -1,3 +1,12 @@
+# 0.1.0-test21
+
+Accepts explicit Original Mix/Original Version tags when the catalogue omits
+that default suffix. Uses a unique corroborated live-album cover when ICY omits
+the performance suffix. Adds an early exact-artist iTunes artwork fallback,
+labelled as artist artwork in all 21 languages. Fixes the receiver-reported BCC
+Worship, Jackers Revenge and Dianah Kay cases. Preserves meaningful title
+parentheses, displayed stream metadata and shared lyrics identity.
+
 # 0.1.0-test20
 
 Finds artwork when a broadcaster abbreviates a collaboration credit or omits a

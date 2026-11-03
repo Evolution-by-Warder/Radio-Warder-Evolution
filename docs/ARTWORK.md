@@ -1,4 +1,4 @@
-# Current-song artwork (test20)
+# Current-song artwork (test21)
 
 The upper player block is a square cover, followed by a compact station name,
 artist, title and country. At Full HD the cover is 520x520; native layout scales
@@ -7,12 +7,15 @@ the raised function menu in the left panel. All panels extend to y=994, with
 seven whole station rows and no separate full-width Playing label.
 
 Song lookup first queries the default iTunes catalogue with `media=music` and
-`limit=20`, over HTTPS. SK/CZ queries and a bounded title search remain fallbacks;
+`limit=20`, over HTTPS. If the first query has no usable cover, a bounded exact
+artist query can supply artist artwork, clearly labelled in the player.
+SK/CZ queries and a bounded title search remain fallbacks;
 a separate US query would duplicate the default catalogue. Exact recording
 matches rank first. For artwork only, complete credited artist names may also
 match an abbreviated ICY credit, and a missing descriptive parenthesized title
 suffix may be tolerated. Live, remix, acoustic, instrumental and other different
-versions are rejected when absent from the requested title. The shared exact
+versions are rejected when absent from the requested title, except for a
+corroborated unique live-album fallback. The shared exact
 FullHDGlass identity and metadata displayed to the listener are unchanged.
 When no song cover is found, an entire-artist-credit TheAudioDB match may supply an
 artist thumb. Unknown metadata, announcements or missing artwork show the
@@ -41,8 +44,8 @@ on the regular panel background. Arrows focus only, OK opens country choices.
 Automated fixtures validate lookup identity, artist fallback, limits/cache,
 decoder errors and late callbacks; actual broadcaster/provider availability and
 receiver image/GLES composition require user testing. Artwork is downloaded on
-demand and is not distributed in the IPK. No new translation keys are needed;
-provider credits are proper names and all 21 language catalogues are retained.
+demand and is not distributed in the IPK. The Artist artwork fallback credit is translated in all 21 language catalogues;
+provider names are retained accurately.
 
 ## Verified short-credit case
 
@@ -65,3 +68,24 @@ https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41652
 Optional `lookup_cover(..., trace=callback)` diagnostics report requests,
 responses, candidate rankings and the selected image URL. Callback errors are
 isolated, and normal playback supplies no trace callback.
+
+
+## Additional receiver-reported cases (test21)
+
+- BCC Worship / Si pri mne blízko: the catalogue returns one matching recording,
+  Si pri mne blízko (Live Chapel), on Jediné miesto (Live Chapel). A unique
+  full-artist/title-base match with the same live label in its album can provide
+  that album image when ICY omits the suffix. Explicit conflicting versions,
+  unrelated credits and competing live releases remain rejected.
+- Jackers Revenge / Comin Out (Once Again) (Original Mix): the catalogue omits
+  Original Mix. Artwork matching treats only terminal Original Mix/Original
+  Version as the default, preserving the meaningful (Once Again) title text.
+- Dianah Kay / ILLUMIN8: combined/title searches provide no matching song.
+  Exact-artist lookup returns jazvy. This image is shown with the translated
+  Artist artwork credit, not represented as an exact ILLUMIN8 cover.
+
+Public query checks: actions/runs/41655573821 (BCC Worship),
+actions/runs/41655826061 (Jackers Revenge), actions/runs/41656630459 (Dianah Kay)
+in the Radio Warder Evolution repository. Replays are public-API requests;
+they do not execute a receiver plugin. The publication workflow requires actual
+image downloads for all three cases plus CHILL77 before updating the test feed.

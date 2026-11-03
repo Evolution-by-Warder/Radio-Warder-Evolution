@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from urllib.parse import parse_qs, urlsplit
-from WarderRadio.covers import lookup_cover, cover_rank
+from WarderRadio.covers import lookup_cover, cover_rank, album_candidate
 from WarderRadio import song_identity as identity
 from WarderRadio.cover_display import CoverDisplay
 
@@ -16,10 +16,11 @@ class LookupTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.calls = []
+        self.artist_songs = []
     def opener(self, request, timeout):
         url = request.full_url; self.calls.append(url)
         if 'itunes.apple.com/search' in url:
-            data = {'results': self.songs}
+            data = {'results': self.artist_songs if parse_qs(urlsplit(url).query).get('attribute') == ['artistTerm'] else self.songs}
         elif 'theaudiodb.com/api/' in url:
             data = {'artists': self.artists}
         else:
@@ -44,7 +45,7 @@ class LookupTests(unittest.TestCase):
         self.assertEqual(source, 'TheAudioDB')
         self.assertTrue(path.endswith('-artist.jpg'))
         self.assertEqual(self.calls[-1], 'https://www.theaudiodb.com/right.jpg')
-        self.assertEqual(len([url for url in self.calls if 'itunes.apple.com/search' in url]), 4)
+        self.assertEqual(len([url for url in self.calls if 'itunes.apple.com/search' in url]), 5)
     def test_unrelated_versions_untrusted_image_hosts_and_empty_results_keep_neutral_state(self):
         self.songs = [{'artistName':'Singer','trackName':'Song (Live)','artworkUrl100':'https://a1.mzstatic.com/live.jpg'},
                       {'artistName':'Singer','trackName':'Song','artworkUrl100':'https://unrelated.example/image.jpg'}]
@@ -108,6 +109,60 @@ class LookupTests(unittest.TestCase):
         path, source = lookup_cover('Singer','Song',self.temp.name,self.opener,trace=broken_trace)
         self.assertTrue(path)
         self.assertEqual(source,'iTunes')
+
+    def test_receiver_bcc_omitted_live_suffix_uses_unique_corroborated_album(self):
+        self.songs = json.loads(Path(__file__).with_name('fixtures').joinpath('itunes-bcc-worship.json').read_text())
+        self.artists = []
+        events = []
+        self.assertEqual(cover_rank(self.songs[0], 'BCC Worship', 'Si pri mne blízko'), 0)
+        path, source = lookup_cover('BCC Worship', 'Si pri mne blízko', self.temp.name, self.opener, trace=events.append)
+        self.assertTrue(path)
+        self.assertEqual(source, 'iTunes')
+        self.assertEqual(len(self.calls), 2)
+        self.assertIn('/06deca32-6bb9-f462-6009-871fe3069969/', self.calls[-1])
+        self.assertEqual(events[-1]['rank'], 0.5)
+        self.assertFalse(album_candidate(self.songs[0], 'BCC Worship', 'Si pri mne blízko (Original Mix)'))
+
+    def test_receiver_original_mix_tag_matches_unlabelled_default_preserving_title_parentheses(self):
+        self.songs = json.loads(Path(__file__).with_name('fixtures').joinpath('itunes-jackers-revenge.json').read_text())
+        self.artists = []
+        path, source = lookup_cover('Jackers Revenge', 'Comin Out (Once Again) (Original Mix)', self.temp.name, self.opener)
+        self.assertTrue(path)
+        self.assertEqual(source,'iTunes')
+        self.assertEqual(len(self.calls), 2)
+        self.assertIn('/99d7aef9-0264-19ea-cf7b-918f62a41422/', self.calls[-1])
+        self.assertEqual(cover_rank(self.songs[0], 'Jackers Revenge', 'Comin Out (Something Else)'), 0)
+        self.assertEqual(cover_rank(dict(self.songs[0],trackName='Comin Out (Once Again) (Club Remix)'),
+                                    'Jackers Revenge','Comin Out (Once Again) (Original Mix)'),0)
+
+    def test_ambiguous_or_uncorroborated_live_albums_stay_unknown(self):
+        row = {'artistName':'Singer', 'trackName':'Song (Live Paris)', 'collectionName':'Live Paris',
+               'artworkUrl100':'https://a1.mzstatic.com/paris/100x100bb.jpg'}
+        self.songs = [row,dict(row,trackName='Song (Live London)',collectionName='Live London',
+                              artworkUrl100='https://a1.mzstatic.com/london/100x100bb.jpg')]
+        self.artists = []
+        self.assertEqual(lookup_cover('Singer','Song',self.temp.name,self.opener), ('',''))
+        for changed in (dict(row,collectionName='Other album'), dict(row,artistName='Singer & Guest'),
+                        dict(row,trackName='Other Song (Live Paris)'),
+                        dict(row,trackName='Song (Live Remix)',collectionName='Live Remix')):
+            self.assertFalse(album_candidate(changed,'Singer','Song'))
+
+    def test_missing_song_uses_labelled_exact_artist_artwork_not_an_unrelated_singer(self):
+        self.songs = []
+        self.artist_songs = json.loads(Path(__file__).with_name('fixtures').joinpath('itunes-dianah-kay.json').read_text())
+        self.artist_songs.insert(0, self.artist_songs.pop(1))  # Similar name must not win.
+        self.artists = []
+        events = []
+        path, source = lookup_cover('Dianah Kay','ILLUMIN8',self.temp.name,self.opener,trace=events.append)
+        self.assertTrue(path.endswith('-performer.jpg'))
+        self.assertEqual(source,'iTunes artist')
+        self.assertEqual(len(self.calls),3)
+        self.assertIn('/11eff7e2-56b6-7fa5-81b9-fed4f55c011e/',self.calls[-1])
+        self.assertEqual(events[-1]['rank'],0.25)
+        self.assertEqual(events[-1]['title'],'jazvy')
+        before = len(self.calls)
+        self.assertEqual(lookup_cover('Dianah Kay','ILLUMIN8',self.temp.name,self.opener),(path,source))
+        self.assertEqual(len(self.calls),before)
 
 
 class Signal:

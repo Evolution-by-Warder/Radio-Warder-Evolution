@@ -433,7 +433,7 @@ class WarderRadio(Screen):
             return
         path, source = result if not error and result else ('', '')
         if path and os.path.isfile(path):
-            self['nowlabel'].setText(source)
+            self['nowlabel'].setText('iTunes · ' + t('Artist artwork') if source == 'iTunes artist' else source)
             self.cover_display.show(path)
             self.cover_attempts = 2
         else:
