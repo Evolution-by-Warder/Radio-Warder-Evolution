@@ -30,14 +30,10 @@ jobs:
 
           artist, title = 'Rozpravka na celu', 'Chore slniecko'
           plans = [
-              ('Global-music-HTTP', 'http', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
-              ('Global-music-HTTPS', 'https', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
-              ('Warder-test19-SK', 'https', {'entity':'song','limit':10,'country':'SK','term':artist+' '+title}),
-              ('Warder-test19-CZ', 'https', {'entity':'song','limit':10,'country':'CZ','term':artist+' '+title}),
-              ('Warder-test19-US', 'https', {'entity':'song','limit':10,'country':'US','term':artist+' '+title}),
-              ('Title-only-music', 'https', {'term':title,'limit':20,'media':'music'}),
-              ('Artist-only-music', 'https', {'term':artist,'limit':20,'media':'music'}),
-              ('Story-title-variant', 'https', {'term':'Choré slniečko','limit':20,'media':'music'}),
+              ('Title-audiobook-global', 'https', {'term':'Choré slniečko','limit':20,'media':'audiobook'}),
+              ('Title-audiobook-SK', 'https', {'term':'Choré slniečko','limit':20,'media':'audiobook','country':'SK'}),
+              ('Title-all-global', 'https', {'term':'Choré slniečko','limit':20,'media':'all'}),
+              ('Publisher-album-audiobook', 'https', {'term':'Kukučkový dedko','limit':20,'media':'audiobook','country':'SK'}),
           ]
           report = []
           for name, scheme, params in plans:
