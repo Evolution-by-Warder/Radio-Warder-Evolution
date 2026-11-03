@@ -14,7 +14,16 @@ asset, and is not packaged. The code geometry is authoritative.
 
 Existing native geometry/visibility/lifecycle checks are used; expected size is
 updated to the requested 240 px. No new test suite is added for a placement-only
-change. Publication verification pending.
+change. Local native geometry/lifecycle checks passed on all three images.
+Publication passed 83 unit cases plus 40 native cases per image (203 executions),
+54 pinned fixture files, package/Python 3.9/offline scripts, seven real artwork
+downloads and final public package/feed verification.
+Source: 50bdece2e1e1a71b0b843243060656434b07d84a.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41691566055
+Testing feed offers test31. Local package, release API and pinned feed agree:
+3097614 bytes; SHA-256 a3563336507abf57acc3d25eca5789371f225630bf983cfa4f17dc498d9d032a.
+Stable feeds and immutable test11 migration bridge retained. Enlarged cover
+placement still awaits the owner’s receiver check.
 
 ---
 
