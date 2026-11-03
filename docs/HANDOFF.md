@@ -14,8 +14,12 @@ Source: ff3dd114991a60dbde15131395752d5d60f17aa5.
 CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41693071085
 Testing feed offers test32; local IPK, release API and pinned feed agree:
 3097614 bytes; SHA-256 9b9bb3551bd4ae011dabe9c1548d570b889a7942bc2222726c035b1225b8dbb8.
-Stable feeds and immutable test11 migration bridge retained. Physical receiver
-confirmation of the 360 px placement remains pending.
+Stable feeds and immutable test11 migration bridge retained. On 2026-11-03 the
+owner explicitly approved the 360x360 px artwork size and retained left alignment
+on their receiver. The Taylor Dayne / Tell It to My Heart screenshot shows the
+larger cover at x=80 above the native bar. This geometry is now the approved
+setting; no further placement change is requested. This does not assert visual
+verification on every image, skin or GUI resolution.
 
 ---
 
