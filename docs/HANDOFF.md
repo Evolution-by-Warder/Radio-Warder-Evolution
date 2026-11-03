@@ -14,7 +14,14 @@ source/package are for a physical receiver check. Main/testing remain test23.
 Local validation passed: 69 unit cases, 26 native cases on each of three pinned
 OpenPLi/OpenATV revisions (147 executions) and IPK/Python 3.9/owned-path/offline
 install checks. The independent source package contains 105 files and full
-third-party license/notice. Candidate size/hash will be recorded after CI.
+third-party license/notice. Candidate CI passed build, 147 test executions, package verification and artifact
+upload: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41670691799
+Source: 54ce718662099485a48ea4d794357db20f745304.
+Local and CI package agree: 3,092,484 bytes, SHA-256
+7600be04acf9c574532947162825837f21e4c89da0a86d4d29374b9f4e33d554.
+Artifact: radio-youtube-receiver-candidate. Live search succeeded; playback remained
+blocked by the hosted request's anti-bot sign-in response. A green candidate CI
+means package/offline checks passed, NOT that live stream playback succeeded.
 
 ---
 
