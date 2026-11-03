@@ -21,7 +21,16 @@ native harness replays the exact pinned constructor signatures and actual native
 MoviePlayer close handlers; the constructor UI/mixins and C++ surface are stubbed.
 Screens/InfoBar.py is now included among hash-verified fixtures (54 files across
 three images). Physical rendering of this new native-player handoff remains to
-be checked on the receiver. Publication record follows after CI.
+be checked on the receiver. Publication passed every CI step, including 54 pinned
+native fixture hashes, all 152 test executions, seven actual artwork downloads,
+IPK verification and final public-download/feed verification.
+Source: a5eadd37feca1607165b756be59a25151455f201.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41676056760
+Testing feed now offers test25. Local package, public release asset and feed
+agree: 3,092,048 bytes, SHA-256
+2e5182a78586f11071486e5971e9071405c71ce0276ba5c520710a16c1091374.
+IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test25/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test25_all.ipk
+Stable feeds and the immutable test11 bridge are retained.
 
 ---
 
