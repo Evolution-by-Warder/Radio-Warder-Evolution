@@ -28,7 +28,7 @@ jobs:
           from WarderRadio import song_identity as identity
           from WarderRadio.covers import cover_rank
 
-          artist, title = 'BCC Worship', 'Si pri mne blízko'
+          artist, title = 'Jackers Revenge', 'Comin Out (Once Again) (Original Mix)'
           plans = [
               ('Global-music-HTTP', 'http', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
               ('Global-music-HTTPS', 'https', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
