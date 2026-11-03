@@ -8,5 +8,8 @@ The upstream extraction code acknowledges youtube-dl: https://github.com/ytdl-or
 Local changes: extractor imports isolated plugin settings instead of image-wide
 YouTube config. A small Python 3 compatibility module replaces the old Python 2
 shim. Radio's wrapper supplies verified TLS, bounded downloads and a common
-deadline. No global SSL/configuration mutations or external plugin installation.
+deadline. The Android device profile is updated; an explicit current public
+VISIONOS fallback and native HLS master playback are added. Public client-profile
+reference: https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube/_base.py
+No global SSL/configuration mutations or external plugin installation.
 The interpreter is otherwise retained from the pinned upstream source.

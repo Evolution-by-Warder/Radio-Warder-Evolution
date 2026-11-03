@@ -69,5 +69,10 @@
   "Downloading update…": "Завантаження оновлення…",
   "Verifying package…": "Перевірка пакета…",
   "Verifying installation…": "Перевірка встановлення…",
-  "Artist artwork": "Зображення виконавця"
+  "Artist artwork": "Зображення виконавця",
+  "YouTube video": "Відео YouTube",
+  "Finding YouTube video…": "Пошук відео YouTube…",
+  "YouTube video unavailable": "Відео YouTube недоступне",
+  "Current song information is unavailable": "Інформація про поточну композицію недоступна",
+  "Video controls": "OK: показати/сховати · ЗЕЛЕНА: пауза/відтворення · ←/→: 10 с · EXIT: радіо"
 }

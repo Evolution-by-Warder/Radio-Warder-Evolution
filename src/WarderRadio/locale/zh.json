@@ -69,5 +69,10 @@
   "Downloading update…": "正在下载更新…",
   "Verifying package…": "正在验证软件包…",
   "Verifying installation…": "正在验证安装…",
-  "Artist artwork": "艺人图片"
+  "Artist artwork": "艺人图片",
+  "YouTube video": "YouTube 视频",
+  "Finding YouTube video…": "正在查找 YouTube 视频…",
+  "YouTube video unavailable": "YouTube 视频不可用",
+  "Current song information is unavailable": "无法获取当前歌曲信息",
+  "Video controls": "OK：显示/隐藏 · 绿色：暂停/播放 · ←/→：10 秒 · EXIT：电台"
 }

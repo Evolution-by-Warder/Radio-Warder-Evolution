@@ -1,3 +1,9 @@
+> Unreleased receiver candidate: **0.1.0-test24**. Adds current-song YouTube under
+> yellow; Favourite moves to MENU. Public search works, but the hosted runner's
+> stream request is blocked by YouTube sign-in verification. Receiver playback
+> remains to be confirmed. The updater continues to offer test23. See
+> [YouTube verification](docs/YOUTUBE.md).
+
 # Warder Radio — World of Radio Stations
 
 Independent native Enigma2 internet radio plugin.

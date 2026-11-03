@@ -69,5 +69,10 @@
   "Downloading update…": "Uuenduse allalaadimine…",
   "Verifying package…": "Paketi kontrollimine…",
   "Verifying installation…": "Paigalduse kontrollimine…",
-  "Artist artwork": "Esitaja pilt"
+  "Artist artwork": "Esitaja pilt",
+  "YouTube video": "YouTube’i video",
+  "Finding YouTube video…": "YouTube’i video otsimine…",
+  "YouTube video unavailable": "YouTube’i video pole saadaval",
+  "Current song information is unavailable": "Praeguse loo teave pole saadaval",
+  "Video controls": "OK: näita/peida · ROHELINE: paus/esitus · ←/→: 10 s · EXIT: raadio"
 }

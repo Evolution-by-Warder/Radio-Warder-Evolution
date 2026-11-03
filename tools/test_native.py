@@ -144,7 +144,7 @@ class Session:
     def open(self, screen, *args, **kwargs): self.dialogs.append((screen, args, kwargs))
     def openWithCallback(self, callback, screen, *args, **kwargs):
         self.dialogs.append((screen, callback, args, kwargs))
-        if screen is radio.UpdateProgress:
+        if screen in (radio.UpdateProgress, radio.VideoPlayer):
             dialog = screen(self, *args, **kwargs)
             mount(dialog)
             dialog.execing = True
@@ -365,10 +365,73 @@ class NativeTests(unittest.TestCase):
         screen, _, _ = self.new()
         keymap = ET.parse(ROOT / 'src/WarderRadio/keymap.xml')
         maps = keymap.findall('map')
-        self.assertEqual([m.attrib['context'] for m in maps], ['WarderRadioActions'])
+        self.assertEqual([m.attrib['context'] for m in maps], ['WarderRadioActions','WarderRadioVideoActions'])
         actions = {node.attrib['mapto'] for node in maps[0]}
         self.assertEqual(actions, set(screen['actions'].actions))
         self.assertEqual(screen['actions'].contexts, ['WarderRadioActions'])
+
+    def test_yellow_search_is_async_retains_radio_and_favourites_remain_in_menu(self):
+        screen, session, _ = self.new(); screen.play()
+        original = screen.playback.previous
+        callbacks=[]
+        screen.video_jobs.submit = lambda key,work,callback: callbacks.append(callback) or True
+        screen.youtube_video()
+        self.assertTrue(screen.video_pending); self.assertTrue(screen.playback.owns())
+        self.assertEqual(screen['yellow'].getText(),radio.t('YouTube video'))
+        screen.youtube_video(); self.assertEqual(len(callbacks),1)
+        screen.options()
+        self.assertIn((radio.t('Favourite'),'favourite'),session.dialogs[-1][-1]['list'])
+        screen.option_done((radio.t('Favourite'),'favourite'))
+        self.assertEqual(len(screen.store.favourites),1)
+        callbacks[0]({'id':'abcdefghijk','title':'Singer - Song','url':'https://rr1.googlevideo.com/video'},None)
+        player=screen.video_dialog; self.assertIsInstance(player,radio.VideoPlayer)
+        self.assertTrue(screen.video_active); player.start(); self.assertTrue(player.owns())
+        self.assertEqual(screen.playback.previous,original)
+        before=screen['track'].getText(); screen.ended(); screen.failed(); screen.tick()
+        self.assertEqual(screen['track'].getText(),before)
+        player.close()
+        self.assertFalse(screen.video_active); self.assertTrue(screen.playback.owns())
+        screen.cleanup(); self.assertEqual(session.nav.current,original)
+
+    def test_video_search_stale_song_station_error_and_close_do_not_steal_navigation(self):
+        screen, session, _=self.new(); screen.play()
+        callbacks=[]; screen.video_jobs.submit=lambda key,work,callback:callbacks.append(callback) or True
+        screen.youtube_video(); screen['track'].setText('Next song')
+        callbacks[0]({'url':'https://rr1.googlevideo.com/video','id':'abcdefghijk','title':'Old song'},None)
+        self.assertIsNone(screen.video_dialog); self.assertTrue(screen.playback.owns())
+        screen.youtube_video(); external=Reference('external TV'); session.nav.current=external
+        callbacks[-1](None,'network error'); self.assertEqual(session.nav.current,external)
+        self.assertIsNone(screen.video_dialog)
+        screen.cleanup(); callbacks[-1]({'url':'https://rr1.googlevideo.com/video','title':'Late'},None)
+        self.assertEqual(session.nav.current,external)
+
+    def test_native_video_controls_geometry_errors_and_return_ownership(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:]=width,height
+            session=Session(); original=session.nav.current; radio_ref=Reference('radio')
+            session.nav.current=radio_ref
+            player=radio.VideoPlayer(session,{'title':'Video','url':'https://rr1.googlevideo.com/video'},radio_ref,original,lambda:False)
+            root=mount(player); player.execing=True
+            for node in root.findall('widget'):
+                x,y=map(int,node.attrib['position'].split(',')); w,h=map(int,node.attrib['size'].split(','))
+                self.assertLessEqual(x+w,width); self.assertLessEqual(y+h,height)
+            actions=ET.parse(ROOT/'src/WarderRadio/keymap.xml').findall('map')[1]
+            self.assertEqual({n.attrib['mapto'] for n in actions},set(player['actions'].actions))
+            player.start(); self.assertTrue(player.owns())
+            pauses=[]; seeks=[]
+            session.nav.getCurrentService=lambda:NS(pause=lambda:NS(pause=lambda:pauses.append('pause'),unpause=lambda:pauses.append('play')),
+                seek=lambda:NS(isCurrentlySeekable=lambda:True,seekRelative=lambda direction,ticks:seeks.append((direction,ticks))))
+            player.pause(); player.pause(); player.seek(-10); player.seek(10)
+            self.assertEqual(pauses,['pause','play']); self.assertEqual(seeks,[(-1,900000),(1,900000)])
+            player.error(); self.assertEqual(session.nav.current,radio_ref); self.assertTrue(player.failed)
+            player.cleanup(); self.assertEqual(session.nav.current,radio_ref)
+        session=Session(); original=session.nav.current; radio_ref=Reference('radio')
+        player=radio.VideoPlayer(session,{'title':'Video','url':'https://rr1.googlevideo.com/video'},radio_ref,original,lambda:True)
+        mount(player); player.execing=True; player.start(); player.eof()
+        self.assertEqual(session.nav.current,original)
+        player=radio.VideoPlayer(session,{'title':'Video','url':'https://rr1.googlevideo.com/video'},radio_ref,original,lambda:False)
+        mount(player); player.execing=True; player.start(); external=Reference('external TV')
+        session.nav.current=external; player.close(); self.assertEqual(session.nav.current,external)
 
     def test_live_widgets_are_above_static_artwork_in_native_creation_order(self):
         # Real createGUIScreen creates additionalWidgets after named components.

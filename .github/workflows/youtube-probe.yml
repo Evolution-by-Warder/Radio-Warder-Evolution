@@ -57,3 +57,27 @@ jobs:
               report['error']=type(exc).__name__+': '+str(exc)[:300]
           print('VIDEO_PROBE '+json.dumps(report,ensure_ascii=False))
           PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build and verify receiver candidate without publication
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          PYTHONPATH: src
+        run: |
+          python3 tools/build_ipk.py
+          python3 tools/build_ipk.py --legacy-bridge
+          python3 -m unittest discover -s tests -q
+          python3 tools/fetch_native.py
+          python3 tools/test_native.py --upstream fixtures/openpli-release-9.2 -q
+          python3 tools/test_native.py --upstream fixtures/openatv-81-reviewed-base -q
+          python3 tools/test_native.py --upstream fixtures/openatv-8.0-next -q
+          python3 tools/verify_ipk.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-youtube-receiver-candidate
+          path: |
+            dist/enigma2-plugin-extensions-radio-warder-evolution_*.ipk
+            dist/build.json
+            dist/SHA256SUMS
+          retention-days: 14

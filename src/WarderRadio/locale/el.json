@@ -69,5 +69,10 @@
   "Downloading update…": "Λήψη ενημέρωσης…",
   "Verifying package…": "Επαλήθευση πακέτου…",
   "Verifying installation…": "Επαλήθευση εγκατάστασης…",
-  "Artist artwork": "Εικόνα καλλιτέχνη"
+  "Artist artwork": "Εικόνα καλλιτέχνη",
+  "YouTube video": "Βίντεο YouTube",
+  "Finding YouTube video…": "Αναζήτηση βίντεο YouTube…",
+  "YouTube video unavailable": "Το βίντεο YouTube δεν είναι διαθέσιμο",
+  "Current song information is unavailable": "Δεν υπάρχουν πληροφορίες για το τρέχον τραγούδι",
+  "Video controls": "OK: εμφάνιση/απόκρυψη · ΠΡΑΣΙΝΟ: παύση/αναπαραγωγή · ←/→: 10 δ · EXIT: ραδιόφωνο"
 }

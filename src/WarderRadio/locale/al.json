@@ -69,5 +69,10 @@
   "Downloading update…": "Po shkarkohet përditësimi…",
   "Verifying package…": "Po verifikohet paketa…",
   "Verifying installation…": "Po verifikohet instalimi…",
-  "Artist artwork": "Figura e artistit"
+  "Artist artwork": "Figura e artistit",
+  "YouTube video": "Video YouTube",
+  "Finding YouTube video…": "Duke kërkuar video në YouTube…",
+  "YouTube video unavailable": "Videoja në YouTube nuk është e disponueshme",
+  "Current song information is unavailable": "Informacioni i këngës aktuale nuk është i disponueshëm",
+  "Video controls": "OK: shfaq/fshih · JESHILE: pauzë/luaj · ←/→: 10 s · EXIT: radio"
 }

@@ -69,5 +69,10 @@
   "Downloading update…": "در حال دریافت به‌روزرسانی…",
   "Verifying package…": "در حال بررسی بسته…",
   "Verifying installation…": "در حال بررسی نصب…",
-  "Artist artwork": "تصویر هنرمند"
+  "Artist artwork": "تصویر هنرمند",
+  "YouTube video": "ویدیوی YouTube",
+  "Finding YouTube video…": "در حال جستجوی ویدیو در YouTube…",
+  "YouTube video unavailable": "ویدیوی YouTube در دسترس نیست",
+  "Current song information is unavailable": "اطلاعات آهنگ فعلی در دسترس نیست",
+  "Video controls": "OK: نمایش/پنهان · سبز: مکث/پخش · ←/→: ۱۰ ثانیه · EXIT: رادیو"
 }

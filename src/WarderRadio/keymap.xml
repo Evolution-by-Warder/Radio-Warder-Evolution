@@ -23,4 +23,17 @@
     <key id="KEY_INFO" mapto="update" flags="m" />
     <key id="KEY_STOP" mapto="stop" flags="m" />
   </map>
+  <map context="WarderRadioVideoActions">
+    <key id="KEY_OK" mapto="ok" flags="m" />
+    <key id="KEY_ENTER" mapto="ok" flags="m" />
+    <key id="KEY_EXIT" mapto="cancel" flags="m" />
+    <key id="KEY_ESC" mapto="cancel" flags="m" />
+    <key id="KEY_RED" mapto="red" flags="m" />
+    <key id="KEY_STOP" mapto="stop" flags="m" />
+    <key id="KEY_GREEN" mapto="green" flags="m" />
+    <key id="KEY_PLAYPAUSE" mapto="playpause" flags="m" />
+    <key id="KEY_PAUSE" mapto="playpause" flags="m" />
+    <key id="KEY_LEFT" mapto="left" flags="m" />
+    <key id="KEY_RIGHT" mapto="right" flags="m" />
+  </map>
 </keymap>

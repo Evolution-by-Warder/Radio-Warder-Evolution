@@ -1,3 +1,23 @@
+# Radio Warder Evolution — test24 YouTube candidate, NOT PUBLISHED
+
+Yellow now requests the playing song's YouTube video. Favourite moves to MENU.
+Bundled GPL-2.0 source resolver and interpreter are isolated from image config
+and TLS settings. Native video surface uses 4097, pause/seek/overlay/exit and
+ownership-safe radio return. Worker calls stay off GUI. All 21 locale catalogues
+have 76 keys. Refer to docs/YOUTUBE.md for limits and exact verification status.
+
+Live result search works. The hosted runner received explicit anti-bot sign-in
+responses from three clients; a real video stream has NOT been validated.
+Do not advance the testing feed or describe playback as confirmed. Candidate
+source/package are for a physical receiver check. Main/testing remain test23.
+
+Local validation passed: 69 unit cases, 26 native cases on each of three pinned
+OpenPLi/OpenATV revisions (147 executions) and IPK/Python 3.9/owned-path/offline
+install checks. The independent source package contains 105 files and full
+third-party license/notice. Candidate size/hash will be recorded after CI.
+
+---
+
 # Radio Warder Evolution — test23 spectrum without caption
 
 User requested removal of Playback activity beneath the spectrum. Removes the

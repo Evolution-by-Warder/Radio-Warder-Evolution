@@ -1,3 +1,12 @@
+# 0.1.0-test24 — unreleased receiver candidate
+
+Adds current-song YouTube search, bundled source resolver/JavaScript interpreter
+and native video playback under yellow. Favourite moves to MENU. Radio continues
+during background lookup and resumes after video; stale results and external
+navigation are guarded. All 21 locales include the new video messages. Public
+search is verified; hosted playback is blocked by YouTube sign-in verification.
+Candidate remains off the testing feed pending receiver playback confirmation.
+
 # 0.1.0-test23
 
 Removes the Playback activity caption beneath the spectrum, including the unused

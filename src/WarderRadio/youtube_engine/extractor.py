@@ -494,6 +494,8 @@ class YouTubeVideoUrl():
 				player_response, player_id = alternate, alternate_player
 		if not player_response:
 			raise RuntimeError('Player response not found!')
+		if self.try_get(player_response, ('playabilityStatus', 'status')) == 'LOGIN_REQUIRED':
+			raise RuntimeError(self.try_get(player_response, ('playabilityStatus', 'reason')) or 'YouTube sign-in is required')
 
 		is_live = self.try_get(player_response, ('videoDetails', 'isLive'))
 
@@ -514,13 +516,7 @@ class YouTubeVideoUrl():
 					player_response, player_id = self._extract_player_response(video_id, None, 5, lang, webpage)
 
 		if self.try_get(player_response, ('playabilityStatus', 'status')) == 'LOGIN_REQUIRED':
-			print('[YouTubeVideoUrl] Age gate content, try web embedded client')
-			player_response, player_id = self._extract_player_response(video_id, None, 56, lang)
-			if not player_response or self.try_get(player_response, ('playabilityStatus', 'status')) != 'OK':
-				print('[YouTubeVideoUrl] Player response is not usable, try authorized tv embedded client')
-				player_response, player_id = self._extract_player_response(video_id, yt_auth, 85, lang)
-			if not player_response:
-				raise RuntimeError('Age gate content player response not found!')
+			raise RuntimeError(self.try_get(player_response, ('playabilityStatus', 'reason')) or 'YouTube sign-in is required')
 
 		streaming_data = player_response.get('streamingData', {})
 		streaming_formats = streaming_data.get('formats', [])

@@ -69,5 +69,10 @@
   "Downloading update…": "Atsisiunčiamas atnaujinimas…",
   "Verifying package…": "Tikrinamas paketas…",
   "Verifying installation…": "Tikrinamas diegimas…",
-  "Artist artwork": "Atlikėjo vaizdas"
+  "Artist artwork": "Atlikėjo vaizdas",
+  "YouTube video": "YouTube vaizdo įrašas",
+  "Finding YouTube video…": "Ieškoma YouTube vaizdo įrašo…",
+  "YouTube video unavailable": "YouTube vaizdo įrašas nepasiekiamas",
+  "Current song information is unavailable": "Dabartinės dainos informacija nepasiekiama",
+  "Video controls": "OK: rodyti/slėpti · ŽALIAS: pauzė/groti · ←/→: 10 s · EXIT: radijas"
 }

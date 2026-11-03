@@ -69,5 +69,10 @@
   "Downloading update…": "Pobieranie aktualizacji…",
   "Verifying package…": "Sprawdzanie pakietu…",
   "Verifying installation…": "Sprawdzanie instalacji…",
-  "Artist artwork": "Obraz wykonawcy"
+  "Artist artwork": "Obraz wykonawcy",
+  "YouTube video": "Film YouTube",
+  "Finding YouTube video…": "Wyszukiwanie filmu YouTube…",
+  "YouTube video unavailable": "Film YouTube jest niedostępny",
+  "Current song information is unavailable": "Informacje o bieżącym utworze są niedostępne",
+  "Video controls": "OK: pokaż/ukryj · ZIELONY: pauza/odtwarzanie · ←/→: 10 s · EXIT: radio"
 }

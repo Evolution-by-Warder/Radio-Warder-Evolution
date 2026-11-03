@@ -27,6 +27,8 @@ from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .spectrum import Spectrum
 from .covers import lookup_cover
+from .youtube import find_video, song_query
+from .video_player import VideoPlayer
 from .cover_display import CoverDisplay
 from .update_progress import UpdateProgress
 from .update_state import UpdateState
@@ -103,6 +105,9 @@ class WarderRadio(Screen):
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
         self.cover_jobs = Jobs()
+        self.video_jobs = Jobs()
+        self.video_pending, self.video_active, self.video_dialog = False, False, None
+        self.video_generation = 0
         self.cover_key, self.cover_generation = '', 0
         self.cover_pending, self.cover_attempts, self.cover_next = False, 0, 0.0
         self.metadata_monitor = IcyMonitor()
@@ -144,12 +149,12 @@ class WarderRadio(Screen):
         self['hint'].setText(t('Use left/right to switch panels · MENU: options'))
         self['red'].setText(t('Close'))
         self['green'].setText(t('Play'))
-        self['yellow'].setText(t('Favourite'))
+        self['yellow'].setText(t('YouTube video'))
         self['blue'].setText(t('Search'))
         self['actions'] = ActionMap(['WarderRadioActions'], {
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
-            'green': self.play, 'yellow': self.favourite, 'blue': self.search,
+            'green': self.play, 'yellow': self.youtube_video, 'blue': self.search,
             'menu': self.options, 'pageDown': self.page_down, 'pageUp': self.page_up,
             'instantRecord': self.toggle_recording, 'stop': self.stop, 'update': self.manual_update,
         }, -2)
@@ -286,7 +291,7 @@ class WarderRadio(Screen):
         self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
         if not self.rows:
             self['count'].setText(t('No recordings' if self.mode == 'recordings' else 'No stations'))
-        self['yellow'].setText('' if self.mode == 'recordings' else t('Favourite'))
+        self['yellow'].setText('' if self.mode == 'recordings' else t('YouTube video'))
 
     def current(self):
         row = self['stations'].getCurrent()
@@ -313,6 +318,8 @@ class WarderRadio(Screen):
     def play_item(self, item, remember=True):
         if item is None:
             return
+        self.video_generation += 1
+        self.video_pending = False
         self.playing = False
         self.metadata_monitor.clear()
         self['artist'].setText('')
@@ -338,11 +345,15 @@ class WarderRadio(Screen):
         self.metadata()
 
     def started(self):
+        if self.video_active:
+            return
         if self.playback.owns():
             self.playing = True
             self['status'].setText('')
 
     def metadata(self):
+        if self.video_active:
+            return
         if not self.playback.owns():
             self.metadata_monitor.clear()
             return
@@ -380,6 +391,8 @@ class WarderRadio(Screen):
             self['status'].setText('')
 
     def ended(self):
+        if self.video_active:
+            return
         self.reset_artwork()
         self.playing = False
         self.metadata_monitor.clear()
@@ -388,6 +401,8 @@ class WarderRadio(Screen):
             self['track'].setText(t('Playback ended'))
 
     def failed(self):
+        if self.video_active:
+            return
         self.reset_artwork()
         self.playing = False
         self.metadata_monitor.clear()
@@ -396,6 +411,8 @@ class WarderRadio(Screen):
             self['track'].setText(t('Cannot play station'))
 
     def stop(self):
+        self.video_generation += 1
+        self.video_pending = False
         self.playing = False
         self.metadata_monitor.clear()
         self.playback.stop()
@@ -440,6 +457,52 @@ class WarderRadio(Screen):
         else:
             self.cover_next = time.monotonic() + 60
 
+    def youtube_video(self):
+        if self.closed or self.installing or self.mode == 'recordings' or self.video_pending or self.video_active:
+            return
+        artist, title = self['artist'].getText(), self['track'].getText()
+        if not self.playback.owns() or not self.playback.current or 'url' not in self.playback.current or not song_query(artist,title):
+            self.notify(t('Current song information is unavailable'))
+            return
+        self.video_generation += 1
+        generation = self.video_generation
+        station = self.playback.key(self.playback.reference)
+        self.video_pending = True
+        self['status'].setText(t('Finding YouTube video…'))
+        submitted = self.video_jobs.submit('video',lambda: find_video(artist,title),
+            lambda result,error: self.youtube_ready(generation,station,artist,title,result,error))
+        if not submitted:
+            self.video_pending = False
+            self['status'].setText('')
+
+    def youtube_ready(self, generation, station, artist, title, result, error):
+        if self.closed or generation != self.video_generation:
+            return
+        self.video_pending = False
+        self['status'].setText('')
+        if not self.playback.owns() or station != self.playback.key(self.playback.reference) or (
+                artist,title) != (self['artist'].getText(),self['track'].getText()):
+            return
+        if error or not result:
+            self.notify(t('YouTube video unavailable') + ('\n' + clean_metadata(error)[:240] if error else ''),True)
+            return
+        self.video_active = True
+        try:
+            self.video_dialog = self.session.openWithCallback(self.youtube_returned,VideoPlayer,
+                result,self.playback.reference,self.playback.previous,lambda:self.closed)
+        except Exception:
+            self.video_active = False
+            # A failed screen creation must leave/recover our existing radio.
+            self.session.nav.playService(self.playback.reference)
+            self.notify(t('YouTube video unavailable'),True)
+
+    def youtube_returned(self, failed=False):
+        self.video_active, self.video_dialog = False, None
+        if not self.closed:
+            self.metadata()
+            if failed:
+                self.notify(t('YouTube video unavailable'),True)
+
     def favourite(self):
         item = self.current()
         if item is None or 'path' in item:
@@ -469,6 +532,7 @@ class WarderRadio(Screen):
 
     def options(self):
         choices = [(t('Choose country'), 'group'), (t('Update catalogue'), 'update'),
+                   (t('Favourite'), 'favourite'),
                    (t('Add station'), 'add'), (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if self.recording.running() else 'Start recording'), 'record'),
                    (t('Stop'), 'stop'), (t('About'), 'about')]
@@ -480,6 +544,8 @@ class WarderRadio(Screen):
         action = choice[1]
         if action == 'group':
             self.choose_group()
+        elif action == 'favourite':
+            self.favourite()
         elif action == 'update':
             self.update_catalogue()
         elif action == 'plugin-update':
@@ -611,6 +677,8 @@ class WarderRadio(Screen):
         now = time.localtime()
         self['date'].setText(time.strftime('%d.%m.%Y', now))
         self['clock'].setText(time.strftime('%H:%M:%S', now))
+        if self.video_active:
+            return
         if self.playing and self.playback.owns():
             self.metadata()
         elif not self.playback.owns():
@@ -631,6 +699,7 @@ class WarderRadio(Screen):
                 self.update_window.set_stage(*progress)
             self.jobs.poll()
             self.cover_jobs.poll()
+            self.video_jobs.poll()
 
     def manual_update(self):
         self.check_updates(manual=True)
@@ -727,6 +796,12 @@ class WarderRadio(Screen):
         if self.closed:
             return
         self.closed = True
+        self.video_generation += 1
+        self.video_pending = False
+        if self.video_dialog is not None:
+            self.video_dialog.close()
+            self.video_dialog = None
+        self.video_jobs.close()
         if self.update_window is not None:
             self.update_window.cleanup()
         self.poll_timer.close()

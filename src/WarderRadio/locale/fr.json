@@ -69,5 +69,10 @@
   "Downloading update…": "Téléchargement de la mise à jour…",
   "Verifying package…": "Vérification du paquet…",
   "Verifying installation…": "Vérification de l’installation…",
-  "Artist artwork": "Image de l’artiste"
+  "Artist artwork": "Image de l’artiste",
+  "YouTube video": "Vidéo YouTube",
+  "Finding YouTube video…": "Recherche de la vidéo YouTube…",
+  "YouTube video unavailable": "Vidéo YouTube indisponible",
+  "Current song information is unavailable": "Informations sur le titre actuel indisponibles",
+  "Video controls": "OK : afficher/masquer · VERT : pause/lecture · ←/→ : 10 s · EXIT : radio"
 }
