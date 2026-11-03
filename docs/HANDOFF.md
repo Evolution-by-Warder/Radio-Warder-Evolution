@@ -21,7 +21,16 @@ cases and three native GUI cases covering cancel, captured selection, MENU/color
 routing, playing file, empty list, changed file, failure, running recorder and late
 callback. Package verification asserts streamripper is required.
 
-Publication verification pending.
+Local and publication checks passed: 78 unit cases plus 32 native cases on each
+of three pinned OpenPLi/OpenATV revisions (174 executions), 54 pinned native
+files, IPK/Python 3.9/owned-path/offline scripts, seven live artwork downloads and
+final public package/feed verification. Source: 8829257b2610b99ba767b279c3d16728d35d68fb.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41684675022
+Testing feed now offers test28. Local IPK, release API digest and pinned feed
+agree: 3095238 bytes; SHA-256
+04d28d09574be6c389d8cbc4dbec28f30eda90e8270718050ea7f659d04bfdf7.
+Stable feeds and immutable test11 migration bridge retained. Actual receiver
+feed resolution and real recorder output require physical receiver confirmation.
 
 ---
 
