@@ -1,3 +1,42 @@
+# Radio Warder Evolution — test19 translucent surfaces
+
+User requested partially transparent window/panel backgrounds in the same style
+as the other Warder plugins. Applied the exact PiconHub panel navy #18091b30
+(Enigma2 alpha 0x18) to all three radio panels and the update progress window,
+through the shared PANEL_BACKGROUND constant. Popup text fields are now fully
+transparent over that fill rather than repainting opaque rectangles. Text,
+images, cyan borders, list highlights and the focused-country background retain
+their existing opacity/contrast. Layout, navigation, artwork, metadata and the
+verified-update/restart flow are unchanged. The full-screen brand artwork is
+unchanged; main-panel translucency reveals that existing background, while the
+popup blends with its underlying window. Default image-owned native dialogs
+and other plugins were not modified.
+
+The user asked whether song/cover search uses our engine or HDF Radio's.
+Clarified: lookup/matching is our independent Python implementation with shared
+FullHDGlass recording identity/curated aliases, not HDF modules. Current title
+is primarily ICY with native Enigma2 fallback. External artwork catalogues are
+iTunes (song cover) and TheAudioDB (artist thumb); the catalogues themselves are
+external, not an invented owned music database.
+
+Source: `5fbd14476c0d49720d07bb6e66837177ad678ee9`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41646251477 — success.
+46 unit cases plus 22 native cases on each of three pinned OpenPLi/OpenATV
+revisions: 112 executions. Existing render-order/geometry assertions were updated
+for the requested translucency and transparent popup labels. IPK/Python 3.9 and
+script checks passed. CI downloaded/verified public IPKs before feed publication;
+connector public asset digest/size match the v2 feed. Receiver alpha composition
+and subjective appearance remain pending user review. Locale count remains 21,
+71 keys each. Stable/other-product feeds and immutable test11 bridge are retained.
+
+Latest IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test19/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test19_all.ipk
+SHA-256 `19da835d7d7c727d96f0b8c2daac6300ad892dc6c2cfcf90712117ac2c8e4a66`; 3058762 bytes.
+
+---
+
+Prior release records follow; opaque panel/popup fills described below are
+superseded by test19.
+
 # Radio Warder Evolution — test18 update-progress window
 
 The requested installer flow is complete: existing confirmation, then a modal
