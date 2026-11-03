@@ -4,7 +4,20 @@ ServiceApp emits decoder/network errors as evUser+12. Register this alongside
 evTuneFailed so the native MoviePlayer wrapper retries paired/lower/combined
 formats on the actual Exteplayer error signal. Native replay checks the registered
 112 callback, invokes it and verifies 5002-to-5002-to-4097 fallback and radio return.
-Includes all test26 DASH and color-button changes. Publication record follows.
+Includes all test26 DASH and color-button changes.
+
+Local and publication verification passed: 73 unit cases, 29 native cases on each
+of three pinned image revisions (160 executions), 54 verified fixture files,
+IPK/Python 3.9/owned-path/offline scripts, seven real artwork downloads and final
+public package/feed verification. Source: ce67fb7084d98904aa53bda22fa20119082d4a60.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41683140758
+Testing feed now offers test27. Public release asset, feed and local package
+agree: 3,092,994 bytes; SHA-256
+132d171b37174f8105b521cd9ab39a55edb9ff0349c30766bed97a618775a3ad.
+IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test27/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test27_all.ipk
+Stable feeds and immutable test11 migration bridge are retained. Native player
+UI was receiver-confirmed earlier; new UHD pairing/audio sync still requires a
+physical receiver check. Do not claim server fixtures establish real UHD output.
 
 ---
 
