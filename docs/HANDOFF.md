@@ -1,3 +1,18 @@
+# Radio Warder Evolution — test16 country focus
+
+Latest user preference supersedes test9–15's immediate country dialog. UP from the first centre station and RIGHT from any station now only focus the cyan country value. Its cyan pointers read › country ‹; the white Select country caption does not change. No country dialog appears until OK. DOWN or RIGHT returns from the control to the exact selected station. Cancel in the choice dialog returns to the focused country control; selecting a country returns to stations. Left-menu UP/DOWN retain normal within-menu wrapping. Playback is unchanged.
+
+Source: `160c776509d995f2fbf055fc494c3543ed1fe991`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41631904554 — success.
+36 unit cases plus 17 native cases on each of three pinned OpenPLi/OpenATV revisions: 87 executions, plus IPK validation. Updated regression checks no dialog on arrows, cyan value-only markers/white caption, first/middle/last station positions, OK-only open, cancel/return, saved country and uninterrupted playback. Left menu regression remains passing. CI downloaded/verified public IPKs and published v2 feed; connector release digest/size match that feed. Receiver confirmation of this latest focus behaviour remains pending.
+
+Latest IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test16/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test16_all.ipk
+SHA-256 `dcf4de992bb7b1a8cb586a4f4d0c2c7e720fd63fdbe8dbd4fc46fdfa0b4908c1`; 3047966 bytes.
+
+---
+
+Prior release records follow; the immediate-open arrow behaviour described below is superseded by test16.
+
 # Radio Warder Evolution — test15 navigation correction
 
 User confirmed on the receiver that the plugin name Radio Warder Evolution and playing-song text now work in test14. Their screenshot also confirms the cyan panel outlines and multicolour spectrum are visible. They reported UP from the first left-menu item incorrectly opened country choices.
