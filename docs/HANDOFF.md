@@ -1,3 +1,26 @@
+# Radio Warder Evolution — test17 artwork and layout
+
+Latest user requests are implemented together:
+- Replace the upper Now playing, station logo and large station name with current-song artwork. The final right panel uses a 520x520 cover at Full HD, with provider credit, a compact station name, artist, title and country below it.
+- Remove the separate Playing row and extend all three panels from 730 to 790 px, ending at y=994 above footer buttons. The station list contains seven complete 94px rows. Other action/error feedback is retained inside the left panel.
+- Raise the function list to y=230. Put the multicolour spectrum below it in the left panel, freeing the right for artwork/text.
+- Focused country value uses list-selection blue (#004461) and cyan text; the white Select country caption stays on the regular panel background. Caption/value are separate native components positioned using rendered caption width, bounded to the centre panel. Arrows focus only, OK opens choices. Left-menu wrapping from test15 remains.
+
+Artwork reuses FullHDGlass's complete song identity, curated aliases and regional iTunes query order. TheAudioDB's public documented artist thumb endpoint is an exact-artist-credit fallback. Unavailable or unknown artwork uses the approved neutral Warder graphic. Provider name appears beneath loaded images. One separate worker and a generated RAM cache (64 JPEGs/16 MiB) keep artwork I/O away from playback/ICY/update workers. Reads have an 18-second common deadline, timeout and size limits, trusted image hosts, exact matching and bounded retries. Native ePicLoad supports both signal APIs; request generations, callback tokens and close guards reject stale results. Optional lookup/decoder errors fall back without affecting radio. Details and primary documentation links are in docs/ARTWORK.md.
+
+Source: `0579084ebd87bf17735b2da17e6f461c906e8981`.
+CI: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41635118402 — success.
+43 unit cases plus 20 native cases on each of three pinned OpenPLi/OpenATV revisions: 103 executions. These cover full/partial identity and versions, artist fallback, caches and response bounds, unavailable providers, both decoder signals, failed decoders, late callbacks, old-song worker results, selected-country background, expanded geometry, seven whole rows, no separate Playing label and all previous behaviour. Package/Python 3.9/install-script verification passed. CI downloaded and verified the public IPKs before feed publication; connector public asset digest/size matches the v2 feed. Archived test1 z-order fixture alone produces missing section/countrycaption warnings; current skin includes both.
+
+Live third-party lookup availability, actual receiver JPEG decode/painting, font metrics and the new layout/focus visuals still require user testing. No success on those physical checks is claimed. Previous receiver confirmation of test14 name and ICY text remains valid. All 21 locale catalogues and stable feeds are unchanged. The immutable old-ID test11 bridge still leads to the latest v2 release.
+
+Latest IPK: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.0-test17/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test17_all.ipk
+SHA-256 `d7b2e54ad7d8f1a509dbe88ad2c6ecf39ebf5ea4e4c096cafc793d091d52cb36`; 3055012 bytes.
+
+---
+
+Prior release records follow; old right-panel spectrum, separate Playing row and marker-only country focus are superseded by test17.
+
 # Radio Warder Evolution — test16 country focus
 
 Latest user preference supersedes test9–15's immediate country dialog. UP from the first centre station and RIGHT from any station now only focus the cyan country value. Its cyan pointers read › country ‹; the white Select country caption does not change. No country dialog appears until OK. DOWN or RIGHT returns from the control to the exact selected station. Cancel in the choice dialog returns to the focused country control; selecting a country returns to stations. Left-menu UP/DOWN retain normal within-menu wrapping. Playback is unchanged.
