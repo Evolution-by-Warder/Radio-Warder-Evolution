@@ -1,3 +1,14 @@
+# 0.1.0-test14
+
+Adds primary ICY StreamTitle reading using the bounded FullHDGlass reader.
+Native Enigma2 tags are the fallback when ICY is unavailable or still loading. Background reads are bounded and throttled to 15 seconds; GUI
+refreshes the returned text without blocking. ICY titles and announcements
+retain priority. Changing station, stopping or closing discards stale results.
+Supports UTF-8/legacy ICY text and the shared artist/title separator handling.
+Streams that do not transmit titles retain the honest no-information message.
+Installation clears only this plugin’s Python bytecode cache so the renamed
+menu descriptor and updated code are reloaded after the GUI restart.
+
 # 0.1.0-test13
 
 Adds a thin cyan outline to each of the three main panels, matching the Warder

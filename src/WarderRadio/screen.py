@@ -26,6 +26,7 @@ from .picons import path_for
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .spectrum import Spectrum
+from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair
 
 
 class Timer:
@@ -97,6 +98,7 @@ class WarderRadio(Screen):
         self.playback = Playback(session.nav, eServiceReference)
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
+        self.metadata_monitor = IcyMonitor()
         self.closed = False
         self.updating = False
         self.update_pending = False
@@ -302,6 +304,7 @@ class WarderRadio(Screen):
         if item is None:
             return
         self.playing = False
+        self.metadata_monitor.clear()
         self['artist'].setText('')
         self['track'].setText(t('Connecting…'))
         self['station'].setText(item['name'])
@@ -331,20 +334,32 @@ class WarderRadio(Screen):
 
     def metadata(self):
         if not self.playback.owns():
+            self.metadata_monitor.clear()
             return
         service = self.session.nav.getCurrentService()
         info = service.info() if service else None
         values = {}
         if info:
-            for key in ('Title', 'Artist', 'Album'):
+            for key in ('Title', 'Artist'):
                 constant = getattr(enigma.iServiceInformation, 'sTag' + key, None)
                 try:
-                    values[key] = info.getInfoString(constant) if constant is not None else ''
+                    values[key] = clean_metadata(info.getInfoString(constant)) if constant is not None else ''
                 except (AttributeError, TypeError, RuntimeError):
                     values[key] = ''
         title, artist = values.get('Title', ''), values.get('Artist', '')
-        if not artist and ' - ' in title:
-            artist, title = title.split(' - ', 1)
+        if title:
+            if artist:
+                artist, title = repair_pair(artist, title)
+            else:
+                parsed = split_song(title)
+                if all(parsed):
+                    artist, title = parsed
+        # Internet-radio stream metadata is primary. Native decoder tags are
+        # only the fallback while ICY is absent/unavailable or still loading.
+        if self.playback.current and self.playback.current.get('url'):
+            icy_artist, icy_title = self.metadata_monitor.song(self.playback.current['url'])
+            if icy_title:
+                artist, title = icy_artist, icy_title
         self.playing = True
         self['artist'].setText(artist[:240])
         self['track'].setText(title[:480] or t('No track information'))
@@ -352,18 +367,21 @@ class WarderRadio(Screen):
 
     def ended(self):
         self.playing = False
+        self.metadata_monitor.clear()
         if self.playback.current and self.playback.owns():
             self['status'].setText(t('Playback ended'))
             self['track'].setText(t('Playback ended'))
 
     def failed(self):
         self.playing = False
+        self.metadata_monitor.clear()
         if self.playback.current and self.playback.owns():
             self['status'].setText(t('Cannot play station'))
             self['track'].setText(t('Cannot play station'))
 
     def stop(self):
         self.playing = False
+        self.metadata_monitor.clear()
         self.playback.stop()
         self['station'].setText(t('Ready to listen'))
         self['artist'].setText('')
@@ -541,6 +559,10 @@ class WarderRadio(Screen):
         now = time.localtime()
         self['date'].setText(time.strftime('%d.%m.%Y', now))
         self['clock'].setText(time.strftime('%H:%M:%S', now))
+        if self.playing and self.playback.owns():
+            self.metadata()
+        elif not self.playback.owns():
+            self.metadata_monitor.clear()
         if self.recording_was_running:
             if self.recording.running():
                 self['details'].setText('● REC  ' + time.strftime('%H:%M:%S', time.gmtime(time.monotonic() - self.recording.started)))
@@ -630,6 +652,7 @@ class WarderRadio(Screen):
         self.poll_timer.close()
         self.clock_timer.close()
         self.spectrum.close()
+        self.metadata_monitor.close()
         self.jobs.close()
         try:
             self.recording.stop()

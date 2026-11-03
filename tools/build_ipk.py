@@ -64,7 +64,12 @@ exit 0
 postinst = b'''#!/bin/sh
 set -eu
 [ -n "${IPKG_INSTROOT:-}" ] && exit 0
-echo "Warder Radio installed. Restart the GUI to refresh the plugin list."
+# This package owns only this plugin's bytecode. Deterministic source mtimes
+# must not let a same-length source edit reuse a previous .pyc after restart.
+plugin_root=/usr/lib/enigma2/python/Plugins/Extensions/WarderRadio
+rm -f "$plugin_root"/__pycache__/*.pyc "$plugin_root"/__pycache__/*.pyo \
+      "$plugin_root"/*.pyc "$plugin_root"/*.pyo
+echo "Radio Warder Evolution installed. Restart the GUI to refresh the plugin list."
 exit 0
 '''
 

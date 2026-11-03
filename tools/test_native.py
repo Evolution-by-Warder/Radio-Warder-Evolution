@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 from functools import reduce
 from pathlib import Path
 from types import SimpleNamespace as NS
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--upstream', type=Path, required=True)
@@ -192,6 +192,7 @@ module('Components.ActionMap', ActionMap=ActionMap)
 from WarderRadio import screen as radio
 from WarderRadio import plugin
 from WarderRadio.model import Store
+from WarderRadio.metadata import IcyMonitor
 from WarderRadio.skin import make_skin
 
 
@@ -223,6 +224,8 @@ class NativeTests(unittest.TestCase):
         self.patch.start(); self.addCleanup(self.patch.stop)
         self.update_patch = patch.object(radio, 'check_release', return_value=None)
         self.update_patch.start(); self.addCleanup(self.update_patch.stop)
+        self.metadata_patch = patch.object(radio, 'IcyMonitor', lambda: IcyMonitor(fetch=lambda url: ('', '')))
+        self.metadata_patch.start(); self.addCleanup(self.metadata_patch.stop)
         DESKTOP[:] = 1920, 1080
 
     def new(self):
@@ -531,6 +534,32 @@ class NativeTests(unittest.TestCase):
             self.assertIs(session.nav.current, playing)
         screen.left(); screen.right()
         self.assertEqual(screen.focus, 'stations')
+
+    def test_icy_is_primary_native_tags_are_fallback_and_old_station_data_is_cleared(self):
+        screen, session, _ = self.new()
+        screen.metadata_monitor.song = Mock(return_value=('Stream singer', 'ICY song'))
+        screen.play()
+        self.assertEqual(screen['artist'].getText(), 'Stream singer')
+        self.assertEqual(screen['track'].getText(), 'ICY song')
+        screen.metadata_monitor.song.assert_called_with(screen.current()['url'])
+        screen.metadata_monitor.song.return_value = ('', '')
+        screen.metadata()
+        self.assertEqual(screen['track'].getText(), 'Real title')
+        screen.metadata_monitor.song.return_value = ('', 'Live announcement')
+        screen.tick()
+        self.assertEqual(screen['artist'].getText(), '')
+        self.assertEqual(screen['track'].getText(), 'Live announcement')
+        session.nav.getCurrentService = lambda: NS(info=lambda: NS(getInfoString=lambda key: ''))
+        screen.metadata_monitor.song.return_value = ('', '')
+        screen.metadata()
+        self.assertEqual(screen['track'].getText(), radio.t('No track information'))
+        screen.metadata_monitor.clear = Mock()
+        screen.stop()
+        screen.metadata_monitor.clear.assert_called()
+        screen.metadata_monitor.clear.reset_mock()
+        screen.play(); screen.metadata_monitor.clear.assert_called()
+        screen.metadata_monitor.close = Mock()
+        screen.cleanup(); screen.metadata_monitor.close.assert_called_once()
 
     def test_timer_signal_connection_api_also_disconnects(self):
         class SignalTimer:
