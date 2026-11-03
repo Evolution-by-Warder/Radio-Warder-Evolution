@@ -31,6 +31,20 @@ jobs:
               if not results: raise LookupError('No public search results; possible consent/network restriction')
               report['stage']='resolve'
               resolver=YouTubeVideoUrl(); resolver._download_webpage=transport.page
+              clients=[]
+              for client in (3,101,5,85):
+                  try:
+                      webpage=transport.page('https://www.youtube.com/watch?v='+results[0]['id']) if client==5 else None
+                      response,player=resolver._extract_player_response(results[0]['id'],None,client,'en',webpage)
+                      response=response or {}
+                      state=response.get('playabilityStatus',{})
+                      streaming=response.get('streamingData',{})
+                      clients.append(dict(client=client,status=state.get('status'),reason=state.get('reason'),
+                          formats=len(streaming.get('formats',[])),adaptive=len(streaming.get('adaptiveFormats',[])),
+                          hls=bool(streaming.get('hlsManifestUrl'))))
+                  except Exception as exc:
+                      clients.append(dict(client=client,error=type(exc).__name__+': '+str(exc)[:200]))
+              report['clients']=clients
               url=allowed_url(resolver.extract(results[0]['id']),media=True)
               report['stage']='media'
               with urlopen(Request(url,headers={'Range':'bytes=0-1023'}),timeout=8,context=ssl.create_default_context()) as response:
