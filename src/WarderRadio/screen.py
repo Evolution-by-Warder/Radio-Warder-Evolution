@@ -189,7 +189,7 @@ class WarderRadio(Screen):
 
     def right(self):
         if self.focus == 'stations':
-            self.choose_group()
+            self.set_focus('country')
         else:
             self.set_focus('stations')
 
@@ -197,7 +197,7 @@ class WarderRadio(Screen):
         if self.focus == 'country':
             return
         if self.focus == 'stations' and (self['stations'].getSelectionIndex() == 0 or not self['stations'].list):
-            self.choose_group()
+            self.set_focus('country')
         else:
             self[self.focus].up()
         self.update_count()
@@ -454,8 +454,9 @@ class WarderRadio(Screen):
     def update_country_caption(self):
         country = group_label(self.active_group) if self.active_group else t('All groups')
         prefix = '› ' if self.focus == 'country' else ''
+        suffix = ' ‹' if self.focus == 'country' else ''
         self['heading'].setText('\\c00ffffff' + t('Select country') + ' – '
-                                + '\\c0000ceff' + prefix + country + '  ▾' + '\\C')
+                                + '\\c0000ceff' + prefix + country + suffix + '  ▾' + '\\C')
         if self['heading'].instance:
             color = 0xffffff
             self['heading'].instance.setForegroundColor(enigma.gRGB(color))

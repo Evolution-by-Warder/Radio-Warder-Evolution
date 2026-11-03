@@ -1,3 +1,12 @@
+# 0.1.0-test16
+
+UP from the first centre station row and RIGHT from any station now focus the
+cyan country control without opening a dialog. Only OK opens country choices.
+Focus is marked by cyan pointers around the country; the white Select country
+caption stays unchanged. DOWN or RIGHT returns to the exact selected station.
+Cancelling country choices returns to the focused country control. Left-menu
+UP/DOWN retain the normal within-menu navigation fixed in test15.
+
 # 0.1.0-test15
 
 Restricts the UP country shortcut to the centre station list. In the left

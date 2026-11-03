@@ -404,7 +404,7 @@ class NativeTests(unittest.TestCase):
             dialog[1](True)
             self.assertEqual(len(session.dialogs), count)
 
-    def test_country_header_opens_directly_and_selection_persists_without_interrupting_audio(self):
+    def test_country_focus_requires_ok_and_selection_persists_without_interrupting_audio(self):
         screen, session, _ = self.new()
         self.assertEqual(screen['navtitle'].getText(), '')
         self.assertIn(radio.t('Select country'), screen['heading'].getText())
@@ -414,12 +414,17 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['nowlabel'].getText(), radio.t('Now playing'))
         screen.play()
         playing = session.nav.current
+        dialog_count = len(session.dialogs)
         screen.up()
+        self.assertEqual(len(session.dialogs), dialog_count)
         self.assertEqual(screen.focus, 'country')
         self.assertFalse(screen['stations'].instance.selectionEnabled)
         self.assertEqual(screen['heading'].instance.foreground, 0xffffff)
         self.assertTrue(screen['heading'].getText().startswith('\\c00ffffff' + radio.t('Select country') + ' – '))
         self.assertIn('\\c0000ceff› ' + radio.group_label(screen.active_group), screen['heading'].getText())
+        self.assertIn(' ‹', screen['heading'].getText())
+        screen.ok()
+        self.assertEqual(len(session.dialogs), dialog_count + 1)
         dialog = session.dialogs[-1]
         self.assertEqual(dialog[-1]['title'], radio.t('Choose country'))
         self.assertEqual(dialog[-1]['list'][dialog[-1]['selection']][1], screen.active_group)
@@ -430,7 +435,7 @@ class NativeTests(unittest.TestCase):
         self.assertIn(radio.group_label('Čechy'), screen['heading'].getText())
         self.assertEqual(Store(self.tmp.name).group, 'Čechy')
         self.assertIs(session.nav.current, playing)
-        screen.up(); screen.country_done(None)
+        screen.up(); screen.down()
         self.assertEqual(screen.focus, 'stations')
         self.assertEqual(screen['stations'].getSelectionIndex(), 0)
 
@@ -542,10 +547,13 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.current(), station)
         screen['stations'].moveToIndex(0)
         screen.up()
+        self.assertEqual(screen.focus, 'country')
+        self.assertEqual(len(session.dialogs), dialogs)
+        screen.ok()
         self.assertEqual(len(session.dialogs), dialogs + 1)
         self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
 
-    def test_right_opens_country_immediately_from_any_station_and_cancel_preserves_position(self):
+    def test_right_focuses_country_from_any_station_and_only_ok_opens_choices(self):
         screen, session, _ = self.new()
         screen.play()
         playing = session.nav.current
@@ -554,13 +562,23 @@ class NativeTests(unittest.TestCase):
             selected = screen.current()
             before = len(session.dialogs)
             screen.right()
-            self.assertEqual(len(session.dialogs), before + 1)
-            self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
+            self.assertEqual(len(session.dialogs), before)
             self.assertEqual(screen.focus, 'country')
+            self.assertFalse(screen['stations'].instance.selectionEnabled)
             self.assertEqual(screen['stations'].getSelectionIndex(), index)
             self.assertTrue(screen['heading'].getText().startswith('\\c00ffffff' + radio.t('Select country') + ' – '))
-            self.assertIn('\\c0000ceff› ', screen['heading'].getText())
+            self.assertIn('\\c0000ceff› ' + radio.group_label(screen.active_group) + ' ‹', screen['heading'].getText())
+            screen.right()
+            self.assertEqual(screen.focus, 'stations')
+            self.assertEqual(screen.current(), selected)
+            self.assertEqual(len(session.dialogs), before)
+            self.assertNotIn('› ', screen['heading'].getText())
+            screen.right(); screen.ok()
+            self.assertEqual(len(session.dialogs), before + 1)
+            self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
             screen.country_done(None)
+            self.assertEqual(screen.focus, 'country')
+            screen.down()
             self.assertEqual(screen.focus, 'stations')
             self.assertEqual(screen.current(), selected)
             self.assertIs(session.nav.current, playing)
