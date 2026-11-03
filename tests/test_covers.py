@@ -7,11 +7,56 @@ from urllib.parse import parse_qs, urlsplit
 from WarderRadio.covers import lookup_cover, cover_rank, album_candidate
 from WarderRadio import song_identity as identity
 from WarderRadio.cover_display import CoverDisplay
+from WarderRadio.metadata import repair_legacy_pair
 
 JPEG = b'\xff\xd8' + b'J' * 2048
 
 
 class LookupTests(unittest.TestCase):
+    def test_receiver_party_filename_tags_match_the_requested_remix(self):
+        self.songs = json.loads(Path(__file__).with_name('fixtures').joinpath('itunes-jason-derulo-westfunk.json').read_text())
+        self.songs.insert(0, dict(self.songs[0],trackName='Want to Want Me (Club Remix)',
+                                 artworkUrl100='https://a1.mzstatic.com/wrong/100x100bb.jpg'))
+        self.artists = []
+        path, source = lookup_cover('JASON_DERULO','WANT_TO_WANT_ME_WESTFUNK_REMIX', self.temp.name, self.opener)
+        self.assertTrue(path); self.assertEqual(source,'iTunes')
+        self.assertEqual(len(self.calls),2)
+        self.assertEqual(parse_qs(urlsplit(self.calls[0]).query)['term'],
+                         ['JASON DERULO WANT TO WANT ME WESTFUNK REMIX'])
+        self.assertIn('/cf1e302b-aaf7-aa19-65e8-431fff53ff12/',self.calls[-1])
+
+    def test_receiver_rust_complete_band_spelling_and_vs_punctuation(self):
+        self.songs = json.loads(Path(__file__).with_name('fixtures').joinpath('itunes-rust2dust.json').read_text())
+        self.artists = []
+        path, source = lookup_cover('RUST 2 DUST','My vs Oni',self.temp.name,self.opener)
+        self.assertTrue(path); self.assertEqual(source,'iTunes'); self.assertEqual(len(self.calls),2)
+        self.assertEqual(parse_qs(urlsplit(self.calls[0]).query)['term'], ['Rust2Dust My vs Oni'])
+        self.assertIn('/a87628df-544c-33d0-b9a8-534f780613f8/',self.calls[-1])
+        for artist, title in [('Rust','My vs Oni'),('Rust2Dust','My vs Oni (Live)'),
+                              ('Rust2Dust','My vs Others')]:
+            self.assertEqual(cover_rank(self.songs[0],artist,title),0)
+
+    def test_receiver_folk_repaired_metadata_and_numbered_title_use_labelled_artist_fallback(self):
+        self.songs = []; self.artists = []
+        self.artist_songs = json.loads(Path(__file__).with_name('fixtures').joinpath('itunes-kandracovci.json').read_text())
+        artist, title = repair_legacy_pair('Kandráèovci', '13. Hej, už je òeda¾eko', 'cp1250')
+        path, source = lookup_cover(artist,title,self.temp.name,self.opener)
+        self.assertTrue(path.endswith('-performer.jpg')); self.assertEqual(source,'iTunes artist')
+        self.assertEqual(len(self.calls),3)
+        self.assertEqual(parse_qs(urlsplit(self.calls[0]).query)['term'], ['Kandráčovci Hej, už je ňedaľeko'])
+
+    def test_track_prefix_cleanup_does_not_remove_years_numbers_or_version_words(self):
+        self.artists = []
+        for artist, title, expected in [('Singer','13. Song (Live)','Song (Live)'),
+                                        ('Singer','03) Song','Song'), ('U2','1984','1984'),
+                                        ('21 Pilots','99 Luftballons','99 Luftballons')]:
+            with self.subTest(title=title):
+                self.calls=[]
+                self.songs=[dict(artistName=artist,trackName=expected,artworkUrl100='https://a1.mzstatic.com/right/100x100bb.jpg')]
+                path, _ = lookup_cover(artist,title,self.temp.name,self.opener)
+                self.assertTrue(path)
+                self.assertEqual(parse_qs(urlsplit(self.calls[0]).query)['term'], [artist+' '+expected])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

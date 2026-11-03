@@ -22,6 +22,10 @@ _DIFFERENT_VERSION = re.compile(
     r'recorded|concert|sped|slowed|reverb|edit|extended|demo|unplugged)\b', re.I)
 _ORIGINAL = re.compile(r'\s*(?:\(original\s+(?:mix|version)\)|\[original\s+(?:mix|version)\])\s*$', re.I)
 
+def artwork_title_key(value):
+    # Punctuation in the abbreviation "vs." is not a different recording.
+    return identity.title_key(re.sub(r'\bvs\.(?=\s|$)', 'vs', str(value or ''), flags=re.I))
+
 
 def default_title(value):
     """A catalogue's unlabelled default equals an explicit Original Mix tag."""
@@ -53,7 +57,7 @@ def album_candidate(item, artist, title):
     album = identity.norm(item.get('collectionName', ''))
     if not album or label not in album:
         return False
-    return identity.title_key(track[:suffix.start()]) == identity.title_key(title)
+    return artwork_title_key(track[:suffix.start()]) == artwork_title_key(title)
 
 
 def cover_rank(item, artist, title):
@@ -66,8 +70,8 @@ def cover_rank(item, artist, title):
     requested = set(identity.roster(artist))
     if not requested or not requested.issubset(credited):
         return 0
-    wanted = identity.title_key(default_title(title))
-    found = identity.title_key(default_title(item.get('trackName', '')))
+    wanted = artwork_title_key(default_title(title))
+    found = artwork_title_key(default_title(item.get('trackName', '')))
     if not wanted or not found:
         return 0
     if wanted == found:
@@ -83,12 +87,19 @@ def cover_rank(item, artist, title):
         suffixes.append(match.group())
         track = track[:match.start()].rstrip()
     if suffixes and not _DIFFERENT_VERSION.search(' '.join(suffixes)):
-        if identity.title_key(track) == wanted:
+        if artwork_title_key(track) == wanted:
             return 1
     return 0
 
 
 def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monotonic, trace=None):
+    # File-style broadcast tags are query input, not catalogue spelling.
+    # Keep version/remix words and ordinary numeric titles intact.
+    artist = str(artist or '').replace('_', ' ')
+    title = re.sub(r'^\s*\d{1,3}[.)]\s+(?=[^\d\s])', '', str(title or '').replace('_', ' '))
+    # Complete broadcast credit versus the catalogue's band spelling.
+    if identity.norm(artist) == 'rust 2 dust':
+        artist = 'Rust2Dust'
     artist, title = identity.query_pair(artist, title)
     if not artist:
         return '', ''

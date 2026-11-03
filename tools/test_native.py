@@ -263,7 +263,7 @@ class NativeTests(unittest.TestCase):
         self.patch.start(); self.addCleanup(self.patch.stop)
         self.update_patch = patch.object(radio, 'check_release', return_value=None)
         self.update_patch.start(); self.addCleanup(self.update_patch.stop)
-        self.metadata_patch = patch.object(radio, 'IcyMonitor', lambda: IcyMonitor(fetch=lambda url: ('', '')))
+        self.metadata_patch = patch.object(radio, 'IcyMonitor', lambda: IcyMonitor(fetch=lambda url, **kwargs: ('', '')))
         self.metadata_patch.start(); self.addCleanup(self.metadata_patch.stop)
         self.cover_patch = patch.object(radio, 'lookup_cover', return_value=('', ''))
         self.cover_patch.start(); self.addCleanup(self.cover_patch.stop)
@@ -793,7 +793,8 @@ class NativeTests(unittest.TestCase):
         screen.play()
         self.assertEqual(screen['artist'].getText(), 'Stream singer')
         self.assertEqual(screen['track'].getText(), 'ICY song')
-        screen.metadata_monitor.song.assert_called_with(screen.current()['url'])
+        screen.metadata_monitor.song.assert_called_with(screen.current()['url'],
+            legacy_charset=radio.station_charset(screen.playback.current))
         screen.metadata_monitor.song.return_value = ('', '')
         screen.metadata()
         self.assertEqual(screen['track'].getText(), 'Real title')
@@ -812,6 +813,25 @@ class NativeTests(unittest.TestCase):
         screen.play(); screen.metadata_monitor.clear.assert_called()
         screen.metadata_monitor.close = Mock()
         screen.cleanup(); screen.metadata_monitor.close.assert_called_once()
+
+    def test_receiver_damaged_folk_tags_are_repaired_for_display_and_artwork_only_in_context(self):
+        screen, session, _ = self.new()
+        screen.current()['group'] = 'Slovensko'
+        screen.metadata_monitor.song = Mock(return_value=('Kandráèovci','13. Hej, už je òeda¾eko'))
+        screen.update_artwork = Mock()
+        screen.play()
+        expected = ('Kandráčovci','13. Hej, už je ňedaľeko')
+        self.assertEqual((screen['artist'].getText(),screen['track'].getText()), expected)
+        screen.update_artwork.assert_called_with(*expected)
+        screen.metadata_monitor.song.return_value = ('','')
+        session.nav.getCurrentService = lambda: NS(info=lambda: NS(getInfoString=lambda key:
+            {'artist':'Kandráèovci','title':'13. Hej, už je òeda¾eko'}.get(key,'')))
+        screen.metadata()
+        self.assertEqual((screen['artist'].getText(),screen['track'].getText()), expected)
+        screen.playback.current['group'] = 'France'
+        screen.metadata()
+        self.assertEqual(screen['artist'].getText(),'Kandráèovci')
+        screen.metadata_monitor.song.assert_called_with(screen.current()['url'],legacy_charset=None)
 
     def test_timer_signal_connection_api_also_disconnects(self):
         class SignalTimer:

@@ -30,7 +30,7 @@ from .covers import lookup_cover
 from .cover_display import CoverDisplay
 from .update_progress import UpdateProgress
 from .update_state import UpdateState
-from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair
+from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair, station_charset, repair_legacy_pair
 
 
 class Timer:
@@ -368,9 +368,11 @@ class WarderRadio(Screen):
         # Internet-radio stream metadata is primary. Native decoder tags are
         # only the fallback while ICY is absent/unavailable or still loading.
         if self.playback.current and self.playback.current.get('url'):
-            icy_artist, icy_title = self.metadata_monitor.song(self.playback.current['url'])
+            icy_artist, icy_title = self.metadata_monitor.song(self.playback.current['url'],
+                legacy_charset=station_charset(self.playback.current))
             if icy_title:
                 artist, title = icy_artist, icy_title
+        artist, title = repair_legacy_pair(artist, title, station_charset(self.playback.current))
         self.playing = True
         self['artist'].setText(artist[:240])
         self['track'].setText(title[:480] or t('No track information'))

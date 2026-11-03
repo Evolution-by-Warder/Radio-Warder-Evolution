@@ -1,3 +1,26 @@
+# Radio Warder Evolution — test22 broadcast file tags
+
+Completes four scoped fixes: Central European metadata decoding/guarded repair,
+artwork-only track-number removal, underscore-to-space queries, and the complete
+Rust2Dust catalogue spelling plus vs. punctuation. Does not loosen recording
+version checks or shared lyrics identity. Folk's missing exact song uses labelled
+artist artwork. Junior's unrelated catalogue results remain rejected.
+
+Local verification passed: 62 unit cases and 23 native replay cases on each of
+three pinned OpenPLi/OpenATV revisions (131 executions), plus IPK/Python 3.9,
+owned-path and offline install-script checks. Native replay covers both ICY and
+native fallback repair, passing station context and keeping non-Central-European
+text unchanged. The encoded-byte/UTF-8 corruption fixtures test the screenshot
+pattern; the live first-block trace contained a different, valid UTF-8 song.
+
+Publication requires seven real image downloads, including the three newly
+reported music examples, followed by public package/feed verification. Receiver
+rendering and actual receiver latency still require user confirmation.
+Publication record will follow after CI; stable feeds and the immutable legacy
+bridge are retained.
+
+---
+
 # Radio Warder Evolution — test21 omitted version and artist artwork
 
 Receiver screenshots reproduced three additional misses in test20:

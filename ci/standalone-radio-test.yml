@@ -1,0 +1,133 @@
+name: Warder Radio TEST
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'tests/**'
+      - 'README.md'
+      - 'COPYING'
+      - '.github/workflows/radio-test.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build test payload
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 tools/build_ipk.py
+          python3 tools/build_ipk.py --legacy-bridge
+          echo "RADIO_VERSION=$(cat src/WarderRadio/version.txt)" >> "$GITHUB_ENV"
+      - name: Unit tests
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          PYTHONPATH: src
+        run: python3 -m unittest discover -s tests -v
+      - name: Fetch and verify pinned native fixtures
+        run: python3 tools/fetch_native.py
+      - name: Native OpenPLi and OpenATV replays
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 tools/test_native.py --upstream fixtures/openpli-release-9.2 -v
+          python3 tools/test_native.py --upstream fixtures/openatv-81-reviewed-base -v
+          python3 tools/test_native.py --upstream fixtures/openatv-8.0-next -v
+      - name: Build and verify independent IPK
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 tools/verify_ipk.py
+      - name: Verify current-song artwork against live provider
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, tempfile
+          from pathlib import Path
+          from WarderRadio.covers import lookup_cover
+          from WarderRadio.metadata import repair_legacy_pair
+          cases = [
+              ('chill77', 'CHILL77', 'PAPAOUTAI', 'iTunes', 2),
+              ('bcc-worship', 'BCC Worship', 'Si pri mne blízko', 'iTunes', 2),
+              ('jackers-revenge', 'Jackers Revenge', 'Comin Out (Once Again) (Original Mix)', 'iTunes', 2),
+              ('dianah-kay', 'Dianah Kay', 'ILLUMIN8', 'iTunes artist', 3),
+              ('rust2dust', 'RUST 2 DUST', 'My vs Oni', 'iTunes', 2),
+              ('jason-derulo', 'JASON_DERULO', 'WANT_TO_WANT_ME_WESTFUNK_REMIX', 'iTunes', 2),
+              ('folk', *repair_legacy_pair('Kandráèovci', '13. Hej, už je òeda¾eko', 'cp1250'), 'iTunes artist', 3),
+          ]
+          reports = []
+          for slug, artist, title, expected, request_count in cases:
+              events = []
+              with tempfile.TemporaryDirectory() as cache:
+                  path, provider = lookup_cover(artist, title, directory=cache, trace=events.append)
+                  assert path and provider == expected, (slug, events)
+                  data = Path(path).read_bytes()
+                  assert data.startswith(b'\xff\xd8') and len(data) > 1024
+                  selected = [event for event in events if event['event'] == 'selected']
+                  assert selected and selected[-1]['rank'] > 0, (slug, events)
+                  requests = [event for event in events if event['event'] == 'request']
+                  assert len(requests) == request_count, (slug, events)
+                  report = dict(case=slug, provider=provider, selected=selected[-1], events=events,
+                                bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
+                  Path('dist/artwork-live-'+slug+'.jpg').write_bytes(data)
+                  print(json.dumps(report, ensure_ascii=False))
+                  reports.append(report)
+          Path('dist/artwork-live-proof.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warder-radio-${{ env.RADIO_VERSION }}
+          path: dist/*
+      - name: Publish receiver-test prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="warder-radio-v$RADIO_VERSION"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --prerelease \
+              --title "Warder Radio $RADIO_VERSION" --notes-file docs/CHANGELOG.md
+          fi
+          gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json --clobber
+          bridge_tag="warder-radio-v0.1.0-test11"
+          if ! gh release view "$bridge_tag" >/dev/null 2>&1; then
+            gh release create "$bridge_tag" --target "$GITHUB_SHA" --prerelease \
+              --title "Warder Radio package migration bridge" \
+              --notes "Compatibility bridge for the old warderradio package. Restarts into the v2 updater, which offers Radio Warder Evolution. Direct installations should use the latest renamed package."
+          fi
+          # The bridge is immutable once published; later builds keep its bytes.
+          if gh release view "$bridge_tag" --json assets --jq '.assets[].name' | grep -q '\.ipk$'; then
+            echo 'Existing immutable compatibility bridge retained.'
+            gh release download "$bridge_tag" --pattern build.json --dir dist/legacy --clobber
+          else
+            gh release upload "$bridge_tag" dist/legacy/*.ipk dist/legacy/SHA256SUMS dist/legacy/build.json
+          fi
+      - name: Verify public download and advance testing feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin main
+          git switch -C warder-radio-feed origin/main
+          test "$(cat src/WarderRadio/version.txt)" = "$RADIO_VERSION"
+          python3 tools/publish_feed.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- update/testing.json update/v2/testing.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified Warder Radio $RADIO_VERSION testing feed [skip ci]"
+            git push origin HEAD:main
+          fi

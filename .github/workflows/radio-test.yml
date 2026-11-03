@@ -59,11 +59,15 @@ jobs:
           import hashlib, json, tempfile
           from pathlib import Path
           from WarderRadio.covers import lookup_cover
+          from WarderRadio.metadata import repair_legacy_pair
           cases = [
               ('chill77', 'CHILL77', 'PAPAOUTAI', 'iTunes', 2),
               ('bcc-worship', 'BCC Worship', 'Si pri mne blízko', 'iTunes', 2),
               ('jackers-revenge', 'Jackers Revenge', 'Comin Out (Once Again) (Original Mix)', 'iTunes', 2),
               ('dianah-kay', 'Dianah Kay', 'ILLUMIN8', 'iTunes artist', 3),
+              ('rust2dust', 'RUST 2 DUST', 'My vs Oni', 'iTunes', 2),
+              ('jason-derulo', 'JASON_DERULO', 'WANT_TO_WANT_ME_WESTFUNK_REMIX', 'iTunes', 2),
+              ('folk', *repair_legacy_pair('Kandráèovci', '13. Hej, už je òeda¾eko', 'cp1250'), 'iTunes artist', 3),
           ]
           reports = []
           for slug, artist, title, expected, request_count in cases:

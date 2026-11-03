@@ -1,4 +1,43 @@
-# Current-song artwork (test21)
+# Current-song artwork (test22)
+
+## Broadcast file tags and Central European encoding
+
+Artwork query input converts underscores to spaces and removes a leading
+one-to-three-digit file-track number followed by a dot or closing parenthesis
+and whitespace. Numeric titles without that punctuation, years and version
+words remain. The complete broadcast credit RUST 2 DUST maps to Rust2Dust;
+vs. and vs have the same artwork title key. Shared recording/lyrics identity
+is unchanged.
+
+ICY decoding tries UTF-8 first. For invalid UTF-8, an explicit icy-charset or
+Content-Type charset precedes the station's legacy fallback. Slovak/Czech groups
+use Windows-1250 as that fallback; other groups retain Windows-1252. Already
+damaged Unicode is repaired only in the Central European context, only when a
+fraction sign occurs inside a word and at least two characters can be reversibly
+recovered. Correct Unicode, lone Western accents, ordinary fractions and text
+with irreversible replacement characters are retained. Native fallback tags
+and primary ICY tags share this guarded repair before display and lookup.
+
+The receiver Folk screenshot was reproduced as Windows-1250 decoded as
+Windows-1252: Kandráèovci / 13. Hej, už je òeda¾eko. The bounded live stream
+sample instead returned a different, correctly encoded UTF-8 song; that sample
+does not establish the original track's raw bytes. Replay verifies the reported
+corruption pattern and the published candidate additionally downloads artist
+artwork for the corrected full artist name. The exact Folk title was not found
+in the checked catalogue, so this image is labelled Artist artwork.
+
+Live catalogue responses also contain Rust2Dust / My Vs. Oni and Jason Derulo /
+Want to Want Me (Westfunk Remix). Fixtures preserve these actual results and
+tests reject other songs and conflicting remixes. Junior / V lese žije drak
+returned only unrelated results in the title/author searches; neutral artwork
+is retained for that case.
+
+Public read-only catalogue check:
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41662786899
+Bounded first-ICY-block check:
+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41661788071
+
+## Player and lookup
 
 The upper player block is a square cover, followed by a compact station name,
 artist, title and country. At Full HD the cover is 520x520; native layout scales

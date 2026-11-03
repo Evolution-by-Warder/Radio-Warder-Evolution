@@ -12,6 +12,31 @@ from .model import stream_url
 def clean(value):
     return " ".join(re.sub(r"[\x00-\x1f\x7f]", " ", html.unescape(value or "")).split())[:1024]
 
+def station_charset(station):
+    """Legacy byte fallback only; valid UTF-8 always takes priority."""
+    group = (station or {}).get('group', '').casefold()
+    return 'cp1250' if group in ('slovensko', 'čechy', 'cesko', 'česko') else None
+
+def repair_legacy_pair(artist, title, legacy_charset=None):
+    """Recover reversible Central European file tags with strong damage signs.
+
+    A fraction embedded in a word plus multiple changed characters is required.
+    A lone French accent, a real fraction, or already correct Unicode is retained.
+    This also handles a server sending already damaged text as valid UTF-8.
+    """
+    if legacy_charset != 'cp1250':
+        return artist, title
+    text = artist + '\n' + title
+    if not re.search(r'[^\W\d_]¾[^\W\d_]', text):
+        return artist, title
+    try:
+        repaired = text.encode('cp1252').decode('cp1250')
+    except UnicodeError:
+        return artist, title
+    if sum(a != b for a, b in zip(text, repaired)) < 2:
+        return artist, title
+    return tuple(repaired.split('\n', 1))
+
 def split_stream(value):
     text=' '.join(str(value or '').split())
     # Receiver-proven file tag: NN - Title - Artist. Do not strip years,
@@ -44,17 +69,28 @@ def repair_pair(artist,title):
 def split_song(value):
     return split_stream(clean(value))
 
-def parse_icy(payload):
+def parse_icy(payload, legacy_charset=None, declared_charset=None):
     try:
         text = payload.rstrip(b"\x00").decode("utf-8")
     except UnicodeDecodeError:
-        text = payload.rstrip(b"\x00").decode("cp1252", "replace")
+        text = None
+        for charset in (declared_charset, legacy_charset, 'cp1252'):
+            if not charset:
+                continue
+            try:
+                text = payload.rstrip(b"\x00").decode(charset)
+                break
+            except (UnicodeError, LookupError):
+                pass
+        if text is None:
+            text = payload.rstrip(b"\x00").decode('cp1252', 'replace')
     match = re.search(r"StreamTitle\s*=\s*(['\"])(.*?)\1\s*(?:;|$)", text, re.I | re.S)
     text = clean(match.group(2)) if match else ""
     parsed = split_song(text)
-    return parsed if all(parsed) else ("", text)
+    artist, title = parsed if all(parsed) else ("", text)
+    return repair_legacy_pair(artist, title, legacy_charset)
 
-def fetch_icy(url, opener=None, clock=time.monotonic):
+def fetch_icy(url, opener=None, clock=time.monotonic, legacy_charset=None):
     url = stream_url(url)
     if opener is None:
         opener = lambda request, timeout: urlopen(request, timeout=timeout, context=ssl.create_default_context())
@@ -80,7 +116,11 @@ def fetch_icy(url, opener=None, clock=time.monotonic):
             return b"".join(chunks)
         read_exact(interval)
         size = read_exact(1)[0] * 16
-        return parse_icy(read_exact(size)) if size else ("", "")
+        declared = response.headers.get('icy-charset')
+        if not declared:
+            match = re.search(r'charset\s*=\s*[\"\']?([\w-]+)', response.headers.get('content-type', ''), re.I)
+            declared = match.group(1) if match else None
+        return parse_icy(read_exact(size), legacy_charset, declared) if size else ("", "")
 
 class IcyMonitor:
     """One worker, at most one bounded read every 15 seconds, station-owned data."""
@@ -88,6 +128,7 @@ class IcyMonitor:
         self.fetch, self.clock = fetch, clock
         self.lock = threading.Lock()
         self.url, self.result = '', ('', '')
+        self.legacy_charset = None
         self.generation, self.next_check = 0, 0.0
         self.busy = self.closed = False
 
@@ -95,27 +136,30 @@ class IcyMonitor:
         with self.lock:
             self.generation += 1
             self.url, self.result, self.next_check = '', ('', ''), 0.0
+            self.legacy_charset = None
 
     def close(self):
         with self.lock:
             self.closed = True
             self.generation += 1
             self.url, self.result = '', ('', '')
+            self.legacy_charset = None
 
-    def song(self, url):
+    def song(self, url, legacy_charset=None):
         with self.lock:
             if self.closed:
                 return '', ''
-            if url != self.url:
+            if (url, legacy_charset) != (self.url, self.legacy_charset):
                 self.generation += 1
                 self.url, self.result, self.next_check = url, ('', ''), 0.0
+                self.legacy_charset = legacy_charset
             if not self.busy and self.clock() >= self.next_check:
                 self.busy = True
                 self.next_check = self.clock() + 15.0
                 generation = self.generation
                 def work():
                     try:
-                        result = self.fetch(url)
+                        result = self.fetch(url, legacy_charset=legacy_charset) if legacy_charset else self.fetch(url)
                     except Exception:
                         result = ('', '')
                     with self.lock:

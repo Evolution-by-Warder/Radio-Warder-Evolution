@@ -1,3 +1,12 @@
+# 0.1.0-test22
+
+Repairs reversible Central European metadata damage for Slovak/Czech stations,
+with UTF-8 first and explicit legacy charset headers respected. Removes numeric
+file-track prefixes and replaces underscores with spaces for artwork queries
+only. Recognizes the complete Rust2Dust band spelling and vs./vs punctuation.
+Preserves remix/version words, shared lyrics identity and artwork match checks.
+Artist artwork stays explicitly labelled when an exact song cover is unavailable.
+
 # 0.1.0-test21
 
 Accepts explicit Original Mix/Original Version tags when the catalogue omits
