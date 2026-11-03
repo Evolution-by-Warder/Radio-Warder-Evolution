@@ -3,6 +3,10 @@ from xml.sax.saxutils import escape
 from . import ROOT
 from .i18n import rtl
 
+# The same subtle translucent navy fill used by PiconHub panels. Enigma2
+# encodes transparency in the leading byte (00 opaque, ff transparent).
+PANEL_BACKGROUND = "#18091b30"
+
 
 def geometry(width, height):
     scale = min(width / 1920.0, height / 1080.0)
@@ -26,7 +30,7 @@ def make_skin(width, height):
              '<ePixmap zPosition="0" position="0,0" size="%d,%d" pixmap="%s/artwork/background.png" scale="1" />'
              % (canvas_w, canvas_h, escape(ROOT, {'"': '&quot;'}))]
     for x, y, w, h in [(32, 204, 440, 790), (500, 204, 680, 790), (1200, 204, 688, 790)]:
-        parts.append('<eLabel zPosition="1" %s backgroundColor="#00081829" />' % rect(x, y, w, h))
+        parts.append('<eLabel zPosition="1" %s backgroundColor="%s" />' % (rect(x, y, w, h), PANEL_BACKGROUND))
         # Native opaque edge widgets preserve the thin cyan panel outline on
         # both the TV compositor and Webif, at every supported resolution.
         px, py, pw, ph, edge = n(x), n(y), n(w), n(h), n(2)

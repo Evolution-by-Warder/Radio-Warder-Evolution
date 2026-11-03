@@ -1,3 +1,10 @@
+# 0.1.0-test19
+
+Uses PiconHub's subtly translucent navy panel fill for all three main panels and
+the update progress window. Popup text backgrounds are transparent, avoiding
+opaque rectangles over the shared fill. Text, artwork, borders and selected
+country/menu/station rows remain fully visible. No layout or behaviour changes.
+
 # 0.1.0-test18
 
 Opens a modal progress window immediately after update approval, before starting

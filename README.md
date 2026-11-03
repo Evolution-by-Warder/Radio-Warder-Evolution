@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test18**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test19**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test18_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test19_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -187,3 +187,8 @@ visible activity indicator, without inventing an installation percentage. A
 verified success changes the same window to the three-second restart notice;
 a failure shows its reason and allows OK/EXIT to return without restarting.
 The new progress UI applies to updates initiated by test18 and later.
+
+The three main panels and the update window share PiconHub's subtly translucent
+navy fill. Text labels have transparent backgrounds so they do not create opaque
+patches over that fill. Text, artwork, cyan borders and selected-row highlights
+retain their normal contrast. Layout, controls and update behaviour are retained.

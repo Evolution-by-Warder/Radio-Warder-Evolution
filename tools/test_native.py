@@ -232,7 +232,7 @@ from WarderRadio import screen as radio
 from WarderRadio import plugin
 from WarderRadio.model import Store
 from WarderRadio.metadata import IcyMonitor
-from WarderRadio.skin import make_skin
+from WarderRadio.skin import make_skin, PANEL_BACKGROUND
 
 
 def mount(screen):
@@ -387,9 +387,9 @@ class NativeTests(unittest.TestCase):
                 bw, bh = map(int, background.attributes['size'].split(','))
                 if x < bx + bw and x + w > bx and y < by + bh and y + h > by:
                     self.assertGreater(order(widget), order(background), node.attrib['name'])
-        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == '#00081829']
+        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == PANEL_BACKGROUND]
         self.assertEqual(len(panels), 3)
-        self.assertTrue(all(node.attrib['backgroundColor'].startswith('#00') for node in panels))
+        self.assertTrue(all(int(node.attrib['backgroundColor'][1:3], 16) == 0x18 for node in panels))
 
     def test_original_test1_reproduces_occlusion_and_corrected_skin_does_not(self):
         text = (ROOT / 'tools/fixtures/skin-test1.py.txt').read_text()
@@ -478,6 +478,11 @@ class NativeTests(unittest.TestCase):
                 self.addCleanup(window.cleanup)
                 root = mount(window)
                 w, h = map(int, root.attrib['size'].split(','))
+                self.assertEqual(root.attrib['backgroundColor'], PANEL_BACKGROUND)
+                for label in root.findall('widget'):
+                    if label.attrib.get('name') != 'bar':
+                        self.assertEqual(label.attrib['transparent'], '1')
+                        self.assertEqual(label.attrib['backgroundColor'], '#ff000000')
                 for node in root:
                     x, y = map(int, node.attrib['position'].split(','))
                     rw, rh = map(int, node.attrib['size'].split(','))
@@ -734,7 +739,7 @@ class NativeTests(unittest.TestCase):
         def box(name):
             item = nodes[name].attrib
             return tuple(map(int, item['position'].split(',') + item['size'].split(',')))
-        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == '#00081829']
+        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == PANEL_BACKGROUND]
         self.assertEqual(len(panels), 3)
         self.assertTrue(all(node.attrib['size'].endswith(',790') for node in panels))
         self.assertEqual(box('stations')[3], 7 * screen['stations'].l.height)

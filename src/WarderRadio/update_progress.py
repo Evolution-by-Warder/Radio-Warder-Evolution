@@ -5,7 +5,7 @@ from Components.Label import Label
 from Components.ProgressBar import ProgressBar
 from Screens.Screen import Screen
 from .i18n import t
-from .skin import geometry
+from .skin import geometry, PANEL_BACKGROUND
 
 
 class UpdateProgress(Screen):
@@ -17,12 +17,12 @@ class UpdateProgress(Screen):
             return 'position="%d,%d" size="%d,%d"' % (n(x), n(y), n(w), n(h))
         def label(name, x, y, w, h, font, color='#d9e6ef', wrap=False):
             return ('<widget name="%s" zPosition="2" %s font="Regular;%d" '
-                    'foregroundColor="%s" backgroundColor="#00081829" '
+                    'foregroundColor="%s" backgroundColor="#ff000000" transparent="1" '
                     'halign="center" valign="center" noWrap="%d" />'
                     % (name, rect(x, y, w, h), n(font), color, 0 if wrap else 1))
         self.skin = ('<screen name="WarderRadioUpdateProgress" position="center,center" '
                      'size="%d,%d" title="Radio Warder Evolution" flags="wfNoBorder" '
-                     'backgroundColor="#00081829">' % (n(1000), n(560)))
+                     'backgroundColor="%s">' % (n(1000), n(560), PANEL_BACKGROUND))
         window_w, window_h, edge = n(1000), n(560), n(2)
         for x, y, w, h in [(0, 0, window_w, edge), (0, window_h-edge, window_w, edge),
                            (0, 0, edge, window_h), (window_w-edge, 0, edge, window_h)]:
