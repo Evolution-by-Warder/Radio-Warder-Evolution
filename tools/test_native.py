@@ -513,6 +513,38 @@ class NativeTests(unittest.TestCase):
             next_x = int(following.attrib['position'].split(',')[0])
             self.assertLess(x + width, next_x)
 
+    def test_left_menu_arrows_stay_inside_functions_and_wrap_without_country_dialog(self):
+        screen, session, _ = self.new()
+        screen.play()
+        playing = session.nav.current
+        screen['stations'].moveToIndex(18)
+        station = screen.current()
+        screen.left()
+        screen['functions'].moveToIndex(0)
+        dialogs = len(session.dialogs)
+        count = len(screen['functions'].list)
+        for _ in range(3):
+            screen.up()
+            self.assertEqual(screen['functions'].getSelectionIndex(), count - 1)
+            screen.down()
+            self.assertEqual(screen['functions'].getSelectionIndex(), 0)
+            for index in range(1, count):
+                screen.down()
+                self.assertEqual(screen['functions'].getSelectionIndex(), index)
+            screen.down()
+            self.assertEqual(screen['functions'].getSelectionIndex(), 0)
+            self.assertEqual(screen.focus, 'functions')
+            self.assertEqual(len(session.dialogs), dialogs)
+            self.assertEqual(screen.current(), station)
+            self.assertIs(session.nav.current, playing)
+        screen.right()
+        self.assertEqual(screen.focus, 'stations')
+        self.assertEqual(screen.current(), station)
+        screen['stations'].moveToIndex(0)
+        screen.up()
+        self.assertEqual(len(session.dialogs), dialogs + 1)
+        self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
+
     def test_right_opens_country_immediately_from_any_station_and_cancel_preserves_position(self):
         screen, session, _ = self.new()
         screen.play()

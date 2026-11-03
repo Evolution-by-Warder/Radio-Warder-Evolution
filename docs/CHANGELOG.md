@@ -1,3 +1,12 @@
+# 0.1.0-test15
+
+Restricts the UP country shortcut to the centre station list. In the left
+function menu, UP/DOWN now stay within that menu and wrap normally between
+first and last entries. RIGHT from the left still returns to stations; RIGHT
+from any station and UP from the first station still open country choices.
+Selection and playback are preserved. User confirmed test14's menu name and
+playing-song information now display correctly on the receiver.
+
 # 0.1.0-test14
 
 Adds primary ICY StreamTitle reading using the bounded FullHDGlass reader.

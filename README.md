@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test14**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test15**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ lyrics, a sleep timer or recording schedules.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test14_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test15_all.ipk
 ```
 
 Restart the GUI manually, then open **Warder Radio** from Plugins or Extensions.
@@ -73,7 +73,8 @@ catalogue URL for the remembered identity where available, with the saved entry
 as fallback. It makes one attempt and leaves the interface usable on failure. LEFT
 opens the function panel; RIGHT from that panel returns to stations. Up/down
 move within a panel. From any station, RIGHT opens the country list immediately,
-without an extra OK. UP from the first row opens the same list. Cancel returns
+without an extra OK. UP from the first station row opens the same list. In the left menu, UP/DOWN
+move only between function entries, wrapping from first to last and back. Cancel returns
 to the exact same station and scroll position. The native country button also supports its click action.
 The centre header reads Select country – Slovakia ▾ (translated for the receiver
 language and current country). Select country and the separator are white; the country and down arrow are

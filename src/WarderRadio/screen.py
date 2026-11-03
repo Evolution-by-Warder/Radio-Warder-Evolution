@@ -196,7 +196,7 @@ class WarderRadio(Screen):
     def up(self):
         if self.focus == 'country':
             return
-        if self[self.focus].getSelectionIndex() == 0 or not self[self.focus].list:
+        if self.focus == 'stations' and (self['stations'].getSelectionIndex() == 0 or not self['stations'].list):
             self.choose_group()
         else:
             self[self.focus].up()
