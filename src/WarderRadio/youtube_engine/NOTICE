@@ -1,0 +1,12 @@
+Resolver and JavaScript interpreter: Taapat/enigma2-plugin-youtube
+https://github.com/Taapat/enigma2-plugin-youtube
+Revision: 15a7fba89b63476177ac083b032ee499262f64fb
+Source files: src/YouTubeVideoUrl.py and src/jsinterp.py
+License: GNU GPL version 2; full text in COPYING.GPLv2.
+The upstream extraction code acknowledges youtube-dl: https://github.com/ytdl-org/youtube-dl
+
+Local changes: extractor imports isolated plugin settings instead of image-wide
+YouTube config. A small Python 3 compatibility module replaces the old Python 2
+shim. Radio's wrapper supplies verified TLS, bounded downloads and a common
+deadline. No global SSL/configuration mutations or external plugin installation.
+The interpreter is otherwise retained from the pinned upstream source.

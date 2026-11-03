@@ -1,0 +1,45 @@
+name: YouTube stream check
+on:
+  push:
+    branches: [radio-youtube-engine-check-20261103]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check current-song search and bounded stream resolution
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 - <<'PY'
+          import json, ssl
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from WarderRadio.youtube import Transport, search_results, allowed_url
+          from WarderRadio.youtube_engine.extractor import YouTubeVideoUrl
+          transport=Transport()
+          report={'query':'Jason Derulo Want To Want Me Westfunk Remix','stage':'search'}
+          try:
+              page=transport.page('https://www.youtube.com/results?'+urlencode({'search_query':report['query'],'hl':'en'}))
+              results=search_results(page)
+              report['matches']=results
+              if not results: raise LookupError('No public search results; possible consent/network restriction')
+              report['stage']='resolve'
+              resolver=YouTubeVideoUrl(); resolver._download_webpage=transport.page
+              url=allowed_url(resolver.extract(results[0]['id']),media=True)
+              report['stage']='media'
+              with urlopen(Request(url,headers={'Range':'bytes=0-1023'}),timeout=8,context=ssl.create_default_context()) as response:
+                  allowed_url(response.url,media=True)
+                  data=response.read(1024)
+                  report.update(status=response.status,bytes=len(data),content_type=response.headers.get('Content-Type'))
+                  assert data,'Empty media response'
+              report['stage']='complete'
+          except Exception as exc:
+              report['error']=type(exc).__name__+': '+str(exc)[:300]
+          print('VIDEO_PROBE '+json.dumps(report,ensure_ascii=False))
+          PY
