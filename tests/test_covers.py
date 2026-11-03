@@ -3,7 +3,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from WarderRadio.covers import lookup_cover
+from urllib.parse import parse_qs, urlsplit
+from WarderRadio.covers import lookup_cover, cover_rank
+from WarderRadio import song_identity as identity
 from WarderRadio.cover_display import CoverDisplay
 
 JPEG = b'\xff\xd8' + b'J' * 2048
@@ -57,6 +59,55 @@ class LookupTests(unittest.TestCase):
         def oversized(*args, **kwargs): return io.BytesIO(b'X' * (1024*1024+1))
         self.assertEqual(lookup_cover('Singer', 'Song', self.temp.name, oversized), ('', ''))
         self.assertEqual(list(Path(self.temp.name).glob('*.jpg')), [])
+
+    def test_receiver_chill77_example_uses_first_global_query_and_downloads_cover(self):
+        self.songs = json.loads(Path(__file__).with_name('fixtures').joinpath('itunes-chill77-papaoutai.json').read_text())
+        self.artists = []
+        events = []
+        self.assertFalse(identity.same_recording(self.songs[0], 'CHILL77', 'PAPAOUTAI'))
+        path, source = lookup_cover('CHILL77', 'PAPAOUTAI', self.temp.name, self.opener, trace=events.append)
+        self.assertEqual(Path(path).read_bytes(), JPEG)
+        self.assertEqual(source, 'iTunes')
+        self.assertEqual(len(self.calls), 2)  # One search, one image; no regional retries.
+        self.assertEqual(parse_qs(urlsplit(self.calls[0]).query),
+                         {'term':['CHILL77 PAPAOUTAI'], 'limit':['20'], 'media':['music']})
+        self.assertIn('/49ba6d9f-e807-f36b-decc-1e027dfe000d/', self.calls[1])
+        self.assertTrue(self.calls[1].endswith('/600x600bb.jpg'))
+        self.assertEqual(events[-1]['event'], 'selected')
+        self.assertEqual(events[-1]['rank'], 1)
+        self.assertEqual(events[-1]['artist'], 'mikeeysmind, Chill77 & Unjaps')
+        self.assertEqual(cover_rank(self.songs[1], 'CHILL77', 'PAPAOUTAI'), 0)
+
+    def test_short_icy_credits_require_whole_names_and_do_not_accept_other_versions(self):
+        row = {'artistName':'mikeeysmind, Chill77 & Unjaps', 'trackName':'Papaoutai (Afro Soul)'}
+        self.assertEqual(cover_rank(row,'CHILL77','PAPAOUTAI'),1)
+        for artist in ('Chill7', 'Chill', 'Stromae', 'Chill77 & Missing artist'):
+            self.assertEqual(cover_rank(row,artist,'PAPAOUTAI'),0)
+        for title in ('Papaoutai (Live)', 'Papaoutai (Ku3H 3Step Remix) [Mixed]',
+                      'Papaoutai (Club Mix)', 'Papaoutai (Acoustic)', 'Papaoutai (Instrumental)',
+                      'Other Song (Afro Soul)'):
+            self.assertEqual(cover_rank(dict(row,trackName=title),'CHILL77','PAPAOUTAI'),0)
+        self.assertEqual(cover_rank(row,'CHILL77','PAPAOUTAI (Live)'),0)
+        self.assertEqual(cover_rank(dict(row,trackName='Papaoutai',kind='music-video'),'CHILL77','PAPAOUTAI'),0)
+        self.assertEqual(cover_rank(None,'CHILL77','PAPAOUTAI'),0)
+
+    def test_exact_recording_ranks_ahead_of_compatible_descriptive_subtitle(self):
+        self.songs = [{'artistName':'Singer & Guest','trackName':'Song (Description)',
+                       'artworkUrl100':'https://a1.mzstatic.com/compatible/100x100bb.jpg'},
+                      {'artistName':'Singer','trackName':'Song',
+                       'artworkUrl100':'https://a1.mzstatic.com/exact/100x100bb.jpg'}]
+        self.artists = []
+        lookup_cover('Singer', 'Song', self.temp.name, self.opener)
+        self.assertTrue(self.calls[-1].endswith('/exact/600x600bb.jpg'))
+
+    def test_optional_trace_failure_does_not_change_lookup(self):
+        self.songs = [{'artistName':'Singer','trackName':'Song',
+                       'artworkUrl100':'https://a1.mzstatic.com/exact/100x100bb.jpg'}]
+        self.artists = []
+        def broken_trace(event): raise RuntimeError('diagnostic unavailable')
+        path, source = lookup_cover('Singer','Song',self.temp.name,self.opener,trace=broken_trace)
+        self.assertTrue(path)
+        self.assertEqual(source,'iTunes')
 
 
 class Signal:

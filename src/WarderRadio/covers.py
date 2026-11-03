@@ -2,9 +2,10 @@
 import hashlib
 import json
 import os
+import re
 import ssl
 import time
-from urllib.parse import quote, urlsplit
+from urllib.parse import quote, urlencode, urlsplit
 from urllib.request import Request, urlopen
 from . import song_identity as identity
 from .cache import write_atomic, prune
@@ -12,8 +13,48 @@ from .cache import write_atomic, prune
 CACHE = '/tmp/warder-radio-covers'
 USER_AGENT = 'Radio-Warder-Evolution (https://github.com/Evolution-by-Warder/Radio-Warder-Evolution)'
 
+# Artwork may be labelled with more complete credits than a broadcaster's ICY
+# tag. This is deliberately separate from FullHDGlass's exact recording/lyrics
+# identity; never loosen that shared identity for a picture lookup.
+_SUFFIX = re.compile(r'\s*(?:\([^()]*\)|\[[^\[\]]*\])\s*$')
+_DIFFERENT_VERSION = re.compile(
+    r'\b(?:remix|mix|mixed|live|acoustic|instrumental|karaoke|tribute|cover|'
+    r'recorded|concert|sped|slowed|reverb|edit|extended|demo|unplugged)\b', re.I)
 
-def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monotonic):
+
+def cover_rank(item, artist, title):
+    """Rank exact matches first, then complete named-credit/short-ICY matches."""
+    if not isinstance(item, dict) or item.get('kind', 'song') != 'song':
+        return 0
+    if identity.same_recording(item, artist, title):
+        return 2
+    credited = set(identity.roster(item.get('artistName', '')))
+    requested = set(identity.roster(artist))
+    if not requested or not requested.issubset(credited):
+        return 0
+    wanted = identity.title_key(title)
+    found = identity.title_key(item.get('trackName', ''))
+    if not wanted or not found:
+        return 0
+    if wanted == found:
+        return 1
+    # Only a missing trailing descriptive subtitle is tolerated. A queried
+    # explicit version must still match; a remix/live/etc. cannot replace it.
+    track = str(item.get('trackName', '')).strip()
+    suffixes = []
+    while True:
+        match = _SUFFIX.search(track)
+        if not match:
+            break
+        suffixes.append(match.group())
+        track = track[:match.start()].rstrip()
+    if suffixes and not _DIFFERENT_VERSION.search(' '.join(suffixes)):
+        if identity.title_key(track) == wanted:
+            return 1
+    return 0
+
+
+def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monotonic, trace=None):
     artist, title = identity.query_pair(artist, title)
     if not artist:
         return '', ''
@@ -29,11 +70,20 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
     if opener is None:
         opener = lambda request, timeout: urlopen(request, timeout=timeout, context=ssl.create_default_context())
 
+    def report(event, **details):
+        if trace is not None:
+            try:
+                trace(dict(event=event, **details))
+            except Exception:
+                pass  # Optional diagnostics must not change artwork/playback.
+
     def read(url, limit, seconds):
         remaining = deadline - clock()
         if remaining <= 0:
             raise TimeoutError('Artwork lookup deadline exceeded')
         chunks, count = [], 0
+        started = clock()
+        report('request', url=url)
         with opener(Request(url, headers={'User-Agent': USER_AGENT}), timeout=min(seconds, remaining)) as response:
             while True:
                 if clock() > deadline:
@@ -45,6 +95,8 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
                 count += len(chunk)
                 if count > limit:
                     raise ValueError('Artwork response too large')
+            report('response', url=url, final_url=getattr(response, 'url', url),
+                   bytes=count, seconds=round(clock() - started, 3))
         return b''.join(chunks)
 
     def document(url):
@@ -68,24 +120,34 @@ def lookup_cover(artist, title, directory=CACHE, opener=None, clock=time.monoton
         prune(directory, r'[0-9a-f]{64}-(?:album|artist)\.jpg', 64, 16 * 1024 * 1024, keep=(path,))
         return path, provider
 
-    # FullHDGlass's regional catalogue order and complete recording identity.
-    # Never use a first/partial search hit as the cover for an unrelated song.
+    # First query the default iTunes storefront with media=music, limit=20.
+    # Receiver-reported short credits are covered by the replayed fixture.
+    # Regional searches remain fallbacks; US would duplicate the first query.
     if title:
-        plans = [(country, artist + ' ' + title, 10) for country in ('SK', 'CZ', 'US')]
-        plans.append(('SK', identity.site_titles(artist, title)[0], 25))
-        for country, term, limit in plans:
+        plans = [dict(term=artist + ' ' + title, limit=20, media='music')]
+        plans += [dict(entity='song', limit=10, country=country, term=artist + ' ' + title)
+                  for country in ('SK', 'CZ')]
+        plans.append(dict(entity='song', limit=25, country='SK', term=identity.site_titles(artist, title)[0]))
+        for params in plans:
             try:
-                url = ('https://itunes.apple.com/search?entity=song&limit=' + str(limit)
-                       + '&country=' + country + '&term=' + quote(term))
+                url = 'https://itunes.apple.com/search?' + urlencode(params)
                 rows = document(url).get('results', [])
-                for item in rows[:limit] if isinstance(rows, list) else []:
-                    if not isinstance(item, dict) or not identity.same_recording(item, artist, title):
-                        continue
+                ranked = []
+                for item in rows[:params['limit']] if isinstance(rows, list) else []:
+                    rank = cover_rank(item, artist, title)
+                    report('candidate', artist=item.get('artistName') if isinstance(item, dict) else None,
+                           title=item.get('trackName') if isinstance(item, dict) else None, rank=rank)
+                    if rank:
+                        ranked.append((rank, item))
+                for rank, item in sorted(ranked, key=lambda pair: pair[0], reverse=True):
                     url = (item.get('artworkUrl100') or '').replace('100x100bb', '600x600bb')
                     found = save(url, 'album', 'iTunes')
                     if found[0]:
+                        report('selected', artist=item.get('artistName'), title=item.get('trackName'),
+                               rank=rank, image_url=url, provider='iTunes')
                         return found
-            except Exception:
+            except Exception as exc:
+                report('failure', url=url, error=type(exc).__name__)
                 continue
     # TheAudioDB documents the public V1 developer endpoint and artist thumb.
     # Match the entire credited artist, including the existing curated aliases.

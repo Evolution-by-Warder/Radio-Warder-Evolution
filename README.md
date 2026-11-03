@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test19**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test20**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test19_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test20_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -107,7 +107,7 @@ other plugins, global keymaps or stable update feeds.
 ## Compatibility and verification
 
 Runtime is architecture-independent Python 3.9+ and uses native Enigma2
-components. It contains no HDF Radio binaries or bytecode. Tests replay real
+components. Tests replay real
 OpenPLi release-9.2 and OpenATV Python classes with the C++ GUI/OS boundary stubbed.
 See `tools/native-fixtures.json` for exact source commits and file hashes,
 including the previously reviewed OpenATV 8.1 base and 8.0-next.
@@ -155,11 +155,13 @@ and closing discard stale results. Streams without song metadata still show
 No track information. No extra audio playback is started for the metadata probe.
 
 The player panel now places a square current-song cover above the artist/title
-and a compact station name. iTunes regional search uses the same strict full
-recording identity as FullHDGlass; TheAudioDB artist thumbs are a fallback when
+and a compact station name. iTunes search uses the same strict full
+recording identity as FullHDGlass, with artwork-specific handling of abbreviated
+ICY credits and descriptive song subtitles. An initial global iTunes music
+query avoids regional retries for a usable first result. TheAudioDB artist thumbs are a fallback when
 the entire artist credit matches. Provider attribution appears beneath images.
-Unavailable/unknown artwork shows the neutral Warder graphic, never another
-song's cover. Lookups run in a separate bounded worker and cached JPEGs stay in
+Unavailable/unknown artwork shows the neutral Warder graphic. Candidate checks
+reject unrelated artists and conflicting versions. Lookups run in a separate bounded worker and cached JPEGs stay in
 a bounded RAM cache. Country navigation and the four colour actions are retained.
 
 The separate Playing status row is removed. All three panels extend downward;

@@ -29,8 +29,8 @@ jobs:
 
           artist, title = 'CHILL77', 'PAPAOUTAI'
           plans = [
-              ('HDF-2.28.1-parameters-HTTP', 'http', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
-              ('HDF-2.28.1-parameters-HTTPS', 'https', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
+              ('Global-music-HTTP', 'http', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
+              ('Global-music-HTTPS', 'https', {'term': artist+' '+title, 'limit': 20, 'media': 'music'}),
               ('Warder-test19-SK', 'https', {'entity':'song','limit':10,'country':'SK','term':artist+' '+title}),
               ('Warder-test19-CZ', 'https', {'entity':'song','limit':10,'country':'CZ','term':artist+' '+title}),
               ('Warder-test19-US', 'https', {'entity':'song','limit':10,'country':'US','term':artist+' '+title}),

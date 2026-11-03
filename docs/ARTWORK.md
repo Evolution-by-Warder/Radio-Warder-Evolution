@@ -1,4 +1,4 @@
-# Current-song artwork (test17)
+# Current-song artwork (test20)
 
 The upper player block is a square cover, followed by a compact station name,
 artist, title and country. At Full HD the cover is 520x520; native layout scales
@@ -6,10 +6,15 @@ it for HD/WQHD/UHD and ePicLoad preserves image aspect. The spectrum is below
 the raised function menu in the left panel. All panels extend to y=994, with
 seven whole station rows and no separate full-width Playing label.
 
-Song lookup reuses FullHDGlass warderSongIdentity: complete recording/artist
-credits, known curated aliases, regional SK/CZ/US iTunes searches, then a bounded
-title search. It does not accept arbitrary first or partial search hits. When
-no song cover is found, an entire-artist-credit TheAudioDB match may supply an
+Song lookup first queries the default iTunes catalogue with `media=music` and
+`limit=20`, over HTTPS. SK/CZ queries and a bounded title search remain fallbacks;
+a separate US query would duplicate the default catalogue. Exact recording
+matches rank first. For artwork only, complete credited artist names may also
+match an abbreviated ICY credit, and a missing descriptive parenthesized title
+suffix may be tolerated. Live, remix, acoustic, instrumental and other different
+versions are rejected when absent from the requested title. The shared exact
+FullHDGlass identity and metadata displayed to the listener are unchanged.
+When no song cover is found, an entire-artist-credit TheAudioDB match may supply an
 artist thumb. Unknown metadata, announcements or missing artwork show the
 approved neutral Warder graphic. Provider credit appears beneath loaded images.
 
@@ -38,3 +43,22 @@ decoder errors and late callbacks; actual broadcaster/provider availability and
 receiver image/GLES composition require user testing. Artwork is downloaded on
 demand and is not distributed in the IPK. No new translation keys are needed;
 provider credits are proper names and all 21 language catalogues are retained.
+
+## Verified short-credit case
+
+The receiver reported CHILL77 / PAPAOUTAI. The public iTunes API returned
+mikeeysmind, Chill77 & Unjaps / Papaoutai (Afro Soul) as the first result, with an
+Apple image URL. Test19 rejected that result even though both its regional query
+and the global query returned it. The fixed artwork ranking accepts that result
+while rejecting the accompanying remix and unrelated performer. A successful
+first result requires one catalogue request plus one image download. The measured
+query durations are from a hosted runner, not a receiver performance guarantee.
+
+The separate public-query comparison is read-only and does not execute or trace
+a receiver plugin. Its report records requested/final URLs, timing, catalogue
+results and test19 acceptance decisions:
+See the Artwork lookup comparison workflow in the Radio Warder Evolution repository.
+
+Optional `lookup_cover(..., trace=callback)` diagnostics report requests,
+responses, candidate rankings and the selected image URL. Callback errors are
+isolated, and normal playback supplies no trace callback.

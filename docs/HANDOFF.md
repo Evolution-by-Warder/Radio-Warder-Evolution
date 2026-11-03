@@ -1,3 +1,31 @@
+# Radio Warder Evolution — test20 short-credit artwork lookup
+
+Fix the receiver-reported CHILL77 / PAPAOUTAI miss. A live public iTunes query
+returns mikeeysmind, Chill77 & Unjaps / Papaoutai (Afro Soul), while test19's
+complete recording identity rejects it. Artwork-specific ranking now accepts
+whole credited names within abbreviated ICY tags and omitted descriptive title
+subtitles, retaining exact matches first and rejecting conflicting remix/live/
+acoustic/instrumental results. Shared song/lyrics identity is unchanged.
+
+The first request uses the default iTunes music catalogue, limit 20, HTTPS;
+regional and title searches remain fallbacks. An accepted first result requires
+one search plus one image request. Optional trace callbacks expose requested/
+final URLs, timings, candidate rank and the selected image without normal-playback
+logging. Actual receiver latency and visual confirmation remain pending.
+
+Local verification: 50 unit cases and 22 native replay cases on each of three
+pinned OpenPLi/OpenATV revisions (116 executions), plus IPK/Python 3.9 grammar,
+owned paths and offline install-script checks. The publication workflow now also
+requires a real CHILL77 cover download in two requests before publishing.
+Publication results will be appended after final public-byte/feed verification.
+
+FullHDGlass Radio Mode follow-up is queued in both NEXT-RELEASE.md and
+PROJECT-CONTINUITY.md, commit 3d13f41e2d497dccbca78949e73d22783ed2cca9.
+This note changes no skin runtime or feed. The public laut.fm API may be useful
+as a supplementary station catalogue; it is not integrated by this release.
+
+---
+
 # Radio Warder Evolution — test19 translucent surfaces
 
 User requested partially transparent window/panel backgrounds in the same style
@@ -12,9 +40,8 @@ unchanged; main-panel translucency reveals that existing background, while the
 popup blends with its underlying window. Default image-owned native dialogs
 and other plugins were not modified.
 
-The user asked whether song/cover search uses our engine or HDF Radio's.
-Clarified: lookup/matching is our independent Python implementation with shared
-FullHDGlass recording identity/curated aliases, not HDF modules. Current title
+Lookup/matching uses our independent Python implementation with shared
+FullHDGlass recording identity/curated aliases. Current title
 is primarily ICY with native Enigma2 fallback. External artwork catalogues are
 iTunes (song cover) and TheAudioDB (artist thumb); the catalogues themselves are
 external, not an invented owned music database.

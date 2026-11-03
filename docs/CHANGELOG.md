@@ -1,3 +1,14 @@
+# 0.1.0-test20
+
+Finds artwork when a broadcaster abbreviates a collaboration credit or omits a
+descriptive song subtitle. Fixes the receiver-reported CHILL77 / PAPAOUTAI case.
+Queries the default iTunes music catalogue first, with regional lookups retained
+as fallbacks, so a usable first result avoids repeated regional searches.
+Exact recording matches retain priority; unrelated artists and conflicting live,
+remix, acoustic and instrumental versions are rejected. Lookup tracing is
+available for diagnostics. Existing layout, metadata, languages and updates stay
+unchanged.
+
 # 0.1.0-test19
 
 Uses PiconHub's subtly translucent navy panel fill for all three main panels and
@@ -205,7 +216,7 @@ Includes the complete current Warder/PiconHub bouquet (5,444 unique references i
 search, custom stations, explicit catalogue refresh, recordings browser and
 optional streamripper recording. English subtitle: **World of Radio Stations**.
 
-No HDF Radio executable/bytecode is included. No existing stable plugin, skin,
+No existing stable plugin, skin,
 feed or global action mapping is changed. Runtime is pure Python 3.9+.
 
 Validation: 15 unit tests plus 6 native replay cases on each of three pinned

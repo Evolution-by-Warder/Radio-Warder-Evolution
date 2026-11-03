@@ -50,6 +50,31 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 tools/verify_ipk.py
+      - name: Verify current-song artwork against live provider
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, tempfile
+          from pathlib import Path
+          from WarderRadio.covers import lookup_cover
+          events = []
+          with tempfile.TemporaryDirectory() as cache:
+              path, provider = lookup_cover('CHILL77', 'PAPAOUTAI', directory=cache, trace=events.append)
+              assert path and provider == 'iTunes', events
+              data = Path(path).read_bytes()
+              assert data.startswith(b'\xff\xd8') and len(data) > 1024
+              selected = [event for event in events if event['event'] == 'selected']
+              assert selected and selected[-1]['rank'] >= 1, events
+              requests = [event for event in events if event['event'] == 'request']
+              assert len(requests) == 2, events
+              report = dict(provider=provider, selected=selected[-1], events=events,
+                            bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
+              Path('dist/artwork-live-proof.json').write_text(json.dumps(report, ensure_ascii=False, indent=2))
+              Path('dist/artwork-live-cover.jpg').write_bytes(data)
+              print(json.dumps(report, ensure_ascii=False))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: warder-radio-${{ env.RADIO_VERSION }}
