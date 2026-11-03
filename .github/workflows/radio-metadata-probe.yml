@@ -1,0 +1,44 @@
+name: Radio metadata encoding check
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/radio-metadata-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read only the first bounded ICY metadata block
+        run: |
+          python3 - <<'PY'
+          import json, time
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          entries=json.loads(Path('src/WarderRadio/seed.json').read_text())
+          station=next(x for x in entries if x['name']=='Rádio Folk' and x['group']=='Slovensko')
+          print('Station:',station['name'],flush=True)
+          with urlopen(Request(station['url'], headers={'Icy-MetaData':'1','User-Agent':'Radio-Warder-Evolution metadata check','Connection':'close'}),timeout=5) as response:
+              print('Headers:',json.dumps({k:v for k,v in response.headers.items() if k.lower() in ('content-type','icy-metaint','icy-charset','icy-name')},ensure_ascii=False),flush=True)
+              interval=int(response.headers.get('icy-metaint','0'))
+              assert 0<interval<=262144,interval
+              deadline=time.monotonic()+8
+              def read_exact(size):
+                  data=b''
+                  while len(data)<size:
+                      assert time.monotonic()<deadline,'Metadata deadline'
+                      chunk=response.read(min(4096,size-len(data)))
+                      if not chunk: raise EOFError('Stream ended')
+                      data+=chunk
+                  return data
+              read_exact(interval)
+              size=read_exact(1)[0]*16
+              data=read_exact(size).rstrip(b'\0')
+              print('Metadata hex:',data.hex(),flush=True)
+              for charset in ('utf-8','cp1250','cp1252','iso8859_2'):
+                  try: print(charset+':',data.decode(charset),flush=True)
+                  except UnicodeError as exc: print(charset+':',str(exc),flush=True)
+          PY
