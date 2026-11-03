@@ -480,6 +480,29 @@ class NativeTests(unittest.TestCase):
             next_x = int(following.attrib['position'].split(',')[0])
             self.assertLess(x + width, next_x)
 
+    def test_right_reaches_country_from_any_station_and_returns_without_scrolling(self):
+        screen, session, _ = self.new()
+        screen.play()
+        playing = session.nav.current
+        for index in (0, 18, len(screen.rows) - 1):
+            screen.set_focus('stations')
+            screen['stations'].moveToIndex(index)
+            selected = screen.current()
+            screen.right()
+            self.assertEqual(screen.focus, 'country')
+            self.assertEqual(screen['stations'].getSelectionIndex(), index)
+            screen.right()
+            self.assertEqual(screen.focus, 'stations')
+            self.assertEqual(screen.current(), selected)
+            screen.right(); screen.down()
+            self.assertEqual(screen.focus, 'stations')
+            self.assertEqual(screen.current(), selected)
+            screen.right(); screen.ok(); screen.country_done(None); screen.down()
+            self.assertEqual(screen.current(), selected)
+            self.assertIs(session.nav.current, playing)
+        screen.left(); screen.right()
+        self.assertEqual(screen.focus, 'stations')
+
     def test_timer_signal_connection_api_also_disconnects(self):
         class SignalTimer:
             def __init__(self): self.timeout = Signal(); self.active = False

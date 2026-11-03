@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Nahrávanie využíva voliteľný streamripper.
 
 Current receiver-test candidate:
-**0.1.0-test7**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test8**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -62,7 +62,7 @@ lyrics, a sleep timer or recording schedules.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-warderradio_0.1.0-test7_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-warderradio_0.1.0-test8_all.ipk
 ```
 
 Restart the GUI manually, then open **Warder Radio** from Plugins or Extensions.
@@ -71,9 +71,10 @@ the last played radio station resumes automatically and is selected in its list.
 On first use, choose a station and press OK or green. Resume uses the newest
 catalogue URL for the remembered identity where available, with the saved entry
 as fallback. It makes one attempt and leaves the interface usable on failure. Left/right switch between the function and station panels;
-up/down move within a panel. From the first station, UP focuses the country
-selector above the station list; OK opens the selection directly. DOWN returns
-to the station list. The native country button also supports its click action.
+up/down move within a panel. From any station, RIGHT focuses the country
+selector immediately; OK opens the selection. DOWN or RIGHT returns to the
+exact same station and scroll position. UP from the first station also reaches
+the country selector. The native country button also supports its click action.
 The centre header reads Select country – Slovakia ▾ (translated for the receiver
 language and current country). Select country and the separator are white; the country and down arrow are
 cyan blue, using the native Enigma2 inline text colours. The permanent down

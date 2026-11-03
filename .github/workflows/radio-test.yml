@@ -64,14 +64,6 @@ jobs:
               --title "Warder Radio $RADIO_VERSION" --notes-file docs/CHANGELOG.md
           fi
           gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json --clobber
-      - name: Set repository About metadata
-        if: github.run_number == 1
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          gh repo edit "$GH_REPO" --description "Warder Radio - native Enigma2 internet radio for OpenATV and OpenPLi, with picons, favourites, history, optional recording, 21 languages, last-station resume and verified automatic updates." --homepage "https://github.com/$GH_REPO/releases" --add-topic 'enigma2,radio,openatv,openpli,python,picons,internet-radio'
       - name: Verify public download and advance testing feed
         env:
           GH_TOKEN: ${{ github.token }}

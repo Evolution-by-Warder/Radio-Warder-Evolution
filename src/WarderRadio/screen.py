@@ -178,12 +178,16 @@ class WarderRadio(Screen):
         self['functions'].selectionEnabled(focus == 'functions')
         self['stations'].selectionEnabled(focus == 'stations')
         self.update_country_caption()
+        hint = ('LEFT: menu · RIGHT: country · MENU: options'
+                if focus in ('stations', 'country')
+                else 'Use left/right to switch panels · MENU: options')
+        self['hint'].setText(t(hint))
 
     def left(self):
         self.set_focus('functions')
 
     def right(self):
-        self.set_focus('stations')
+        self.set_focus('country' if self.focus == 'stations' else 'stations')
 
     def up(self):
         if self.focus == 'country':

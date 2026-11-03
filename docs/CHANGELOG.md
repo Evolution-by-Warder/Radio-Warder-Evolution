@@ -1,3 +1,13 @@
+# 0.1.0-test8
+
+RIGHT now moves directly from any station row to the Select country control.
+OK opens the selector; DOWN or RIGHT returns to the exact previous station
+without scrolling or interrupting playback. RIGHT from the left function menu
+still enters the station list. UP from the first station remains available.
+The contextual remote-control hint is updated in all 21 languages. Native
+regression coverage checks first, middle and last rows, cancel and playback
+continuity.
+
 # 0.1.0-test7
 
 First release from the dedicated Evolution-by-Warder/Radio-Warder-Evolution
