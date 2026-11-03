@@ -73,5 +73,10 @@
   "YouTube video": "YouTube vaizdo įrašas",
   "Finding YouTube video…": "Ieškoma YouTube vaizdo įrašo…",
   "YouTube video unavailable": "YouTube vaizdo įrašas nepasiekiamas",
-  "Current song information is unavailable": "Dabartinės dainos informacija nepasiekiama"
+  "Current song information is unavailable": "Dabartinės dainos informacija nepasiekiama",
+  "Delete": "Ištrinti",
+  "Delete recording {name}?": "Ištrinti įrašą {name}?",
+  "Recording deleted": "Įrašas ištrintas",
+  "Cannot delete recording": "Nepavyko ištrinti įrašo",
+  "Stop recording before deleting recordings": "Prieš trindami įrašus sustabdykite įrašymą"
 }

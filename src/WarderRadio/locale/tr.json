@@ -73,5 +73,10 @@
   "YouTube video": "YouTube videosu",
   "Finding YouTube video…": "YouTube videosu aranıyor…",
   "YouTube video unavailable": "YouTube videosu kullanılamıyor",
-  "Current song information is unavailable": "Geçerli şarkı bilgisi kullanılamıyor"
+  "Current song information is unavailable": "Geçerli şarkı bilgisi kullanılamıyor",
+  "Delete": "Sil",
+  "Delete recording {name}?": "{name} kaydı silinsin mi?",
+  "Recording deleted": "Kayıt silindi",
+  "Cannot delete recording": "Kayıt silinemedi",
+  "Stop recording before deleting recordings": "Kayıtları silmeden önce kaydı durdurun"
 }

@@ -154,7 +154,7 @@ class WarderRadio(Screen):
         self['actions'] = ActionMap(['WarderRadioActions'], {
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
-            'green': self.play, 'yellow': self.search, 'blue': self.youtube_video,
+            'green': self.play, 'yellow': self.search, 'blue': self.blue_pressed,
             'menu': self.options, 'pageDown': self.page_down, 'pageUp': self.page_up,
             'instantRecord': self.toggle_recording, 'stop': self.stop, 'update': self.manual_update,
         }, -2)
@@ -291,7 +291,46 @@ class WarderRadio(Screen):
         self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
         if not self.rows:
             self['count'].setText(t('No recordings' if self.mode == 'recordings' else 'No stations'))
-        self['blue'].setText('' if self.mode == 'recordings' else t('YouTube video'))
+        self['blue'].setText(t('Delete') if self.mode == 'recordings' else t('YouTube video'))
+
+    def blue_pressed(self):
+        if self.mode == 'recordings':
+            self.delete_recording()
+        else:
+            self.youtube_video()
+
+    def delete_recording(self):
+        if self.closed or self.installing or self.mode != 'recordings':
+            return
+        item = self.current()
+        if not item or 'path' not in item:
+            return
+        if self.recording.running():
+            self.notify(t('Stop recording before deleting recordings'), True)
+            return
+        selected = dict(item)
+        self.session.openWithCallback(lambda answer: self.recording_delete_answered(selected, answer),
+            MessageBox, t('Delete recording {name}?').format(name=selected['name']),
+            type=MessageBox.TYPE_YESNO, default=False)
+
+    def recording_delete_answered(self, item, answer):
+        if answer is not True or self.closed or self.installing or self.mode != 'recordings':
+            return
+        try:
+            self.recording.delete(item)
+        except (OSError, ValueError):
+            message = ('Stop recording before deleting recordings' if self.recording.running()
+                       else 'Cannot delete recording')
+            self.notify(t(message), True)
+            return
+        if self.playback.current and self.playback.current.get('path') == item['path']:
+            self.stop()
+        index = self['stations'].getSelectionIndex()
+        self.rows = [row for row in self.rows if row.get('path') != item['path']]
+        self['stations'].setList([(row,) for row in self.rows])
+        self['stations'].moveToIndex(max(0, min(index, len(self.rows) - 1)))
+        self.update_count()
+        self['status'].setText(t('Recording deleted'))
 
     def current(self):
         row = self['stations'].getCurrent()
@@ -537,13 +576,17 @@ class WarderRadio(Screen):
                    (t('Add station'), 'add'), (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if self.recording.running() else 'Start recording'), 'record'),
                    (t('Stop'), 'stop'), (t('About'), 'about')]
+        if self.mode == 'recordings':
+            choices.insert(0, (t('Delete'), 'delete-recording'))
         self.session.openWithCallback(self.option_done, ChoiceBox, title=t('Settings'), list=choices)
 
     def option_done(self, choice):
         if not choice or self.closed:
             return
         action = choice[1]
-        if action == 'group':
+        if action == 'delete-recording':
+            self.delete_recording()
+        elif action == 'group':
             self.choose_group()
         elif action == 'favourite':
             self.favourite()

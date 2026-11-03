@@ -14,10 +14,10 @@ listening history, native picons, recording support and verified updates.
 **Slovensky:** Samostatný rádiový plugin pre OpenATV a OpenPLi s našou grafikou,
 rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históriou a
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
-aktualizáciu. Nahrávanie využíva voliteľný streamripper.
+aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current receiver-test candidate:
-**0.1.0-test27**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test28**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -44,7 +44,8 @@ registered in the plugin browser.
   across the catalogue and custom HTTP/HTTPS stations.
 - Native/PiconHub picon lookup, with a neutral Warder Radio fallback logo.
 - Mounted-disk recordings folder `/media/hdd/WarderRadio`; playback of recordings.
-  Optional recording uses the separately installed `streamripper` executable.
+  The package depends on `streamripper`; opkg installs it from the receiver’s configured feeds.
+  Blue/Delete in Recordings, or MENU → Delete, removes the selected recording after confirmation.
   Its stream/codec/TLS support depends on the receiver's streamripper build.
 - All 21 languages used across FullHDGlass, GSU and PiconHub: Albanian, Czech,
   German, Greek, English, Spanish, Estonian, Persian, French, Hungarian, Italian,
@@ -68,7 +69,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test27_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test28_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -91,8 +92,8 @@ arrow marks the selectable value; remote focus adds a pointer beside only the cy
 caption stays on the panel background. The left menu is separate.
 Selecting a country preserves playback and saves the choice. Cancel keeps the
 previous selection. The smaller section label still identifies favourites,
-history, recordings and search results. CH+/CH− change pages. Yellow toggles a favourite;
-blue searches all stations. Update is the last left-menu entry, below Settings;
+history, recordings and search results. CH+/CH− change pages. Yellow searches all
+stations; blue opens the current song’s YouTube video. Favourites are available in MENU. Update is the last left-menu entry, below Settings;
 activate it or press INFO to check/install plugin updates manually. After a verified
 successful installation, an information message appears for three seconds and
 the GUI restarts automatically. Failed updates do not restart the GUI. The first MENU/Settings entry is Choose country and opens the same selector.
@@ -101,9 +102,15 @@ station, controls recording and opens About. STOP stops radio playback and
 returns to the previous service. EXIT/red closes the plugin and restores the
 previous service, unless another application has already changed navigation.
 
-The REC key starts/stops an optional streamripper recording of the playing
+The REC key starts/stops a streamripper recording of the playing
 station. Closing the plugin stops its recorder. At least 100 MB free on a mounted
-`/media/hdd` is required. Recordings are not deleted by the plugin.
+`/media/hdd` is required. Recordings opens saved audio files for playback. Blue/Delete
+or MENU → Delete asks before removing the selected file. Cancel leaves it untouched.
+Stop recording before deleting files. Deleting the file currently playing also stops
+its playback; listening to another radio station continues. Only listed, unchanged
+audio files inside the configured recording folder can be removed. Symlinks and
+other files are rejected. If the image feed does not provide streamripper, opkg
+reports the missing dependency and installation cannot complete.
 
 Settings are stored atomically in `/etc/enigma2/warder-radio/state.json` and are
 preserved by upgrades/uninstall. Installation writes only Warder Radio's own

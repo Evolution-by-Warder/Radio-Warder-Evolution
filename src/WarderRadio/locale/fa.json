@@ -73,5 +73,10 @@
   "YouTube video": "ویدیوی YouTube",
   "Finding YouTube video…": "در حال جستجوی ویدیو در YouTube…",
   "YouTube video unavailable": "ویدیوی YouTube در دسترس نیست",
-  "Current song information is unavailable": "اطلاعات آهنگ فعلی در دسترس نیست"
+  "Current song information is unavailable": "اطلاعات آهنگ فعلی در دسترس نیست",
+  "Delete": "حذف",
+  "Delete recording {name}?": "ضبط {name} حذف شود؟",
+  "Recording deleted": "ضبط حذف شد",
+  "Cannot delete recording": "حذف ضبط ممکن نیست",
+  "Stop recording before deleting recordings": "پیش از حذف فایل‌های ضبط‌شده، ضبط را متوقف کنید"
 }

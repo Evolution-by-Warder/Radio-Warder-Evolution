@@ -73,5 +73,10 @@
   "YouTube video": "YouTube’i video",
   "Finding YouTube video…": "YouTube’i video otsimine…",
   "YouTube video unavailable": "YouTube’i video pole saadaval",
-  "Current song information is unavailable": "Praeguse loo teave pole saadaval"
+  "Current song information is unavailable": "Praeguse loo teave pole saadaval",
+  "Delete": "Kustuta",
+  "Delete recording {name}?": "Kas kustutada salvestis {name}?",
+  "Recording deleted": "Salvestis kustutatud",
+  "Cannot delete recording": "Salvestist ei saa kustutada",
+  "Stop recording before deleting recordings": "Enne salvestiste kustutamist peatage salvestamine"
 }

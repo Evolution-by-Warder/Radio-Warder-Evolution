@@ -1,3 +1,11 @@
+# 0.1.0-test28
+
+- Install streamripper automatically as a required package dependency through the receiver’s configured feeds.
+- Delete saved audio from Recordings with blue/Delete or MENU → Delete, after confirmation.
+- Block deletion while recording; reject changed files, symlinks and files outside the recording folder.
+- Stop playback when its selected audio file is deleted; retain unrelated radio playback.
+- Translate the new controls and messages into all 21 supported languages.
+
 # 0.1.0-test27
 
 Handles ServiceApp's decoder/network error event as well as native tune failure,

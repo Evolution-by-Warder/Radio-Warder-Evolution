@@ -73,5 +73,10 @@
   "YouTube video": "YouTube-videó",
   "Finding YouTube video…": "YouTube-videó keresése…",
   "YouTube video unavailable": "A YouTube-videó nem érhető el",
-  "Current song information is unavailable": "Az aktuális szám adatai nem érhetők el"
+  "Current song information is unavailable": "Az aktuális szám adatai nem érhetők el",
+  "Delete": "Törlés",
+  "Delete recording {name}?": "Törli a(z) {name} felvételt?",
+  "Recording deleted": "Felvétel törölve",
+  "Cannot delete recording": "A felvétel nem törölhető",
+  "Stop recording before deleting recordings": "A felvételek törlése előtt állítsa le a rögzítést"
 }

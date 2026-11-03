@@ -73,5 +73,10 @@
   "YouTube video": "YouTube-video",
   "Finding YouTube video…": "YouTube-video zoeken…",
   "YouTube video unavailable": "YouTube-video niet beschikbaar",
-  "Current song information is unavailable": "Geen informatie over het huidige nummer beschikbaar"
+  "Current song information is unavailable": "Geen informatie over het huidige nummer beschikbaar",
+  "Delete": "Verwijderen",
+  "Delete recording {name}?": "Opname {name} verwijderen?",
+  "Recording deleted": "Opname verwijderd",
+  "Cannot delete recording": "Kan opname niet verwijderen",
+  "Stop recording before deleting recordings": "Stop de opname voordat u opnamen verwijdert"
 }

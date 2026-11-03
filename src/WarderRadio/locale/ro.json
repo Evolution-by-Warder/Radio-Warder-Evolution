@@ -73,5 +73,10 @@
   "YouTube video": "Video YouTube",
   "Finding YouTube video…": "Se caută videoclipul YouTube…",
   "YouTube video unavailable": "Videoclipul YouTube nu este disponibil",
-  "Current song information is unavailable": "Informațiile despre melodia curentă nu sunt disponibile"
+  "Current song information is unavailable": "Informațiile despre melodia curentă nu sunt disponibile",
+  "Delete": "Șterge",
+  "Delete recording {name}?": "Ștergeți înregistrarea {name}?",
+  "Recording deleted": "Înregistrare ștearsă",
+  "Cannot delete recording": "Înregistrarea nu poate fi ștearsă",
+  "Stop recording before deleting recordings": "Opriți înregistrarea înainte de a șterge înregistrări"
 }

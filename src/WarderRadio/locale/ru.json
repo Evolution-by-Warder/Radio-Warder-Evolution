@@ -73,5 +73,10 @@
   "YouTube video": "Видео YouTube",
   "Finding YouTube video…": "Поиск видео YouTube…",
   "YouTube video unavailable": "Видео YouTube недоступно",
-  "Current song information is unavailable": "Информация о текущей композиции недоступна"
+  "Current song information is unavailable": "Информация о текущей композиции недоступна",
+  "Delete": "Удалить",
+  "Delete recording {name}?": "Удалить запись {name}?",
+  "Recording deleted": "Запись удалена",
+  "Cannot delete recording": "Не удалось удалить запись",
+  "Stop recording before deleting recordings": "Остановите запись перед удалением записей"
 }

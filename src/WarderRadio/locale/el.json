@@ -73,5 +73,10 @@
   "YouTube video": "Βίντεο YouTube",
   "Finding YouTube video…": "Αναζήτηση βίντεο YouTube…",
   "YouTube video unavailable": "Το βίντεο YouTube δεν είναι διαθέσιμο",
-  "Current song information is unavailable": "Δεν υπάρχουν πληροφορίες για το τρέχον τραγούδι"
+  "Current song information is unavailable": "Δεν υπάρχουν πληροφορίες για το τρέχον τραγούδι",
+  "Delete": "Διαγραφή",
+  "Delete recording {name}?": "Διαγραφή της εγγραφής {name};",
+  "Recording deleted": "Η εγγραφή διαγράφηκε",
+  "Cannot delete recording": "Αδυναμία διαγραφής εγγραφής",
+  "Stop recording before deleting recordings": "Σταματήστε την εγγραφή πριν διαγράψετε εγγραφές"
 }

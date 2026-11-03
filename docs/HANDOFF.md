@@ -1,3 +1,30 @@
+# Radio Warder Evolution — test28 recording dependency and deletion
+
+Streamripper is now in Depends rather than Suggests. Normal opkg install/update
+resolves it from the configured image feeds; no downloader, forced dependency
+bypass or shell hook is added. An unavailable feed dependency is an installation
+error, so the updater does not announce success/restart for a failed operation.
+
+In Recordings, blue/Delete and MENU → Delete capture the selected file and open
+a yes/no confirmation defaulting to No. Cancel and callbacks after screen close
+leave files untouched. Recording blocks deletion before and after confirmation.
+Deletion checks the listing identity (device/inode/mtime/size), audio extension,
+regular-file type and recording-root containment, traverses parents with Linux
+dir_fd/O_NOFOLLOW, and removes only the selected file. Directory links, file
+links, changed files and unlisted identities fail closed. No recursive removal.
+Deleting the file playing stops its playback; another radio/external service is
+preserved. The row/count/selection update immediately, including an empty list.
+Blue remains YouTube outside Recordings; yellow remains Search.
+
+Five new translated keys in every locale (80 keys each). Tests add five filesystem
+cases and three native GUI cases covering cancel, captured selection, MENU/color
+routing, playing file, empty list, changed file, failure, running recorder and late
+callback. Package verification asserts streamripper is required.
+
+Publication verification pending.
+
+---
+
 # Radio Warder Evolution — test27 ServiceApp error fallback
 
 ServiceApp emits decoder/network errors as evUser+12. Register this alongside

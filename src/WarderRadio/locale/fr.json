@@ -73,5 +73,10 @@
   "YouTube video": "Vidéo YouTube",
   "Finding YouTube video…": "Recherche de la vidéo YouTube…",
   "YouTube video unavailable": "Vidéo YouTube indisponible",
-  "Current song information is unavailable": "Informations sur le titre actuel indisponibles"
+  "Current song information is unavailable": "Informations sur le titre actuel indisponibles",
+  "Delete": "Supprimer",
+  "Delete recording {name}?": "Supprimer l’enregistrement {name} ?",
+  "Recording deleted": "Enregistrement supprimé",
+  "Cannot delete recording": "Impossible de supprimer l’enregistrement",
+  "Stop recording before deleting recordings": "Arrêtez l’enregistrement avant de supprimer des enregistrements"
 }

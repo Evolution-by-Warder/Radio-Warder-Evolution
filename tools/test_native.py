@@ -407,6 +407,79 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(actions, set(screen['actions'].actions))
         self.assertEqual(screen['actions'].contexts, ['WarderRadioActions'])
 
+    def recordings(self, screen):
+        directory = Path(self.tmp.name, 'recordings')
+        directory.mkdir(exist_ok=True)
+        (directory / 'first.mp3').write_bytes(b'first')
+        (directory / 'second.mp3').write_bytes(b'second')
+        screen.recording.directory = str(directory)
+        screen.mode = 'recordings'
+        screen.files_loaded(screen.recording.files(), None)
+        return directory
+
+    def test_recording_delete_confirmation_cancel_and_selected_target_preserve_radio(self):
+        screen, session, _ = self.new()
+        screen.play(); playing = session.nav.current
+        directory = self.recordings(screen)
+        self.assertEqual(screen['blue'].getText(), radio.t('Delete'))
+        screen['actions'].actions['blue']()
+        dialog, callback, args, options = session.dialogs[-1]
+        self.assertEqual(dialog, radio.MessageBox)
+        self.assertFalse(options['default'])
+        self.assertIn('first.mp3', args[0])
+        callback(False)
+        self.assertTrue((directory / 'first.mp3').exists())
+        screen.blue_pressed()
+        callback = session.dialogs[-1][1]
+        screen['stations'].moveToIndex(1)
+        callback(True)
+        self.assertFalse((directory / 'first.mp3').exists())
+        self.assertTrue((directory / 'second.mp3').exists())
+        self.assertEqual(len(screen.rows), 1)
+        self.assertIs(session.nav.current, playing)
+        screen.mode = 'radio'; screen.update_count()
+        self.assertEqual(screen['blue'].getText(), radio.t('YouTube video'))
+
+    def test_recording_delete_menu_stops_deleted_audio_and_handles_empty_list(self):
+        screen, session, _ = self.new()
+        original = session.nav.current
+        directory = self.recordings(screen)
+        screen.play()
+        screen.options()
+        self.assertIn((radio.t('Delete'), 'delete-recording'), session.dialogs[-1][-1]['list'])
+        screen.option_done((radio.t('Delete'), 'delete-recording'))
+        session.dialogs[-1][1](True)
+        self.assertIs(session.nav.current, original)
+        self.assertIsNone(screen.playback.current)
+        screen.blue_pressed(); session.dialogs[-1][1](True)
+        self.assertEqual(screen.rows, [])
+        self.assertEqual(screen['count'].getText(), radio.t('No recordings'))
+        count = len(session.dialogs); screen.blue_pressed()
+        self.assertEqual(len(session.dialogs), count)
+        self.assertEqual(list(directory.iterdir()), [])
+
+    def test_recording_delete_rechecks_running_file_changes_failure_and_closed_screen(self):
+        screen, session, _ = self.new()
+        directory = self.recordings(screen)
+        screen.blue_pressed(); callback = session.dialogs[-1][1]
+        screen.recording.process = Mock()
+        screen.recording.process.poll.return_value = None
+        callback(True)
+        self.assertTrue((directory / 'first.mp3').exists())
+        screen.recording.process = None
+        screen.blue_pressed(); callback = session.dialogs[-1][1]
+        (directory / 'first.mp3').write_bytes(b'replaced content')
+        callback(True)
+        self.assertTrue((directory / 'first.mp3').exists())
+        screen.files_loaded(screen.recording.files(), None)
+        screen.blue_pressed(); callback = session.dialogs[-1][1]
+        with patch.object(screen.recording, 'delete', side_effect=PermissionError):
+            callback(True)
+        self.assertTrue((directory / 'first.mp3').exists())
+        screen.blue_pressed(); callback = session.dialogs[-1][1]
+        screen.cleanup(); callback(True)
+        self.assertTrue((directory / 'first.mp3').exists())
+
     def test_blue_video_search_is_async_retains_radio_and_favourites_remain_in_menu(self):
         screen, session, _ = self.new(); screen.play()
         original = screen.playback.previous
@@ -417,7 +490,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['blue'].getText(),radio.t('YouTube video'))
         self.assertEqual(screen['yellow'].getText(),radio.t('Search'))
         self.assertEqual(screen['actions'].actions['yellow'],screen.search)
-        self.assertEqual(screen['actions'].actions['blue'],screen.youtube_video)
+        self.assertEqual(screen['actions'].actions['blue'],screen.blue_pressed)
         screen.youtube_video(); self.assertEqual(len(callbacks),1)
         screen.options()
         self.assertIn((radio.t('Favourite'),'favourite'),session.dialogs[-1][-1]['list'])

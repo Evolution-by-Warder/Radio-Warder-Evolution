@@ -45,12 +45,11 @@ Maintainer: Warder
 Section: extra
 Priority: optional
 License: GPL-2.0-or-later
-Depends: enigma2, python3-core, python3-compression, python3-crypt, python3-io, python3-json, python3-math, python3-netclient, python3-threading, python3-xml, python3-datetime, python3-email, python3-misc
-{MIGRATION}Suggests: streamripper
-Installed-Size: {installed}
+Depends: enigma2, python3-core, python3-compression, python3-crypt, python3-io, python3-json, python3-math, python3-netclient, python3-threading, python3-xml, python3-datetime, python3-email, python3-misc, streamripper
+{MIGRATION}Installed-Size: {installed}
 Description: Warder Radio - World of Radio Stations
  Native internet radio player for OpenPLi and OpenATV, with the Warder catalogue,
- favourites, history, picons and optional streamripper recording.
+ favourites, history, picons and streamripper recording.
 '''.encode()
 preinst = b'''#!/bin/sh
 set -eu

@@ -73,5 +73,10 @@
   "YouTube video": "Video YouTube",
   "Finding YouTube video…": "Duke kërkuar video në YouTube…",
   "YouTube video unavailable": "Videoja në YouTube nuk është e disponueshme",
-  "Current song information is unavailable": "Informacioni i këngës aktuale nuk është i disponueshëm"
+  "Current song information is unavailable": "Informacioni i këngës aktuale nuk është i disponueshëm",
+  "Delete": "Fshi",
+  "Delete recording {name}?": "Të fshihet regjistrimi {name}?",
+  "Recording deleted": "Regjistrimi u fshi",
+  "Cannot delete recording": "Regjistrimi nuk mund të fshihet",
+  "Stop recording before deleting recordings": "Ndaloni regjistrimin para se të fshini regjistrimet"
 }

@@ -73,5 +73,10 @@
   "YouTube video": "YouTube video",
   "Finding YouTube video…": "Hledám video na YouTube…",
   "YouTube video unavailable": "Video na YouTube není dostupné",
-  "Current song information is unavailable": "Informace o aktuální skladbě nejsou dostupné"
+  "Current song information is unavailable": "Informace o aktuální skladbě nejsou dostupné",
+  "Delete": "Vymazat",
+  "Delete recording {name}?": "Vymazat nahrávku {name}?",
+  "Recording deleted": "Nahrávka vymazána",
+  "Cannot delete recording": "Nahrávku nelze vymazat",
+  "Stop recording before deleting recordings": "Před mazáním nahrávek zastavte nahrávání"
 }

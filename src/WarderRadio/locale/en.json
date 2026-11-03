@@ -73,5 +73,10 @@
   "YouTube video": "YouTube video",
   "Finding YouTube video…": "Finding YouTube video…",
   "YouTube video unavailable": "YouTube video unavailable",
-  "Current song information is unavailable": "Current song information is unavailable"
+  "Current song information is unavailable": "Current song information is unavailable",
+  "Delete": "Delete",
+  "Delete recording {name}?": "Delete recording {name}?",
+  "Recording deleted": "Recording deleted",
+  "Cannot delete recording": "Cannot delete recording",
+  "Stop recording before deleting recordings": "Stop recording before deleting recordings"
 }

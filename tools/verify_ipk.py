@@ -56,6 +56,9 @@ with tempfile.TemporaryDirectory() as tmp:
         assert 'Replaces: enigma2-plugin-extensions-warderradio\n' in control
         assert 'Conflicts: enigma2-plugin-extensions-warderradio\n' in control
         assert 'Architecture: all\n' in control
+        dependencies = next(line for line in control.splitlines() if line.startswith('Depends: '))
+        assert 'streamripper' in [value.strip() for value in dependencies[9:].split(',')]
+        assert 'Suggests: streamripper' not in control
         for script in ('preinst', 'postinst'):
             body = tar.extractfile('./' + script).read()
             file = Path(tmp, script); file.write_bytes(body)
