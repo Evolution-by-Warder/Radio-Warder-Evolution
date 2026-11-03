@@ -1,5 +1,7 @@
 """Catalogue, persistence and navigation ownership. No Enigma2 imports."""
+import gzip
 import hashlib
+import io
 import json
 import os
 import tempfile
@@ -12,8 +14,10 @@ from urllib.request import Request, urlopen
 from . import ROOT, VERSION
 
 UPSTREAM = ('https://raw.githubusercontent.com/Evolution-by-Warder/'
-            'PiconHub-Warder-Evolution/main/picons/IPTV-SK-CZ/bouquets/userbouquet.warder.radio')
-MAX_CATALOGUE = 4 * 1024 * 1024
+            'PiconHub-Warder-Evolution/main/picons/IPTV-SK-CZ/catalog/global/world-radio.receiver.json.gz')
+MAX_CATALOGUE = 32 * 1024 * 1024
+MAX_DOWNLOAD = 8 * 1024 * 1024
+MAX_STATIONS = 100000
 
 
 def clean(value, limit=240):
@@ -215,7 +219,10 @@ class Catalogue:
                 cls._snapshots.move_to_end(path)
                 return [dict(item) for item in cached[1]]
             data = read_json(path, None)
-            items = Store._items(data, 20000) if isinstance(data, list) else []
+            try:
+                items = catalogue_items(data)
+            except (ValueError, TypeError):
+                items = []
             try:
                 unchanged = cls._stamp(path) == stamp
             except OSError:
@@ -239,23 +246,40 @@ class Catalogue:
     @staticmethod
     def fetch(opener=urlopen):
         request = Request(UPSTREAM, headers={'User-Agent': 'WarderRadio/' + VERSION,
-                                           'Accept': 'text/plain'})
-        with opener(request, timeout=8) as response:
-            body = response.read(MAX_CATALOGUE + 1)
-        if len(body) > MAX_CATALOGUE:
-            raise ValueError('Catalogue too large')
-        items = parse_bouquet(body.decode('utf-8-sig'))
-        if len(items) < 100:
-            raise ValueError('Incomplete upstream catalogue')
-        return items
+                                           'Accept': 'application/gzip'})
+        with opener(request, timeout=25) as response:
+            body = response.read(MAX_DOWNLOAD + 1)
+        if len(body) > MAX_DOWNLOAD:
+            raise ValueError('Catalogue download too large')
+        try:
+            with gzip.GzipFile(fileobj=io.BytesIO(body)) as compressed:
+                decoded = compressed.read(MAX_CATALOGUE + 1)
+            if len(decoded) > MAX_CATALOGUE:
+                raise ValueError('Catalogue too large')
+            data = json.loads(decoded.decode('utf-8'))
+        except (OSError, EOFError, UnicodeError) as error:
+            raise ValueError('Invalid compressed catalogue') from error
+        return catalogue_items(data, minimum=100)
 
     def replace(self, items):
-        # Validate and persist before replacing the usable in-memory catalogue.
-        validated = Store._items(items, 20000)
-        if len(validated) < 100:
-            raise ValueError('Incomplete catalogue')
+        # Reject incomplete/oversized data instead of silently truncating it.
+        validated = catalogue_items(items, minimum=100)
+        size = 2 + sum(len(json.dumps(row, ensure_ascii=False, separators=(',', ':')).encode('utf-8')) + 1
+                       for row in validated)
+        if size > MAX_CATALOGUE:
+            raise ValueError('Catalogue cache too large')
         atomic_json(self.cache, validated)
         self.items = validated
+
+
+def catalogue_items(data, minimum=0):
+    """Validate the whole catalogue, preserving all rows and stable references."""
+    if not isinstance(data, list) or not minimum <= len(data) <= MAX_STATIONS:
+        raise ValueError('Incomplete or oversized catalogue')
+    result = Store._items(data, MAX_STATIONS)
+    if len(result) != len(data):
+        raise ValueError('Invalid or duplicate catalogue station')
+    return result
 
 
 class Playback:

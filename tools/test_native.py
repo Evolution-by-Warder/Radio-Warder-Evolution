@@ -482,6 +482,21 @@ class NativeTests(unittest.TestCase):
         screen.stop()
         self.assertIsNone(screen.playback.current)
 
+    def test_catalogue_update_rehomes_removed_provider_group_without_stopping_audio(self):
+        screen, session, _ = self.new()
+        screen.play()
+        playing = session.nav.current
+        selected = screen.playback.current
+        screen.active_group = 'Previous provider group'
+        changed = [dict(row, group='Germany') for row in screen.catalogue.items[:100]]
+        self.assertTrue(any(row['id'] == selected['id'] for row in changed))
+        screen.catalogue_loaded(changed, None)
+        self.assertEqual(screen.active_group, 'Germany')
+        self.assertEqual(Store(self.tmp.name).group, 'Germany')
+        self.assertTrue(screen.rows)
+        self.assertIs(session.nav.current, playing)
+        screen.cleanup()
+
     def test_native_plugin_descriptor_has_approved_icon_and_lazy_main(self):
         descriptors = plugin.Plugins()
         self.assertEqual(len(descriptors), 2)

@@ -30,9 +30,14 @@ registered in the plugin browser.
 
 ## Included
 
-- Bundled PiconHub/Warder catalogue: 5,444 stations in 203 groups, with original
-  stream URLs and service references. Updates are explicit, from the same Git
-  bouquet; the bundled/cached list remains usable without the catalogue server.
+- Bundled offline seed: 5,444 stations in 203 groups, with original stream URLs
+  and service references. From test33, explicit catalogue updates use the full
+  centrally compiled country catalogue over bounded gzip/JSON transfer. Slovakia
+  and Czechia appear first, other countries alphabetically, unknown countries last.
+  The cached/seed list remains usable without the catalogue server. Install test33
+  or newer once, then use MENU → Update catalogue for subsequent data updates.
+  Genres, languages and other source metadata remain in the central database for
+  future views; this release exposes the country list and station search.
 - Native Enigma2/GStreamer playback, station and available ICY artist/title data.
 - Yellow: station Search. Blue: current-song YouTube video in the receiver's
   standard MoviePlayer and active skin, with native progress/time/video details.

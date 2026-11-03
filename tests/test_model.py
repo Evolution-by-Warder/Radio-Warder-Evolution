@@ -100,7 +100,7 @@ class ModelTests(unittest.TestCase):
         response = Response()
         with self.assertRaises(ValueError):
             Catalogue.fetch(lambda *args, **kwargs: response)
-        self.assertEqual(response.maximum, 4 * 1024 * 1024 + 1)
+        self.assertEqual(response.maximum, 8 * 1024 * 1024 + 1)
 
     def test_recordings_dont_follow_symlinks_outside_owned_folder(self):
         target = Path(self.tmp.name, 'outside.mp3'); target.write_bytes(b'not audio')

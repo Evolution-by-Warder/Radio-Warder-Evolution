@@ -1,3 +1,12 @@
+# 0.1.0-test33
+
+- Load the complete centrally compiled radio catalogue through compressed JSON.
+- Support up to 100,000 stations without the previous 20,000-row truncation.
+- Bound compressed downloads and decoded/cache sizes; reject invalid or incomplete updates while retaining the usable cache.
+- Preserve the existing offline seed, worker startup, cached reopening, station references and saved favourites.
+- Switch a removed provider group to the matching station's country after catalogue refresh.
+- Keep the legacy catalogue address available to older plugin versions.
+
 # 0.1.0-test32
 
 - Enlarge the YouTube artwork by another 50%, from 240 to 360 px at Full HD.

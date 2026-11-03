@@ -756,6 +756,17 @@ class WarderRadio(Screen):
             self.notify(t('Cannot update catalogue'), True)
         else:
             self['status'].setText(t('Catalogue updated'))
+            groups = self.catalogue.groups()
+            if self.active_group and self.active_group not in groups and self.active_group != 'Custom':
+                selected = self.playback.current or self.current()
+                replacement = next((row for row in self.catalogue.items
+                                    if selected and row['id'] == selected['id']), None)
+                self.active_group = replacement['group'] if replacement else groups[0]
+                self.store.group = self.active_group
+                try:
+                    self.store.save()
+                except OSError:
+                    self.notify(t('Cannot save settings'), True)
             if self.mode == 'radio':
                 self.refresh_rows()
 
