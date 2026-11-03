@@ -1,3 +1,24 @@
+# 0.1.0-test25
+
+Adds current-song YouTube playback under yellow, with Favourite in MENU.
+Uses the image's standard MoviePlayer and active skin for the information bar,
+progress, position/duration/remaining time, video details, clock and native
+controls. Removes the temporary two-line video overlay and its unused keymap
+and translation. EOF, STOP and EXIT return to radio without a movie-list prompt;
+external navigation and parent-close restoration remain guarded. Receiver
+screenshots confirm test24 video playback. Prefers adaptive HLS/full quality range
+and highest combined MP4 without the prior 720p limit; native failure retries a
+lower validated format. Actual quality depends on video, receiver and connection.
+
+# 0.1.0-test24 — unreleased receiver candidate
+
+Adds current-song YouTube search, bundled source resolver/JavaScript interpreter
+and native video playback under yellow. Favourite moves to MENU. Radio continues
+during background lookup and resumes after video; stale results and external
+navigation are guarded. All 21 locales include the new video messages. Public
+search is verified; hosted playback is blocked by YouTube sign-in verification.
+Candidate remains off the testing feed pending receiver playback confirmation.
+
 # 0.1.0-test23
 
 Removes the Playback activity caption beneath the spectrum, including the unused

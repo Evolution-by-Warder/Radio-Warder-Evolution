@@ -20,7 +20,8 @@
       "Tools/CList.py": "138b58b8b5488a26acb095785a281b6fad6617391f99a8048bbbafa885c31cdf",
       "Components/Button.py": "1faa07cda705ddc45d1703b868ba8a48faaa282b58465e20f2fd8d67002b9577",
       "Components/VariableValue.py": "e5c4ddf4fbc2235afd538775352a23564341bc37a2b53fe3387fd5553e24d5db",
-      "Components/ProgressBar.py": "07c48c82d9dbf67bf59d722edc529fcd3f08a0a80cefb705af8fc9cbeefe5dca"
+      "Components/ProgressBar.py": "07c48c82d9dbf67bf59d722edc529fcd3f08a0a80cefb705af8fc9cbeefe5dca",
+      "Screens/InfoBar.py": "9b8c0b9f7df7c78f87bc6224359f394bce464d640586417b13474556acbb2a99"
     }
   },
   {
@@ -44,7 +45,8 @@
       "Tools/CList.py": "138b58b8b5488a26acb095785a281b6fad6617391f99a8048bbbafa885c31cdf",
       "Components/Button.py": "4df482731990e0c1766a2ecfd6dd8d028be3d9c7fe6fee803f224ed636b8c951",
       "Components/VariableValue.py": "15a5d2b6b2d37cb8bc38eb14930d879776c6b9eb1e16d11841777006f9736e16",
-      "Components/ProgressBar.py": "f6be4d6f5d18d970b3b3116b0df1cd4a6787e3e3a6756b3e4d180c08b20ea387"
+      "Components/ProgressBar.py": "f6be4d6f5d18d970b3b3116b0df1cd4a6787e3e3a6756b3e4d180c08b20ea387",
+      "Screens/InfoBar.py": "2f1b3805d59259c928f88a3fc6b3820d7835213feaaae343b694c5ed77e87066"
     }
   },
   {
@@ -68,7 +70,8 @@
       "Tools/CList.py": "138b58b8b5488a26acb095785a281b6fad6617391f99a8048bbbafa885c31cdf",
       "Components/Button.py": "4df482731990e0c1766a2ecfd6dd8d028be3d9c7fe6fee803f224ed636b8c951",
       "Components/VariableValue.py": "15a5d2b6b2d37cb8bc38eb14930d879776c6b9eb1e16d11841777006f9736e16",
-      "Components/ProgressBar.py": "f6be4d6f5d18d970b3b3116b0df1cd4a6787e3e3a6756b3e4d180c08b20ea387"
+      "Components/ProgressBar.py": "f6be4d6f5d18d970b3b3116b0df1cd4a6787e3e3a6756b3e4d180c08b20ea387",
+      "Screens/InfoBar.py": "2f1b3805d59259c928f88a3fc6b3820d7835213feaaae343b694c5ed77e87066"
     }
   }
 ]

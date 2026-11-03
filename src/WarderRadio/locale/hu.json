@@ -69,5 +69,9 @@
   "Downloading update…": "Frissítés letöltése…",
   "Verifying package…": "Csomag ellenőrzése…",
   "Verifying installation…": "Telepítés ellenőrzése…",
-  "Artist artwork": "Előadó képe"
+  "Artist artwork": "Előadó képe",
+  "YouTube video": "YouTube-videó",
+  "Finding YouTube video…": "YouTube-videó keresése…",
+  "YouTube video unavailable": "A YouTube-videó nem érhető el",
+  "Current song information is unavailable": "Az aktuális szám adatai nem érhetők el"
 }

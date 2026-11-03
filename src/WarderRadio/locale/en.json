@@ -69,5 +69,9 @@
   "Downloading update…": "Downloading update…",
   "Verifying package…": "Verifying package…",
   "Verifying installation…": "Verifying installation…",
-  "Artist artwork": "Artist artwork"
+  "Artist artwork": "Artist artwork",
+  "YouTube video": "YouTube video",
+  "Finding YouTube video…": "Finding YouTube video…",
+  "YouTube video unavailable": "YouTube video unavailable",
+  "Current song information is unavailable": "Current song information is unavailable"
 }

@@ -69,5 +69,9 @@
   "Downloading update…": "A transferir atualização…",
   "Verifying package…": "A verificar pacote…",
   "Verifying installation…": "A verificar instalação…",
-  "Artist artwork": "Imagem do artista"
+  "Artist artwork": "Imagem do artista",
+  "YouTube video": "Vídeo do YouTube",
+  "Finding YouTube video…": "A procurar vídeo no YouTube…",
+  "YouTube video unavailable": "Vídeo do YouTube indisponível",
+  "Current song information is unavailable": "Informações sobre a música atual indisponíveis"
 }

@@ -69,5 +69,9 @@
   "Downloading update…": "Update downloaden…",
   "Verifying package…": "Pakket controleren…",
   "Verifying installation…": "Installatie controleren…",
-  "Artist artwork": "Afbeelding van artiest"
+  "Artist artwork": "Afbeelding van artiest",
+  "YouTube video": "YouTube-video",
+  "Finding YouTube video…": "YouTube-video zoeken…",
+  "YouTube video unavailable": "YouTube-video niet beschikbaar",
+  "Current song information is unavailable": "Geen informatie over het huidige nummer beschikbaar"
 }

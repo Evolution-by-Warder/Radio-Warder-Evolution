@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Replay actual upstream Python classes. Only C++ GUI and OS integration are stubbed.
+"""Replay actual upstream Python widgets and native MoviePlayer close contracts.
+C++ GUI, OS integration and the MoviePlayer UI/mixin constructor are stubbed.
 This is not a receiver, GPU, audio decoder or remote-control hardware test.
 """
 import argparse
@@ -144,7 +145,7 @@ class Session:
     def open(self, screen, *args, **kwargs): self.dialogs.append((screen, args, kwargs))
     def openWithCallback(self, callback, screen, *args, **kwargs):
         self.dialogs.append((screen, callback, args, kwargs))
-        if screen is radio.UpdateProgress:
+        if screen in (radio.UpdateProgress, radio.VideoPlayer):
             dialog = screen(self, *args, **kwargs)
             mount(dialog)
             dialog.execing = True
@@ -228,6 +229,42 @@ class ActionMap:
     def setEnabled(self, value): self.enabled = value
 
 module('Components.ActionMap', ActionMap=ActionMap)
+
+# MoviePlayer's image UI/mixin constructor is stubbed. Its exact pinned
+# constructor signature and real __onClose handler are replayed, so the adapter
+# must preserve each image's restoration contract and native skin selection.
+movie_tree = ast.parse((UP/'Screens/InfoBar.py').read_text())
+movie_node = next(n for n in movie_tree.body if isinstance(n,ast.ClassDef) and n.name=='MoviePlayer')
+movie_init = next(n for n in movie_node.body if isinstance(n,ast.FunctionDef) and n.name=='__init__')
+movie_close = next(n for n in movie_node.body if isinstance(n,ast.FunctionDef) and n.name=='__onClose')
+has_selection = any(a.arg=='fromMovieSelection' for a in movie_init.args.args)
+constructor = ast.parse('''def __init__(self, session):
+    Screen.__init__(self,session)
+    self.skin = '<screen name="MoviePlayer" position="0,0" size="1920,1080" />'
+    self.lastservice, self.cur_service = lastservice, service
+    self.fromMovieSelection = False
+    self.standbyCountChanged = lambda value: None
+    self.native_constructor_options = dict(locals())
+    self.session.nav.playService(service)
+    self.onClose.append(self.__onClose)
+''').body[0]
+constructor.args = movie_init.args
+if has_selection:
+    constructor.body[3].value = ast.Name(id='fromMovieSelection',ctx=ast.Load())
+classic_class = ast.ClassDef(name='MoviePlayer',bases=[ast.Name(id='Screen',ctx=ast.Load())],
+    keywords=[],decorator_list=[],body=[constructor,movie_close])
+config.misc=NS(standbyCounter=NS(removeNotifier=lambda callback:None))
+config.movielist=NS(stop_service=NS(value=False))
+config.usage.last_movie_played=NS(value='',save=lambda:None)
+screens_package=module('Screens',__path__=[])
+movie_selection=module('Screens.MovieSelection',playlist=[])
+infobar=module('Screens.InfoBar',InfoBar=NS(instance=NS(callServiceStarted=lambda:None)))
+screens_package.InfoBar, screens_package.MovieSelection = infobar,movie_selection
+movie_scope={'Screen':Screen,'config':config,'Screens':screens_package}
+exec(compile(ast.fix_missing_locations(ast.Module(body=[classic_class],type_ignores=[])),
+    str(UP/'Screens/InfoBar.py'),'exec'),movie_scope)
+ClassicMoviePlayer=movie_scope['MoviePlayer']
+infobar.MoviePlayer=ClassicMoviePlayer
 from WarderRadio import screen as radio
 from WarderRadio import plugin
 from WarderRadio.model import Store
@@ -369,6 +406,85 @@ class NativeTests(unittest.TestCase):
         actions = {node.attrib['mapto'] for node in maps[0]}
         self.assertEqual(actions, set(screen['actions'].actions))
         self.assertEqual(screen['actions'].contexts, ['WarderRadioActions'])
+
+    def test_yellow_search_is_async_retains_radio_and_favourites_remain_in_menu(self):
+        screen, session, _ = self.new(); screen.play()
+        original = screen.playback.previous
+        callbacks=[]
+        screen.video_jobs.submit = lambda key,work,callback: callbacks.append(callback) or True
+        screen.youtube_video()
+        self.assertTrue(screen.video_pending); self.assertTrue(screen.playback.owns())
+        self.assertEqual(screen['yellow'].getText(),radio.t('YouTube video'))
+        screen.youtube_video(); self.assertEqual(len(callbacks),1)
+        screen.options()
+        self.assertIn((radio.t('Favourite'),'favourite'),session.dialogs[-1][-1]['list'])
+        screen.option_done((radio.t('Favourite'),'favourite'))
+        self.assertEqual(len(screen.store.favourites),1)
+        callbacks[0]({'id':'abcdefghijk','title':'Singer - Song','url':'https://rr1.googlevideo.com/video'},None)
+        player=screen.video_dialog; self.assertIsInstance(player,radio.VideoPlayer)
+        self.assertTrue(screen.video_active); self.assertTrue(player.owns())
+        self.assertEqual(screen.playback.previous,original)
+        before=screen['track'].getText(); screen.ended(); screen.failed(); screen.tick()
+        self.assertEqual(screen['track'].getText(),before)
+        player.close()
+        self.assertFalse(screen.video_active); self.assertTrue(screen.playback.owns())
+        screen.cleanup(); self.assertEqual(session.nav.current,original)
+
+    def test_video_search_stale_song_station_error_and_close_do_not_steal_navigation(self):
+        screen, session, _=self.new(); screen.play()
+        callbacks=[]; screen.video_jobs.submit=lambda key,work,callback:callbacks.append(callback) or True
+        screen.youtube_video(); screen['track'].setText('Next song')
+        callbacks[0]({'url':'https://rr1.googlevideo.com/video','id':'abcdefghijk','title':'Old song'},None)
+        self.assertIsNone(screen.video_dialog); self.assertTrue(screen.playback.owns())
+        screen.youtube_video(); external=Reference('external TV'); session.nav.current=external
+        callbacks[-1](None,'network error'); self.assertEqual(session.nav.current,external)
+        self.assertIsNone(screen.video_dialog)
+        screen.cleanup(); callbacks[-1]({'url':'https://rr1.googlevideo.com/video','title':'Late'},None)
+        self.assertEqual(session.nav.current,external)
+
+    def test_classic_movieplayer_skin_constructor_and_native_return_handler(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:]=width,height
+            session=Session(); original=session.nav.current; radio_ref=Reference('radio')
+            session.nav.current=radio_ref
+            player=radio.VideoPlayer(session,{'title':'Video','url':'https://rr1.googlevideo.com/video'},radio_ref,original,lambda:False)
+            mount(player); player.execing=True
+            self.assertIsInstance(player,ClassicMoviePlayer)
+            self.assertEqual(player.skinName,['MoviePlayer'])
+            self.assertFalse(player.ENABLE_RESUME_SUPPORT)
+            self.assertEqual(player.native_constructor_options['lastservice'],radio_ref)
+            if has_selection:
+                self.assertFalse(player.native_constructor_options['fromMovieSelection'])
+            self.assertTrue(player.owns())
+            player.leavePlayerOnExit()
+            self.assertEqual(session.nav.current,radio_ref)
+            self.assertTrue(player.finished)
+        for exit_method in ('leavePlayer','eof','error','parent-close','external'):
+            with self.subTest(exit=exit_method):
+                session=Session(); original=session.nav.current; radio_ref=Reference('radio')
+                player=radio.VideoPlayer(session,{'title':'Video','url':'https://rr1.googlevideo.com/video'},
+                    radio_ref,original,lambda:exit_method=='parent-close')
+                mount(player); player.execing=True
+                expected=original if exit_method=='parent-close' else radio_ref
+                if exit_method=='external':
+                    expected=Reference('external TV'); session.nav.current=expected
+                if exit_method=='eof': player.doEofInternal(True)
+                elif exit_method=='error': player.error(); self.assertTrue(player.failed)
+                elif exit_method=='leavePlayer': player.leavePlayer()
+                else: player.close()
+                self.assertEqual(session.nav.current,expected)
+
+    def test_classic_movieplayer_retries_lower_quality_without_losing_radio_return(self):
+        session=Session(); original=session.nav.current; radio_ref=Reference('radio')
+        player=radio.VideoPlayer(session,{'title':'Video','url':'https://rr1.googlevideo.com/high',
+            'urls':['https://rr1.googlevideo.com/high','https://rr1.googlevideo.com/low']},radio_ref,original,lambda:False)
+        mount(player); player.execing=True
+        player.error()
+        self.assertEqual(player.url_index,1); self.assertTrue(player.owns()); self.assertFalse(player.finished)
+        self.assertEqual(session.nav.current.args[-1],'https://rr1.googlevideo.com/low')
+        player.error()
+        self.assertTrue(player.finished); self.assertTrue(player.failed)
+        self.assertEqual(session.nav.current,radio_ref)
 
     def test_live_widgets_are_above_static_artwork_in_native_creation_order(self):
         # Real createGUIScreen creates additionalWidgets after named components.

@@ -1,3 +1,57 @@
+# Radio Warder Evolution — test25 standard MoviePlayer
+
+Receiver screenshots confirm that test24 plays YouTube video. The requested UI
+change now delegates to Screens.InfoBar.MoviePlayer with skinName MoviePlayer,
+so the active receiver skin supplies the native information bar and controls.
+Removes the temporary custom overlay, private video keymap and unused Video
+controls translation in all 21 locales (75 active keys). The tested resolver family remains; quality selection now prefers adaptive HLS
+and ranks combined MP4 highest-first without the former 720p cap, retaining
+validated lower-quality addresses for native failure retry.
+
+Adapter uses the common lastservice constructor argument, passing
+fromMovieSelection=False only on images exposing it. EXIT/STOP/EOF return to
+radio directly. A pre-close guard chooses radio, pre-plugin service after parent
+close, or an externally selected channel before the native close handler runs.
+Resume prompts are disabled for transient streaming URLs. Core movie information
+and controls remain native and depend on the active skin/service metadata.
+
+Local validation: 71 unit cases, 27 native cases on each of three pinned images
+(152 executions), plus IPK/Python 3.9/owned-path/offline install scripts. The
+native harness replays the exact pinned constructor signatures and actual native
+MoviePlayer close handlers; the constructor UI/mixins and C++ surface are stubbed.
+Screens/InfoBar.py is now included among hash-verified fixtures (54 files across
+three images). Physical rendering of this new native-player handoff remains to
+be checked on the receiver. Publication record follows after CI.
+
+---
+
+# Radio Warder Evolution — test24 YouTube candidate, NOT PUBLISHED
+
+Yellow now requests the playing song's YouTube video. Favourite moves to MENU.
+Bundled GPL-2.0 source resolver and interpreter are isolated from image config
+and TLS settings. Native video surface uses 4097, pause/seek/overlay/exit and
+ownership-safe radio return. Worker calls stay off GUI. All 21 locale catalogues
+have 76 keys. Refer to docs/YOUTUBE.md for limits and exact verification status.
+
+Live result search works. The hosted runner received explicit anti-bot sign-in
+responses from three clients; a real video stream has NOT been validated.
+Do not advance the testing feed or describe playback as confirmed. Candidate
+source/package are for a physical receiver check. Main/testing remain test23.
+
+Local validation passed: 71 unit cases, 27 native cases on each of three pinned
+OpenPLi/OpenATV revisions (147 executions) and IPK/Python 3.9/owned-path/offline
+install checks. The independent source package contains 105 files and full
+third-party license/notice. Candidate CI passed build, 147 test executions, package verification and artifact
+upload: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/41670691799
+Source: 54ce718662099485a48ea4d794357db20f745304.
+Local and CI package agree: 3,092,484 bytes, SHA-256
+7600be04acf9c574532947162825837f21e4c89da0a86d4d29374b9f4e33d554.
+Artifact: radio-youtube-receiver-candidate. Live search succeeded; playback remained
+blocked by the hosted request's anti-bot sign-in response. A green candidate CI
+means package/offline checks passed, NOT that live stream playback succeeded.
+
+---
+
 # Radio Warder Evolution — test23 spectrum without caption
 
 User requested removal of Playback activity beneath the spectrum. Removes the

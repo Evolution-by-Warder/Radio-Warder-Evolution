@@ -69,5 +69,9 @@
   "Downloading update…": "Güncelleme indiriliyor…",
   "Verifying package…": "Paket doğrulanıyor…",
   "Verifying installation…": "Kurulum doğrulanıyor…",
-  "Artist artwork": "Sanatçı görseli"
+  "Artist artwork": "Sanatçı görseli",
+  "YouTube video": "YouTube videosu",
+  "Finding YouTube video…": "YouTube videosu aranıyor…",
+  "YouTube video unavailable": "YouTube videosu kullanılamıyor",
+  "Current song information is unavailable": "Geçerli şarkı bilgisi kullanılamıyor"
 }

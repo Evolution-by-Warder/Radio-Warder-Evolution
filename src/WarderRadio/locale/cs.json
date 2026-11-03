@@ -69,5 +69,9 @@
   "Downloading update…": "Stahování aktualizace…",
   "Verifying package…": "Ověřování balíčku…",
   "Verifying installation…": "Ověřování instalace…",
-  "Artist artwork": "Obrázek interpreta"
+  "Artist artwork": "Obrázek interpreta",
+  "YouTube video": "YouTube video",
+  "Finding YouTube video…": "Hledám video na YouTube…",
+  "YouTube video unavailable": "Video na YouTube není dostupné",
+  "Current song information is unavailable": "Informace o aktuální skladbě nejsou dostupné"
 }

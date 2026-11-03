@@ -69,5 +69,9 @@
   "Downloading update…": "Se descarcă actualizarea…",
   "Verifying package…": "Se verifică pachetul…",
   "Verifying installation…": "Se verifică instalarea…",
-  "Artist artwork": "Imaginea artistului"
+  "Artist artwork": "Imaginea artistului",
+  "YouTube video": "Video YouTube",
+  "Finding YouTube video…": "Se caută videoclipul YouTube…",
+  "YouTube video unavailable": "Videoclipul YouTube nu este disponibil",
+  "Current song information is unavailable": "Informațiile despre melodia curentă nu sunt disponibile"
 }
