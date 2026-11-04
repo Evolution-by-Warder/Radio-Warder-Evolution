@@ -75,6 +75,15 @@ class RadioList(MenuList):
             return max(1, round(value * self.ui_scale))
         flags = (getattr(enigma, 'RT_HALIGN_RIGHT', enigma.RT_HALIGN_LEFT) if self.functions and rtl() else enigma.RT_HALIGN_LEFT) | enigma.RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0)
         if self.functions:
+            if key == 'group':
+                caption = t('Choose country') + ' – '
+                country = item[len(caption):]
+                return [None,
+                        MultiContentEntryText(pos=(n(16), n(7)), size=(n(200), n(65)),
+                                              font=0, flags=flags, text=caption),
+                        MultiContentEntryText(pos=(n(200), n(7)), size=(n(170), n(65)),
+                                              font=0, flags=flags, text=country,
+                                              color=0x00ceff, color_sel=0x00ceff)]
             return [None, MultiContentEntryText(pos=(n(16), n(7)), size=(n(350), n(65)),
                                                font=0, flags=flags, text=item)]
         path = path_for(item)
@@ -699,8 +708,10 @@ class WarderRadio(Screen):
                    (t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
                    (t('History'), 'history'), (t('Recordings'), 'recordings'),
                    (t('Settings'), 'settings'), (t('Update'), 'plugin-update')]
-        self['functions'].setList(entries)
-        self['functions'].moveToIndex(max(0, min(current, len(entries) - 1)))
+        if getattr(self, '_country_menu_label', None) != entries[0][0]:
+            self._country_menu_label = entries[0][0]
+            self['functions'].setList(entries)
+            self['functions'].moveToIndex(max(0, min(current, len(entries) - 1)))
 
     def choose_group(self):
         if self.closed or self.installing or self.starting:
