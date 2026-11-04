@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Διαγραφή της εγγραφής {name};",
   "Recording deleted": "Η εγγραφή διαγράφηκε",
   "Cannot delete recording": "Αδυναμία διαγραφής εγγραφής",
-  "Stop recording before deleting recordings": "Σταματήστε την εγγραφή πριν διαγράψετε εγγραφές"
+  "Stop recording before deleting recordings": "Σταματήστε την εγγραφή πριν διαγράψετε εγγραφές",
+  "Loading country {name}…": "Φόρτωση χώρας {name}…",
+  "Searching all countries…": "Αναζήτηση σε όλες τις χώρες…",
+  "Checking country updates…": "Έλεγχος ενημερώσεων χωρών…"
 }

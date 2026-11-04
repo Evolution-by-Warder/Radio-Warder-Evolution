@@ -24,6 +24,8 @@ parser.add_argument('--upstream', type=Path, required=True)
 args, extra = parser.parse_known_args()
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
+sys.path.insert(0, str(ROOT / 'tests'))
+from country_support import Backend, country_fixture, rows as country_rows
 UP = args.upstream
 
 
@@ -313,6 +315,14 @@ class NativeTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
+        manifest, files = country_fixture(json.loads((ROOT / 'src/WarderRadio/seed.json').read_text()))
+        cache = Path(self.tmp.name, 'countries'); cache.mkdir()
+        (cache / 'manifest.json').write_bytes(files['country-manifest.json'])
+        for entry in manifest['countries'][:2]:
+            (cache / (entry['id'] + '-' + entry['sha256'] + '.json.gz')).write_bytes(files[entry['path']])
+        self.country_backend = Backend(files)
+        self.country_patch = patch('WarderRadio.country_catalogue.urlopen', self.country_backend)
+        self.country_patch.start(); self.addCleanup(self.country_patch.stop)
         self.patch = patch.object(radio, 'Store', lambda: Store(self.tmp.name))
         self.patch.start(); self.addCleanup(self.patch.stop)
         self.update_patch = patch.object(radio, 'check_release', return_value=None)
@@ -346,17 +356,23 @@ class NativeTests(unittest.TestCase):
             time.sleep(0.001)
         self.assertFalse(screen.starting, 'Catalogue worker did not finish')
 
+    def wait_for_country(self, screen):
+        deadline = time.monotonic() + 2
+        while screen.updating and time.monotonic() < deadline:
+            screen.poll(); time.sleep(.001)
+        self.assertFalse(screen.updating, 'Country worker did not finish')
+
     def test_startup_paints_before_catalogue_work_and_close_cancels_late_results(self):
         original = radio.Catalogue
         entered, release = threading.Event(), threading.Event()
         caller = threading.get_ident()
         workers = []
-        def catalogue(directory, load=True):
+        def catalogue(directory, load=True, **kwargs):
             if load:
                 workers.append(threading.get_ident())
                 entered.set()
                 release.wait(2)
-            return original(directory, load=load)
+            return original(directory, load=load, **kwargs)
         with patch.object(radio, 'Catalogue', side_effect=catalogue):
             screen, session, root = self.new(wait_ready=False)
             self.assertTrue(root.findall('widget'))
@@ -463,13 +479,19 @@ class NativeTests(unittest.TestCase):
         screen.ended(); self.assertFalse(screen.playing)
         screen.cleanup(); self.assertIs(session.nav.current, original)
 
-    def test_group_all_custom_search_empty_results_and_failed_catalogue_keep_screen_usable(self):
+    def test_country_custom_lazy_world_search_and_failed_catalogue_keep_screen_usable(self):
         screen, session, _ = self.new()
-        screen.group_done(('All', ''))
-        self.assertEqual(len(screen.rows), 5444)
+        self.assertEqual(self.country_backend.requests, [])
+        screen.group_done(('Slovensko', 'Slovensko'))
+        self.wait_for_country(screen)
+        self.assertEqual(len(screen.rows), 88)
         screen.search_done('radio expres')
+        self.wait_for_country(screen)
         self.assertTrue(screen.rows)
+        self.assertEqual(len(self.country_backend.requests), 1)
+        self.assertTrue(self.country_backend.requests[0].startswith('search/'))
         screen.search_done('unfindable-zzzzzzzz')
+        self.wait_for_country(screen)
         self.assertFalse(screen.rows)
         screen.play(); screen.favourite(); screen.down(); screen.up()
         screen.new_station_name = 'My radio'
@@ -488,14 +510,58 @@ class NativeTests(unittest.TestCase):
         playing = session.nav.current
         selected = screen.playback.current
         screen.active_group = 'Previous provider group'
-        changed = [dict(row, group='Germany') for row in screen.catalogue.items[:100]]
+        changed = [dict(row, group='Germany') for row in screen.catalogue.items]
         self.assertTrue(any(row['id'] == selected['id'] for row in changed))
-        screen.catalogue_loaded(changed, None)
+        prepared = radio.Catalogue(self.tmp.name,load=False)
+        prepared.manifest, _ = country_fixture(country_rows('Slovensko',1,60000) +
+                                               country_rows('Čechy',1,60001) + changed)
+        prepared.items, prepared.group = changed, 'Germany'
+        with patch('WarderRadio.model.catalogue_items',side_effect=AssertionError('GUI validation')):
+            screen.catalogue_loaded(prepared, None)
         self.assertEqual(screen.active_group, 'Germany')
         self.assertEqual(Store(self.tmp.name).group, 'Germany')
         self.assertTrue(screen.rows)
         self.assertIs(session.nav.current, playing)
         screen.cleanup()
+
+    def test_country_switch_is_background_cancellable_and_latest_selection_wins(self):
+        screen, session, _ = self.new()
+        screen.play(); playing = session.nav.current
+        entered, release = threading.Event(), threading.Event()
+        original = screen.catalogue.prepare_country
+        caller = threading.get_ident(); workers = []
+        def delayed(group, task):
+            workers.append(threading.get_ident())
+            if group == 'Čechy':
+                entered.set();release.wait(1)
+            return original(group, task)
+        with patch.object(screen.catalogue, 'prepare_country', side_effect=delayed):
+            screen.group_done(('Čechy','Čechy'))
+            self.assertTrue(entered.wait(1))
+            self.assertEqual(screen.active_group,'Slovensko')
+            screen.left();screen['functions'].moveToIndex(1);screen.ok()
+            self.assertEqual(screen.mode,'favourites')
+            self.assertIs(session.nav.current,playing)
+            screen.group_done(('Slovensko','Slovensko'))
+            release.set();self.wait_for_country(screen)
+        self.assertEqual(screen.active_group,'Slovensko')
+        self.assertTrue(all(worker != caller for worker in workers))
+        self.assertIs(session.nav.current,playing)
+
+    def test_country_close_discards_late_worker_callback(self):
+        screen, session, _ = self.new()
+        entered, release = threading.Event(), threading.Event()
+        previous = screen.catalogue
+        def delayed(task):
+            entered.set();release.wait(1);return previous
+        screen.queue_catalogue(delayed,'update')
+        self.assertTrue(entered.wait(1))
+        task = screen.catalogue_task
+        screen.cleanup();release.set()
+        screen.catalogue_loaded(previous,None,task,'update')
+        self.assertTrue(screen.closed)
+        self.assertTrue(task.cancelled.is_set())
+        self.assertFalse(screen.poll_timer.timer.active)
 
     def test_native_plugin_descriptor_has_approved_icon_and_lazy_main(self):
         descriptors = plugin.Plugins()
@@ -1010,6 +1076,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(dialog[-1]['list'][dialog[-1]['selection']][1], screen.active_group)
         screen.country_done(('Čechy', 'Čechy'))
         self.assertEqual(screen.focus, 'stations')
+        self.wait_for_country(screen)
         self.assertEqual(screen.active_group, 'Čechy')
         self.assertTrue(all(item['group'] == 'Čechy' for item in screen.rows))
         self.assertIn(radio.group_label('Čechy'), screen['heading'].getText())

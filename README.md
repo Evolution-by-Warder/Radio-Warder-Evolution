@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current receiver-test candidate:
-**0.1.0-test32**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test34**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -30,11 +30,14 @@ registered in the plugin browser.
 
 ## Included
 
-- Bundled offline seed: 5,444 stations in 203 groups, with original stream URLs
-  and service references. From test33, explicit catalogue updates use the full
-  centrally compiled country catalogue over bounded gzip/JSON transfer. Slovakia
-  and Czechia appear first, other countries alphabetically, unknown countries last.
-  The cached/seed list remains usable without the catalogue server. Install test33
+- Offline startup seed: 89 Slovak stations with original stream URLs
+  and service references. From test34, the receiver loads one country at a time.
+  A small versioned manifest lists every country; only selected/previously visited
+  countries are cached. Explicit updates download changed visited packages only.
+  Validation and atomic cache writes run off the GUI thread. Slovakia and Czechia
+  remain first; the original-source view is loaded only when selected.
+  Startup uses a cached country or the small bundled Slovak seed, with no network
+  request or full legacy-cache migration before the window is usable. Install test34
   or newer once, then use MENU → Update catalogue for subsequent data updates.
   Genres, languages and other source metadata remain in the central database for
   future views; this release exposes the country list and station search.
@@ -74,7 +77,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test32_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test34_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.

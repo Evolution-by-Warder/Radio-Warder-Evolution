@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Të fshihet regjistrimi {name}?",
   "Recording deleted": "Regjistrimi u fshi",
   "Cannot delete recording": "Regjistrimi nuk mund të fshihet",
-  "Stop recording before deleting recordings": "Ndaloni regjistrimin para se të fshini regjistrimet"
+  "Stop recording before deleting recordings": "Ndaloni regjistrimin para se të fshini regjistrimet",
+  "Loading country {name}…": "Po ngarkohet shteti {name}…",
+  "Searching all countries…": "Po kërkohet në të gjitha shtetet…",
+  "Checking country updates…": "Po kontrollohen përditësimet e shteteve…"
 }

@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Ștergeți înregistrarea {name}?",
   "Recording deleted": "Înregistrare ștearsă",
   "Cannot delete recording": "Înregistrarea nu poate fi ștearsă",
-  "Stop recording before deleting recordings": "Opriți înregistrarea înainte de a șterge înregistrări"
+  "Stop recording before deleting recordings": "Opriți înregistrarea înainte de a șterge înregistrări",
+  "Loading country {name}…": "Se încarcă țara {name}…",
+  "Searching all countries…": "Se caută în toate țările…",
+  "Checking country updates…": "Se verifică actualizările țărilor…"
 }

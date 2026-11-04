@@ -50,6 +50,11 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 tools/verify_ipk.py
+      - name: Verify public country packages and incremental updates
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 tools/verify_country_catalogue.py
       - name: Verify current-song artwork against live provider
         env:
           PYTHONPATH: src

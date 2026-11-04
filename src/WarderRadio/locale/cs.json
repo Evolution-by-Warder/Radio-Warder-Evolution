@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Vymazat nahrávku {name}?",
   "Recording deleted": "Nahrávka vymazána",
   "Cannot delete recording": "Nahrávku nelze vymazat",
-  "Stop recording before deleting recordings": "Před mazáním nahrávek zastavte nahrávání"
+  "Stop recording before deleting recordings": "Před mazáním nahrávek zastavte nahrávání",
+  "Loading country {name}…": "Načítám zemi {name}…",
+  "Searching all countries…": "Vyhledávám ve všech zemích…",
+  "Checking country updates…": "Kontroluji aktualizace zemí…"
 }
