@@ -64,9 +64,10 @@ class RadioList(MenuList):
     def __init__(self, rows, scale, functions=False):
         self.ui_scale, self.functions = scale, functions
         MenuList.__init__(self, rows, True, eListboxPythonMultiContent)
-        self.l.setItemHeight(round((80 if functions else 94) * scale))
+        self.l.setItemHeight(round((72 if functions else 94) * scale))
         self.l.setFont(0, gFont('Regular', round((30 if functions else 29) * scale)))
         self.l.setFont(1, gFont('Regular', round(21 * scale)))
+        self.l.setFont(2, gFont('Regular', round(20 * scale)))
         self.l.setBuildFunc(self.build)
         self.picons = {}
 
@@ -78,13 +79,19 @@ class RadioList(MenuList):
             if key == 'group':
                 caption = t('Choose country') + ' – '
                 country = item[len(caption):]
+                # A smaller first-row font keeps both the translated label
+                # and cyan country name within the 390px Warder menu panel.
+                caption_width = min(215, max(145, len(caption) * 10 + 12))
                 return [None,
-                        MultiContentEntryText(pos=(n(16), n(7)), size=(n(200), n(65)),
-                                              font=0, flags=flags, text=caption),
-                        MultiContentEntryText(pos=(n(200), n(7)), size=(n(170), n(65)),
-                                              font=0, flags=flags, text=country,
+                        MultiContentEntryText(pos=(n(16), n(4)),
+                                              size=(n(caption_width - 16), n(62)),
+                                              font=2, flags=flags, text=caption),
+                        MultiContentEntryText(pos=(n(caption_width), n(4)),
+                                              size=(n(372 - caption_width), n(62)),
+                                              font=2, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            return [None, MultiContentEntryText(pos=(n(16), n(7)), size=(n(350), n(65)),
+            return [None, MultiContentEntryText(pos=(n(16), n(4)),
+                                               size=(n(350), n(62)),
                                                font=0, flags=flags, text=item)]
         path = path_for(item)
         if path not in self.picons:
