@@ -1,4 +1,4 @@
-name: Warder Radio TEST
+name: Warder Radio RELEASE
 on:
   push:
     branches: [main]
@@ -97,17 +97,33 @@ jobs:
         with:
           name: warder-radio-${{ env.RADIO_VERSION }}
           path: dist/*
-      - name: Publish receiver-test prerelease
+      - name: Publish verified stable or test release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           tag="warder-radio-v$RADIO_VERSION"
-          if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" --target "$GITHUB_SHA" --prerelease \
-              --title "Warder Radio $RADIO_VERSION" --notes-file docs/CHANGELOG.md
+          if gh release view "$tag" >/dev/null 2>&1; then
+            if [[ "$RADIO_VERSION" == *-test* ]]; then
+              gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json --clobber
+            else
+              # A stable tag may only ever contain the SAME verified IPK.
+              # Re-runs after feed-publishing failures must not alter a release.
+              mkdir -p dist/published
+              gh release download "$tag" --pattern "*.ipk" --dir dist/published --clobber
+              cmp "dist/enigma2-plugin-extensions-radio-warder-evolution_${RADIO_VERSION}_all.ipk" \
+                  "dist/published/enigma2-plugin-extensions-radio-warder-evolution_${RADIO_VERSION}_all.ipk"
+            fi
+          else
+            if [[ "$RADIO_VERSION" == *-test* ]]; then
+              gh release create "$tag" --target "$GITHUB_SHA" --prerelease \
+                --title "Warder Radio $RADIO_VERSION" --notes-file docs/CHANGELOG.md
+            else
+              gh release create "$tag" --target "$GITHUB_SHA" --latest \
+                --title "Warder Radio $RADIO_VERSION (stable)" --notes-file docs/CHANGELOG.md
+            fi
+            gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json
           fi
-          gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json --clobber
           bridge_tag="warder-radio-v0.1.0-test11"
           if ! gh release view "$bridge_tag" >/dev/null 2>&1; then
             gh release create "$bridge_tag" --target "$GITHUB_SHA" --prerelease \
@@ -121,7 +137,7 @@ jobs:
           else
             gh release upload "$bridge_tag" dist/legacy/*.ipk dist/legacy/SHA256SUMS dist/legacy/build.json
           fi
-      - name: Verify public download and advance testing feed
+      - name: Verify public download and advance correct update feeds
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -131,7 +147,7 @@ jobs:
           python3 tools/publish_feed.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- update/testing.json update/v2/testing.json
+          git add -- update/testing.json update/v2/testing.json update/v2/stable.json
           if ! git diff --cached --quiet; then
             git commit -m "Publish verified Warder Radio $RADIO_VERSION testing feed [skip ci]"
             git push origin HEAD:main

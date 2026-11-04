@@ -22,6 +22,8 @@ class UpdateTests(unittest.TestCase):
     def test_version_order_upgrade_and_stable_transition(self):
         self.assertLess(update.version_key('0.1.0-test2'), update.version_key('0.1.0-test3'))
         self.assertLess(update.version_key('0.1.0-test99'), update.version_key('0.1.0'))
+        self.assertLess(update.version_key('0.1.0-test39'), update.version_key('0.1.1'))
+        self.assertIsNotNone(update.parse_release(json.dumps(manifest('0.1.1')), '0.1.0-test39'))
         self.assertIsNotNone(update.parse_release(json.dumps(manifest()), '0.1.0-test2'))
         self.assertIsNone(update.parse_release(json.dumps(manifest('0.1.0-test1')), '0.1.0-test2'))
         self.assertIsNotNone(update.parse_release(json.dumps(manifest('0.1.0')), '0.1.0-test2'))
@@ -39,6 +41,34 @@ class UpdateTests(unittest.TestCase):
                 update.parse_release(json.dumps(value), '0.1.0-test2')
         with self.assertRaises(update.UpdateError):
             update.parse_release(json.dumps(manifest('0.1.1-test1', 'stable')), '0.1.0')
+
+    def test_first_stable_version_and_both_update_paths(self):
+        # The testing channel can promote installed receiver-test packages,
+        # while a stable install reads the dedicated stable channel.
+        self.assertEqual(VERSION, '0.1.1')
+        release = manifest('0.1.1', 'testing')
+        offered = []
+        def for_tester(url):
+            offered.append(url)
+            return io.BytesIO(json.dumps(release).encode())
+        self.assertEqual(update.check_release('0.1.0-test39', for_tester).version, VERSION)
+        self.assertTrue(offered[-1].endswith('/update/v2/testing.json'))
+        release['channel'] = 'stable'
+        def for_stable(url):
+            offered.append(url)
+            return io.BytesIO(json.dumps(release).encode())
+        self.assertIsNone(update.check_release('0.1.1', for_stable))
+        self.assertTrue(offered[-1].endswith('/update/v2/stable.json'))
+
+    def test_stable_opkg_version_sorts_above_last_test_package(self):
+        # On Linux CI, Debian comparison is a regression proxy for the opkg
+        # version ordering used by OpenATV/OpenPLi receivers.
+        import shutil
+        import subprocess
+        if shutil.which('dpkg'):
+            result = subprocess.run(['dpkg', '--compare-versions',
+                                     '0.1.1-1', 'gt', '0.1.0-test39-1'])
+            self.assertEqual(result.returncode, 0)
 
     def test_empty_feed_is_valid_and_testing_channel_is_selected(self):
         value = manifest(); value['release'] = None

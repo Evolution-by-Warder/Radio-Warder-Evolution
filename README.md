@@ -16,8 +16,13 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current receiver-test candidate:
-**0.1.0-test39** (receiver-test candidate). This is not a stable production release.
+Current stable release: **0.1.1** (the first production update channel).
+The preceding 0.1.0-test39 remains available as a receiver-test prerelease.
+
+0.1.1 follows 0.1.0-test39 deliberately: the higher numeric version allows
+opkg to upgrade rather than treat the stable package as an older build.
+The plugin keeps favourites, history, cache, selected country, recordings and
+all other Warder Radio state under /etc/enigma2/warder-radio.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -70,7 +75,10 @@ registered in the plugin browser.
   is offered with confirmation, then size, SHA-256, package identity/version and
   installed opkg status are verified. After success an information message lasts three seconds and GUI restarts automatically.
   Test builds use the testing channel; stable builds use the separate stable
-  channel. The feed advances only after the public IPK download is verified.
+  channel. When the first stable package is published, the testing feed also
+  temporarily advertises that same stable package to promote installed
+  0.1.0-testN builds safely. The feed advances only after its public IPK
+  bytes and SHA-256 have been verified.
 - Native layouts at 1280×720, 1920×1080, 2560×1440 and 3840×2160; list heights
   always contain an exact number of complete rows.
 
@@ -83,7 +91,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test39_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.1_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.

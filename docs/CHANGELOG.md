@@ -1,3 +1,19 @@
+# 0.1.1 (first stable release, OpenATV / OpenPLi)
+
+- Promote the tested Warder Radio 0.1.0-test39 functionality to a stable version
+  with a safe numeric upgrade from all 0.1.0-testN packages through opkg.
+- Retain Warder branding and three panels, PiconHub integration, the eight
+  complete station rows, translated controls, local calendar and GSU/PiconHub
+  style header, current-track artwork, YouTube player, streamripper recording,
+  favourites and country catalogue caches.
+- Publish a dedicated stable manifest with a public, verified IPK (SHA-256,
+  package identity and size). Advertise the same verified stable release in
+  the testing feed so installed test builds can upgrade directly.
+- Preserve the pre-test11 migration bridge and legacy feed without modifying
+  any global Enigma2 skin, keymap or external plugins.
+- Availability of individual streams and physical GPU/audio behaviour still
+  depends on receiver, Enigma2 image and service provider.
+
 # 0.1.0-test39 (receiver-test update)
 
 - Match the PiconHub/GSU header geometry exactly: two-line weekday/date, prominent HH:MM with smaller :SS, two narrow cyan separators, localized Version label above the package version.
