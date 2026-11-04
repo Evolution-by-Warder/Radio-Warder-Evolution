@@ -81,5 +81,6 @@
   "Loading country {name}…": "Po ngarkohet shteti {name}…",
   "Searching all countries…": "Po kërkohet në të gjitha shtetet…",
   "Checking country updates…": "Po kontrollohen përditësimet e shteteve…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "MAJTAS: faqja e mëparshme/menyja · DJATHTAS: faqja tjetër · 0: shteti · MENU: opsionet"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "MAJTAS: faqja e mëparshme/menyja · DJATHTAS: faqja tjetër · 0: shteti · MENU: opsionet",
+  "Version:": "Versioni:"
 }

@@ -81,5 +81,6 @@
   "Loading country {name}…": "Chargement du pays {name}…",
   "Searching all countries…": "Recherche dans tous les pays…",
   "Checking country updates…": "Vérification des mises à jour des pays…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "GAUCHE : page précédente/menu · DROITE : page suivante · 0 : pays · MENU : options"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "GAUCHE : page précédente/menu · DROITE : page suivante · 0 : pays · MENU : options",
+  "Version:": "Version:"
 }
