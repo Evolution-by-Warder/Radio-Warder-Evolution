@@ -81,5 +81,6 @@
   "Loading country {name}…": "Загрузка страны {name}…",
   "Searching all countries…": "Поиск во всех странах…",
   "Checking country updates…": "Проверка обновлений стран…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "ВЛЕВО: предыдущая страница/меню · ВПРАВО: следующая страница · 0: страна · MENU: параметры"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "ВЛЕВО: предыдущая страница/меню · ВПРАВО: следующая страница · 0: страна · MENU: параметры",
+  "Version:": "Версия:"
 }

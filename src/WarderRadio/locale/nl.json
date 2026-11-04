@@ -81,5 +81,6 @@
   "Loading country {name}…": "Land {name} laden…",
   "Searching all countries…": "Zoeken in alle landen…",
   "Checking country updates…": "Landupdates controleren…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "LINKS: vorige pagina/menu · RECHTS: volgende pagina · 0: land · MENU: opties"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "LINKS: vorige pagina/menu · RECHTS: volgende pagina · 0: land · MENU: opties",
+  "Version:": "Versie:"
 }

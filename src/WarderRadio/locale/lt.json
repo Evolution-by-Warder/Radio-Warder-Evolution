@@ -81,5 +81,6 @@
   "Loading country {name}…": "Įkeliama šalis {name}…",
   "Searching all countries…": "Ieškoma visose šalyse…",
   "Checking country updates…": "Tikrinami šalių naujinimai…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "KAIRĖN: ankstesnis puslapis/meniu · DEŠINĖN: kitas puslapis · 0: šalis · MENU: parinktys"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "KAIRĖN: ankstesnis puslapis/meniu · DEŠINĖN: kitas puslapis · 0: šalis · MENU: parinktys",
+  "Version:": "Versija:"
 }
