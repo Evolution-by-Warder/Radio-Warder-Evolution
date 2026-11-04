@@ -17,11 +17,17 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current receiver-test candidate:
-**0.1.0-test38** (receiver-test candidate). This is not a stable production release.
+**0.1.0-test39** (receiver-test candidate). This is not a stable production release.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
 z-order layers; the regression replay includes additional static widgets.
+
+The upper-right header follows the approved PiconHub and Glass System Utility
+layout: localized weekday and long date on two lines, large hour/minute digits
+with smaller seconds, cyan dividing strokes and a translated Version caption.
+The original Warder Radio skull/title graphic remains untouched. Header fields
+scale with the native HD, Full HD, QHD and UHD layouts.
 
 The approved layout uses the Warder graphic family, functions on the left,
 stations in the centre and the player on the right. The header places the actual
@@ -77,7 +83,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test38_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test39_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.

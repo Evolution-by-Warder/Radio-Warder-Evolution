@@ -81,5 +81,6 @@
   "Loading country {name}…": "{name} ülkesi yükleniyor…",
   "Searching all countries…": "Tüm ülkelerde aranıyor…",
   "Checking country updates…": "Ülke güncellemeleri denetleniyor…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "SOL: önceki sayfa/menü · SAĞ: sonraki sayfa · 0: ülke · MENU: seçenekler"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "SOL: önceki sayfa/menü · SAĞ: sonraki sayfa · 0: ülke · MENU: seçenekler",
+  "Version:": "Sürüm:"
 }

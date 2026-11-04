@@ -1,3 +1,11 @@
+# 0.1.0-test39 (receiver-test update)
+
+- Match the PiconHub/GSU header geometry exactly: two-line weekday/date, prominent HH:MM with smaller :SS, two narrow cyan separators, localized Version label above the package version.
+- Use the receiver's local time and interface language (all 21 Warder locales) with bundled weekday/month names; no system-locale mutation and no additional runtime dependency.
+- Preserve the approved Warder Radio skull/logo, the left menu, eight station rows, equalizer, cover art, video and native controls.
+- Repair the test38 native regression's incorrect zero-position expectation (Enigma2 integer scaling clamps positions to 1).
+- Validate header fields, geometry, translation and local time before a testing-feed release. No stable feed changes.
+
 # 0.1.0-test38 (receiver-test update)
 
 - Localize the top station-navigation hint to the Enigma2 system language in all 21 supported Warder locales.

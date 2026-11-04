@@ -81,5 +81,6 @@
   "Loading country {name}…": "در حال بارگیری کشور {name}…",
   "Searching all countries…": "در حال جستجو در همه کشورها…",
   "Checking country updates…": "در حال بررسی به‌روزرسانی کشورها…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "چپ: صفحه قبل/منو · راست: صفحه بعد · 0: کشور · MENU: گزینه‌ها"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "چپ: صفحه قبل/منو · راست: صفحه بعد · 0: کشور · MENU: گزینه‌ها",
+  "Version:": "نسخه:"
 }

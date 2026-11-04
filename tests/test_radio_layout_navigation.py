@@ -6,6 +6,37 @@ from WarderRadio.skin import make_skin
 
 
 class RadioLayoutNavigationTests(unittest.TestCase):
+    def test_piconhub_and_gsu_header_geometry_at_all_resolutions(self):
+        expected = {
+            'day': (1110, 25, 270, 36, 25, 'right'),
+            'date': (980, 70, 400, 36, 24, 'right'),
+            'clock': (1398, 32, 190, 85, 62, 'center'),
+            'seconds': (1590, 58, 66, 54, 38, 'left'),
+            'version_caption': (1680, 25, 210, 36, 25, 'center'),
+            'version': (1680, 70, 210, 36, 24, 'center'),
+        }
+        for width, height in ((1280, 720), (1920, 1080), (2560, 1440), (3840, 2160)):
+            with self.subTest(size=(width, height)):
+                scale = min(width / 1920.0, height / 1080.0)
+                root = ET.fromstring(make_skin(width, height))
+                fields = {node.get('name'): node for node in root.findall('widget')}
+                for name, (x, y, w, h, font, align) in expected.items():
+                    node = fields[name]
+                    self.assertEqual(tuple(map(int, node.get('position').split(','))),
+                                     (round(x * scale), round(y * scale)))
+                    self.assertEqual(tuple(map(int, node.get('size').split(','))),
+                                     (round(w * scale), round(h * scale)))
+                    self.assertEqual(node.get('halign'), align)
+                    self.assertEqual(node.get('font'), 'Regular;%d' % round(font * scale))
+                    self.assertLessEqual(round(x * scale) + round(w * scale), width)
+                    self.assertLessEqual(round(y * scale) + round(h * scale), round(150 * scale))
+                stripes = [node for node in root.findall('eLabel')
+                           if node.get('backgroundColor') == '#0019c9ff']
+                self.assertEqual(len(stripes), 2)
+                self.assertEqual([int(node.get('position').split(',')[0]) for node in stripes],
+                                 [round(1392 * scale), round(1664 * scale)])
+                self.assertTrue(all(node.get('zPosition') == '3' for node in stripes))
+
     def test_eight_full_station_rows_and_seven_menu_rows(self):
         for width, height in ((1280, 720), (1920, 1080), (2560, 1440), (3840, 2160)):
             with self.subTest(resolution=(width, height)):

@@ -1310,11 +1310,11 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(box('functions')[1], 232)
         country_content = screen['functions'].l.build(*screen['functions'].l.rows[0])
         radio_content = screen['functions'].l.build(*screen['functions'].l.rows[1])
-        self.assertEqual(country_content[1][2], 0)
+        self.assertEqual(country_content[1][2], 1)  # scaled zero clamps to one pixel
         self.assertEqual(country_content[1][4], 58)
         self.assertEqual(radio_content[1][2], 10)
         self.assertEqual(radio_content[1][4], 56)
-        self.assertEqual(72 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 24)
+        self.assertEqual(72 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 23)
         self.assertEqual(screen['functions'].l.fonts[2], ('Regular', 24))
         self.assertLessEqual(box('navtitle')[1] + box('navtitle')[3], box('functions')[1])
         self.assertEqual(box('art')[2:], (520, 520))
@@ -1331,6 +1331,23 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['status'].getText(), '')
         self.assertLess(box('status')[0] + box('status')[2], 472)
         self.assertLess(994, box('red')[1])
+
+    def test_piconhub_style_header_uses_one_local_clock_snapshot(self):
+        screen, session, root = self.new()
+        with patch.object(radio, 'clock_text',
+                          return_value=('Streda', '4. novembra 2026', '17:10', ':07')) as formatted:
+            screen.tick()
+        formatted.assert_called_once_with()
+        self.assertEqual(screen['day'].getText(), 'Streda')
+        self.assertEqual(screen['date'].getText(), '4. novembra 2026')
+        self.assertEqual(screen['clock'].getText(), '17:10')
+        self.assertEqual(screen['seconds'].getText(), ':07')
+        self.assertEqual(screen['version_caption'].getText(), radio.t('Version:'))
+        self.assertEqual(screen['version'].getText(), radio.VERSION)
+        self.assertFalse(screen['version'].getText().startswith('v'))
+        fields = {entry.get('name') for entry in root.findall('widget')}
+        self.assertTrue({'day', 'date', 'clock', 'seconds', 'version_caption',
+                         'version'}.issubset(fields))
 
     def test_late_artwork_job_is_ignored_after_song_change_and_neutral_resets_on_stop(self):
         screen, session, root = self.new()

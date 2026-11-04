@@ -81,5 +81,6 @@
   "Loading country {name}…": "Riigi {name} laadimine…",
   "Searching all countries…": "Otsing kõigis riikides…",
   "Checking country updates…": "Riikide uuenduste kontrollimine…",
-  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "VASAK: eelmine leht/menüü · PAREM: järgmine leht · 0: riik · MENU: valikud"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "VASAK: eelmine leht/menüü · PAREM: järgmine leht · 0: riik · MENU: valikud",
+  "Version:": "Versioon:"
 }
