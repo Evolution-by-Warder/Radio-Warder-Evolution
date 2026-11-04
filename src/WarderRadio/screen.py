@@ -64,7 +64,7 @@ class RadioList(MenuList):
     def __init__(self, rows, scale, functions=False):
         self.ui_scale, self.functions = scale, functions
         MenuList.__init__(self, rows, True, eListboxPythonMultiContent)
-        self.l.setItemHeight(round(94 * scale))
+        self.l.setItemHeight(round((80 if functions else 94) * scale))
         self.l.setFont(0, gFont('Regular', round((30 if functions else 29) * scale)))
         self.l.setFont(1, gFont('Regular', round(21 * scale)))
         self.l.setBuildFunc(self.build)
@@ -75,7 +75,7 @@ class RadioList(MenuList):
             return max(1, round(value * self.ui_scale))
         flags = (getattr(enigma, 'RT_HALIGN_RIGHT', enigma.RT_HALIGN_LEFT) if self.functions and rtl() else enigma.RT_HALIGN_LEFT) | enigma.RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0)
         if self.functions:
-            return [None, MultiContentEntryText(pos=(n(16), n(12)), size=(n(350), n(65)),
+            return [None, MultiContentEntryText(pos=(n(16), n(7)), size=(n(350), n(65)),
                                                font=0, flags=flags, text=item)]
         path = path_for(item)
         if path not in self.picons:
@@ -137,15 +137,14 @@ class WarderRadio(Screen):
         self.playing = False
         self.rows = []
         self.recording_was_running = False
-        self['functions'] = RadioList([(t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
+        self['functions'] = RadioList([(t('Choose country'), 'group'), (t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
                                       (t('History'), 'history'), (t('Recordings'), 'recordings'),
                                       (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
-        for name in ('date', 'clock', 'version', 'navtitle', 'section', 'countrycaption', 'nowlabel', 'station',
+        for name in ('date', 'clock', 'version', 'navtitle', 'section', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
             self[name] = Label('')
-        self['heading'] = Button('', onClick=[self.choose_group])
         self['art'] = Pixmap()
         self.cover_display = CoverDisplay(self['art'], ePicLoad, os.path.join(ROOT, 'plugin.png'),
                                           lambda: self['nowlabel'].setText(''))
@@ -254,17 +253,18 @@ class WarderRadio(Screen):
         self['functions'].selectionEnabled(focus == 'functions')
         self['stations'].selectionEnabled(focus == 'stations')
         self.update_country_caption()
-        if focus == 'country':
-            hint = t('Choose country') + ': OK · ↓: ' + t('Radio stations')
-        elif focus == 'stations':
-            hint = t('LEFT: menu · RIGHT: page · 0: country · MENU: options')
+        if focus == 'stations':
+            hint = 'LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options'
         else:
             hint = t('Use left/right to switch panels · MENU: options')
         self['hint'].setText(hint)
 
     def left(self):
         self.startup_autoplay = False
-        self.set_focus('functions')
+        if self.focus == 'stations' and self['stations'].list and self['stations'].getSelectionIndex() > 0:
+            self.page_up()
+        else:
+            self.set_focus('functions')
 
     def right(self):
         self.startup_autoplay = False
@@ -275,45 +275,31 @@ class WarderRadio(Screen):
 
     def focus_country(self):
         self.startup_autoplay = False
-        self.set_focus('country')
+        self['functions'].moveToIndex(0)
+        self.set_focus('functions')
 
     def up(self):
         self.startup_autoplay = False
-        if self.focus == 'country':
-            return
-        if self.focus == 'stations' and (self['stations'].getSelectionIndex() == 0 or not self['stations'].list):
-            self.set_focus('country')
-        else:
-            self[self.focus].up()
+        self[self.focus].up()
         self.update_count()
 
     def down(self):
         self.startup_autoplay = False
-        if self.focus == 'country':
-            self.set_focus('stations')
-        else:
-            self[self.focus].down()
+        self[self.focus].down()
         self.update_count()
 
     def page_up(self):
         self.startup_autoplay = False
-        if self.focus == 'country':
-            self.set_focus('stations')
         self[self.focus].pageUp()
         self.update_count()
 
     def page_down(self):
         self.startup_autoplay = False
-        if self.focus == 'country':
-            self.set_focus('stations')
         self[self.focus].pageDown()
         self.update_count()
 
     def ok(self):
         self.startup_autoplay = False
-        if self.focus == 'country':
-            self.choose_group()
-            return
         if self.focus == 'stations':
             self.play()
             return
@@ -321,6 +307,9 @@ class WarderRadio(Screen):
         if not selected:
             return
         mode = selected[1]
+        if mode == 'group':
+            self.choose_group()
+            return
         if mode == 'settings':
             self.options()
             return
@@ -705,26 +694,20 @@ class WarderRadio(Screen):
 
     def update_country_caption(self):
         country = group_label(self.active_group) if self.active_group else t('All groups')
-        focused = self.focus == 'country'
-        prefix, suffix = ('› ', ' ‹') if focused else ('', '')
-        self['countrycaption'].setText(t('Select country') + ' – ')
-        self['heading'].setText(prefix + country + suffix + '  ▾')
-        caption, value = self['countrycaption'].instance, self['heading'].instance
-        if caption is not None and value is not None:
-            n = lambda pixels: max(1, round(pixels * self.ui_scale))
-            width = min(n(440), max(n(160), caption.calculateSize().width() + n(10)))
-            caption.resize(eSize(width, n(52)))
-            value.move(ePoint(n(530) + width, n(220)))
-            value.resize(eSize(n(620) - width, n(52)))
-            value.setForegroundColor(enigma.gRGB(0x00ceff))
-            value.setBackgroundColor(enigma.gRGB(0x004461))
-            value.setTransparent(0 if focused else 1)
+        current = self['functions'].getSelectionIndex()
+        entries = [(t('Choose country') + ' – ' + country + ' ▾', 'group'),
+                   (t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
+                   (t('History'), 'history'), (t('Recordings'), 'recordings'),
+                   (t('Settings'), 'settings'), (t('Update'), 'plugin-update')]
+        self['functions'].setList(entries)
+        self['functions'].moveToIndex(max(0, min(current, len(entries) - 1)))
 
     def choose_group(self):
         if self.closed or self.installing or self.starting:
             return
         self.country_return_focus = self.focus
-        self.set_focus('country')
+        self['functions'].moveToIndex(0)
+        self.set_focus('functions')
         choices = [(group_label(group), group) for group in self.catalogue.groups()]
         if self.store.custom:
             choices.append((t('Custom'), 'Custom'))
