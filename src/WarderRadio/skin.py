@@ -50,7 +50,7 @@ def make_skin(width, height):
               label('details', 1230, 944, 620, 34, 22, '#a6bed1', 'center'),
               label('count', 530, 966, 620, 26, 22, '#9bbad0'),
               label('status', 62, 796, 380, 44, 18, '#d6e9f7', 'left', True),
-              label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'right')]
+              label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'left')]
     row_h = n(94)
     # Height is derived from the actual scaled row height, never rounded separately.
     parts.append('<widget name="stations" zPosition="2" position="%d,%d" size="%d,%d" '
