@@ -81,5 +81,5 @@
   "Loading country {name}…": "Φόρτωση χώρας {name}…",
   "Searching all countries…": "Αναζήτηση σε όλες τις χώρες…",
   "Checking country updates…": "Έλεγχος ενημερώσεων χωρών…",
-  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "ΑΡΙΣΤΕΡΑ: μενού · ΔΕΞΙΑ: σελίδα · 0: χώρα · MENU: επιλογές"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "ΑΡΙΣΤΕΡΑ: προηγούμενη σελίδα/μενού · ΔΕΞΙΑ: επόμενη σελίδα · 0: χώρα · MENU: επιλογές"
 }

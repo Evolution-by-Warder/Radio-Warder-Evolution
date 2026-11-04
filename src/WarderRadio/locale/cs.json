@@ -81,5 +81,5 @@
   "Loading country {name}…": "Načítám zemi {name}…",
   "Searching all countries…": "Vyhledávám ve všech zemích…",
   "Checking country updates…": "Kontroluji aktualizace zemí…",
-  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "VLEVO: nabídka · VPRAVO: stránka · 0: země · MENU: možnosti"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "VLEVO: předchozí stránka/nabídka · VPRAVO: další stránka · 0: země · MENU: možnosti"
 }

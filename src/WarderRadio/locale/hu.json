@@ -81,5 +81,5 @@
   "Loading country {name}…": "{name} ország betöltése…",
   "Searching all countries…": "Keresés minden országban…",
   "Checking country updates…": "Országfrissítések ellenőrzése…",
-  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "BAL: menü · JOBB: oldal · 0: ország · MENU: beállítások"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "BALRA: előző oldal/menü · JOBBRA: következő oldal · 0: ország · MENU: lehetőségek"
 }
