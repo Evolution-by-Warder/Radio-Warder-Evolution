@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "product": "Warder Radio",
-  "channel": "stable",
+  "channel": "testing",
   "release": {
     "version": "0.1.0-test11",
     "tag": "warder-radio-v0.1.0-test11",
