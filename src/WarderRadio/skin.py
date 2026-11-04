@@ -42,7 +42,7 @@ def make_skin(width, height):
               label('clock', 1490, 20, 206, 60, 38, '#ffffff', 'right'),
               label('version', 1720, 28, 175, 38, 22, '#00ceff', 'right'),
               label('navtitle', 62, 220, 380, 52, 29, '#00ceff'),
-              label('section', 530, 204, 620, 26, 19, '#a6bed1'),
+              label('section', 530, 204, 1, 1, 1, '#a6bed1'),
               label('nowlabel', 1230, 744, 620, 18, 14, '#87a4b9', 'center'),
               label('station', 1230, 768, 620, 30, 24, '#a6bed1', 'center'),
               label('artist', 1230, 806, 620, 40, 28, '#00ceff', 'center'),
