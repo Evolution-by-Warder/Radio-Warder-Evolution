@@ -59,4 +59,4 @@ verify_public(bridge_url, legacy)
 bridge = {'version': bridge_version, 'tag': bridge_tag, 'url': bridge_url,
           'sha256': legacy['sha256'], 'bytes': legacy['bytes'],
           'notes': 'Package name migration to Radio Warder Evolution', 'notes_i18n': {}}
-(ROOT / 'update/testing.json').write_text(json.dumps(dict(feed, release=bridge), indent=2) + '\n')
+(ROOT / 'update/testing.json').write_text(json.dumps(dict(feed, channel='testing', release=bridge), indent=2) + '\n')

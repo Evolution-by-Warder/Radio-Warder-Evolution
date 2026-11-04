@@ -60,6 +60,17 @@ class UpdateTests(unittest.TestCase):
         self.assertIsNone(update.check_release('0.1.1', for_stable))
         self.assertTrue(offered[-1].endswith('/update/v2/stable.json'))
 
+    def test_stable_publication_never_changes_legacy_bridge_channel(self):
+        root = Path(__file__).resolve().parents[1]
+        legacy = json.loads((root / 'update/testing.json').read_text())
+        self.assertEqual(legacy['channel'], 'testing')
+        self.assertEqual(legacy['release']['version'], '0.1.0-test11')
+        self.assertIn('enigma2-plugin-extensions-warderradio_', legacy['release']['url'])
+        # This guard also checks the source generator, not only a snapshot
+        # that a future release may accidentally overwrite.
+        publisher = (root / 'tools/publish_feed.py').read_text()
+        self.assertIn("dict(feed, channel='testing', release=bridge)", publisher)
+
     def test_stable_opkg_version_sorts_above_last_test_package(self):
         # On Linux CI, Debian comparison is a regression proxy for the opkg
         # version ordering used by OpenATV/OpenPLi receivers.
