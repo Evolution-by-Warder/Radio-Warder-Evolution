@@ -3,7 +3,7 @@
 - Raise the left-hand country selector by 32 Full HD pixels while keeping the other function entries and the spectrum within the Warder panels.
 - Increase only the country selector typography from 20 to 24 (Full HD base) while keeping its label white and selected country cyan.
 - Collapse the unused navtitle placeholder to prevent overlap; keep all seven menu rows, all eight station rows and remote-control behaviour unchanged.
-- Add regression checks for left-menu positioning, clearance and font size on supported resolutions.
+- Move the top navigation-help line from the right edge to left alignment beneath the Warder Radio logo, keeping its current typography and colours.\n- Add regression checks for left-menu positioning, clearance, help-text alignment and font size on supported resolutions.
 
 # 0.1.0-test36 (receiver-test candidate; PR artifact only)
 
