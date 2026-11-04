@@ -64,7 +64,6 @@
   "Slovakia": "斯洛伐克",
   "Czechia": "捷克",
   "Update": "更新",
-  "LEFT: menu · RIGHT: country · MENU: options": "左：菜单 · 右：国家 · MENU：选项",
   "Please wait…": "请稍候…",
   "Downloading update…": "正在下载更新…",
   "Verifying package…": "正在验证软件包…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "删除录音前请先停止录制",
   "Loading country {name}…": "正在加载国家/地区 {name}…",
   "Searching all countries…": "正在搜索所有国家/地区…",
-  "Checking country updates…": "正在检查国家/地区更新…"
+  "Checking country updates…": "正在检查国家/地区更新…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "左：菜单 · 右：翻页 · 0：国家/地区 · MENU：选项"
 }

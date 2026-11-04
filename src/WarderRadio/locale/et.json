@@ -64,7 +64,6 @@
   "Slovakia": "Slovakkia",
   "Czechia": "Tšehhi",
   "Update": "Uuenda",
-  "LEFT: menu · RIGHT: country · MENU: options": "VASAKULE: menüü · PAREMALE: riik · MENU: valikud",
   "Please wait…": "Palun oodake…",
   "Downloading update…": "Uuenduse allalaadimine…",
   "Verifying package…": "Paketi kontrollimine…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Enne salvestiste kustutamist peatage salvestamine",
   "Loading country {name}…": "Riigi {name} laadimine…",
   "Searching all countries…": "Otsing kõigis riikides…",
-  "Checking country updates…": "Riikide uuenduste kontrollimine…"
+  "Checking country updates…": "Riikide uuenduste kontrollimine…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "VASAK: menüü · PAREM: leht · 0: riik · MENU: valikud"
 }

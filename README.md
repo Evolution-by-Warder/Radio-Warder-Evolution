@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current receiver-test candidate:
-**0.1.0-test34**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test35**. It is not a production release and is not added to existing stable feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -77,7 +77,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test34_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test35_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -87,8 +87,9 @@ On first use, choose a station and press OK or green. Resume uses the newest
 catalogue URL for the remembered identity where available, with the saved entry
 as fallback. It makes one attempt and leaves the interface usable on failure. LEFT
 opens the function panel; RIGHT from that panel returns to stations. Up/down
-move within a panel. From any station, RIGHT focuses the cyan country value. UP from the first
-station row does the same. Focus adds › country ‹ markers only around that
+move within a panel. RIGHT in the station list advances by one native page; holding
+it repeats page jumps. Press 0 from any station to focus the cyan country value.
+UP from the first station row also focuses that value. Focus adds › country ‹ markers only around that
 value, with a blue field background and the white caption unchanged. Press OK to open country choices;
 DOWN or RIGHT returns to the same station without opening a dialog. In the left menu, UP/DOWN
 move only between function entries, wrapping from first to last and back. Cancel returns

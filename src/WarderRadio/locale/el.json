@@ -64,7 +64,6 @@
   "Slovakia": "Σλοβακία",
   "Czechia": "Τσεχία",
   "Update": "Ενημέρωση",
-  "LEFT: menu · RIGHT: country · MENU: options": "ΑΡΙΣΤΕΡΑ: μενού · ΔΕΞΙΑ: χώρα · MENU: επιλογές",
   "Please wait…": "Παρακαλώ περιμένετε…",
   "Downloading update…": "Λήψη ενημέρωσης…",
   "Verifying package…": "Επαλήθευση πακέτου…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Σταματήστε την εγγραφή πριν διαγράψετε εγγραφές",
   "Loading country {name}…": "Φόρτωση χώρας {name}…",
   "Searching all countries…": "Αναζήτηση σε όλες τις χώρες…",
-  "Checking country updates…": "Έλεγχος ενημερώσεων χωρών…"
+  "Checking country updates…": "Έλεγχος ενημερώσεων χωρών…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "ΑΡΙΣΤΕΡΑ: μενού · ΔΕΞΙΑ: σελίδα · 0: χώρα · MENU: επιλογές"
 }

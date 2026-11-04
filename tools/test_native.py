@@ -581,6 +581,10 @@ class NativeTests(unittest.TestCase):
         actions = {node.attrib['mapto'] for node in maps[0]}
         self.assertEqual(actions, set(screen['actions'].actions))
         self.assertEqual(screen['actions'].contexts, ['WarderRadioActions'])
+        keys = {node.attrib['id']: node.attrib for node in maps[0]}
+        self.assertEqual(keys['KEY_0']['mapto'], 'country')
+        self.assertEqual(keys['KEY_0']['flags'], 'm')
+        self.assertEqual(keys['KEY_RIGHT']['flags'], 'mr')
 
     def recordings(self, screen):
         directory = Path(self.tmp.name, 'recordings')
@@ -1200,7 +1204,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(len(session.dialogs), dialogs + 1)
         self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
 
-    def test_right_focuses_country_from_any_station_and_only_ok_opens_choices(self):
+    def test_zero_focuses_country_from_any_station_and_only_ok_opens_choices(self):
         screen, session, _ = self.new()
         screen.play()
         playing = session.nav.current
@@ -1208,7 +1212,7 @@ class NativeTests(unittest.TestCase):
             screen['stations'].moveToIndex(index)
             selected = screen.current()
             before = len(session.dialogs)
-            screen.right()
+            screen['actions'].actions['country']()
             self.assertEqual(len(session.dialogs), before)
             self.assertEqual(screen.focus, 'country')
             self.assertFalse(screen['stations'].instance.selectionEnabled)
@@ -1220,7 +1224,7 @@ class NativeTests(unittest.TestCase):
             self.assertEqual(screen.current(), selected)
             self.assertEqual(len(session.dialogs), before)
             self.assertNotIn('› ', screen['heading'].getText())
-            screen.right(); screen.ok()
+            screen['actions'].actions['country'](); screen.ok()
             self.assertEqual(len(session.dialogs), before + 1)
             self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
             screen.country_done(None)
@@ -1232,6 +1236,29 @@ class NativeTests(unittest.TestCase):
         screen.left(); screen.right()
         self.assertEqual(screen.focus, 'stations')
 
+    def test_right_pages_station_blocks_without_opening_countries_or_interrupting_audio(self):
+        screen, session, _ = self.new()
+        screen.play(); playing = session.nav.current
+        before = len(session.dialogs)
+        for index in (0, 18, len(screen.rows)-1):
+            screen['stations'].moveToIndex(index)
+            with patch.object(screen['stations'], 'pageDown', wraps=screen['stations'].pageDown) as page:
+                screen.right()
+                page.assert_called_once_with()
+            current = screen['stations'].getSelectionIndex()
+            self.assertEqual(screen.focus, 'stations')
+            self.assertTrue(screen['stations'].instance.selectionEnabled)
+            self.assertTrue(0 <= current < len(screen.rows))
+            if index < len(screen.rows)-6:
+                self.assertGreater(current, index+1)
+            self.assertEqual(screen['count'].getText(), '%d / %d' % (current+1,len(screen.rows)))
+            self.assertEqual(len(session.dialogs), before)
+            self.assertIs(session.nav.current, playing)
+        selected = screen.current()
+        screen.left(); screen.right()
+        self.assertEqual(screen.focus, 'stations')
+        self.assertEqual(screen.current(), selected)
+
     def test_country_value_uses_list_selection_blue_while_white_caption_stays_separate(self):
         screen, session, root = self.new()
         caption = screen['countrycaption'].instance
@@ -1239,7 +1266,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(caption.attributes['foregroundColor'], '#ffffff')
         self.assertEqual(value.transparent, 1)
         before = len(session.dialogs)
-        screen.right()
+        screen['actions'].actions['country']()
         self.assertEqual(value.transparent, 0)
         self.assertEqual(value.background, 0x004461)
         self.assertEqual(value.foreground, 0x00ceff)

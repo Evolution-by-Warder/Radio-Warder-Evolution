@@ -7,7 +7,8 @@
     <key id="KEY_UP" mapto="up" flags="mr" />
     <key id="KEY_DOWN" mapto="down" flags="mr" />
     <key id="KEY_LEFT" mapto="left" flags="m" />
-    <key id="KEY_RIGHT" mapto="right" flags="m" />
+    <key id="KEY_RIGHT" mapto="right" flags="mr" />
+    <key id="KEY_0" mapto="country" flags="m" />
     <key id="KEY_RED" mapto="red" flags="m" />
     <key id="KEY_GREEN" mapto="green" flags="m" />
     <key id="KEY_YELLOW" mapto="yellow" flags="m" />

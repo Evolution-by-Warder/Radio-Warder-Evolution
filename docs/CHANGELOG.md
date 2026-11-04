@@ -1,3 +1,10 @@
+# 0.1.0-test35
+
+- RIGHT in a station list advances by a native page rather than moving focus to the country field. Held RIGHT repeats page jumps.
+- 0 focuses the existing country field from any selected station; OK opens its country choices. UP from the first station, the heading button and MENU → Choose country remain available.
+- Keep LEFT for the function menu and RIGHT there for returning to stations. Returning from the country field preserves the station/scroll position and playback.
+- Update the station and country-focus hints across all 21 languages.
+
 # 0.1.0-test34
 
 - Load and cache the selected country from immutable versioned packages. Updates fetch the small manifest and only changed, previously visited country packages.

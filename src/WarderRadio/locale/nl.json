@@ -64,7 +64,6 @@
   "Slovakia": "Slowakije",
   "Czechia": "Tsjechië",
   "Update": "Bijwerken",
-  "LEFT: menu · RIGHT: country · MENU: options": "LINKS: menu · RECHTS: land · MENU: opties",
   "Please wait…": "Even geduld…",
   "Downloading update…": "Update downloaden…",
   "Verifying package…": "Pakket controleren…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Stop de opname voordat u opnamen verwijdert",
   "Loading country {name}…": "Land {name} laden…",
   "Searching all countries…": "Zoeken in alle landen…",
-  "Checking country updates…": "Landupdates controleren…"
+  "Checking country updates…": "Landupdates controleren…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "LINKS: menu · RECHTS: pagina · 0: land · MENU: opties"
 }

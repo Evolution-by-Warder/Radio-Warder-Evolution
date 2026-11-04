@@ -64,7 +64,6 @@
   "Slovakia": "Sllovakia",
   "Czechia": "Çekia",
   "Update": "Përditëso",
-  "LEFT: menu · RIGHT: country · MENU: options": "MAJTAS: menu · DJATHTAS: vendi · MENU: opsionet",
   "Please wait…": "Ju lutemi prisni…",
   "Downloading update…": "Po shkarkohet përditësimi…",
   "Verifying package…": "Po verifikohet paketa…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Ndaloni regjistrimin para se të fshini regjistrimet",
   "Loading country {name}…": "Po ngarkohet shteti {name}…",
   "Searching all countries…": "Po kërkohet në të gjitha shtetet…",
-  "Checking country updates…": "Po kontrollohen përditësimet e shteteve…"
+  "Checking country updates…": "Po kontrollohen përditësimet e shteteve…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "MAJTAS: menyja · DJATHTAS: faqja · 0: shteti · MENU: opsionet"
 }

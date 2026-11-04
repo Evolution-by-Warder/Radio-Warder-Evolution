@@ -64,7 +64,6 @@
   "Slovakia": "Slowakei",
   "Czechia": "Tschechien",
   "Update": "Aktualisieren",
-  "LEFT: menu · RIGHT: country · MENU: options": "LINKS: Menü · RECHTS: Land · MENU: Optionen",
   "Please wait…": "Bitte warten…",
   "Downloading update…": "Update wird heruntergeladen…",
   "Verifying package…": "Paket wird überprüft…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Vor dem Löschen die Aufnahme beenden",
   "Loading country {name}…": "Land {name} wird geladen…",
   "Searching all countries…": "Alle Länder werden durchsucht…",
-  "Checking country updates…": "Länderaktualisierungen werden geprüft…"
+  "Checking country updates…": "Länderaktualisierungen werden geprüft…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "LINKS: Menü · RECHTS: Seite · 0: Land · MENU: Optionen"
 }

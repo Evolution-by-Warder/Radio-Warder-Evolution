@@ -64,7 +64,6 @@
   "Slovakia": "Slovakija",
   "Czechia": "Čekija",
   "Update": "Atnaujinti",
-  "LEFT: menu · RIGHT: country · MENU: options": "KAIRĖN: meniu · DEŠINĖN: šalis · MENU: parinktys",
   "Please wait…": "Palaukite…",
   "Downloading update…": "Atsisiunčiamas atnaujinimas…",
   "Verifying package…": "Tikrinamas paketas…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Prieš trindami įrašus sustabdykite įrašymą",
   "Loading country {name}…": "Įkeliama šalis {name}…",
   "Searching all countries…": "Ieškoma visose šalyse…",
-  "Checking country updates…": "Tikrinami šalių naujinimai…"
+  "Checking country updates…": "Tikrinami šalių naujinimai…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "KAIRĖN: meniu · DEŠINĖN: puslapis · 0: šalis · MENU: parinktys"
 }

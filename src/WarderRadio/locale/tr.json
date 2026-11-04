@@ -64,7 +64,6 @@
   "Slovakia": "Slovakya",
   "Czechia": "Çekya",
   "Update": "Güncelle",
-  "LEFT: menu · RIGHT: country · MENU: options": "SOL: menü · SAĞ: ülke · MENU: seçenekler",
   "Please wait…": "Lütfen bekleyin…",
   "Downloading update…": "Güncelleme indiriliyor…",
   "Verifying package…": "Paket doğrulanıyor…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Kayıtları silmeden önce kaydı durdurun",
   "Loading country {name}…": "{name} ülkesi yükleniyor…",
   "Searching all countries…": "Tüm ülkelerde aranıyor…",
-  "Checking country updates…": "Ülke güncellemeleri denetleniyor…"
+  "Checking country updates…": "Ülke güncellemeleri denetleniyor…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "SOL: menü · SAĞ: sayfa · 0: ülke · MENU: seçenekler"
 }

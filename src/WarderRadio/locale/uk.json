@@ -64,7 +64,6 @@
   "Slovakia": "Словаччина",
   "Czechia": "Чехія",
   "Update": "Оновити",
-  "LEFT: menu · RIGHT: country · MENU: options": "ЛІВОРУЧ: меню · ПРАВОРУЧ: країна · MENU: параметри",
   "Please wait…": "Зачекайте…",
   "Downloading update…": "Завантаження оновлення…",
   "Verifying package…": "Перевірка пакета…",
@@ -81,5 +80,6 @@
   "Stop recording before deleting recordings": "Зупиніть запис перед видаленням записів",
   "Loading country {name}…": "Завантаження країни {name}…",
   "Searching all countries…": "Пошук у всіх країнах…",
-  "Checking country updates…": "Перевірка оновлень країн…"
+  "Checking country updates…": "Перевірка оновлень країн…",
+  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "ЛІВОРУЧ: меню · ПРАВОРУЧ: сторінка · 0: країна · MENU: параметри"
 }

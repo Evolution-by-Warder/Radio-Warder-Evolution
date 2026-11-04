@@ -163,6 +163,7 @@ class WarderRadio(Screen):
         self['actions'] = ActionMap(['WarderRadioActions'], {
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
+            'country': self.focus_country,
             'green': self.play, 'yellow': self.search, 'blue': self.blue_pressed,
             'menu': self.options, 'pageDown': self.page_down, 'pageUp': self.page_up,
             'instantRecord': self.toggle_recording, 'stop': self.stop, 'update': self.manual_update,
@@ -253,10 +254,13 @@ class WarderRadio(Screen):
         self['functions'].selectionEnabled(focus == 'functions')
         self['stations'].selectionEnabled(focus == 'stations')
         self.update_country_caption()
-        hint = ('LEFT: menu · RIGHT: country · MENU: options'
-                if focus in ('stations', 'country')
-                else 'Use left/right to switch panels · MENU: options')
-        self['hint'].setText(t(hint))
+        if focus == 'country':
+            hint = t('Choose country') + ': OK · ↓: ' + t('Radio stations')
+        elif focus == 'stations':
+            hint = t('LEFT: menu · RIGHT: page · 0: country · MENU: options')
+        else:
+            hint = t('Use left/right to switch panels · MENU: options')
+        self['hint'].setText(hint)
 
     def left(self):
         self.startup_autoplay = False
@@ -265,9 +269,13 @@ class WarderRadio(Screen):
     def right(self):
         self.startup_autoplay = False
         if self.focus == 'stations':
-            self.set_focus('country')
+            self.page_down()
         else:
             self.set_focus('stations')
+
+    def focus_country(self):
+        self.startup_autoplay = False
+        self.set_focus('country')
 
     def up(self):
         self.startup_autoplay = False

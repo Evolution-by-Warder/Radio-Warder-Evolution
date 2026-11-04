@@ -1,3 +1,13 @@
+## 0.1.0-test35 — RIGHT paging and country shortcut, 4 November 2026
+
+RIGHT in the station list invokes the native MenuList pageDown operation, including repeat events when held. The page length follows the native widget rather than a hard-coded station count. It keeps focus in the list and updates the position/count without opening country choices or changing playback. RIGHT in the function panel or country field still returns to stations without scrolling that return action.
+
+The private KEY_0 mapping focuses the existing country value from any station. OK then opens the country selector. UP from the first station, the clickable heading and MENU → Choose country remain supported. The focused country hint now explains OK and DOWN, and station paging/0 hints are translated across all 21 languages. Saved country/selection/scroll and player ownership remain covered by native replays.
+
+Local validation: 100 unit tests; 44 native replays each on pinned OpenPLi 9.2, reviewed OpenATV 8.1 and OpenATV 8.0-next fixtures; package scope, update identity, offline scripts and Python 3.9 grammar passed. Tests exercise first/middle/last list positions, more-than-one-row paging, zero/OK/cancel, menu return, private key mappings/repeat flags and uninterrupted playback. Native replay does not emulate the physical remote or receiver painting. The repository workflow publishes test35 and advances the canonical v2 testing feed after its checks; the receipt is added once complete.
+
+---
+
 ## 0.1.0-test34 — country package loader, 4 November 2026
 
 Implements the country-loading proposal recorded below. The central catalogue now publishes a versioned manifest and immutable per-country packages, while retaining the full receiver endpoint for test33. Manifest revision bundled in this package: `dc2349e675bad15478fc5b66087990a307cbf973f33e99e900d2fe391772f612` (220 groups including the separate original-source view; 40,905 rows total). The Slovak package has 89 rows / 2,741 bytes, Czechia 250 / 7,159 bytes. The 94,818-byte manifest replaces whole-world downloads during ordinary catalogue updates.
