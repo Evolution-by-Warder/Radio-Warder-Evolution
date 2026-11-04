@@ -62,7 +62,7 @@ def make_skin(width, height):
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (n(55), n(230), n(390), n(80) * 7))
+                 % (n(55), n(278), n(390), n(72) * 7))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
