@@ -83,15 +83,15 @@ class RadioList(MenuList):
                 # Bound both translated text and cyan country name to the menu.
                 caption_width = min(232, max(165, len(caption) * 12 + 12))
                 return [None,
-                        MultiContentEntryText(pos=(n(16), n(4)),
-                                              size=(n(caption_width - 16), n(62)),
+                        MultiContentEntryText(pos=(n(16), n(0)),
+                                              size=(n(caption_width - 16), n(58)),
                                               font=2, flags=flags, text=caption),
-                        MultiContentEntryText(pos=(n(caption_width), n(4)),
-                                              size=(n(372 - caption_width), n(62)),
+                        MultiContentEntryText(pos=(n(caption_width), n(0)),
+                                              size=(n(372 - caption_width), n(58)),
                                               font=2, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            return [None, MultiContentEntryText(pos=(n(16), n(4)),
-                                               size=(n(350), n(62)),
+            return [None, MultiContentEntryText(pos=(n(16), n(10)),
+                                               size=(n(350), n(56)),
                                                font=0, flags=flags, text=item)]
         path = path_for(item)
         if path not in self.picons:
@@ -270,7 +270,7 @@ class WarderRadio(Screen):
         self['stations'].selectionEnabled(focus == 'stations')
         self.update_country_caption()
         if focus == 'stations':
-            hint = 'LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options'
+            hint = t('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options')
         else:
             hint = t('Use left/right to switch panels · MENU: options')
         self['hint'].setText(hint)

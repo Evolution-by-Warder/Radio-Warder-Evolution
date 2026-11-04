@@ -1272,6 +1272,17 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.focus, 'stations')
         self.assertEqual(screen.current(), selected)
 
+    def test_navigation_hint_follows_receiver_language_for_station_focus(self):
+        screen, _, _ = self.new()
+        key = 'LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options'
+        self.assertEqual(screen['hint'].getText(), radio.t(key))
+        self.assertIn('VĽAVO:', screen['hint'].getText())
+        screen.focus_country()
+        self.assertEqual(screen['hint'].getText(),
+                         radio.t('Use left/right to switch panels · MENU: options'))
+        screen.right()
+        self.assertEqual(screen['hint'].getText(), radio.t(key))
+
     def test_country_value_uses_list_selection_blue_while_white_caption_stays_separate(self):
         screen, session, root = self.new()
         self.assertIsNone(root.find("widget[@name='heading']"))
@@ -1296,7 +1307,14 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(len(panels), 3)
         self.assertTrue(all(node.attrib['size'].endswith(',790') for node in panels))
         self.assertEqual(box('stations')[3], 8 * screen['stations'].l.height)
-        self.assertEqual(box('functions')[1], 246)
+        self.assertEqual(box('functions')[1], 232)
+        country_content = screen['functions'].l.build(*screen['functions'].l.rows[0])
+        radio_content = screen['functions'].l.build(*screen['functions'].l.rows[1])
+        self.assertEqual(country_content[1][2], 0)
+        self.assertEqual(country_content[1][4], 58)
+        self.assertEqual(radio_content[1][2], 10)
+        self.assertEqual(radio_content[1][4], 56)
+        self.assertEqual(72 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 24)
         self.assertEqual(screen['functions'].l.fonts[2], ('Regular', 24))
         self.assertLessEqual(box('navtitle')[1] + box('navtitle')[3], box('functions')[1])
         self.assertEqual(box('art')[2:], (520, 520))

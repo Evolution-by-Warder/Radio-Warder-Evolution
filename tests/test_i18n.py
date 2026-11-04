@@ -19,6 +19,10 @@ class TranslationTests(unittest.TestCase):
             with self.subTest(code=code):
                 translated = i18n.translations(code)
                 self.assertEqual(set(translated), set(english))
+                hint = 'LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options'
+                self.assertIn(hint, translated)
+                if code != 'en':
+                    self.assertNotEqual(translated[hint], hint)
                 self.assertTrue(all(isinstance(s, str) and s.strip() for s in translated.values()))
                 self.assertEqual(translated['Install update {version}?'].count('{version}'), 1)
                 self.assertIn('0.2.0', translated['Install update {version}?'].format(version='0.2.0'))
