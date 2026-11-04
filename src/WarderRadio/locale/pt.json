@@ -81,5 +81,5 @@
   "Loading country {name}…": "A carregar o país {name}…",
   "Searching all countries…": "A pesquisar em todos os países…",
   "Checking country updates…": "A verificar atualizações dos países…",
-  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "ESQUERDA: menu · DIREITA: página · 0: país · MENU: opções"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "ESQUERDA: página anterior/menu · DIREITA: página seguinte · 0: país · MENU: opções"
 }

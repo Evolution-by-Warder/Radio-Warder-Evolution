@@ -81,5 +81,5 @@
   "Loading country {name}…": "Se încarcă țara {name}…",
   "Searching all countries…": "Se caută în toate țările…",
   "Checking country updates…": "Se verifică actualizările țărilor…",
-  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "STÂNGA: meniu · DREAPTA: pagină · 0: țară · MENU: opțiuni"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "STÂNGA: pagina anterioară/meniu · DREAPTA: pagina următoare · 0: țară · MENU: opțiuni"
 }

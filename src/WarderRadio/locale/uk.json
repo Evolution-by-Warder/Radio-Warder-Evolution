@@ -81,5 +81,5 @@
   "Loading country {name}…": "Завантаження країни {name}…",
   "Searching all countries…": "Пошук у всіх країнах…",
   "Checking country updates…": "Перевірка оновлень країн…",
-  "LEFT: menu · RIGHT: page · 0: country · MENU: options": "ЛІВОРУЧ: меню · ПРАВОРУЧ: сторінка · 0: країна · MENU: параметри"
+  "LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options": "ЛІВОРУЧ: попередня сторінка/меню · ПРАВОРУЧ: наступна сторінка · 0: країна · MENU: параметри"
 }
