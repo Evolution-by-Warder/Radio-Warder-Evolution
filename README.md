@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current receiver-test candidate:
-**0.1.0-test37** (receiver-test candidate). This is not a stable production release.
+**0.1.0-test38** (receiver-test candidate). This is not a stable production release.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -77,7 +77,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test37_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test38_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -87,6 +87,9 @@ On first use, choose a station and press OK or green. Resume uses the newest
 catalogue URL for the remembered identity where available, with the saved entry
 as fallback. It makes one attempt and leaves the interface usable on failure.
 The country selector is the first item of the left function menu, above Radio stations.
+It is raised slightly and separated visually from the radio-list menu item without
+changing the height of the seven menu rows. The navigation hint beneath the logo
+follows the receiver's system language across all 21 supported locales.
 Its current country is shown in Warder cyan, slightly larger and higher in the left panel. There are eight fully visible station
 rows in the centre at every supported resolution, without shrinking picons.
 UP/DOWN select stations normally. RIGHT pages the station list down; LEFT

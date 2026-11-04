@@ -20,10 +20,10 @@ class RadioLayoutNavigationTests(unittest.TestCase):
                 self.assertLessEqual(sy + sh, round(994 * scale))
                 menu = widgets['functions']
                 self.assertEqual(int(menu.get('size').split(',')[1]), round(72 * scale) * 7)
-                self.assertEqual(int(menu.get('position').split(',')[1]), round(246 * scale))
+                self.assertEqual(int(menu.get('position').split(',')[1]), round(232 * scale))
                 nav = widgets['navtitle']
                 self.assertLessEqual(int(nav.get('position').split(',')[1]) +
-                                     int(nav.get('size').split(',')[1]), round(246 * scale))
+                                     int(nav.get('size').split(',')[1]), round(232 * scale))
                 self.assertLessEqual(int(menu.get('position').split(',')[1]) +
                                      int(menu.get('size').split(',')[1]), round(796 * scale))
                 # Navigation instructions belong beneath the Warder logo,
