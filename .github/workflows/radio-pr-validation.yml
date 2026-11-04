@@ -17,12 +17,29 @@ jobs:
           python-version: '3.11'
       - name: Compile all Python files
         run: python3 -m compileall -q src tests tools
+      - name: Build independent IPK and legacy bridge before unit tests
+        run: |
+          python3 tools/build_ipk.py
+          python3 tools/build_ipk.py --legacy-bridge
       - name: Run complete unit suite
         env:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: '1'
         run: python3 -m unittest discover -s tests -v
-      - name: Build IPK without publishing
-        run: python3 tools/build_ipk.py
       - name: Verify generated IPK
         run: python3 tools/verify_ipk.py
+      - name: Fetch native Enigma2 fixtures
+        run: python3 tools/fetch_native.py
+      - name: Replay OpenPLi and OpenATV Python widgets
+        run: |
+          python3 tools/test_native.py --upstream fixtures/openpli-release-9.2 -v
+          python3 tools/test_native.py --upstream fixtures/openatv-81-reviewed-base -v
+          python3 tools/test_native.py --upstream fixtures/openatv-8.0-next -v
+      - name: Upload test-only IPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-country-navigation-pr
+          path: |
+            dist/*.ipk
+            dist/build.json
+            dist/SHA256SUMS
