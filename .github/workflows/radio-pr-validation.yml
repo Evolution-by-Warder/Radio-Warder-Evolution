@@ -1,0 +1,28 @@
+name: Radio PR validation (no publishing)
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - work/radio-country-left-navigation-eight-rows
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile all Python files
+        run: python3 -m compileall -q src tests tools
+      - name: Run complete unit suite
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 -m unittest discover -s tests -v
+      - name: Build IPK without publishing
+        run: python3 tools/build_ipk.py
+      - name: Verify generated IPK
+        run: python3 tools/verify_ipk.py
