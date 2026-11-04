@@ -19,9 +19,10 @@ class RadioLayoutNavigationTests(unittest.TestCase):
                 self.assertEqual(sh, row * 8)
                 self.assertLessEqual(sy + sh, round(994 * scale))
                 menu = widgets['functions']
-                self.assertEqual(int(menu.get('size').split(',')[1]), round(80 * scale) * 7)
+                self.assertEqual(int(menu.get('size').split(',')[1]), round(72 * scale) * 7)
+                self.assertGreaterEqual(int(menu.get('position').split(',')[1]), round(278 * scale))
                 self.assertLessEqual(int(menu.get('position').split(',')[1]) +
-                                     int(menu.get('size').split(',')[1]), round(840 * scale))
+                                     int(menu.get('size').split(',')[1]), round(796 * scale))
                 self.assertNotIn('heading', widgets)
                 self.assertNotIn('countrycaption', widgets)
 
