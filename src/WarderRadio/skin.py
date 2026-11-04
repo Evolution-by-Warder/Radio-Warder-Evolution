@@ -38,9 +38,16 @@ def make_skin(width, height):
                                (px, py, edge, ph), (px + pw - edge, py, edge, ph)]:
             parts.append('<eLabel zPosition="1" position="%d,%d" size="%d,%d" '
                          'backgroundColor="#0045c7e6" />' % (bx, by, bw, bh))
-    parts += [label('date', 1080, 26, 390, 42, 24, align='right'),
-              label('clock', 1490, 20, 206, 60, 38, '#ffffff', 'right'),
-              label('version', 1720, 28, 175, 38, 22, '#00ceff', 'right'),
+    # Same three-field header as PiconHub/GSU: weekday and local date,
+    # large hours/minutes with smaller seconds, cyan version caption.
+    # The Radio logo/backdrop stay unchanged and the entire block fits
+    # above the 155px bottom edge of the approved Warder Radio banner.
+    parts += [label('day', 1110, 25, 270, 36, 25, '#d9e6ef', 'right'),
+              label('date', 980, 70, 400, 36, 24, '#d9e6ef', 'right'),
+              label('clock', 1398, 32, 190, 85, 62, '#ffffff', 'center'),
+              label('seconds', 1590, 58, 66, 54, 38, '#ffffff', 'left'),
+              label('version_caption', 1680, 25, 210, 36, 25, '#00ceff', 'center'),
+              label('version', 1680, 70, 210, 36, 24, '#00ceff', 'center'),
               label('navtitle', 62, 220, 1, 1, 1, '#00ceff'),
               label('section', 530, 204, 1, 1, 1, '#a6bed1'),
               label('nowlabel', 1230, 744, 620, 18, 14, '#87a4b9', 'center'),
@@ -51,6 +58,10 @@ def make_skin(width, height):
               label('count', 530, 966, 620, 26, 22, '#9bbad0'),
               label('status', 62, 796, 380, 44, 18, '#d6e9f7', 'left', True),
               label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'left')]
+    # Native cyan vertical separators, identical to PiconHub placements.
+    for x in (1392, 1664):
+        parts.append('<eLabel zPosition="3" %s backgroundColor="#0019c9ff" />'
+                     % rect(x, 25, 2, 84))
     row_h = n(94)
     # Height is derived from the actual scaled row height, never rounded separately.
     parts.append('<widget name="stations" zPosition="2" position="%d,%d" size="%d,%d" '

@@ -26,6 +26,7 @@ from .recording import Recording
 from .picons import path_for
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
+from .header_clock import clock_text
 from .spectrum import Spectrum
 from .covers import lookup_cover
 from .youtube import find_video, song_query
@@ -157,7 +158,7 @@ class WarderRadio(Screen):
                                       (t('History'), 'history'), (t('Recordings'), 'recordings'),
                                       (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
-        for name in ('date', 'clock', 'version', 'navtitle', 'section', 'nowlabel', 'station',
+        for name in ('day', 'date', 'clock', 'seconds', 'version_caption', 'version', 'navtitle', 'section', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
             self[name] = Label('')
@@ -165,7 +166,8 @@ class WarderRadio(Screen):
         self.cover_display = CoverDisplay(self['art'], ePicLoad, os.path.join(ROOT, 'plugin.png'),
                                           lambda: self['nowlabel'].setText(''))
         self['activity'] = Pixmap()
-        self['version'].setText('v' + VERSION)
+        self['version_caption'].setText(t('Version:'))
+        self['version'].setText(VERSION)
         self['navtitle'].setText('')
         self['nowlabel'].setText('')
         self['station'].setText(t('Ready to listen'))
@@ -865,9 +867,11 @@ class WarderRadio(Screen):
     def tick(self):
         if self.closed:
             return
-        now = time.localtime()
-        self['date'].setText(time.strftime('%d.%m.%Y', now))
-        self['clock'].setText(time.strftime('%H:%M:%S', now))
+        day, date, hours, seconds = clock_text()
+        self['day'].setText(day)
+        self['date'].setText(date)
+        self['clock'].setText(hours)
+        self['seconds'].setText(seconds)
         if self.video_active:
             return
         if self.playing and self.playback.owns():
