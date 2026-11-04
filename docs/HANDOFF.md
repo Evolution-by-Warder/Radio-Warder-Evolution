@@ -1,3 +1,17 @@
+## Reviewed Slovak correction and loading-performance finding — 4 November 2026
+
+Supersedes the 91-row Slovak checkpoint below: the main Slovak view now has **89 stations**, retaining all original 88. The legacy **SRo5 Rádio Pátria /RSI** entry was merged into the existing Rádio Patria (original name, URL, reference and logo preserved); its old name, reference and URL remain metadata aliases. Broadcaster endpoints and their icy-name/icy-url corroborate this identity. The separate Radio Slovakia International programme is unaffected.
+
+**Rádio Pyramída** is explicitly retired, independent of HTTP 200 or residual audio at its old Klasika mount. STVR confirms closure on **28 February 2025** in its [2025 programme concept, page 25](https://www.stvr.org/download.pl?ID=31453&hash=dwSLRbHysLAXglOCE0FdLRE5JM9bnPYQ). Retirement evidence precedes availability/outage retention. Source/master observations remain auditable; the separately requested original-source view remains exact.
+
+Source commit: `42108d149961af56b07160f7fa1a19cea1eaca78`; data commit: `ec6411a08fc0a568d82aedf397b1589cf2425cf6`. [Workflow 41784808472](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/41784808472) succeeded with **89 tests**. This reviewed correction used the existing master/audit and required exactly the two reviewed reference removals; **every other receiver row was byte-value identical**, including the source view. The normal scheduled/manual pipeline still refreshes full sources and network checks. Public evidence: `picons/IPTV-SK-CZ/catalog/quality-editorial-20261104.json`. Actual receiver payload: **40,905 rows**, **1,264,180 bytes**, SHA-256 `b779af5deb044579cf0d560450002dbaaf2fd9ab031e06ca2f3ec7e7e17dd48c`. No physical receiver playback claim. Existing test33 users select **MENU → Aktualizovať katalóg**, no new IPK for this correction.
+
+Performance finding (inspected current model.py and screen.py): download/decode/initial validation runs through the job queue, but catalogue_loaded calls Catalogue.replace on the GUI side, repeating whole-list validation, size serialization, JSON write and fsync. This can stall the GUI; hardware timings have not been measured.
+
+**Proposed next work, not implemented:** publish a versioned country manifest plus immutable country shards; fetch only the selected country, cache and check per-country versions/hashes, prepare/validate/write off the GUI thread, show cancellable progress, and atomically activate the small prepared result. Keep the existing full endpoint for older clients. The 89-row Slovak receiver subset measured **2,741 gzip bytes / 12,687 decoded bytes**, versus **6,372,749 decoded bytes** for the full payload. Whole-world search and the large original-source view should load only on explicit use. This loader change will require a new plugin package; it is separate from today's catalogue-only correction. Picons remain deferred until the catalogue review.
+
+---
+
 ## Original Slovak restoration and catalogue identity checkpoint — 3 November 2026
 
 This supersedes the strict audio-only and 72-row Slovak policy in the historical checkpoint below. The owner's original **88 Slovak stations are restored with exact names, primary URLs and references**. Three verified additions bring Slovakia to **91**. Remote timeouts, access restrictions or transient server failures must not remove or rewrite the original Slovak list. The owner will review playback on the receiver.
