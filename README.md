@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current receiver-test candidate:
-**0.1.0-test35**. It is not a production release and is not added to existing stable feeds.
+**0.1.0-test36** (PR-branch receiver-test candidate). This is not a production release and is not added to stable or testing feeds.
 
 Test2 fixes a receiver-reported bug where static artwork covered all live
 widgets. Background, opaque dark panels and live controls now use explicit
@@ -77,7 +77,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test35_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.0-test36_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -85,23 +85,20 @@ No stream starts during installation or plugin discovery. On opening the plugin,
 the last played radio station resumes automatically and is selected in its list.
 On first use, choose a station and press OK or green. Resume uses the newest
 catalogue URL for the remembered identity where available, with the saved entry
-as fallback. It makes one attempt and leaves the interface usable on failure. LEFT
-opens the function panel; RIGHT from that panel returns to stations. Up/down
-move within a panel. RIGHT in the station list advances by one native page; holding
-it repeats page jumps. Press 0 from any station to focus the cyan country value.
-UP from the first station row also focuses that value. Focus adds › country ‹ markers only around that
-value, with a blue field background and the white caption unchanged. Press OK to open country choices;
-DOWN or RIGHT returns to the same station without opening a dialog. In the left menu, UP/DOWN
-move only between function entries, wrapping from first to last and back. Cancel returns
-to the exact same station and scroll position. The native country button also supports its click action.
-The centre header reads Select country – Slovakia ▾ (translated for the receiver
-language and current country). Select country and the separator are white; the separate country value and down
-arrow are cyan blue. The permanent down
-arrow marks the selectable value; remote focus adds a pointer beside only the cyan country name. Only the focused country value gets the blue selection background; the white
-caption stays on the panel background. The left menu is separate.
+as fallback. It makes one attempt and leaves the interface usable on failure.
+The country selector is the first item of the left function menu, above Radio stations.
+Its current country is shown in Warder cyan. There are eight fully visible station
+rows in the centre at every supported resolution, without shrinking picons.
+UP/DOWN select stations normally. RIGHT pages the station list down; LEFT
+pages up, and only when the first station is selected does LEFT move to the
+left function menu. RIGHT from the menu returns to the previous station and
+scroll position. Press 0 from any station to focus Choose country in the left
+menu; OK opens its country choices. UP from the first station no longer changes
+panels. UP/DOWN inside the left menu move among its seven function entries,
+wrapping normally. MENU → Choose country remains available as well.
 Selecting a country preserves playback and saves the choice. Cancel keeps the
-previous selection. The smaller section label still identifies favourites,
-history, recordings and search results. CH+/CH− change pages. Yellow searches all
+previous selection. The left function-menu selection identifies the active section, including
+favourites, history and recordings. CH+/CH− change pages. Yellow searches all
 stations; blue opens the current song’s YouTube video. Favourites are available in MENU. Update is the last left-menu entry, below Settings;
 activate it or press INFO to check/install plugin updates manually. After a verified
 successful installation, an information message appears for three seconds and
@@ -207,14 +204,12 @@ reject unrelated artists and conflicting versions. Lookups run in a separate bou
 a bounded RAM cache. Country navigation and the four colour actions are retained.
 
 The separate Playing status row is removed. All three panels extend downward;
-the station list shows seven complete rows. A 520-pixel square cover at Full HD
+the station list shows eight complete rows. A 520-pixel square cover at Full HD
 fits above all track details. The spectrum is in the left panel. Action/error feedback is retained
 inside the left panel instead of using a separate full-width row.
 
-When focused, only the country value has the same blue background as a selected
-menu/station row; the white Select country caption stays on the panel background.
-The value field is positioned using the rendered caption width for each locale.
-Country choices still open only with OK.
+The country-selector menu row uses the normal Warder selection highlight;
+its country name remains cyan. Country choices still open only with OK.
 
 The function menu starts higher in the left panel. Its lower area contains the
 multicolour spectrum, leaving the right panel for the larger square cover and
