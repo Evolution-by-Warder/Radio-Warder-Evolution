@@ -26,6 +26,11 @@ class RadioLayoutNavigationTests(unittest.TestCase):
                                      int(nav.get('size').split(',')[1]), round(246 * scale))
                 self.assertLessEqual(int(menu.get('position').split(',')[1]) +
                                      int(menu.get('size').split(',')[1]), round(796 * scale))
+                # Navigation instructions belong beneath the Warder logo,
+                # left aligned, rather than right aligned over the player.
+                hint = widgets['hint']
+                self.assertEqual(hint.get('halign'), 'left')
+                self.assertEqual(int(hint.get('position').split(',')[0]), round(60 * scale))
                 self.assertNotIn('heading', widgets)
                 self.assertNotIn('countrycaption', widgets)
 
