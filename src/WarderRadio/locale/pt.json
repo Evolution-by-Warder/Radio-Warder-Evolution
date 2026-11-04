@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Eliminar a gravação {name}?",
   "Recording deleted": "Gravação eliminada",
   "Cannot delete recording": "Não foi possível eliminar a gravação",
-  "Stop recording before deleting recordings": "Pare a gravação antes de eliminar gravações"
+  "Stop recording before deleting recordings": "Pare a gravação antes de eliminar gravações",
+  "Loading country {name}…": "A carregar o país {name}…",
+  "Searching all countries…": "A pesquisar em todos os países…",
+  "Checking country updates…": "A verificar atualizações dos países…"
 }

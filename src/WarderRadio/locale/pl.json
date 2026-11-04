@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Usunąć nagranie {name}?",
   "Recording deleted": "Nagranie usunięte",
   "Cannot delete recording": "Nie można usunąć nagrania",
-  "Stop recording before deleting recordings": "Zatrzymaj nagrywanie przed usunięciem nagrań"
+  "Stop recording before deleting recordings": "Zatrzymaj nagrywanie przed usunięciem nagrań",
+  "Loading country {name}…": "Wczytywanie kraju {name}…",
+  "Searching all countries…": "Wyszukiwanie we wszystkich krajach…",
+  "Checking country updates…": "Sprawdzanie aktualizacji krajów…"
 }

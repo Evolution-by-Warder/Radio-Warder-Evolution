@@ -1,3 +1,17 @@
+## 0.1.0-test34 — country package loader, 4 November 2026
+
+Implements the country-loading proposal recorded below. The central catalogue now publishes a versioned manifest and immutable per-country packages, while retaining the full receiver endpoint for test33. Manifest revision bundled in this package: `dc2349e675bad15478fc5b66087990a307cbf973f33e99e900d2fe391772f612` (220 groups including the separate original-source view; 40,905 rows total). The Slovak package has 89 rows / 2,741 bytes, Czechia 250 / 7,159 bytes. The 94,818-byte manifest replaces whole-world downloads during ordinary catalogue updates.
+
+The plugin starts from a cached country or small bundled Slovak seed, without parsing the old large catalogue cache or making a network request before the populated window. Saved favourites, history, custom stations and references remain self-contained. A missing remembered country can load in the background after the window paints; the saved station remains playable by its own URL.
+
+Country selection and explicit catalogue update use a dedicated worker. Validation, digest checks and atomic cache writes finish there; the GUI only activates the prepared country. Updates fetch changed selected/previously visited countries; unvisited countries and the original-source view remain lazy. Failed updates retain the active country/manifest. Superseded or closed operations cannot overwrite newer GUI selections, and playback is not stopped. Current country/progress text is translated across all 21 languages.
+
+Whole-world Search is explicitly lazy and keeps the full search snapshot off ordinary startup/update paths. It returns at most 200 matching GUI rows and reports the total; broad queries should be refined. See [COUNTRY-CATALOGUE.md](COUNTRY-CATALOGUE.md) for the protocol, cache lifecycle and remaining search-snapshot tradeoff.
+
+Local verification: **100 unit tests**, **43 native replays each** against the pinned OpenPLi release 9.2, reviewed OpenATV 8.1 base and OpenATV 8.0 next fixtures; IPK scope/identity/offline scripts/Python 3.9 grammar passed. Public package checks confirmed: one small manifest request and zero country-package downloads on an unchanged update, one 7,159-byte package request on first selection of Czechia, cached reopening, and unchanged full-endpoint compatibility. These are host/native-widget replays, not physical receiver playback or timing measurements. Testing-package publication is performed by the repository workflow; the release/checkpoint receipt is added after it succeeds. Stable feeds and the existing immutable test11 migration bridge are not promoted/replaced.
+
+---
+
 ## Reviewed Slovak correction and loading-performance finding — 4 November 2026
 
 Supersedes the 91-row Slovak checkpoint below: the main Slovak view now has **89 stations**, retaining all original 88. The legacy **SRo5 Rádio Pátria /RSI** entry was merged into the existing Rádio Patria (original name, URL, reference and logo preserved); its old name, reference and URL remain metadata aliases. Broadcaster endpoints and their icy-name/icy-url corroborate this identity. The separate Radio Slovakia International programme is unaffected.

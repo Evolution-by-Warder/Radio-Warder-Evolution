@@ -20,7 +20,8 @@ from Screens.VirtualKeyBoard import VirtualKeyBoard
 from . import ROOT, VERSION
 from .i18n import t, rtl, group_label
 from .jobs import Jobs
-from .model import Store, Catalogue, Playback
+from .model import Store, Playback
+from .country_catalogue import CountryCatalogue as Catalogue, CatalogueTask
 from .recording import Recording
 from .picons import path_for
 from .warder_update import check_release, install_release
@@ -106,9 +107,14 @@ class WarderRadio(Screen):
         self.starting, self.startup_autoplay = True, True
         self.startup_submitted = False
         self.startup_navigation = self.playback.key(session.nav.getCurrentlyPlayingServiceReference())
+        self.startup_country = None
         self.ready_done = False
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
+        self.catalogue_jobs = Jobs()
+        self.catalogue_task = None
+        self.catalogue_operation = None
+        self.search_rows, self.search_total = [], 0
         self.cover_jobs = Jobs()
         self.video_jobs = Jobs()
         self.video_pending, self.video_active, self.video_dialog = False, False, None
@@ -199,7 +205,10 @@ class WarderRadio(Screen):
             if self.startup_submitted:
                 return
             directory = self.store.directory
-            self.startup_submitted = self.jobs.submit('startup-catalogue', lambda: Catalogue(directory), self.startup_loaded)
+            group = self.store.history[0]['group'] if self.startup_autoplay and self.store.history else self.active_group
+            task = self.catalogue_task = CatalogueTask()
+            self.startup_submitted = self.catalogue_jobs.submit('catalogue',
+                lambda: Catalogue(directory, group=group, task=task), self.startup_loaded)
             if not self.startup_submitted:
                 self.startup_loaded(None, 'Startup queue unavailable')
             return
@@ -207,6 +216,10 @@ class WarderRadio(Screen):
         current = self.playback.key(self.session.nav.getCurrentlyPlayingServiceReference())
         if self.startup_autoplay and current == self.startup_navigation and not self.playback.current:
             self.resume_last_station()
+        if self.startup_autoplay and self.startup_country and self.startup_country in self.catalogue.groups():
+            catalogue, group = self.catalogue, self.startup_country
+            self.queue_catalogue(lambda task: catalogue.prepare_country(group, task), 'country')
+        self.startup_country = None
         self.startup_autoplay = False
         self.check_updates(manual=self.update_manual)
 
@@ -214,16 +227,19 @@ class WarderRadio(Screen):
         if self.closed or not self.starting:
             return
         self.starting = False
+        self.catalogue_task = None
         self.poll_timer.start(150)
         if error or catalogue is None:
             self['status'].setText(t('Cannot update catalogue'))
             self.update_count()
             return
         self.catalogue = catalogue
+        if catalogue.requested_group and catalogue.requested_group != catalogue.group:
+            self.startup_country = catalogue.requested_group
         groups = self.catalogue.groups()
-        if self.active_group and self.active_group not in groups and self.active_group != 'Custom':
-            self.active_group = groups[0]
-        self['status'].setText('')
+        if self.active_group != 'Custom':
+            self.active_group = catalogue.group
+        self['status'].setText(t('Cannot update catalogue') if catalogue.warning else '')
         self.refresh_rows()
         self.startup_timer.start(1, True)
 
@@ -309,8 +325,8 @@ class WarderRadio(Screen):
 
     def refresh_rows(self):
         if self.mode == 'radio':
-            self.rows = self.catalogue.search(self.query, None if self.query else (self.active_group or None),
-                                              self.store.custom)
+            self.rows = self.search_rows if self.query else self.catalogue.search(
+                group=self.active_group or None, custom=self.store.custom)
             heading = (t('Search results') + ': ' + self.query) if self.query else (self.active_group or t('All groups'))
         elif self.mode == 'favourites':
             self.rows, heading = list(self.store.favourites), t('Favourites')
@@ -340,7 +356,7 @@ class WarderRadio(Screen):
         index = self['stations'].getSelectionIndex() if self.rows else -1
         self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
         if not self.rows:
-            self['count'].setText(t('Please wait…') if self.starting and self.mode == 'radio' else
+            self['count'].setText(t('Please wait…') if (self.starting or self.updating) and self.mode == 'radio' else
                                   t('No recordings' if self.mode == 'recordings' else 'No stations'))
         self['blue'].setText(t('Delete') if self.mode == 'recordings' else t('YouTube video'))
 
@@ -397,6 +413,12 @@ class WarderRadio(Screen):
             self.active_group = item['group']
             self.refresh_rows()
         index = next((i for i, row in enumerate(self.rows) if row['id'] == item['id']), None)
+        if index is None:
+            # A saved station owns its URL; it remains playable when its country
+            # cannot be downloaded. Never load the old whole-world cache here.
+            self.rows = [item]
+            self['stations'].setList([(item,)])
+            index = 0
         if index is not None:
             self['stations'].moveToIndex(index)
             self.update_count()
@@ -628,6 +650,12 @@ class WarderRadio(Screen):
         if text is None or self.closed:
             return
         self.query, self.mode = text.strip()[:100], 'radio'
+        self.search_rows, self.search_total = [], 0
+        if self.query:
+            catalogue, query, custom = self.catalogue, self.query, list(self.store.custom)
+            self.queue_catalogue(lambda task: catalogue.prepare_search(query, task, custom), 'search')
+        else:
+            self.cancel_catalogue()
         self.refresh_rows()
         self.set_focus('stations')
 
@@ -664,7 +692,7 @@ class WarderRadio(Screen):
             self.stop()
         elif action == 'about':
             self.notify('Warder Radio ' + VERSION + '\nWorld of Radio Stations\n\n'
-                        + 'OpenPLi / OpenATV\n' + str(len(self.catalogue.items)) + ' stations · PiconHub\n\n'
+                        + 'OpenPLi / OpenATV\n' + str(self.catalogue.total_stations()) + ' stations · PiconHub\n\n'
                         + t('Recordings folder') + ':\n' + self.recording.directory)
 
     def update_country_caption(self):
@@ -689,7 +717,7 @@ class WarderRadio(Screen):
             return
         self.country_return_focus = self.focus
         self.set_focus('country')
-        choices = [(t('All groups'), '')] + [(group_label(group), group) for group in self.catalogue.groups()]
+        choices = [(group_label(group), group) for group in self.catalogue.groups()]
         if self.store.custom:
             choices.append((t('Custom'), 'Custom'))
         selection = next((i for i, item in enumerate(choices) if item[1] == self.active_group), 0)
@@ -707,12 +735,18 @@ class WarderRadio(Screen):
     def group_done(self, choice):
         if not choice or self.closed:
             return
-        self.active_group, self.mode, self.query = choice[1], 'radio', ''
-        self.store.group = self.active_group
-        try:
-            self.store.save()
-        except OSError:
-            self.notify(t('Cannot save settings'), True)
+        group = choice[1] or self.catalogue.groups()[0]
+        self.mode, self.query = 'radio', ''
+        if group == 'Custom':
+            self.cancel_catalogue()
+            self.active_group, self.store.group = group, group
+            try:
+                self.store.save()
+            except OSError:
+                self.notify(t('Cannot save settings'), True)
+        else:
+            catalogue = self.catalogue
+            self.queue_catalogue(lambda task: catalogue.prepare_country(group, task), 'country')
         self.refresh_rows()
         self.set_focus('stations')
 
@@ -732,43 +766,74 @@ class WarderRadio(Screen):
         except OSError:
             self.notify(t('Cannot add station'), True)
             return
+        self.cancel_catalogue()
         self.active_group, self.mode, self.query = 'Custom', 'radio', ''
         self.refresh_rows()
         self['status'].setText(t('Saved'))
         self.set_focus('stations')
 
     def update_catalogue(self):
-        if self.updating or self.starting:
+        if self.starting:
             return
-        self.updating = self.jobs.submit('catalogue', Catalogue.fetch, self.catalogue_loaded)
-        if self.updating:
-            self['status'].setText(t('Updating catalogue…'))
+        catalogue = self.catalogue
+        self.queue_catalogue(lambda task: catalogue.prepare_update(task), 'update')
 
-    def catalogue_loaded(self, items, error):
+    def cancel_catalogue(self):
+        if self.catalogue_task is not None:
+            self.catalogue_task.cancel()
+        self.catalogue_task = None
+        self.catalogue_operation = None
         self.updating = False
-        if not error:
-            try:
-                self.catalogue.replace(items)
-            except (OSError, ValueError) as exc:
-                error = str(exc)
+
+    def queue_catalogue(self, worker, operation):
+        if self.closed or self.installing:
+            return
+        self.cancel_catalogue()
+        task = self.catalogue_task = CatalogueTask()
+        self.catalogue_operation = operation
+        self.updating = self.catalogue_jobs.replace('catalogue', lambda: worker(task),
+            lambda result, error: self.catalogue_loaded(result, error, task, operation))
+        if not self.updating:
+            self.catalogue_task = None
+            self['status'].setText(t('Cannot update catalogue'))
+            return
+        self['status'].setText(t('Searching all countries…') if operation == 'search' else
+                               t('Updating catalogue…'))
+
+    def catalogue_loaded(self, catalogue, error, task=None, operation='update'):
+        if self.closed or (task is not None and (task is not self.catalogue_task or task.cancelled.is_set())):
+            return
+        self.catalogue_task = None
+        self.updating = False
         if error:
             self['status'].setText(t('Cannot update catalogue'))
             self.notify(t('Cannot update catalogue'), True)
+        elif operation == 'search':
+            if catalogue['query'] == self.query:
+                self.search_rows, self.search_total = catalogue['items'], catalogue['total']
+                if self.mode == 'radio':
+                    self.refresh_rows()
+                    self['status'].setText(t('Search results') + ': %d / %d' %
+                                          (len(self.search_rows), self.search_total))
         else:
-            self['status'].setText(t('Catalogue updated'))
-            groups = self.catalogue.groups()
-            if self.active_group and self.active_group not in groups and self.active_group != 'Custom':
-                selected = self.playback.current or self.current()
-                replacement = next((row for row in self.catalogue.items
-                                    if selected and row['id'] == selected['id']), None)
-                self.active_group = replacement['group'] if replacement else groups[0]
-                self.store.group = self.active_group
-                try:
-                    self.store.save()
-                except OSError:
-                    self.notify(t('Cannot save settings'), True)
+            self.catalogue = catalogue
+            self.query = ''
+            if self.active_group != 'Custom' or operation == 'country':
+                self.active_group = catalogue.group
+            self.store.group = self.active_group
+            try:
+                self.store.save()
+            except OSError:
+                self.notify(t('Cannot save settings'), True)
             if self.mode == 'radio':
                 self.refresh_rows()
+                playing = self.playback.current
+                if playing and playing.get('group') == self.active_group:
+                    index = next((i for i, row in enumerate(self.rows) if row['id'] == playing['id']), None)
+                    if index is not None:
+                        self['stations'].moveToIndex(index)
+                        self.update_count()
+            self['status'].setText(t('Catalogue updated') if operation == 'update' else '')
 
     def toggle_recording(self):
         if self.recording.running():
@@ -811,6 +876,17 @@ class WarderRadio(Screen):
 
     def poll(self):
         if not self.closed:
+            if self.catalogue_task is not None:
+                state = self.catalogue_task.take()
+                if state is not None and self.mode == 'radio':
+                    stage, name, done, total = state
+                    message = (t('Searching all countries…') if self.catalogue_operation == 'search' else
+                               t('Loading country {name}…').format(name=group_label(name)) if name else
+                               t('Checking country updates…'))
+                    if stage == 'download' and total:
+                        message += ' %d%%' % min(100, done * 100 // total)
+                    self['status'].setText(message)
+            self.catalogue_jobs.poll()
             progress = self.update_state.take()
             if progress is not None and self.update_window is not None:
                 self.update_window.set_stage(*progress)
@@ -922,6 +998,8 @@ class WarderRadio(Screen):
             self.video_dialog.close()
             self.video_dialog = None
         self.video_jobs.close()
+        self.cancel_catalogue()
+        self.catalogue_jobs.close()
         if self.update_window is not None:
             self.update_window.cleanup()
         self.poll_timer.close()

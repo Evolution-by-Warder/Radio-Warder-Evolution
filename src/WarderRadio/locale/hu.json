@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Törli a(z) {name} felvételt?",
   "Recording deleted": "Felvétel törölve",
   "Cannot delete recording": "A felvétel nem törölhető",
-  "Stop recording before deleting recordings": "A felvételek törlése előtt állítsa le a rögzítést"
+  "Stop recording before deleting recordings": "A felvételek törlése előtt állítsa le a rögzítést",
+  "Loading country {name}…": "{name} ország betöltése…",
+  "Searching all countries…": "Keresés minden országban…",
+  "Checking country updates…": "Országfrissítések ellenőrzése…"
 }

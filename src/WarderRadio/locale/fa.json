@@ -78,5 +78,8 @@
   "Delete recording {name}?": "ضبط {name} حذف شود؟",
   "Recording deleted": "ضبط حذف شد",
   "Cannot delete recording": "حذف ضبط ممکن نیست",
-  "Stop recording before deleting recordings": "پیش از حذف فایل‌های ضبط‌شده، ضبط را متوقف کنید"
+  "Stop recording before deleting recordings": "پیش از حذف فایل‌های ضبط‌شده، ضبط را متوقف کنید",
+  "Loading country {name}…": "در حال بارگیری کشور {name}…",
+  "Searching all countries…": "در حال جستجو در همه کشورها…",
+  "Checking country updates…": "در حال بررسی به‌روزرسانی کشورها…"
 }

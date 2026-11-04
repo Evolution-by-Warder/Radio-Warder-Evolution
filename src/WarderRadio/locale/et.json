@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Kas kustutada salvestis {name}?",
   "Recording deleted": "Salvestis kustutatud",
   "Cannot delete recording": "Salvestist ei saa kustutada",
-  "Stop recording before deleting recordings": "Enne salvestiste kustutamist peatage salvestamine"
+  "Stop recording before deleting recordings": "Enne salvestiste kustutamist peatage salvestamine",
+  "Loading country {name}…": "Riigi {name} laadimine…",
+  "Searching all countries…": "Otsing kõigis riikides…",
+  "Checking country updates…": "Riikide uuenduste kontrollimine…"
 }

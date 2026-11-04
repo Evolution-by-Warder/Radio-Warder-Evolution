@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Ištrinti įrašą {name}?",
   "Recording deleted": "Įrašas ištrintas",
   "Cannot delete recording": "Nepavyko ištrinti įrašo",
-  "Stop recording before deleting recordings": "Prieš trindami įrašus sustabdykite įrašymą"
+  "Stop recording before deleting recordings": "Prieš trindami įrašus sustabdykite įrašymą",
+  "Loading country {name}…": "Įkeliama šalis {name}…",
+  "Searching all countries…": "Ieškoma visose šalyse…",
+  "Checking country updates…": "Tikrinami šalių naujinimai…"
 }

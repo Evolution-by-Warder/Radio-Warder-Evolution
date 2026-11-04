@@ -78,5 +78,8 @@
   "Delete recording {name}?": "删除录音 {name}？",
   "Recording deleted": "录音已删除",
   "Cannot delete recording": "无法删除录音",
-  "Stop recording before deleting recordings": "删除录音前请先停止录制"
+  "Stop recording before deleting recordings": "删除录音前请先停止录制",
+  "Loading country {name}…": "正在加载国家/地区 {name}…",
+  "Searching all countries…": "正在搜索所有国家/地区…",
+  "Checking country updates…": "正在检查国家/地区更新…"
 }

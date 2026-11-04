@@ -46,6 +46,15 @@ class Jobs:
                 except queue.Full:
                     pass
 
+    def replace(self, key, function, callback):
+        """A dedicated queue may discard superseded, not-yet-started requests."""
+        while True:
+            try:
+                self.pending.get_nowait()
+            except queue.Empty:
+                break
+        return self.submit(key, function, callback)
+
     def poll(self):
         for _ in range(2):
             try:

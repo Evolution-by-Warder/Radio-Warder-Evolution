@@ -78,5 +78,8 @@
   "Delete recording {name}?": "{name} kaydı silinsin mi?",
   "Recording deleted": "Kayıt silindi",
   "Cannot delete recording": "Kayıt silinemedi",
-  "Stop recording before deleting recordings": "Kayıtları silmeden önce kaydı durdurun"
+  "Stop recording before deleting recordings": "Kayıtları silmeden önce kaydı durdurun",
+  "Loading country {name}…": "{name} ülkesi yükleniyor…",
+  "Searching all countries…": "Tüm ülkelerde aranıyor…",
+  "Checking country updates…": "Ülke güncellemeleri denetleniyor…"
 }

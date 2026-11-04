@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Delete recording {name}?",
   "Recording deleted": "Recording deleted",
   "Cannot delete recording": "Cannot delete recording",
-  "Stop recording before deleting recordings": "Stop recording before deleting recordings"
+  "Stop recording before deleting recordings": "Stop recording before deleting recordings",
+  "Loading country {name}…": "Loading country {name}…",
+  "Searching all countries…": "Searching all countries…",
+  "Checking country updates…": "Checking country updates…"
 }

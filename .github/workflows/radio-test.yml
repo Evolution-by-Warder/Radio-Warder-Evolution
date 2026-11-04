@@ -50,51 +50,11 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 tools/verify_ipk.py
-      - name: Verify published full country catalogue and cache round trip
+      - name: Verify published country packages, incremental updates and legacy compatibility
         env:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: '1'
-        run: |
-          python3 - <<'PY'
-          import hashlib, io, json, tempfile, time
-          from pathlib import Path
-          from urllib.request import Request, urlopen
-          from WarderRadio.model import Catalogue, MAX_DOWNLOAD, UPSTREAM
-          with urlopen(Request(UPSTREAM, headers={'User-Agent': 'WarderRadio-catalogue-verification/1'}), timeout=30) as response:
-              body = response.read(MAX_DOWNLOAD + 1)
-          assert len(body) <= MAX_DOWNLOAD
-          report_url = UPSTREAM.rsplit('/', 1)[0] + '/build.json'
-          with urlopen(Request(report_url, headers={'User-Agent': 'WarderRadio-catalogue-verification/1'}), timeout=20) as response:
-              report = json.loads(response.read(128 * 1024))
-          assert len(body) == report['receiver']['bytes']
-          assert hashlib.sha256(body).hexdigest() == report['receiver']['sha256']
-          start = time.monotonic()
-          items = Catalogue.fetch(lambda *args, **kwargs: io.BytesIO(body))
-          decode_seconds = time.monotonic() - start
-          assert len(items) == report['processing']['total_stations']
-          assert len({item['id'] for item in items}) == len(items)
-          assert list(dict.fromkeys(item['group'] for item in items))[:2] == ['Slovensko', 'Čechy']
-          seed = json.loads(Path('src/WarderRadio/seed.json').read_text())
-          owned = [item for item in seed if item['group'] in ('Slovensko', 'Čechy')]
-          by_reference = {item['reference']: item for item in items}
-          assert len(owned) == 321
-          for item in owned:
-              found = by_reference[item['reference']]
-              assert (found['name'], found['url']) == (item['name'], item['url'])
-          with tempfile.TemporaryDirectory() as directory:
-              catalogue = Catalogue(directory, load=False)
-              catalogue.replace(items)
-              Catalogue._snapshots.clear()
-              reopened = Catalogue(directory)
-              assert len(reopened.items) == len(items)
-              assert reopened.items[-1]['id'] == items[-1]['id']
-              proof = dict(stations=len(items), groups=len(reopened.groups()), owned_preserved=len(owned),
-                           compressed_bytes=len(body), sha256=hashlib.sha256(body).hexdigest(),
-                           decode_seconds=decode_seconds, cache_bytes=Path(catalogue.cache).stat().st_size,
-                           note='Hosted-runner import/cache verification; no receiver playback claim.')
-          Path('dist/catalogue-live-proof.json').write_text(json.dumps(proof, indent=2) + '\n')
-          print(json.dumps(proof, indent=2))
-          PY
+        run: python3 tools/verify_country_catalogue.py
       - name: Verify current-song artwork against live provider
         env:
           PYTHONPATH: src

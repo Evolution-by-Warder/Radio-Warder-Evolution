@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Opname {name} verwijderen?",
   "Recording deleted": "Opname verwijderd",
   "Cannot delete recording": "Kan opname niet verwijderen",
-  "Stop recording before deleting recordings": "Stop de opname voordat u opnamen verwijdert"
+  "Stop recording before deleting recordings": "Stop de opname voordat u opnamen verwijdert",
+  "Loading country {name}…": "Land {name} laden…",
+  "Searching all countries…": "Zoeken in alle landen…",
+  "Checking country updates…": "Landupdates controleren…"
 }

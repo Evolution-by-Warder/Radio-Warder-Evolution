@@ -1,3 +1,12 @@
+# 0.1.0-test34
+
+- Load and cache the selected country from immutable versioned packages. Updates fetch the small manifest and only changed, previously visited country packages.
+- Prepare downloads, validation and atomic cache writes on a dedicated I/O worker; the GUI activates a prepared country without revalidating or serializing the full world catalogue.
+- Open from a cached country or the small bundled Slovak list. Existing favourites, history, custom stations and their service references remain usable; the old whole-world cache is not parsed on startup.
+- Keep all countries visible, with Slovakia/Czechia first. Load the original-source list only on selection. Whole-world search is an explicit background operation and shows up to 200 matches; refine the query for more specific results.
+- Show country/progress messages, supersede older selections and discard results after close. Country changes and catalogue updates do not stop radio playback.
+- Keep the existing full catalogue endpoint available for older plugin versions. No package update is required for subsequent station-data changes.
+
 # 0.1.0-test33
 
 - Load the complete centrally compiled radio catalogue through compressed JSON.

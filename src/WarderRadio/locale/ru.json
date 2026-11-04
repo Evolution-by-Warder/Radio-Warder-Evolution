@@ -78,5 +78,8 @@
   "Delete recording {name}?": "Удалить запись {name}?",
   "Recording deleted": "Запись удалена",
   "Cannot delete recording": "Не удалось удалить запись",
-  "Stop recording before deleting recordings": "Остановите запись перед удалением записей"
+  "Stop recording before deleting recordings": "Остановите запись перед удалением записей",
+  "Loading country {name}…": "Загрузка страны {name}…",
+  "Searching all countries…": "Поиск во всех странах…",
+  "Checking country updates…": "Проверка обновлений стран…"
 }
