@@ -41,7 +41,7 @@ def make_skin(width, height):
     parts += [label('date', 1080, 26, 390, 42, 24, align='right'),
               label('clock', 1490, 20, 206, 60, 38, '#ffffff', 'right'),
               label('version', 1720, 28, 175, 38, 22, '#00ceff', 'right'),
-              label('navtitle', 62, 220, 380, 52, 29, '#00ceff'),
+              label('navtitle', 62, 220, 1, 1, 1, '#00ceff'),
               label('section', 530, 204, 1, 1, 1, '#a6bed1'),
               label('nowlabel', 1230, 744, 620, 18, 14, '#87a4b9', 'center'),
               label('station', 1230, 768, 620, 30, 24, '#a6bed1', 'center'),
@@ -50,7 +50,7 @@ def make_skin(width, height):
               label('details', 1230, 944, 620, 34, 22, '#a6bed1', 'center'),
               label('count', 530, 966, 620, 26, 22, '#9bbad0'),
               label('status', 62, 796, 380, 44, 18, '#d6e9f7', 'left', True),
-              label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'right')]
+              label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'left')]
     row_h = n(94)
     # Height is derived from the actual scaled row height, never rounded separately.
     parts.append('<widget name="stations" zPosition="2" position="%d,%d" size="%d,%d" '
@@ -62,7 +62,7 @@ def make_skin(width, height):
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (n(55), n(278), n(390), n(72) * 7))
+                 % (n(55), n(246), n(390), n(72) * 7))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),

@@ -1296,7 +1296,9 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(len(panels), 3)
         self.assertTrue(all(node.attrib['size'].endswith(',790') for node in panels))
         self.assertEqual(box('stations')[3], 8 * screen['stations'].l.height)
-        self.assertEqual(box('functions')[1], 278)
+        self.assertEqual(box('functions')[1], 246)
+        self.assertEqual(screen['functions'].l.fonts[2], ('Regular', 24))
+        self.assertLessEqual(box('navtitle')[1] + box('navtitle')[3], box('functions')[1])
         self.assertEqual(box('art')[2:], (520, 520))
         self.assertLess(box('activity')[0] + box('activity')[2], 472)
         previous_bottom = 0
