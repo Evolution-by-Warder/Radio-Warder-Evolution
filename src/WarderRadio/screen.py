@@ -67,7 +67,7 @@ class RadioList(MenuList):
         self.l.setItemHeight(round((72 if functions else 94) * scale))
         self.l.setFont(0, gFont('Regular', round((30 if functions else 29) * scale)))
         self.l.setFont(1, gFont('Regular', round(21 * scale)))
-        self.l.setFont(2, gFont('Regular', round(20 * scale)))
+        self.l.setFont(2, gFont('Regular', round(24 * scale)))
         self.l.setBuildFunc(self.build)
         self.picons = {}
 
@@ -79,9 +79,9 @@ class RadioList(MenuList):
             if key == 'group':
                 caption = t('Choose country') + ' – '
                 country = item[len(caption):]
-                # A smaller first-row font keeps both the translated label
-                # and cyan country name within the 390px Warder menu panel.
-                caption_width = min(215, max(145, len(caption) * 10 + 12))
+                # The slightly larger first-row font keeps the country selector legible.
+                # Bound both translated text and cyan country name to the menu.
+                caption_width = min(232, max(165, len(caption) * 12 + 12))
                 return [None,
                         MultiContentEntryText(pos=(n(16), n(4)),
                                               size=(n(caption_width - 16), n(62)),
