@@ -69,7 +69,7 @@ def clock_text(now=None, language=None):
         date = "%d. %s %d." % (now.year, month, now.day)
     elif code in ("es", "pt"):
         date = "%d de %s de %d" % (now.day, month, now.year)
-    elif code in ("sk", "cs", "de", "pl"):
+    elif code in ("sk", "cs", "de", "pl", "en"):
         date = "%d. %s %d" % (now.day, month, now.year)
     else:
         date = "%d %s %d" % (now.day, month, now.year)
