@@ -923,7 +923,16 @@ class NativeTests(unittest.TestCase):
         from xml.sax.saxutils import escape
         scope = {'ROOT': str(ROOT / 'src/WarderRadio'), 'escape': escape}
         exec(compile(tree, '<published test1 skin>', 'exec'), scope)
-        with patch.object(radio, 'make_skin', scope['make_skin']):
+        # The archived test1 skin used two widget names no longer present
+        # after moving country choice to the left menu. Supply them only in
+        # this fixture replay, never in the production screen.
+        original_init = radio.WarderRadio.__init__
+        def legacy_init(instance, session):
+            original_init(instance, session)
+            instance['countrycaption'] = Label('')
+            instance['heading'] = Button('')
+        with patch.object(radio, 'make_skin', scope['make_skin']), \
+                patch.object(radio.WarderRadio, '__init__', legacy_init):
             before, _, _ = self.new()
         after, _, _ = self.new()
         def obscured(screen):
@@ -1269,8 +1278,8 @@ class NativeTests(unittest.TestCase):
         self.assertIsNone(root.find("widget[@name='countrycaption']"))
         first = screen['functions'].l.build(*screen['functions'].l.rows[0])
         self.assertEqual(len(first), 3)
-        self.assertIn(radio.t('Choose country'), first[1][-1])
-        self.assertIn(radio.group_label(screen.active_group), first[2][-1])
+        self.assertIn(radio.t('Choose country'), screen['functions'].l.rows[0][0])
+        self.assertIn(radio.group_label(screen.active_group), screen['functions'].l.rows[0][0])
         before = len(session.dialogs)
         screen.focus_country()
         self.assertEqual(screen['functions'].getSelectionIndex(), 0)
