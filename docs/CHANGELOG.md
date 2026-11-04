@@ -1,3 +1,11 @@
+# 0.1.0-test36 (receiver-test candidate; PR artifact only)
+
+- Relocate the country selector from the centre header to the first left-menu entry, with the country value in Warder cyan.
+- 0 focuses the first left-menu entry; OK opens country choices. The UP key remains ordinary station navigation.
+- LEFT pages the station list upward, reaching the left menu only when the first station is selected. RIGHT continues paging downward and returns from the left menu to the same station.
+- Show eight complete 94px station rows in the centre rather than seven without shrinking picons. Keep all seven function rows clear of the left header, status row and spectrum.
+- Add layout and remote-control regression tests, plus read-only OpenPLi/OpenATV CI verification and build artifacts. The stable feed and existing released IPKs are unchanged.
+
 # 0.1.0-test35
 
 - RIGHT in a station list advances by a native page rather than moving focus to the country field. Held RIGHT repeats page jumps.
