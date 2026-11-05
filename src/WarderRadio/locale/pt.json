@@ -134,5 +134,8 @@
   "Use folder": "Usar pasta",
   "Folder: {path}": "Pasta: {path}",
   "Cannot open folder": "Não é possível abrir a pasta",
-  "Too many folders": "Demasiadas pastas"
+  "Too many folders": "Demasiadas pastas",
+  "Add station to favourites": "Adicionar estação aos favoritos",
+  "Remove station from favourites": "Remover estação dos favoritos",
+  "Update radio catalogue": "Atualizar catálogo de rádios"
 }

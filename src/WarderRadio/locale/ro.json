@@ -134,5 +134,8 @@
   "Use folder": "Folosește dosarul",
   "Folder: {path}": "Dosar: {path}",
   "Cannot open folder": "Dosarul nu poate fi deschis",
-  "Too many folders": "Prea multe dosare"
+  "Too many folders": "Prea multe dosare",
+  "Add station to favourites": "Adaugă postul la favorite",
+  "Remove station from favourites": "Elimină postul din favorite",
+  "Update radio catalogue": "Actualizează catalogul radio"
 }

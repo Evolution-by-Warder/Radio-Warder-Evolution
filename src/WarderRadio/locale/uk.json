@@ -134,5 +134,8 @@
   "Use folder": "Використати теку",
   "Folder: {path}": "Тека: {path}",
   "Cannot open folder": "Не вдалося відкрити теку",
-  "Too many folders": "Забагато тек"
+  "Too many folders": "Забагато тек",
+  "Add station to favourites": "Додати станцію до обраного",
+  "Remove station from favourites": "Вилучити станцію з обраного",
+  "Update radio catalogue": "Оновити каталог радіостанцій"
 }

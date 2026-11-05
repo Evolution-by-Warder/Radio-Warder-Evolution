@@ -134,5 +134,8 @@
   "Use folder": "Map gebruiken",
   "Folder: {path}": "Map: {path}",
   "Cannot open folder": "Kan map niet openen",
-  "Too many folders": "Te veel mappen"
+  "Too many folders": "Te veel mappen",
+  "Add station to favourites": "Station toevoegen aan favorieten",
+  "Remove station from favourites": "Station uit favorieten verwijderen",
+  "Update radio catalogue": "Radiocatalogus bijwerken"
 }

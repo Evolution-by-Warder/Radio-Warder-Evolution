@@ -134,5 +134,8 @@
   "Use folder": "Përdor dosjen",
   "Folder: {path}": "Dosja: {path}",
   "Cannot open folder": "Dosja nuk mund të hapet",
-  "Too many folders": "Shumë dosje"
+  "Too many folders": "Shumë dosje",
+  "Add station to favourites": "Shto stacionin te të preferuarat",
+  "Remove station from favourites": "Hiq stacionin nga të preferuarat",
+  "Update radio catalogue": "Përditëso katalogun e radiove"
 }

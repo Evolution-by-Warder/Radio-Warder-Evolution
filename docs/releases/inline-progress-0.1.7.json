@@ -1,0 +1,32 @@
+{
+  "release": "0.1.7",
+  "date": "2026-11-05",
+  "source_base": "848f7c634a1f3fa377d3fa74fbb7ec4333322dfe",
+  "unit_tests": 148,
+  "native_replays": {
+    "OpenPLi release-9.2": 68,
+    "OpenATV 8.1 reviewed base": 68,
+    "OpenATV 8.0-next": 68
+  },
+  "checked_behaviour": [
+    "Picon destination, progress, twelve full log rows and summary embedded in the Radio content panel",
+    "No external picon progress Screen or session dialog",
+    "Log visible before network work starts; callbacks consumed by main GUI timer",
+    "Back cancels; Green or OK returns from completed log; navigation preserves manual log scroll",
+    "Leaving panel cancels active task; cleanup suppresses late callbacks",
+    "Immutable selection snapshot per transfer; no replacement of a running transfer",
+    "Download queue rejection shown inline; retry creates a fresh worker",
+    "Favourite menu action changes immediately between Add and Remove and retains state after save failure",
+    "Update radio catalogue label and both favourite actions translated in all 21 locales",
+    "Flat picon storage, verified archive handling and video cover alignment retained"
+  ],
+  "receiver_hardware_tested": false,
+  "local_build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.7-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.7_all.ipk",
+    "sha256": "fed0af1ee10c809ae03ccaafa96d89670864f5a4eb50a2c6b3632323b3b0ba88",
+    "bytes": 3164764,
+    "files": 113
+  }
+}
