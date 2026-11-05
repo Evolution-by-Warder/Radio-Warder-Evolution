@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Chyba piconov: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Nové {added} · Aktualizované {updated} · Aktuálne {unchanged} · Zachované {preserved} · Chýbajúce {missing} · Chyby {failed}",
   "{count} earlier messages omitted": "Vynechaných {count} starších správ",
-  "Picons": "Picony",
-  "Download": "Stiahnuť"
+  "Download": "Stiahnuť",
+  "Picon downloads": "Sťahovanie Piconov",
+  "Back": "Naspäť",
+  "Confirm selection": "Potvrdiť výber",
+  "Select with OK": "Vybrať s OK",
+  "Background": "Pozadie",
+  "Folder": "Priečinok",
+  "Receiver memory": "Pamäť prijímača",
+  "Hard disk": "Pevný disk",
+  "SD card": "SD karta",
+  "Custom folder…": "Vlastný priečinok…",
+  "Storage is not mounted": "Úložisko nie je pripojené",
+  "Invalid folder": "Neplatný priečinok",
+  "USB": "USB",
+  "MMC": "MMC"
 }

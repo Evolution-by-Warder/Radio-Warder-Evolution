@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Piconfout: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Nieuw {added} · Bijgewerkt {updated} · Actueel {unchanged} · Behouden {preserved} · Ontbrekend {missing} · Fouten {failed}",
   "{count} earlier messages omitted": "{count} eerdere berichten weggelaten",
-  "Picons": "Picons",
-  "Download": "Downloaden"
+  "Download": "Downloaden",
+  "Picon downloads": "Picons downloaden",
+  "Back": "Terug",
+  "Confirm selection": "Selectie bevestigen",
+  "Select with OK": "Selecteer met OK",
+  "Background": "Achtergrond",
+  "Folder": "Map",
+  "Receiver memory": "Ontvangergeheugen",
+  "Hard disk": "Harde schijf",
+  "SD card": "SD-kaart",
+  "Custom folder…": "Eigen map…",
+  "Storage is not mounted": "Opslag is niet aangekoppeld",
+  "Invalid folder": "Ongeldige map",
+  "USB": "USB",
+  "MMC": "MMC"
 }

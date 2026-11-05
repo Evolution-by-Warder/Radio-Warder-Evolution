@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Помилка піконів: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Нові {added} · Оновлені {updated} · Актуальні {unchanged} · Збережені {preserved} · Відсутні {missing} · Помилки {failed}",
   "{count} earlier messages omitted": "Пропущено попередніх повідомлень: {count}",
-  "Picons": "Пікони",
-  "Download": "Завантажити"
+  "Download": "Завантажити",
+  "Picon downloads": "Завантаження піконів",
+  "Back": "Назад",
+  "Confirm selection": "Підтвердити вибір",
+  "Select with OK": "Вибрати кнопкою OK",
+  "Background": "Тло",
+  "Folder": "Тека",
+  "Receiver memory": "Пам’ять приймача",
+  "Hard disk": "Жорсткий диск",
+  "SD card": "Картка SD",
+  "Custom folder…": "Власна тека…",
+  "Storage is not mounted": "Накопичувач не підключено",
+  "Invalid folder": "Неприпустима тека",
+  "USB": "USB",
+  "MMC": "MMC"
 }

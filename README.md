@@ -17,7 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current stable release: **0.1.1** (the first production update channel).
-Prepared development candidate: **0.1.2-test2**, with picon settings inside the main window.
+Prepared development candidate: **0.1.2-test3**, with inline country, background and folder selectors.
 The preceding 0.1.0-test39 remains available as a receiver-test prerelease.
 
 0.1.1 follows 0.1.0-test39 deliberately: the higher numeric version allows
@@ -63,9 +63,15 @@ registered in the plugin browser.
 - Persistent favourites, last 100 played stations, accent-insensitive search
   across the catalogue and custom HTTP/HTTPS stations.
 - Native/PiconHub picon lookup, with a neutral Warder Radio fallback logo.
-- Main left menu → Picons, directly below Radio stations: select multiple countries, a transparent,
+- Main left menu → Picon downloads, directly below Radio stations: select multiple countries, a transparent,
   white or black background and an internal or currently mounted location.
   The centre and right panels become one wide numbered settings form.
+  Country, background and folder lists appear inside this same panel. Country
+  marks apply with Green → Confirm selection; Back discards pending changes.
+  Background and folder choices apply with OK. Folder choices include labelled
+  internal storage, HDD, USB, SD, MMC, /picon and a custom directory. Missing
+  external storage cannot silently write to receiver flash. Custom path entry
+  uses the receiver keyboard; ordinary choices do not open system dialogs.
   Size is automatic (220×132). Available country packages are currently Slovakia,
   Czechia, Austria, Germany, Hungary and Poland. The scrollable progress window
   logs checks, downloads, verification and each saved station in order; red cancels.

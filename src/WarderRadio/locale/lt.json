@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Piktogramų klaida: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Pridėta {added} · Atnaujinta {updated} · Dabartinės {unchanged} · Išsaugota {preserved} · Trūksta {missing} · Klaidos {failed}",
   "{count} earlier messages omitted": "Praleista ankstesnių pranešimų: {count}",
-  "Picons": "Piktogramos",
-  "Download": "Atsisiųsti"
+  "Download": "Atsisiųsti",
+  "Picon downloads": "Piktogramų atsisiuntimas",
+  "Back": "Atgal",
+  "Confirm selection": "Patvirtinti pasirinkimą",
+  "Select with OK": "Pasirinkite su OK",
+  "Background": "Fonas",
+  "Folder": "Aplankas",
+  "Receiver memory": "Imtuvo atmintis",
+  "Hard disk": "Standusis diskas",
+  "SD card": "SD kortelė",
+  "Custom folder…": "Pasirinktinis aplankas…",
+  "Storage is not mounted": "Laikmena neprijungta",
+  "Invalid folder": "Netinkamas aplankas",
+  "USB": "USB",
+  "MMC": "MMC"
 }

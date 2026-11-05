@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Picon error: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}",
   "{count} earlier messages omitted": "{count} earlier messages omitted",
-  "Picons": "Picons",
-  "Download": "Download"
+  "Download": "Download",
+  "Picon downloads": "Picon downloads",
+  "Back": "Back",
+  "Confirm selection": "Confirm selection",
+  "Select with OK": "Select with OK",
+  "Background": "Background",
+  "Folder": "Folder",
+  "Receiver memory": "Receiver memory",
+  "Hard disk": "Hard disk",
+  "SD card": "SD card",
+  "Custom folder…": "Custom folder…",
+  "Storage is not mounted": "Storage is not mounted",
+  "Invalid folder": "Invalid folder",
+  "USB": "USB",
+  "MMC": "MMC"
 }

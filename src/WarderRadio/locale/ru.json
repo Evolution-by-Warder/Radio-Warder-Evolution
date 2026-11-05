@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Ошибка пиконов: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Новые {added} · Обновлены {updated} · Актуальны {unchanged} · Сохранены {preserved} · Отсутствуют {missing} · Ошибки {failed}",
   "{count} earlier messages omitted": "Пропущено предыдущих сообщений: {count}",
-  "Picons": "Пиконы",
-  "Download": "Скачать"
+  "Download": "Скачать",
+  "Picon downloads": "Загрузка пиконов",
+  "Back": "Назад",
+  "Confirm selection": "Подтвердить выбор",
+  "Select with OK": "Выбрать кнопкой OK",
+  "Background": "Фон",
+  "Folder": "Папка",
+  "Receiver memory": "Память приёмника",
+  "Hard disk": "Жёсткий диск",
+  "SD card": "Карта SD",
+  "Custom folder…": "Своя папка…",
+  "Storage is not mounted": "Накопитель не подключён",
+  "Invalid folder": "Недопустимая папка",
+  "USB": "USB",
+  "MMC": "MMC"
 }

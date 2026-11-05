@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Erro de picons: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Adicionados {added} · Atualizados {updated} · Atuais {unchanged} · Preservados {preserved} · Em falta {missing} · Erros {failed}",
   "{count} earlier messages omitted": "{count} mensagens anteriores omitidas",
-  "Picons": "Picons",
-  "Download": "Transferir"
+  "Download": "Transferir",
+  "Picon downloads": "Transferência de picons",
+  "Back": "Voltar",
+  "Confirm selection": "Confirmar seleção",
+  "Select with OK": "Selecionar com OK",
+  "Background": "Fundo",
+  "Folder": "Pasta",
+  "Receiver memory": "Memória do recetor",
+  "Hard disk": "Disco rígido",
+  "SD card": "Cartão SD",
+  "Custom folder…": "Pasta personalizada…",
+  "Storage is not mounted": "O armazenamento não está montado",
+  "Invalid folder": "Pasta inválida",
+  "USB": "USB",
+  "MMC": "MMC"
 }

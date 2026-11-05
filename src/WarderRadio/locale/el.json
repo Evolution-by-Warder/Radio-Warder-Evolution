@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Σφάλμα picon: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Νέα {added} · Ενημερωμένα {updated} · Τρέχοντα {unchanged} · Διατηρημένα {preserved} · Λείπουν {missing} · Σφάλματα {failed}",
   "{count} earlier messages omitted": "Παραλείφθηκαν {count} παλαιότερα μηνύματα",
-  "Picons": "Picon",
-  "Download": "Λήψη"
+  "Download": "Λήψη",
+  "Picon downloads": "Λήψη picon",
+  "Back": "Πίσω",
+  "Confirm selection": "Επιβεβαίωση επιλογής",
+  "Select with OK": "Επιλογή με OK",
+  "Background": "Φόντο",
+  "Folder": "Φάκελος",
+  "Receiver memory": "Μνήμη δέκτη",
+  "Hard disk": "Σκληρός δίσκος",
+  "SD card": "Κάρτα SD",
+  "Custom folder…": "Προσαρμοσμένος φάκελος…",
+  "Storage is not mounted": "Το μέσο αποθήκευσης δεν είναι προσαρτημένο",
+  "Invalid folder": "Μη έγκυρος φάκελος",
+  "USB": "USB",
+  "MMC": "MMC"
 }

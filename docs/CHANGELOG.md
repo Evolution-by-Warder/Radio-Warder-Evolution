@@ -1,3 +1,18 @@
+# 0.1.2-test3 (inline picon selectors)
+
+- Rename the main menu entry to Picon downloads (Sťahovanie Piconov in Slovak),
+  retaining its position immediately below Radio stations.
+- Country, background and folder choices now use the same main-window content
+  panel. Country check marks remain provisional until Green → Confirm selection;
+  Back discards pending marks. Background and folder choices use OK and return
+  to the original form row. Ordinary choices no longer open system dialogs.
+- Offer labelled receiver memory, HDD, USB, SD, MMC, /picon and a custom-folder
+  entry. Only custom text entry uses the receiver keyboard. Validate mounted
+  storage, preserve the existing Radio-owned subdirectories and reject unsafe
+  roots or invalid paths. A missing drive leaves the selection open with a reason.
+- Retain automatic image size, the line-by-line download log and equalizer
+  recovery. Translate picker controls and storage labels in all 21 locales.
+
 # 0.1.2-test2 (embedded picon settings and spectrum recovery)
 
 - Place Picons immediately below Radio stations in the main left menu.

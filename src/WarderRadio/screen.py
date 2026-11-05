@@ -158,7 +158,7 @@ class WarderRadio(Screen):
         self.rows = []
         self.recording_was_running = False
         self['functions'] = RadioList([(t('Choose country'), 'group'), (t('Radio stations'), 'radio'),
-                                      (t('Picons'), 'picons'), (t('Favourites'), 'favourites'),
+                                      (t('Picon downloads'), 'picons'), (t('Favourites'), 'favourites'),
                                       (t('History'), 'history'), (t('Recordings'), 'recordings'),
                                       (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
@@ -273,15 +273,16 @@ class WarderRadio(Screen):
                               timeout=8)
 
     def set_focus(self, focus):
-        if self.mode == 'picons' and focus == 'stations':
-            focus = 'picon_form'
+        if self.mode == 'picons' and focus in ('stations','picon_form','picon_options'):
+            focus = self.picon_form.focus_name
         self.focus = focus
         self['functions'].selectionEnabled(focus == 'functions')
         self['stations'].selectionEnabled(focus == 'stations')
         self['picon_form'].selectionEnabled(focus == 'picon_form')
+        self['picon_options'].selectionEnabled(focus == 'picon_options')
         self.update_country_caption()
-        if focus == 'picon_form':
-            hint = t('Choose countries, colour and location')
+        if focus in ('picon_form','picon_options'):
+            hint = t('Select with OK') if focus=='picon_options' else t('Choose countries, colour and location')
         elif focus == 'stations':
             hint = t('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options')
         else:
@@ -290,8 +291,9 @@ class WarderRadio(Screen):
 
     def left(self):
         self.startup_autoplay = False
-        if self.focus == 'picon_form':
-            self.set_focus('functions')
+        if self.focus in ('picon_form','picon_options'):
+            if not self.picon_form.back():
+                self.set_focus('functions')
             return
         if self.focus == 'stations' and self['stations'].list and self['stations'].getSelectionIndex() > 0:
             self.page_up()
@@ -300,7 +302,7 @@ class WarderRadio(Screen):
 
     def right(self):
         self.startup_autoplay = False
-        if self.focus == 'picon_form':
+        if self.focus in ('picon_form','picon_options'):
             self.picon_form.choose()
             return
         if self.focus == 'stations':
@@ -335,7 +337,7 @@ class WarderRadio(Screen):
 
     def ok(self):
         self.startup_autoplay = False
-        if self.focus == 'picon_form':
+        if self.focus in ('picon_form','picon_options'):
             self.picon_form.choose()
             return
         if self.focus == 'stations':
@@ -485,7 +487,7 @@ class WarderRadio(Screen):
 
     def green_pressed(self):
         if self.mode == 'picons':
-            self.picon_form.start()
+            self.picon_form.green()
         else:
             self.play()
 
@@ -815,7 +817,7 @@ class WarderRadio(Screen):
         country = group_label(self.active_group) if self.active_group else t('All groups')
         current = self['functions'].getSelectionIndex()
         entries = [(t('Choose country') + ' – ' + country + ' ▾', 'group'),
-                   (t('Radio stations'), 'radio'), (t('Picons'), 'picons'),
+                   (t('Radio stations'), 'radio'), (t('Picon downloads'), 'picons'),
                    (t('Favourites'), 'favourites'),
                    (t('History'), 'history'), (t('Recordings'), 'recordings'),
                    (t('Settings'), 'settings'), (t('Update'), 'plugin-update')]
@@ -1102,7 +1104,8 @@ class WarderRadio(Screen):
 
     def exit(self):
         if self.mode == 'picons' and not self.installing:
-            self.close_picons()
+            if not self.picon_form.back():
+                self.close_picons()
             return
         if not self.installing:
             self.close()

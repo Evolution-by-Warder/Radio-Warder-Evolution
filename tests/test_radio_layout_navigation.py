@@ -24,6 +24,10 @@ class RadioLayoutNavigationTests(unittest.TestCase):
             self.assertLessEqual(fy+fh,y+h)
             self.assertGreater(int(widgets['picon_form'].get('zPosition')),
                                int(widgets['picon_panel'].get('zPosition')))
+            ox,oy,ow,oh=box('picon_options')
+            self.assertEqual(oh,round(60*scale)*8)
+            self.assertGreaterEqual(ox,x);self.assertLessEqual(ox+ow,x+w)
+            self.assertLessEqual(oy+oh,box('picon_help')[1])
 
     def test_piconhub_and_gsu_header_geometry_at_all_resolutions(self):
         expected = {

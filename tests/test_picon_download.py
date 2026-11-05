@@ -214,6 +214,17 @@ class PiconDownloadTests(unittest.TestCase):
                 self.install()
         self.assertEqual(self.backend.requests, [])
 
+    def test_custom_media_subdirectory_requires_an_actual_ancestor_mount(self):
+        path='/media/usb/custom/radio/logos'
+        with patch.object(p.os.path,'ismount',side_effect=lambda value:value=='/media/usb'):
+            self.assertEqual(p.validate_location(path),path)
+        with patch.object(p.os.path,'ismount',return_value=False):
+            with self.assertRaisesRegex(ValueError,'Storage is not mounted'):
+                p.validate_location(path)
+        for path in ['/','/media','relative/path','/tmp/../media/usb','/tmp/a\n']:
+            with self.subTest(path=path):
+                with self.assertRaises(ValueError):p.validate_location(path)
+
     def test_symlinked_parent_is_rejected(self):
         link = Path(self.directory, 'link')
         link.symlink_to(self.directory, target_is_directory=True)

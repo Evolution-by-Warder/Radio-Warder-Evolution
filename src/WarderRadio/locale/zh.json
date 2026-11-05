@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "台标错误：{country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "新增 {added} · 更新 {updated} · 最新 {unchanged} · 保留 {preserved} · 缺少 {missing} · 错误 {failed}",
   "{count} earlier messages omitted": "已省略 {count} 条较早消息",
-  "Picons": "台标",
-  "Download": "下载"
+  "Download": "下载",
+  "Picon downloads": "台标下载",
+  "Back": "返回",
+  "Confirm selection": "确认选择",
+  "Select with OK": "按 OK 选择",
+  "Background": "背景",
+  "Folder": "文件夹",
+  "Receiver memory": "接收器内存",
+  "Hard disk": "硬盘",
+  "SD card": "SD 卡",
+  "Custom folder…": "自定义文件夹…",
+  "Storage is not mounted": "存储设备未挂载",
+  "Invalid folder": "无效文件夹",
+  "USB": "USB",
+  "MMC": "MMC"
 }

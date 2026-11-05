@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Picon hatası: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Yeni {added} · Güncellenen {updated} · Güncel {unchanged} · Korunan {preserved} · Eksik {missing} · Hata {failed}",
   "{count} earlier messages omitted": "Önceki {count} ileti atlandı",
-  "Picons": "Piconlar",
-  "Download": "İndir"
+  "Download": "İndir",
+  "Picon downloads": "Picon indirme",
+  "Back": "Geri",
+  "Confirm selection": "Seçimi onayla",
+  "Select with OK": "OK ile seçin",
+  "Background": "Arka plan",
+  "Folder": "Klasör",
+  "Receiver memory": "Alıcı belleği",
+  "Hard disk": "Sabit disk",
+  "SD card": "SD kart",
+  "Custom folder…": "Özel klasör…",
+  "Storage is not mounted": "Depolama bağlı değil",
+  "Invalid folder": "Geçersiz klasör",
+  "USB": "USB",
+  "MMC": "MMC"
 }

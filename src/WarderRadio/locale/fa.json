@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "خطای پیکون: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "جدید {added} · به‌روزشده {updated} · به‌روز {unchanged} · حفظ‌شده {preserved} · موجود نیست {missing} · خطاها {failed}",
   "{count} earlier messages omitted": "{count} پیام قبلی حذف شد",
-  "Picons": "پیکون‌ها",
-  "Download": "دریافت"
+  "Download": "دریافت",
+  "Picon downloads": "دریافت پیکون‌ها",
+  "Back": "بازگشت",
+  "Confirm selection": "تأیید انتخاب",
+  "Select with OK": "انتخاب با OK",
+  "Background": "پس‌زمینه",
+  "Folder": "پوشه",
+  "Receiver memory": "حافظه گیرنده",
+  "Hard disk": "دیسک سخت",
+  "SD card": "کارت SD",
+  "Custom folder…": "پوشه دلخواه…",
+  "Storage is not mounted": "حافظه متصل نشده است",
+  "Invalid folder": "پوشه نامعتبر",
+  "USB": "USB",
+  "MMC": "MMC"
 }

@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Piconhiba: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Új {added} · Frissített {updated} · Naprakész {unchanged} · Megőrzött {preserved} · Hiányzó {missing} · Hibák {failed}",
   "{count} earlier messages omitted": "{count} korábbi üzenet kihagyva",
-  "Picons": "Piconok",
-  "Download": "Letöltés"
+  "Download": "Letöltés",
+  "Picon downloads": "Piconok letöltése",
+  "Back": "Vissza",
+  "Confirm selection": "Kiválasztás jóváhagyása",
+  "Select with OK": "Kiválasztás az OK gombbal",
+  "Background": "Háttér",
+  "Folder": "Mappa",
+  "Receiver memory": "Vevő memóriája",
+  "Hard disk": "Merevlemez",
+  "SD card": "SD-kártya",
+  "Custom folder…": "Egyéni mappa…",
+  "Storage is not mounted": "A tároló nincs csatolva",
+  "Invalid folder": "Érvénytelen mappa",
+  "USB": "USB",
+  "MMC": "MMC"
 }

@@ -72,13 +72,28 @@ def locations():
     return paths
 
 
+def location_choices():
+    choices = [('Receiver memory','/etc/enigma2/warder-radio/picons'),
+               ('Hard disk','/media/hdd/WarderRadio/picons'),
+               ('USB','/media/usb/WarderRadio/picons'),
+               ('SD card','/media/sdcard/WarderRadio/picons'),
+               ('MMC','/media/mmc/WarderRadio/picons'),
+               ('Folder','/picon')]
+    known = {path for _label,path in choices}
+    choices.extend(('Folder',path) for path in locations() if path not in known)
+    return choices
+
+
 def validate_location(path):
-    if not isinstance(path, str) or not os.path.isabs(path) or os.path.normpath(path) != path:
-        raise ValueError('Invalid picon location')
+    if (not isinstance(path,str) or not os.path.isabs(path) or path in ('/','/media') or len(path)>4096
+            or any(ord(c)<32 for c in path) or os.path.normpath(path)!=path):
+        raise ValueError('Invalid folder')
     if path.startswith('/media/'):
-        pieces = path.split('/')
-        if len(pieces) != 5 or pieces[3:] != ['WarderRadio', 'picons'] or not os.path.ismount('/media/' + pieces[2]):
-            raise ValueError('Recording requires a mounted disk')
+        parent = path
+        while parent.startswith('/media/') and not os.path.ismount(parent):
+            parent = os.path.dirname(parent)
+        if parent=='/media':
+            raise ValueError('Storage is not mounted')
     # Reject redirected parents, including an unplugged drive's replacement link.
     if os.path.realpath(path) != path:
         raise ValueError('Invalid picon location')

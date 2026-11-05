@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Pikoni viga: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Lisatud {added} · Uuendatud {updated} · Ajakohased {unchanged} · Säilitatud {preserved} · Puuduvad {missing} · Vead {failed}",
   "{count} earlier messages omitted": "{count} varasemat teadet välja jäetud",
-  "Picons": "Pikonid",
-  "Download": "Laadi alla"
+  "Download": "Laadi alla",
+  "Picon downloads": "Pikonite allalaadimine",
+  "Back": "Tagasi",
+  "Confirm selection": "Kinnita valik",
+  "Select with OK": "Vali OK abil",
+  "Background": "Taust",
+  "Folder": "Kaust",
+  "Receiver memory": "Vastuvõtja mälu",
+  "Hard disk": "Kõvaketas",
+  "SD card": "SD-kaart",
+  "Custom folder…": "Kohandatud kaust…",
+  "Storage is not mounted": "Salvestusseade pole ühendatud",
+  "Invalid folder": "Vigane kaust",
+  "USB": "USB",
+  "MMC": "MMC"
 }

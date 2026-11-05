@@ -116,6 +116,19 @@
   "Picon error: {country} · {error}": "Eroare piconuri: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Adăugate {added} · Actualizate {updated} · Curente {unchanged} · Păstrate {preserved} · Lipsă {missing} · Erori {failed}",
   "{count} earlier messages omitted": "{count} mesaje anterioare omise",
-  "Picons": "Piconuri",
-  "Download": "Descarcă"
+  "Download": "Descarcă",
+  "Picon downloads": "Descărcare piconuri",
+  "Back": "Înapoi",
+  "Confirm selection": "Confirmă selecția",
+  "Select with OK": "Selectați cu OK",
+  "Background": "Fundal",
+  "Folder": "Dosar",
+  "Receiver memory": "Memoria receptorului",
+  "Hard disk": "Disc dur",
+  "SD card": "Card SD",
+  "Custom folder…": "Dosar personalizat…",
+  "Storage is not mounted": "Dispozitivul de stocare nu este montat",
+  "Invalid folder": "Dosar nevalid",
+  "USB": "USB",
+  "MMC": "MMC"
 }
