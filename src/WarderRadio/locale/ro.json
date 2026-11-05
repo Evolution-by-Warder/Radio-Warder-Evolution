@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Piconuri finalizate: {country}",
   "Picon error: {country} · {error}": "Eroare piconuri: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Adăugate {added} · Actualizate {updated} · Curente {unchanged} · Păstrate {preserved} · Lipsă {missing} · Erori {failed}",
-  "{count} earlier messages omitted": "{count} mesaje anterioare omise"
+  "{count} earlier messages omitted": "{count} mesaje anterioare omise",
+  "Picons": "Piconuri",
+  "Download": "Descarcă"
 }

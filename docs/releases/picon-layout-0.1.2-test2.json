@@ -1,0 +1,36 @@
+{
+  "candidate": "0.1.2-test2",
+  "date": "2026-11-05",
+  "previous_candidate_commit": "73e0efd3709cf92bb835920796fb319282161f4b",
+  "unit_tests": 136,
+  "native_replays": {
+    "OpenPLi release-9.2": 55,
+    "OpenATV 8.1 reviewed base": 55,
+    "OpenATV 8.0-next": 55
+  },
+  "checked_behaviour": [
+    "Picons immediately below Radio stations in main menu",
+    "Embedded combined centre/right country-colour-location form",
+    "No setup popup when entering Picons",
+    "Green opens ordered download log",
+    "Radio playback continues",
+    "Red/EXIT restores previous station view and selection",
+    "Late cover callbacks cannot show artwork over form",
+    "Eight complete main menu rows at four GUI resolutions",
+    "Spectrum visible on left during picon selection",
+    "Spectrum resumes after screen return and paused timer watchdog",
+    "Transient frame failures recover with at most three retries",
+    "All 48 approved spectrum PNGs present in IPK"
+  ],
+  "backend_download_evidence": "picon-download-0.1.2-test1.json (downloader unchanged)",
+  "receiver_test": "pending; reported missing equalizer requires confirmation on physical receiver",
+  "feeds_changed": false,
+  "ipk": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.2-test2-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.2-test2_all.ipk",
+    "sha256": "5418fd60ccae6975605042245df6c9dfbae3f6a1d4d7dbf4e689c6dcbae3281d",
+    "bytes": 3154868,
+    "files": 112
+  }
+}

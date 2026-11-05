@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Piconlar tamamlandı: {country}",
   "Picon error: {country} · {error}": "Picon hatası: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Yeni {added} · Güncellenen {updated} · Güncel {unchanged} · Korunan {preserved} · Eksik {missing} · Hata {failed}",
-  "{count} earlier messages omitted": "Önceki {count} ileti atlandı"
+  "{count} earlier messages omitted": "Önceki {count} ileti atlandı",
+  "Picons": "Piconlar",
+  "Download": "İndir"
 }

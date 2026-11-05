@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Picony dokončeny: {country}",
   "Picon error: {country} · {error}": "Chyba piconů: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Nové {added} · Aktualizované {updated} · Aktuální {unchanged} · Zachované {preserved} · Chybějící {missing} · Chyby {failed}",
-  "{count} earlier messages omitted": "Vynecháno {count} starších zpráv"
+  "{count} earlier messages omitted": "Vynecháno {count} starších zpráv",
+  "Picons": "Picony",
+  "Download": "Stáhnout"
 }

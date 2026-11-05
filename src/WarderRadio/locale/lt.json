@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Piktogramos paruoštos: {country}",
   "Picon error: {country} · {error}": "Piktogramų klaida: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Pridėta {added} · Atnaujinta {updated} · Dabartinės {unchanged} · Išsaugota {preserved} · Trūksta {missing} · Klaidos {failed}",
-  "{count} earlier messages omitted": "Praleista ankstesnių pranešimų: {count}"
+  "{count} earlier messages omitted": "Praleista ankstesnių pranešimų: {count}",
+  "Picons": "Piktogramos",
+  "Download": "Atsisiųsti"
 }

@@ -115,5 +115,7 @@
   "Picons finished: {country}": "台标已完成：{country}",
   "Picon error: {country} · {error}": "台标错误：{country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "新增 {added} · 更新 {updated} · 最新 {unchanged} · 保留 {preserved} · 缺少 {missing} · 错误 {failed}",
-  "{count} earlier messages omitted": "已省略 {count} 条较早消息"
+  "{count} earlier messages omitted": "已省略 {count} 条较早消息",
+  "Picons": "台标",
+  "Download": "下载"
 }

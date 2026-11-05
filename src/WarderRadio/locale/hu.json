@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Piconok elkészültek: {country}",
   "Picon error: {country} · {error}": "Piconhiba: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Új {added} · Frissített {updated} · Naprakész {unchanged} · Megőrzött {preserved} · Hiányzó {missing} · Hibák {failed}",
-  "{count} earlier messages omitted": "{count} korábbi üzenet kihagyva"
+  "{count} earlier messages omitted": "{count} korábbi üzenet kihagyva",
+  "Picons": "Piconok",
+  "Download": "Letöltés"
 }

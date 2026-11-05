@@ -115,5 +115,7 @@
   "Picons finished: {country}": "پیکون‌ها تکمیل شدند: {country}",
   "Picon error: {country} · {error}": "خطای پیکون: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "جدید {added} · به‌روزشده {updated} · به‌روز {unchanged} · حفظ‌شده {preserved} · موجود نیست {missing} · خطاها {failed}",
-  "{count} earlier messages omitted": "{count} پیام قبلی حذف شد"
+  "{count} earlier messages omitted": "{count} پیام قبلی حذف شد",
+  "Picons": "پیکون‌ها",
+  "Download": "دریافت"
 }

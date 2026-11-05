@@ -45,7 +45,7 @@ class RadioStub:
     def __init__(self, index=12):
         self.focus = 'stations'
         self.startup_autoplay = True
-        self.values = {'stations': ListStub(30, index), 'functions': ListStub(7, 3)}
+        self.values = {'stations': ListStub(30, index), 'functions': ListStub(8, 3)}
         self.country_opened = False
         self.played = False
     def __getitem__(self, name):

@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Pikonat përfunduan: {country}",
   "Picon error: {country} · {error}": "Gabim i pikonave: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Të reja {added} · Përditësuara {updated} · Aktuale {unchanged} · Ruajtura {preserved} · Mungojnë {missing} · Gabime {failed}",
-  "{count} earlier messages omitted": "U lanë jashtë {count} mesazhe të mëparshme"
+  "{count} earlier messages omitted": "U lanë jashtë {count} mesazhe të mëparshme",
+  "Picons": "Pikonat",
+  "Download": "Shkarko"
 }

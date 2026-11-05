@@ -25,7 +25,7 @@ from .country_catalogue import CountryCatalogue as Catalogue, CatalogueTask
 from .recording import Recording
 from .picons import path_for
 from .picon_download import PiconSettings, PiconLibrary
-from .picon_screen import PiconSetup
+from .picon_screen import PiconForm
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .header_clock import clock_text
@@ -67,7 +67,7 @@ class RadioList(MenuList):
     def __init__(self, rows, scale, functions=False):
         self.ui_scale, self.functions = scale, functions
         MenuList.__init__(self, rows, True, eListboxPythonMultiContent)
-        self.l.setItemHeight(round((72 if functions else 94) * scale))
+        self.l.setItemHeight(round((64 if functions else 94) * scale))
         self.l.setFont(0, gFont('Regular', round((30 if functions else 29) * scale)))
         self.l.setFont(1, gFont('Regular', round(21 * scale)))
         self.l.setFont(2, gFont('Regular', round(24 * scale)))
@@ -94,8 +94,8 @@ class RadioList(MenuList):
                                               size=(n(372 - caption_width), n(58)),
                                               font=2, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            return [None, MultiContentEntryText(pos=(n(16), n(10)),
-                                               size=(n(350), n(56)),
+            return [None, MultiContentEntryText(pos=(n(16), n(6)),
+                                               size=(n(350), n(52)),
                                                font=0, flags=flags, text=item)]
         path = path_for(item, self.picon_library)
         if path not in self.picons:
@@ -157,7 +157,8 @@ class WarderRadio(Screen):
         self.playing = False
         self.rows = []
         self.recording_was_running = False
-        self['functions'] = RadioList([(t('Choose country'), 'group'), (t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
+        self['functions'] = RadioList([(t('Choose country'), 'group'), (t('Radio stations'), 'radio'),
+                                      (t('Picons'), 'picons'), (t('Favourites'), 'favourites'),
                                       (t('History'), 'history'), (t('Recordings'), 'recordings'),
                                       (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
@@ -170,6 +171,7 @@ class WarderRadio(Screen):
         self.cover_display = CoverDisplay(self['art'], ePicLoad, os.path.join(ROOT, 'plugin.png'),
                                           lambda: self['nowlabel'].setText(''))
         self['activity'] = Pixmap()
+        self.picon_form = PiconForm(self, self.store.directory, self.ui_scale)
         self['version_caption'].setText(t('Version:'))
         self['version'].setText(VERSION)
         self['navtitle'].setText('')
@@ -185,7 +187,7 @@ class WarderRadio(Screen):
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
             'country': self.focus_country,
-            'green': self.play, 'yellow': self.search, 'blue': self.blue_pressed,
+            'green': self.green_pressed, 'yellow': self.search, 'blue': self.blue_pressed,
             'menu': self.options, 'pageDown': self.page_down, 'pageUp': self.page_up,
             'instantRecord': self.toggle_recording, 'stop': self.stop, 'update': self.manual_update,
         }, -2)
@@ -200,7 +202,7 @@ class WarderRadio(Screen):
         self.startup_timer = Timer(self.finish_startup)
         self.spectrum = Spectrum(self['activity'], lambda: self.playing and self.playback.owns(),
                                  Timer, LoadPixmap)
-        self.onShow.append(self.spectrum.start)
+        self.onShow.append(self.spectrum.resume)
         self.onHide.append(self.spectrum.pause)
         self.onLayoutFinish.append(self.ready)
         self.onClose.append(self.cleanup)
@@ -271,11 +273,16 @@ class WarderRadio(Screen):
                               timeout=8)
 
     def set_focus(self, focus):
+        if self.mode == 'picons' and focus == 'stations':
+            focus = 'picon_form'
         self.focus = focus
         self['functions'].selectionEnabled(focus == 'functions')
         self['stations'].selectionEnabled(focus == 'stations')
+        self['picon_form'].selectionEnabled(focus == 'picon_form')
         self.update_country_caption()
-        if focus == 'stations':
+        if focus == 'picon_form':
+            hint = t('Choose countries, colour and location')
+        elif focus == 'stations':
             hint = t('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options')
         else:
             hint = t('Use left/right to switch panels · MENU: options')
@@ -283,6 +290,9 @@ class WarderRadio(Screen):
 
     def left(self):
         self.startup_autoplay = False
+        if self.focus == 'picon_form':
+            self.set_focus('functions')
+            return
         if self.focus == 'stations' and self['stations'].list and self['stations'].getSelectionIndex() > 0:
             self.page_up()
         else:
@@ -290,6 +300,9 @@ class WarderRadio(Screen):
 
     def right(self):
         self.startup_autoplay = False
+        if self.focus == 'picon_form':
+            self.picon_form.choose()
+            return
         if self.focus == 'stations':
             self.page_down()
         else:
@@ -322,6 +335,9 @@ class WarderRadio(Screen):
 
     def ok(self):
         self.startup_autoplay = False
+        if self.focus == 'picon_form':
+            self.picon_form.choose()
+            return
         if self.focus == 'stations':
             self.play()
             return
@@ -338,11 +354,25 @@ class WarderRadio(Screen):
         if mode == 'plugin-update':
             self.manual_update()
             return
+        if mode == 'picons':
+            self.open_picons()
+            return
         self.mode, self.query = mode, ''
         self.refresh_rows()
         self.set_focus('stations')
 
     def refresh_rows(self):
+        changed = self.picon_form.set_visible(self.mode == 'picons')
+        self['green'].setText(t('Download') if self.mode == 'picons' else t('Play'))
+        self['yellow'].setText('' if self.mode == 'picons' else t('Search'))
+        if self.mode == 'picons':
+            self['blue'].setText('')
+            self.picon_form.refresh()
+            self.update_country_caption()
+            return
+        if changed:
+            self.reset_artwork()
+            self.metadata()
         if self.mode == 'radio':
             self.rows = self.search_rows if self.query else self.catalogue.search(
                 group=self.active_group or None, custom=self.store.custom)
@@ -372,6 +402,8 @@ class WarderRadio(Screen):
             self['status'].setText(t('Recording failed'))
 
     def update_count(self):
+        if self.mode == 'picons':
+            return
         index = self['stations'].getSelectionIndex() if self.rows else -1
         self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
         if not self.rows:
@@ -380,6 +412,8 @@ class WarderRadio(Screen):
         self['blue'].setText(t('Delete') if self.mode == 'recordings' else t('YouTube video'))
 
     def blue_pressed(self):
+        if self.mode == 'picons':
+            return
         if self.mode == 'recordings':
             self.delete_recording()
         else:
@@ -445,7 +479,15 @@ class WarderRadio(Screen):
 
     def play(self):
         self.startup_autoplay = False
+        if self.mode == 'picons':
+            return
         self.play_item(self.current())
+
+    def green_pressed(self):
+        if self.mode == 'picons':
+            self.picon_form.start()
+        else:
+            self.play()
 
     def play_item(self, item, remember=True):
         if item is None:
@@ -482,6 +524,17 @@ class WarderRadio(Screen):
         if self.playback.owns():
             self.playing = True
             self['status'].setText('')
+            self.spectrum.resume()
+            self.sync_spectrum()
+
+    def sync_spectrum(self):
+        # Some image/session combinations resume the parent without an onShow
+        # callback after closing a modal dialog. The normal clock is a bounded
+        # watchdog for the existing animation timer, never a second painter.
+        if self.closed or self.video_active or not getattr(self, 'shown', True):
+            self.spectrum.pause()
+        else:
+            self.spectrum.start()
 
     def metadata(self):
         if self.video_active:
@@ -560,10 +613,11 @@ class WarderRadio(Screen):
         self.cover_generation += 1
         self.cover_key, self.cover_attempts, self.cover_next = '', 0, 0.0
         self['nowlabel'].setText('')
-        self.cover_display.show(None)
+        if self.mode != 'picons':
+            self.cover_display.show(None)
 
     def update_artwork(self, artist, title):
-        if self.closed:
+        if self.closed or self.mode == 'picons':
             return
         station = (self.playback.current or {}).get('id', '')
         key = (station, artist.casefold(), title.casefold()) if artist else ''
@@ -580,7 +634,7 @@ class WarderRadio(Screen):
 
     def cover_loaded(self, generation, result, error):
         self.cover_pending = False
-        if self.closed or generation != self.cover_generation:
+        if self.closed or self.mode == 'picons' or generation != self.cover_generation:
             return
         path, source = result if not error and result else ('', '')
         if path and os.path.isfile(path):
@@ -661,6 +715,8 @@ class WarderRadio(Screen):
             self.update_count()
 
     def search(self):
+        if self.mode == 'picons':
+            return
         self.startup_autoplay = False
         self.session.openWithCallback(self.search_done, VirtualKeyBoard,
                                       title=t('Search all stations'), text=self.query)
@@ -681,7 +737,6 @@ class WarderRadio(Screen):
     def options(self):
         self.startup_autoplay = False
         choices = [(t('Choose country'), 'group'), (t('Update catalogue'), 'update'),
-                   (t('Download / update picons'), 'picons'),
                    (t('Favourite'), 'favourite'),
                    (t('Add station'), 'add'), (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if self.recording.running() else 'Start recording'), 'record'),
@@ -703,7 +758,7 @@ class WarderRadio(Screen):
         elif action == 'update':
             self.update_catalogue()
         elif action == 'picons':
-            self.session.openWithCallback(self.reload_picons, PiconSetup, self.store.directory)
+            self.open_picons()
         elif action == 'plugin-update':
             self.check_updates(manual=True)
         elif action == 'add':
@@ -716,6 +771,34 @@ class WarderRadio(Screen):
             self.notify('Warder Radio ' + VERSION + '\nWorld of Radio Stations\n\n'
                         + 'OpenPLi / OpenATV\n' + str(self.catalogue.total_stations()) + ' stations · PiconHub\n\n'
                         + t('Recordings folder') + ':\n' + self.recording.directory)
+
+    def open_picons(self):
+        if self.closed or self.installing:
+            return
+        if self.mode != 'picons':
+            self.picon_return = (self.mode, self.query, self['stations'].getSelectionIndex())
+        self.mode = 'picons'
+        self.startup_autoplay = False
+        self.video_generation += 1
+        self.video_pending = False
+        self.cover_generation += 1
+        self.cover_pending = False
+        self.cover_display.token += 1
+        self.cover_display.disconnect()
+        self.cover_display.path = ''
+        self.refresh_rows()
+        self['functions'].moveToIndex(2)
+        self.set_focus('picon_form')
+        self.sync_spectrum()
+
+    def close_picons(self):
+        self.mode, self.query, index = getattr(self, 'picon_return', ('radio', '', 0))
+        self.refresh_rows()
+        self['stations'].moveToIndex(index)
+        menu = self['functions'].list
+        self['functions'].moveToIndex(next((i for i, row in enumerate(menu) if row[1] == self.mode), 1))
+        self.set_focus('stations')
+        self.sync_spectrum()
 
     def reload_picons(self, _result=None):
         if getattr(self, 'closed', False):
@@ -732,7 +815,8 @@ class WarderRadio(Screen):
         country = group_label(self.active_group) if self.active_group else t('All groups')
         current = self['functions'].getSelectionIndex()
         entries = [(t('Choose country') + ' – ' + country + ' ▾', 'group'),
-                   (t('Radio stations'), 'radio'), (t('Favourites'), 'favourites'),
+                   (t('Radio stations'), 'radio'), (t('Picons'), 'picons'),
+                   (t('Favourites'), 'favourites'),
                    (t('History'), 'history'), (t('Recordings'), 'recordings'),
                    (t('Settings'), 'settings'), (t('Update'), 'plugin-update')]
         if getattr(self, '_country_menu_label', None) != entries[0][0]:
@@ -890,6 +974,7 @@ class WarderRadio(Screen):
         self['date'].setText(date)
         self['clock'].setText(hours)
         self['seconds'].setText(seconds)
+        self.sync_spectrum()
         if self.video_active:
             return
         if self.playing and self.playback.owns():
@@ -1016,6 +1101,9 @@ class WarderRadio(Screen):
             self.session.open(TryQuitMainloop, 3)
 
     def exit(self):
+        if self.mode == 'picons' and not self.installing:
+            self.close_picons()
+            return
         if not self.installing:
             self.close()
 

@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Pikonid valmis: {country}",
   "Picon error: {country} · {error}": "Pikoni viga: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Lisatud {added} · Uuendatud {updated} · Ajakohased {unchanged} · Säilitatud {preserved} · Puuduvad {missing} · Vead {failed}",
-  "{count} earlier messages omitted": "{count} varasemat teadet välja jäetud"
+  "{count} earlier messages omitted": "{count} varasemat teadet välja jäetud",
+  "Picons": "Pikonid",
+  "Download": "Laadi alla"
 }

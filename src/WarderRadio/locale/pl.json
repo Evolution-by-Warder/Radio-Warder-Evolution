@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Pikony ukończone: {country}",
   "Picon error: {country} · {error}": "Błąd pikonów: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Dodane {added} · Zaktualizowane {updated} · Aktualne {unchanged} · Zachowane {preserved} · Brakujące {missing} · Błędy {failed}",
-  "{count} earlier messages omitted": "Pominięto {count} wcześniejszych komunikatów"
+  "{count} earlier messages omitted": "Pominięto {count} wcześniejszych komunikatów",
+  "Picons": "Pikony",
+  "Download": "Pobierz"
 }

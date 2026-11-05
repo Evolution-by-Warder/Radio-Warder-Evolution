@@ -89,38 +89,73 @@ class CountrySelection(Screen):
             self.refresh()
 
 
-class PiconSetup(Screen):
-    def __init__(self, session, directory):
-        self.skin, self.ui_scale = window_skin('WarderRadioPiconSetup', 'Warder Radio')
-        Screen.__init__(self, session)
-        self.directory = directory
+class PiconRows(MenuList):
+    """Three numbered settings rows across the combined centre/right panels."""
+    def __init__(self, scale):
+        self.ui_scale = scale
+        MenuList.__init__(self, [], True, eListboxPythonMultiContent)
+        self.l.setItemHeight(round(130 * scale))
+        self.l.setFont(0, gFont('Regular', round(29 * scale)))
+        self.l.setFont(1, gFont('Regular', round(25 * scale)))
+        self.l.setBuildFunc(self.build)
+
+    def build(self, title, value, key, number):
+        n = lambda v: max(1, round(v * self.ui_scale))
+        flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER
+        return [None,
+            MultiContentEntryText(pos=(n(14), n(8)), size=(n(50), n(110)), font=1,
+                flags=flags, text='%02d' % number, color=0x00ceff, color_sel=0x00ceff),
+            MultiContentEntryText(pos=(n(82), n(8)), size=(n(280), n(110)), font=0,
+                flags=flags, text=title),
+            MultiContentEntryText(pos=(n(382), n(8)), size=(n(850), n(110)), font=0,
+                flags=flags, text=value),
+            MultiContentEntryText(pos=(n(1250), n(8)), size=(n(35), n(110)), font=0,
+                flags=flags, text='›', color=0x00ceff, color_sel=0x00ceff)]
+
+
+class PiconForm:
+    """Controller for widgets owned by the main Radio window, never a dialog."""
+    widgets = ('picon_panel', 'picon_edge_top', 'picon_edge_bottom',
+               'picon_edge_left', 'picon_edge_right', 'picon_title',
+               'picon_description', 'picon_form', 'picon_help', 'picon_status')
+    player_widgets = ('stations', 'count', 'art', 'nowlabel', 'station', 'artist', 'track', 'details')
+
+    def __init__(self, host, directory, scale):
+        self.host, self.session, self.directory = host, host.session, directory
         self.settings = PiconSettings(directory)
-        self['title'] = Label(t('Download / update picons'))
-        self['description'] = Label(t('Choose countries, colour and location'))
-        self['status'] = Label('')
-        self['footer'] = Label(t('Green: download / update · Red: close'))
-        self['list'] = TextList([], self.ui_scale)
-        self['actions'] = ActionMap(['WarderRadioActions'], {
-            'ok': self.choose, 'green': self.start,
-            'cancel': lambda: self.close(), 'red': lambda: self.close(),
-            'up': self['list'].up, 'down': self['list'].down,
-        }, -2)
+        self.visible = False
+        for name in self.widgets:
+            host[name] = PiconRows(scale) if name == 'picon_form' else Label('')
+        host['picon_title'].setText(t('Picons'))
+        host['picon_description'].setText(t('Choose countries, colour and location'))
+        host['picon_help'].setText(t('Green: download / update · Red: close'))
         self.refresh()
 
+    def set_visible(self, visible):
+        changed = visible != self.visible
+        self.visible = visible
+        for name in self.widgets:
+            (self.host[name].show if visible else self.host[name].hide)()
+        if changed:
+            for name in self.player_widgets:
+                (self.host[name].hide if visible else self.host[name].show)()
+        return changed
+
     def refresh(self):
-        index = self['list'].getSelectionIndex()
+        row = self.host['picon_form']
+        index = row.getSelectionIndex()
         names = ', '.join(t(c[1]) for c in COUNTRIES if c[0] in self.settings.countries)
         style = t({'transparent': 'Transparent', 'white': 'White', 'black': 'Black'}[self.settings.style])
-        self['list'].setList([(t('Picon countries') + ': ' + (names or '—'), 'countries'),
-                              (t('Colour') + ': ' + style, 'style'),
-                              (t('Location') + ': ' + self.settings.location, 'location')])
-        self['list'].moveToIndex(index)
+        row.setList([(t('Picon countries'), names or '—', 'countries', 1),
+                     (t('Colour'), style, 'style', 2),
+                     (t('Location'), self.settings.location, 'location', 3)])
+        row.moveToIndex(index)
 
     def choose(self):
-        current = self['list'].getCurrent()
+        current = self.host['picon_form'].getCurrent()
         if not current:
             return
-        key = current[1]
+        key = current[2]
         if key == 'countries':
             self.session.openWithCallback(self.countries_done, CountrySelection, self.settings.countries)
         elif key == 'style':
@@ -132,30 +167,36 @@ class PiconSetup(Screen):
                                           list=[(path, path) for path in locations()])
 
     def countries_done(self, selected):
-        if selected is not None:
+        if not self.host.closed and selected is not None:
             self.settings.countries = [c[0] for c in COUNTRIES if c[0] in selected]
             self.refresh()
 
     def style_done(self, choice):
-        if choice:
+        if not self.host.closed and choice:
             self.settings.style = choice[1]
             self.refresh()
 
     def location_done(self, choice):
-        if choice:
+        if not self.host.closed and choice:
             self.settings.location = choice[1]
             self.refresh()
 
     def start(self):
-        if not self.settings.countries:
-            self['status'].setText(t('Select at least one country'))
+        if self.host.closed or self.host.installing:
             return
+        if not self.settings.countries:
+            self.host['picon_status'].setText(t('Select at least one country'))
+            return
+        self.host['picon_status'].setText('')
         self.session.openWithCallback(self.finished, PiconProgress, self.directory, self.settings)
 
     def finished(self, _result=None):
-        # The worker saves settings only after at least one successful country.
+        if self.host.closed:
+            return
         self.settings = PiconSettings(self.directory)
         self.refresh()
+        self.host.reload_picons()
+        self.host.sync_spectrum()
 
 
 class PiconProgress(Screen):

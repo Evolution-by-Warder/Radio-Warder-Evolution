@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Пікони готові: {country}",
   "Picon error: {country} · {error}": "Помилка піконів: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Нові {added} · Оновлені {updated} · Актуальні {unchanged} · Збережені {preserved} · Відсутні {missing} · Помилки {failed}",
-  "{count} earlier messages omitted": "Пропущено попередніх повідомлень: {count}"
+  "{count} earlier messages omitted": "Пропущено попередніх повідомлень: {count}",
+  "Picons": "Пікони",
+  "Download": "Завантажити"
 }

@@ -11,6 +11,7 @@ class Spectrum:
         self.timer = timer_factory(self.tick)
         self.running = self.failed = self.closed = False
         self.frame, self.direction = 0, 1
+        self.failures = 0
 
     def start(self):
         if not self.running and not self.failed and not self.closed:
@@ -20,6 +21,13 @@ class Spectrum:
     def pause(self):
         self.running = False
         self.timer.timer.stop()
+
+    def resume(self):
+        if self.closed:
+            return
+        self.failed = False
+        self.failures = 0
+        self.start()
 
     def tick(self):
         if not self.running or self.closed or self.failed:
@@ -37,10 +45,15 @@ class Spectrum:
                             raise ValueError('Unavailable optional spectrum frame')
                         _FRAMES[self.frame] = pixmap
                     self.widget.instance.setPixmap(pixmap)
+                    self.failures = 0
                 except Exception:
-                    self.failed = True
-                    self.pause()
+                    self.failures += 1
                     self.widget.hide()
+                    if self.failures >= 3:
+                        self.failed = True
+                        self.pause()
+                    else:
+                        self.timer.start(1000, True)
                     return
                 self.frame += self.direction
                 if self.frame >= len(_FRAMES):

@@ -1,3 +1,20 @@
+# 0.1.2-test2 (embedded picon settings and spectrum recovery)
+
+- Place Picons immediately below Radio stations in the main left menu.
+  Opening it replaces the centre and right content panels with one wide,
+  numbered country/colour/location form in the existing Radio window.
+- Green starts the existing line-by-line download log. LEFT returns to the
+  main menu; red/EXIT restores the preceding station view and selection.
+  Playback continues, and delayed artwork cannot cover the settings form.
+- Fit all eight main menu rows above the status and spectrum areas at HD,
+  Full HD, QHD and UHD. Keep image size automatic.
+- Resume the decorative equalizer after returning to the main screen and
+  use the clock as a watchdog for a paused animation timer. Retry transient
+  frame-load failures at most three times; returning or starting a station
+  permits recovery without repeated work while hidden or closed.
+- Keep all 48 approved equalizer frames unchanged. Receiver verification of
+  the reported missing equalizer remains necessary.
+
 # 0.1.2-test1 (picon downloader candidate)
 
 - MENU → Download / update picons selects one or more available countries,

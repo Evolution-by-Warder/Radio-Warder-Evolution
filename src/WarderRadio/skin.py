@@ -73,9 +73,29 @@ def make_skin(width, height):
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (n(55), n(232), n(390), n(72) * 7))
+                 % (n(55), n(232), n(390), n(64) * 8))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
+    # One main-window form replaces both content panels in Picons mode.
+    # Its opaque base covers the old central seam; every form widget is hidden
+    # in radio mode, so the original three-panel artwork is retained.
+    parts.append('<widget name="picon_panel" zPosition="4" %s backgroundColor="#00091b30" />'
+                 % rect(500, 204, 1388, 790))
+    for key, box in [('top', (500,204,1388,2)), ('bottom', (500,992,1388,2)),
+                     ('left', (500,204,2,790)), ('right', (1886,204,2,790))]:
+        parts.append('<widget name="picon_edge_%s" zPosition="5" %s backgroundColor="#0045c7e6" />'
+                     % (key, rect(*box)))
+    for key, box, font, color in [
+            ('title', (534,228,1300,56), 34, '#00ceff'),
+            ('description', (534,292,1300,44), 25, '#a6bed1'),
+            ('help', (534,778,1300,48), 25, '#a6bed1'),
+            ('status', (534,852,1300,80), 25, '#00ceff')]:
+        parts.append(label('picon_' + key, *box, font, color).replace('zPosition="2"', 'zPosition="6"'))
+    parts.append('<widget name="picon_form" zPosition="6" position="%d,%d" size="%d,%d" '
+                 'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
+                 'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
+                 'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
+                 % (n(520),n(352),n(1348),n(130)*3))
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
         parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))

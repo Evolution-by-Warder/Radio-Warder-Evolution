@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Ολοκληρώθηκαν τα picon: {country}",
   "Picon error: {country} · {error}": "Σφάλμα picon: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Νέα {added} · Ενημερωμένα {updated} · Τρέχοντα {unchanged} · Διατηρημένα {preserved} · Λείπουν {missing} · Σφάλματα {failed}",
-  "{count} earlier messages omitted": "Παραλείφθηκαν {count} παλαιότερα μηνύματα"
+  "{count} earlier messages omitted": "Παραλείφθηκαν {count} παλαιότερα μηνύματα",
+  "Picons": "Picon",
+  "Download": "Λήψη"
 }

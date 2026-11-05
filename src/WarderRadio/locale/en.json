@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Picons finished: {country}",
   "Picon error: {country} · {error}": "Picon error: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}",
-  "{count} earlier messages omitted": "{count} earlier messages omitted"
+  "{count} earlier messages omitted": "{count} earlier messages omitted",
+  "Picons": "Picons",
+  "Download": "Download"
 }

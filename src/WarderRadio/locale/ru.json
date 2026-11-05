@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Пиконы готовы: {country}",
   "Picon error: {country} · {error}": "Ошибка пиконов: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Новые {added} · Обновлены {updated} · Актуальны {unchanged} · Сохранены {preserved} · Отсутствуют {missing} · Ошибки {failed}",
-  "{count} earlier messages omitted": "Пропущено предыдущих сообщений: {count}"
+  "{count} earlier messages omitted": "Пропущено предыдущих сообщений: {count}",
+  "Picons": "Пиконы",
+  "Download": "Скачать"
 }

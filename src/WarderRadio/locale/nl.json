@@ -115,5 +115,7 @@
   "Picons finished: {country}": "Picons voltooid: {country}",
   "Picon error: {country} · {error}": "Piconfout: {country} · {error}",
   "Added {added} · Updated {updated} · Current {unchanged} · Kept {preserved} · Missing {missing} · Errors {failed}": "Nieuw {added} · Bijgewerkt {updated} · Actueel {unchanged} · Behouden {preserved} · Ontbrekend {missing} · Fouten {failed}",
-  "{count} earlier messages omitted": "{count} eerdere berichten weggelaten"
+  "{count} earlier messages omitted": "{count} eerdere berichten weggelaten",
+  "Picons": "Picons",
+  "Download": "Downloaden"
 }
