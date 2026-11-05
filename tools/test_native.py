@@ -188,7 +188,7 @@ module('enigma', ePicLoad=PicLoad,
        eSlider=Widget, ePoint=lambda x,y: NS(x=lambda:x,y=lambda:y),
        eSize=lambda w,h: NS(width=lambda:w,height=lambda:h), eTimer=Timer, eServiceReference=Reference, eListboxPythonMultiContent=Content,
        eListboxPythonStringContent=Content, gFont=gfont, getDesktop=getDesktop, gRGB=lambda value: value,
-       RT_HALIGN_LEFT=1, RT_VALIGN_CENTER=2, RT_ELLIPSIS=4,
+       RT_HALIGN_LEFT=1, RT_VALIGN_CENTER=2, RT_ELLIPSIS=4, RT_HALIGN_CENTER=8,
        BT_SCALE=1, BT_KEEP_ASPECT_RATIO=2, BT_HALIGN_CENTER=4, BT_VALIGN_CENTER=8,
        iPlayableService=NS(evStart=0, evUpdatedInfo=1, evEOF=2, evTuneFailed=3, evUser=100),
        iServiceInformation=NS(sTagTitle='title', sTagArtist='artist', sTagAlbum='album'))
@@ -429,6 +429,142 @@ class NativeTests(unittest.TestCase):
         screen.spectrum.pause();screen.tick()
         self.assertTrue(screen.spectrum.running)
         screen.hide();screen.tick();self.assertFalse(screen.spectrum.running)
+
+    def test_settings_menu_and_nested_choices_stay_in_radio_with_green_confirmation(self):
+        screen,session,_=self.new();screen.show();screen.play()
+        screen['stations'].moveToIndex(4)
+        playing,selected=session.nav.current,screen.current()
+        screen['functions'].moveToIndex(6);screen.set_focus('functions');screen.ok()
+        self.assertEqual(screen.mode,'settings')
+        self.assertEqual(screen.focus,'settings_options')
+        self.assertTrue(screen['settings_panel'].instance.isVisible())
+        self.assertFalse(screen['stations'].instance.isVisible())
+        self.assertFalse(screen['art'].instance.isVisible())
+        self.assertEqual(screen['hint'].getText(),'')
+        self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
+        self.assertEqual(len(screen['settings_options'].list),8)
+        screen.ok()
+        screen['settings_options'].moveToIndex(1);screen.ok()
+        self.assertEqual(screen.active_group,'Slovensko')
+        screen.exit();self.assertEqual(screen.settings_form.view,'menu')
+        screen['settings_options'].moveToIndex(7);screen.ok()
+        self.assertEqual(screen.settings_form.view,'about')
+        self.assertIn('Warder Radio',screen['settings_text'].getText())
+        screen.green_pressed();self.assertEqual(screen.settings_form.view,'menu')
+        screen.cover_loaded(screen.cover_generation,(str(ROOT/'src/WarderRadio/plugin.png'),'iTunes'),None)
+        self.assertFalse(screen['art'].instance.isVisible())
+        screen.exit()
+        self.assertEqual(screen.mode,'radio');self.assertEqual(screen.focus,'functions')
+        self.assertEqual(screen.current(),selected)
+        self.assertTrue(screen['art'].instance.isVisible())
+        self.assertFalse(screen['settings_panel'].instance.isVisible())
+        self.assertIs(session.nav.current,playing)
+        self.assertEqual(session.dialogs,[])
+
+    def type_inside_settings(self,screen,text):
+        keys=screen['settings_keys']
+        for letter in text:
+            wanted='␣' if letter==' ' else letter.lower()
+            keys.upper=letter.isupper()
+            row,column=next((r,c) for r,values in enumerate(keys.keys)
+                            for c,key in enumerate(values) if key==wanted)
+            keys.moveToIndex(row);keys.column=column
+            screen.ok()
+
+    def test_custom_station_keyboard_validation_and_retry_never_open_external_windows(self):
+        screen,session,_=self.new();screen.play();playing=session.nav.current
+        screen.options();screen['settings_options'].moveToIndex(3);screen.ok()
+        self.assertEqual(screen.focus,'settings_keys')
+        self.assertTrue(screen['settings_keys'].instance.isVisible())
+        for row in screen['settings_keys'].keys:
+            self.assertEqual(len(screen['settings_keys'].build(row)),len(row)+1)
+        self.type_inside_settings(screen,'Moje rádio')
+        self.assertEqual(screen.settings_form.text,'Moje rádio')
+        screen.green_pressed();self.assertEqual(screen.settings_form.view,'url')
+        screen.green_pressed()
+        self.assertEqual(screen.settings_form.view,'url')
+        self.assertEqual(screen['settings_status'].getText(),radio.t('Invalid stream address'))
+        self.assertEqual(screen.store.custom,[])
+        self.type_inside_settings(screen,'example.org/stream?q=1')
+        with patch.object(screen.store,'save',side_effect=PermissionError):
+            screen.green_pressed()
+        self.assertEqual(screen['settings_status'].getText(),radio.t('Cannot add station'))
+        self.assertEqual(screen.store.custom,[])
+        screen.green_pressed()
+        self.assertEqual(screen.mode,'radio');self.assertEqual(screen.active_group,'Custom')
+        saved=Store(self.tmp.name).custom[0]
+        self.assertEqual((saved['name'],saved['url']),('Moje rádio','https://example.org/stream?q=1'))
+        self.assertFalse(screen['settings_keys'].instance.isVisible())
+        self.assertIs(session.nav.current,playing)
+        self.assertEqual(session.dialogs,[])
+
+    def test_settings_keyboard_navigation_delete_case_and_back_discard_draft(self):
+        screen,session,_=self.new();screen.options();screen.option_done(('','add'))
+        keys=screen['settings_keys'];screen.right();screen.ok()
+        self.assertEqual(screen.settings_form.text,'w')
+        screen.blue_pressed();screen.ok()
+        self.assertEqual(screen.settings_form.text,'wW')
+        screen.search();self.assertEqual(screen.settings_form.text,'w')
+        screen.green_pressed();self.assertEqual(screen.settings_form.view,'url')
+        screen.exit();self.assertEqual(screen.settings_form.text,'w')
+        screen.exit();self.assertEqual(screen.settings_form.view,'menu')
+        self.assertEqual(screen.store.custom,[]);self.assertEqual(session.dialogs,[])
+
+    def test_settings_update_choice_requires_green_and_back_drops_late_check(self):
+        screen,session,_=self.new();screen.options()
+        screen.update_checked(NS(version='0.1.7'),None)
+        self.assertEqual(screen.settings_form.view,'confirm')
+        self.assertIn('0.1.7',screen['settings_text'].getText())
+        screen.ok();self.assertFalse(screen.installing)
+        screen.exit();self.assertEqual(screen.settings_form.view,'menu')
+        self.assertIsNone(screen.settings_form.confirm_callback)
+        self.assertEqual(session.dialogs,[])
+        screen.update_checked(NS(version='0.1.7'),None)
+        screen.green_pressed()
+        self.assertTrue(screen.installing)
+        self.assertIsInstance(screen.update_window,radio.UpdateProgress)
+        screen.update_window.cleanup();screen.installing=False
+        screen.close_settings();screen.update_inline=True
+        before=len(session.dialogs)
+        screen.update_checked(NS(version='0.1.8'),None)
+        self.assertEqual(len(session.dialogs),before)
+
+    def test_settings_catalogue_update_and_errors_do_not_leave_the_panel(self):
+        screen,session,_=self.new();screen.options()
+        screen.option_done(('','update'));self.wait_for_country(screen)
+        self.assertEqual(screen.mode,'settings')
+        self.assertEqual(screen['settings_status'].getText(),radio.t('Catalogue updated'))
+        screen.notify(radio.t('Recording failed'),True)
+        self.assertEqual(screen['settings_status'].getText(),radio.t('Recording failed'))
+        self.assertEqual(session.dialogs,[])
+        screen.open_picons()
+        self.assertTrue(screen['picon_panel'].instance.isVisible())
+        self.assertFalse(screen['settings_panel'].instance.isVisible())
+        self.assertFalse(screen['art'].instance.isVisible())
+        screen.options()
+        self.assertTrue(screen['settings_panel'].instance.isVisible())
+        self.assertFalse(screen['picon_panel'].instance.isVisible())
+        self.assertFalse(screen['art'].instance.isVisible())
+        screen.exit();self.assertEqual(screen.mode,'radio')
+        screen.open_picons();screen.options();screen.exit()
+        self.assertEqual(screen.mode,'radio')
+
+    def test_settings_panel_keyboard_and_options_fit_all_native_resolutions(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:]=width,height
+            screen,session,root=self.new();screen.options()
+            widgets={node.get('name'):node for node in root.findall('widget')}
+            def box(name):
+                node=widgets[name]
+                return tuple(map(int,(node.get('position')+','+node.get('size')).split(',')))
+            x,y,w,h=box('settings_panel')
+            for name in ('settings_title','settings_options','settings_keys','settings_text','settings_input','settings_status'):
+                cx,cy,cw,ch=box(name)
+                self.assertGreaterEqual(cx,x);self.assertGreaterEqual(cy,y)
+                self.assertLessEqual(cx+cw,x+w);self.assertLessEqual(cy+ch,y+h)
+            self.assertEqual(box('settings_options')[3],screen['settings_options'].l.height*8)
+            self.assertEqual(box('settings_keys')[3],screen['settings_keys'].l.height*7)
+            screen.cleanup()
 
 
     def test_picon_country_multiselect_confirm_and_cancel_stay_inside_main_window(self):
@@ -880,11 +1016,13 @@ class NativeTests(unittest.TestCase):
         directory = self.recordings(screen)
         screen.play()
         screen.options()
-        self.assertIn((radio.t('Delete'), 'delete-recording'), session.dialogs[-1][-1]['list'])
+        self.assertIn((radio.t('Delete'), 'delete-recording'), screen.settings_form.choices())
         screen.option_done((radio.t('Delete'), 'delete-recording'))
-        session.dialogs[-1][1](True)
+        self.assertEqual(screen.settings_form.view,'confirm')
+        screen.green_pressed()
         self.assertIs(session.nav.current, original)
         self.assertIsNone(screen.playback.current)
+        screen.files_loaded(screen.recording.files(),None)
         screen.blue_pressed(); session.dialogs[-1][1](True)
         self.assertEqual(screen.rows, [])
         self.assertEqual(screen['count'].getText(), radio.t('No recordings'))
@@ -927,10 +1065,13 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['actions'].actions['blue'],screen.blue_pressed)
         screen.youtube_video(); self.assertEqual(len(callbacks),1)
         screen.options()
-        self.assertIn((radio.t('Favourite'),'favourite'),session.dialogs[-1][-1]['list'])
+        self.assertIn((radio.t('Favourite'),'favourite'),screen.settings_form.choices())
         screen.option_done((radio.t('Favourite'),'favourite'))
         self.assertEqual(len(screen.store.favourites),1)
         callbacks[0]({'id':'abcdefghijk','title':'Singer - Song','url':'https://rr1.googlevideo.com/video'},None)
+        self.assertIsNone(screen.video_dialog)  # Entering settings supersedes a pending video.
+        screen.close_settings();screen.youtube_video()
+        callbacks[-1]({'id':'abcdefghijk','title':'Singer - Song','url':'https://rr1.googlevideo.com/video'},None)
         player=screen.video_dialog; self.assertIsInstance(player,radio.VideoPlayer)
         self.assertTrue(screen.video_active); self.assertTrue(player.owns())
         self.assertEqual(screen.playback.previous,original)
@@ -987,7 +1128,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(session.auxiliary, [])
         self.assertTrue(artwork.display.closed)
 
-    def test_video_artwork_scales_and_sits_above_bottom_native_bar(self):
+    def test_video_artwork_scales_and_meets_native_title_rail(self):
         for width, height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
             DESKTOP[:] = width, height
             player, session, path, _ = self.video_with_artwork(image=False)
@@ -1000,7 +1141,7 @@ class NativeTests(unittest.TestCase):
             self.assertEqual(size.width(), size.height())
             self.assertGreaterEqual(position.x(), 0); self.assertGreaterEqual(position.y(), 0)
             self.assertLessEqual(position.x() + size.width(), width)
-            self.assertLess(position.y() + size.height(), bar_top)
+            self.assertEqual(position.y() + size.height(),bar_top + round(width * 40 / 1920))
             player.close()
 
     def test_video_artwork_optional_failures_and_missing_files_leave_video_usable(self):
@@ -1331,11 +1472,13 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['functions'].getSelectionIndex(), 0)
         self.assertFalse(screen['stations'].instance.selectionEnabled)
         screen.ok()
-        self.assertEqual(len(session.dialogs), dialogs + 1)
-        dialog = session.dialogs[-1]
-        self.assertEqual(dialog[-1]['title'], radio.t('Choose country'))
-        self.assertEqual(dialog[-1]['list'][dialog[-1]['selection']][1], screen.active_group)
-        screen.country_done(('Čechy', 'Čechy'))
+        self.assertEqual(len(session.dialogs), dialogs)
+        self.assertEqual(screen['settings_title'].getText(), radio.t('Choose country'))
+        self.assertEqual(screen['settings_options'].getCurrent()[1], screen.active_group)
+        choices=screen['settings_options'].list
+        screen['settings_options'].moveToIndex(next(i for i,row in enumerate(choices) if row[1]=='Čechy'))
+        screen.ok();self.assertNotEqual(screen.active_group,'Čechy')
+        screen.green_pressed()
         self.assertEqual(screen.focus, 'stations')
         self.wait_for_country(screen)
         self.assertEqual(screen.active_group, 'Čechy')
@@ -1348,12 +1491,13 @@ class NativeTests(unittest.TestCase):
         screen, session, root = self.new()
         self.assertIsNone(root.find("widget[@name='heading']"))
         screen.options()
-        self.assertEqual(session.dialogs[-1][-1]['list'][0], (radio.t('Choose country'), 'group'))
+        self.assertEqual(screen['settings_options'].list[0][:2], (radio.t('Choose country'), 'group'))
+        screen.exit()
         screen['stations'].moveToIndex(3)
         before = screen.current()
         screen.focus_country()
         screen.ok()
-        self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
+        self.assertEqual(screen['settings_title'].getText(), radio.t('Choose country'))
         screen.country_done(None)
         self.assertEqual(screen.focus, 'functions')
         self.assertEqual(screen.current(), before)
@@ -1472,8 +1616,8 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.focus, 'functions')
         self.assertEqual(len(session.dialogs), dialogs)
         screen.ok()
-        self.assertEqual(len(session.dialogs), dialogs + 1)
-        self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
+        self.assertEqual(len(session.dialogs), dialogs)
+        self.assertEqual(screen['settings_title'].getText(), radio.t('Choose country'))
 
     def test_zero_focuses_country_from_any_station_and_only_ok_opens_choices(self):
         screen, session, _ = self.new()
@@ -1495,8 +1639,8 @@ class NativeTests(unittest.TestCase):
             self.assertEqual(screen.current(), selected)
             self.assertEqual(len(session.dialogs), before)
             screen['actions'].actions['country'](); screen.ok()
-            self.assertEqual(len(session.dialogs), before + 1)
-            self.assertEqual(session.dialogs[-1][-1]['title'], radio.t('Choose country'))
+            self.assertEqual(len(session.dialogs), before)
+            self.assertEqual(screen['settings_title'].getText(), radio.t('Choose country'))
             screen.country_done(None)
             self.assertEqual(screen.focus, 'functions')
             screen.right()

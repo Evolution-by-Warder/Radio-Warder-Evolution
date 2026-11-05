@@ -101,6 +101,25 @@ def make_skin(width, height):
                  'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
                  % (n(520),n(310),n(1348),n(60)*8))
+    # Settings and every nested choice stay in the same combined content area.
+    parts.append('<widget name="settings_panel" zPosition="4" %s backgroundColor="#00091b30" />'
+                 % rect(500, 204, 1388, 790))
+    for key, box in [('top', (500,204,1388,2)), ('bottom', (500,992,1388,2)),
+                     ('left', (500,204,2,790)), ('right', (1886,204,2,790))]:
+        parts.append('<widget name="settings_edge_%s" zPosition="5" %s backgroundColor="#0045c7e6" />'
+                     % (key, rect(*box)))
+    for key, box, font, color, wrap in [
+            ('title', (534,228,1300,56), 34, '#00ceff', False),
+            ('text', (534,310,1300,540), 27, '#d9e6ef', True),
+            ('input', (534,310,1300,80), 28, '#ffffff', True),
+            ('status', (534,926,1300,44), 25, '#00ceff', False)]:
+        parts.append(label('settings_' + key, *box, font, color, wrap=wrap).replace('zPosition="2"', 'zPosition="6"'))
+    for name, y, rows in [('options', 310, 8), ('keys', 410, 7)]:
+        parts.append('<widget name="settings_%s" zPosition="6" position="%d,%d" size="%d,%d" '
+                     'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
+                     'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
+                     'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
+                     % (name,n(520),n(y),n(1348),n(60)*rows))
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
         parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))

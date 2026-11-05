@@ -17,7 +17,7 @@ def placement(player):
     desktop = getDesktop(0).size()
     width, height = desktop.width(), desktop.height()
     scale = min(width / 1920.0, height / 1080.0)
-    side, gap = max(1, round(360 * scale)), max(1, round(12 * scale))
+    side = max(1, round(360 * scale))
     # Bottom-anchored MoviePlayer skins expose the bar's top as window position.
     # Full-screen skins use a conservative area above their bottom controls.
     bar_top = round(height * .73)
@@ -27,8 +27,11 @@ def placement(player):
             bar_top = top
     except (AttributeError, RuntimeError, TypeError):
         pass
+    # Seat the cover on the title rail inside the native panel's upper frame.
+    # The receiver's rail is 40 Full-HD pixels below the panel window origin.
+    bar_top += round(40 * scale)
     return (min(round(80 * scale), max(0, width - side)),
-            max(0, min(height - side, bar_top - side - gap)), side)
+            max(0, min(height - side, bar_top - side)), side)
 
 
 class VideoArtwork(Screen):

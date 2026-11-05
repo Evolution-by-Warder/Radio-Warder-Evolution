@@ -16,7 +16,11 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current release: **0.1.5**, storing picons directly in the selected Radio folder.
+Current release: **0.1.6**, with Settings and nested choices inside the main
+Radio content panel, including country selection, custom-station text entry,
+About and action confirmations. Green confirms; red returns or discards a draft.
+Video cover artwork now sits on the infopanel title rail.
+Picons are stored directly in the selected Radio folder.
 The selected background and automatic 220 × 132 size choose the GitHub package;
 no size or background subfolders are created on the receiver. Existing nested
 Radio collections remain readable and are copied into the selected root during

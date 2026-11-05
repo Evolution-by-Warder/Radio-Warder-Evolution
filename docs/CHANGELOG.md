@@ -1,3 +1,25 @@
+# 0.1.6 (embedded Settings and video cover alignment)
+
+- Replace the external Settings ChoiceBox with a combined centre/right panel
+  in the Radio window. Keep the banner, left menu, clock, equalizer and playback.
+- Embed country selection, About, update/deletion confirmations and custom
+  station name/URL entry in the same panel. Green confirms; Back cancels or
+  returns to the preceding view without closing Radio. The main country entry
+  uses the same inline selector. Error and completion messages from Settings
+  stay in the panel.
+- Provide an inline remote-operated character grid for custom station input,
+  with accents, URL punctuation, case switching, cursor movement and deletion.
+  Invalid addresses and save failures retain the draft for correction/retry.
+- Ignore pending artwork/video results on entering Settings and discard update
+  check prompts after leaving that panel. Restore the preceding station view
+  and selection when returning.
+
+- Lower the video album cover onto the dark upper title rail of the native
+  infopanel. Remove the floating gap; the cover's bottom now meets the rail
+  40 Full-HD pixels below the panel window origin, scaling for HD/QHD/UHD.
+- Retain the cover size and horizontal position, native infobar visibility,
+  video playback and the selected flat picon storage introduced in 0.1.5.
+
 # 0.1.5 (flat Radio picon storage)
 
 - Download the selected background at 220 × 132 from GitHub and save PNGs and

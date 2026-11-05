@@ -13,7 +13,6 @@ from Tools.LoadPixmap import LoadPixmap
 from Components.Pixmap import Pixmap
 from Components.ServiceEventTracker import ServiceEventTracker
 from Screens.Screen import Screen
-from Screens.ChoiceBox import ChoiceBox
 from Screens.MessageBox import MessageBox
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 
@@ -26,6 +25,7 @@ from .recording import Recording
 from .picons import path_for
 from .picon_download import PiconSettings, PiconLibrary
 from .picon_screen import PiconForm
+from .settings_screen import SettingsForm
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .header_clock import clock_text
@@ -146,6 +146,7 @@ class WarderRadio(Screen):
         self.updating = False
         self.update_pending = False
         self.update_manual = False
+        self.update_inline = False
         self.installing = False
         self.update_window = None
         self.update_state = UpdateState()
@@ -172,6 +173,8 @@ class WarderRadio(Screen):
                                           lambda: self['nowlabel'].setText(''))
         self['activity'] = Pixmap()
         self.picon_form = PiconForm(self, self.store.directory, self.ui_scale)
+        self.settings_return = ('radio', '', 0, 'stations')
+        self.settings_form = SettingsForm(self, self.ui_scale)
         self['version_caption'].setText(t('Version:'))
         self['version'].setText(VERSION)
         self['navtitle'].setText('')
@@ -269,10 +272,15 @@ class WarderRadio(Screen):
 
     def notify(self, message, error=False):
         if not self.closed:
+            if self.mode == 'settings':
+                self.settings_form.status(message)
+                return
             self.session.open(MessageBox, message, type=MessageBox.TYPE_ERROR if error else MessageBox.TYPE_INFO,
                               timeout=8)
 
     def set_focus(self, focus):
+        if self.mode == 'settings' and focus != 'functions':
+            focus = self.settings_form.focus_name
         if self.mode == 'picons' and focus in ('stations','picon_form','picon_options'):
             focus = self.picon_form.focus_name
         self.focus = focus
@@ -280,6 +288,8 @@ class WarderRadio(Screen):
         self['stations'].selectionEnabled(focus == 'stations')
         self['picon_form'].selectionEnabled(focus == 'picon_form')
         self['picon_options'].selectionEnabled(focus == 'picon_options')
+        self['settings_options'].selectionEnabled(focus == 'settings_options')
+        self['settings_keys'].selectionEnabled(focus == 'settings_keys')
         self.update_country_caption()
         if focus in ('picon_form','picon_options'):
             hint = ''
@@ -287,12 +297,19 @@ class WarderRadio(Screen):
             hint = t('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options')
         else:
             hint = t('Use left/right to switch panels · MENU: options')
-        if self.mode=='picons':
+        if self.mode in ('picons', 'settings'):
             hint=''
         self['hint'].setText(hint)
 
     def left(self):
         self.startup_autoplay = False
+        if self.focus in ('settings_options', 'settings_keys'):
+            if not self.settings_form.horizontal(-1):
+                if self.settings_form.view == 'menu':
+                    self.set_focus('functions')
+                else:
+                    self.settings_form.back()
+            return
         if self.focus in ('picon_form','picon_options'):
             if not self.picon_form.back():
                 self.set_focus('functions')
@@ -304,6 +321,10 @@ class WarderRadio(Screen):
 
     def right(self):
         self.startup_autoplay = False
+        if self.focus in ('settings_options', 'settings_keys'):
+            if not self.settings_form.horizontal(1):
+                self.settings_form.choose()
+            return
         if self.focus in ('picon_form','picon_options'):
             self.picon_form.choose()
             return
@@ -339,6 +360,9 @@ class WarderRadio(Screen):
 
     def ok(self):
         self.startup_autoplay = False
+        if self.focus in ('settings_options', 'settings_keys'):
+            self.settings_form.choose()
+            return
         if self.focus in ('picon_form','picon_options'):
             self.picon_form.choose()
             return
@@ -366,7 +390,13 @@ class WarderRadio(Screen):
         self.set_focus('stations')
 
     def refresh_rows(self):
-        changed = self.picon_form.set_visible(self.mode == 'picons')
+        changed = self.settings_form.set_visible(False) if self.mode != 'settings' else False
+        changed = self.picon_form.set_visible(self.mode == 'picons') or changed
+        if self.mode == 'settings':
+            self.settings_form.set_visible(True)
+            self.update_country_caption()
+            return
+        self['red'].setText(t('Close'))
         self['green'].setText(t('Download') if self.mode == 'picons' else t('Play'))
         self['yellow'].setText('' if self.mode == 'picons' else t('Search'))
         if self.mode == 'picons':
@@ -406,6 +436,9 @@ class WarderRadio(Screen):
             self['status'].setText(t('Recording failed'))
 
     def update_count(self):
+        if self.mode == 'settings':
+            self.settings_form.cursor_changed()
+            return
         if self.mode == 'picons':
             self.picon_form.cursor_changed()
             return
@@ -417,6 +450,10 @@ class WarderRadio(Screen):
         self['blue'].setText(t('Delete') if self.mode == 'recordings' else t('YouTube video'))
 
     def blue_pressed(self):
+        if self.mode == 'settings':
+            if self.settings_form.view in ('name', 'url'):
+                self.settings_form.shift()
+            return
         if self.mode == 'picons':
             return
         if self.mode == 'recordings':
@@ -425,6 +462,20 @@ class WarderRadio(Screen):
             self.youtube_video()
 
     def delete_recording(self):
+        if (not self.closed and not self.installing and self.mode == 'settings'
+                and self.settings_return[0] == 'recordings'):
+            item = self.current()
+            if item and 'path' in item:
+                if self.recording.running():
+                    self.notify(t('Stop recording before deleting recordings'), True)
+                else:
+                    selected = dict(item)
+                    def accepted(answer):
+                        if answer is True and not self.closed:
+                            self.close_settings()
+                            self.recording_delete_answered(selected, True)
+                    self.settings_form.confirm(t('Delete recording {name}?').format(name=selected['name']), accepted)
+            return
         if self.closed or self.installing or self.mode != 'recordings':
             return
         item = self.current()
@@ -484,12 +535,14 @@ class WarderRadio(Screen):
 
     def play(self):
         self.startup_autoplay = False
-        if self.mode == 'picons':
+        if self.mode in ('picons', 'settings'):
             return
         self.play_item(self.current())
 
     def green_pressed(self):
-        if self.mode == 'picons':
+        if self.mode == 'settings':
+            self.settings_form.green()
+        elif self.mode == 'picons':
             self.picon_form.green()
         else:
             self.play()
@@ -618,11 +671,11 @@ class WarderRadio(Screen):
         self.cover_generation += 1
         self.cover_key, self.cover_attempts, self.cover_next = '', 0, 0.0
         self['nowlabel'].setText('')
-        if self.mode != 'picons':
+        if self.mode not in ('picons', 'settings'):
             self.cover_display.show(None)
 
     def update_artwork(self, artist, title):
-        if self.closed or self.mode == 'picons':
+        if self.closed or self.mode in ('picons', 'settings'):
             return
         station = (self.playback.current or {}).get('id', '')
         key = (station, artist.casefold(), title.casefold()) if artist else ''
@@ -639,7 +692,7 @@ class WarderRadio(Screen):
 
     def cover_loaded(self, generation, result, error):
         self.cover_pending = False
-        if self.closed or self.mode == 'picons' or generation != self.cover_generation:
+        if self.closed or self.mode in ('picons', 'settings') or generation != self.cover_generation:
             return
         path, source = result if not error and result else ('', '')
         if path and os.path.isfile(path):
@@ -720,6 +773,10 @@ class WarderRadio(Screen):
             self.update_count()
 
     def search(self):
+        if self.mode == 'settings':
+            if self.settings_form.view in ('name', 'url'):
+                self.settings_form.erase()
+            return
         if self.mode == 'picons':
             return
         self.startup_autoplay = False
@@ -740,15 +797,37 @@ class WarderRadio(Screen):
         self.set_focus('stations')
 
     def options(self):
-        self.startup_autoplay = False
-        choices = [(t('Choose country'), 'group'), (t('Update catalogue'), 'update'),
-                   (t('Favourite'), 'favourite'),
-                   (t('Add station'), 'add'), (t('Check for updates'), 'plugin-update'),
-                   (t('Stop recording' if self.recording.running() else 'Start recording'), 'record'),
-                   (t('Stop'), 'stop'), (t('About'), 'about')]
-        if self.mode == 'recordings':
-            choices.insert(0, (t('Delete'), 'delete-recording'))
-        self.session.openWithCallback(self.option_done, ChoiceBox, title=t('Settings'), list=choices)
+        if not self.closed and not self.installing:
+            self.open_settings()
+
+    def open_settings(self, countries=False):
+        if self.closed or self.installing:
+            return
+        if self.mode != 'settings':
+            if self.mode == 'picons':
+                mode, query, index = getattr(self, 'picon_return', ('radio', '', 0))
+                self.settings_return = (mode, query, index, 'stations')
+            else:
+                self.settings_return = (self.mode, self.query, self['stations'].getSelectionIndex(), self.focus)
+        self.mode, self.startup_autoplay = 'settings', False
+        self.video_generation += 1; self.video_pending = False
+        self.cover_generation += 1; self.cover_pending = False
+        self.cover_display.token += 1; self.cover_display.disconnect(); self.cover_display.path = ''
+        self.refresh_rows()
+        if countries:
+            self.settings_form.countries(from_menu=False)
+        else:
+            self['functions'].moveToIndex(6)
+            self.settings_form.menu()
+        self.sync_spectrum()
+
+    def close_settings(self):
+        if self.closed or self.installing:
+            return
+        self.mode, self.query, index, focus = self.settings_return
+        self.settings_form.confirm_callback = None
+        self.refresh_rows(); self['stations'].moveToIndex(index)
+        self.set_focus(focus); self.sync_spectrum()
 
     def option_done(self, choice):
         if not choice or self.closed:
@@ -767,21 +846,27 @@ class WarderRadio(Screen):
         elif action == 'plugin-update':
             self.check_updates(manual=True)
         elif action == 'add':
-            self.session.openWithCallback(self.add_name_done, VirtualKeyBoard, title=t('Station name'), text='')
+            if self.mode != 'settings':
+                self.open_settings()
+            self.settings_form.edit('name')
         elif action == 'record':
             self.toggle_recording()
         elif action == 'stop':
             self.stop()
         elif action == 'about':
-            self.notify('Warder Radio ' + VERSION + '\nWorld of Radio Stations\n\n'
-                        + 'OpenPLi / OpenATV\n' + str(self.catalogue.total_stations()) + ' stations · PiconHub\n\n'
-                        + t('Recordings folder') + ':\n' + self.recording.directory)
+            if self.mode != 'settings':
+                self.open_settings()
+            self.settings_form.about()
+        if self.mode == 'settings' and self.settings_form.view == 'menu':
+            self.settings_form.refresh()
+            self.settings_form.status(self['status'].getText())
 
     def open_picons(self):
         if self.closed or self.installing:
             return
         if self.mode != 'picons':
-            self.picon_return = (self.mode, self.query, self['stations'].getSelectionIndex())
+            self.picon_return = (self.settings_return[:3] if self.mode == 'settings' else
+                                 (self.mode, self.query, self['stations'].getSelectionIndex()))
         self.mode = 'picons'
         self.startup_autoplay = False
         self.video_generation += 1
@@ -832,21 +917,17 @@ class WarderRadio(Screen):
     def choose_group(self):
         if self.closed or self.installing or self.starting:
             return
-        self.country_return_focus = self.focus
-        self['functions'].moveToIndex(0)
-        self.set_focus('functions')
-        choices = [(group_label(group), group) for group in self.catalogue.groups()]
-        if self.store.custom:
-            choices.append((t('Custom'), 'Custom'))
-        selection = next((i for i, item in enumerate(choices) if item[1] == self.active_group), 0)
-        self.session.openWithCallback(self.country_done, ChoiceBox,
-            title=t('Choose country'), list=choices, selection=selection)
+        if self.mode == 'settings':
+            self.settings_form.countries()
+        else:
+            self.open_settings(countries=True)
 
     def country_done(self, choice):
         if self.closed:
             return
         if not choice:
-            self.set_focus(getattr(self, 'country_return_focus', 'stations'))
+            if self.mode == 'settings':
+                self.settings_form.back()
             return
         self.group_done(choice)
 
@@ -871,7 +952,10 @@ class WarderRadio(Screen):
     def add_name_done(self, name):
         if name and name.strip() and not self.closed:
             self.new_station_name = name.strip()[:240]
-            self.session.openWithCallback(self.add_url_done, VirtualKeyBoard, title=t('Stream URL'), text='https://')
+            if self.mode != 'settings':
+                self.open_settings()
+            self.settings_form.station_name = self.new_station_name
+            self.settings_form.edit('url', 'https://')
 
     def add_url_done(self, url):
         if not url or self.closed:
@@ -917,6 +1001,8 @@ class WarderRadio(Screen):
             return
         self['status'].setText(t('Searching all countries…') if operation == 'search' else
                                t('Updating catalogue…'))
+        if self.mode == 'settings':
+            self.settings_form.status(self['status'].getText())
 
     def catalogue_loaded(self, catalogue, error, task=None, operation='update'):
         if self.closed or (task is not None and (task is not self.catalogue_task or task.cancelled.is_set())):
@@ -952,6 +1038,8 @@ class WarderRadio(Screen):
                         self['stations'].moveToIndex(index)
                         self.update_count()
             self['status'].setText(t('Catalogue updated') if operation == 'update' else '')
+        if self.mode == 'settings':
+            self.settings_form.status(self['status'].getText())
 
     def toggle_recording(self):
         if self.recording.running():
@@ -1028,16 +1116,22 @@ class WarderRadio(Screen):
         if self.update_pending:
             if manual:
                 self.update_manual = True
+                self.update_inline = self.mode == 'settings'
                 self['status'].setText(t('Checking for updates…'))
             return
         self.update_manual = manual
+        self.update_inline = manual and self.mode == 'settings'
         self.update_pending = self.jobs.submit('plugin-update-check',
             lambda: check_release(VERSION), self.update_checked)
         if manual:
             self['status'].setText(t('Checking for updates…' if self.update_pending else 'Update check failed'))
+            if self.mode == 'settings':
+                self.settings_form.status(self['status'].getText())
 
     def update_checked(self, release, error):
         self.update_pending = False
+        if self.closed or (self.update_inline and self.mode != 'settings'):
+            return
         if error:
             if self.update_manual:
                 self.notify(t('Update check failed'), True)
@@ -1047,6 +1141,9 @@ class WarderRadio(Screen):
                 self.notify(t('No update available'))
             return
         self.update_release = release
+        if self.mode == 'settings':
+            self.settings_form.confirm(t('Install update {version}?').format(version=release.version), self.update_answered)
+            return
         self.session.openWithCallback(self.update_answered, MessageBox,
             t('Install update {version}?').format(version=release.version),
             type=MessageBox.TYPE_YESNO, default=False)
@@ -1107,6 +1204,9 @@ class WarderRadio(Screen):
             self.session.open(TryQuitMainloop, 3)
 
     def exit(self):
+        if self.mode == 'settings' and not self.installing:
+            self.settings_form.back()
+            return
         if self.mode == 'picons' and not self.installing:
             if not self.picon_form.back():
                 self.close_picons()

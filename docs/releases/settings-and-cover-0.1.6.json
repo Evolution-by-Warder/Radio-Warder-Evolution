@@ -1,0 +1,42 @@
+{
+  "release": "0.1.6",
+  "date": "2026-11-05",
+  "source_base": "bb53572711dd32dde2a03df6a01d6ce36a9dee6b",
+  "unit_tests": 148,
+  "native_replays": {
+    "OpenPLi release-9.2": 66,
+    "OpenATV 8.1 reviewed base": 66,
+    "OpenATV 8.0-next": 66
+  },
+  "geometry": {
+    "full_hd_cover_side": 360,
+    "full_hd_cover_x": 80,
+    "previous_bottom": "native window top minus 12",
+    "new_bottom": "native window top plus 40",
+    "full_hd_vertical_shift": 52
+  },
+  "checked_behaviour": [
+    "Cover bottom meets the title rail at all four supported resolutions",
+    "Cover size and horizontal placement retained",
+    "Native infobar show/hide and artwork lifecycle checks pass",
+    "Flat picon storage regression suite retained",
+    "Main Settings and country selector use the combined centre/right Radio panel",
+    "Countries apply only with Green; Back preserves previous country and selection",
+    "About, update and recording-delete confirmations remain inline",
+    "Custom-station name and URL typed through inline remote keyboard; accents and URL punctuation supported",
+    "Invalid URL and save failure keep the draft for correction or retry",
+    "Settings catalogue operations and error messages stay inline",
+    "Panel switching returns to the station view without a Back-navigation loop",
+    "Leaving Settings ignores late update prompts; entering Settings ignores pending cover/video results",
+    "All 21 locales retained without new untranslated labels"
+  ],
+  "receiver_hardware_tested": false,
+  "local_build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.6-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.6_all.ipk",
+    "sha256": "add4e4f4598381537a84bb95244adf10bd56a477e78cb1fb5a8bb9055d5b527f",
+    "bytes": 3164278,
+    "files": 113
+  }
+}
