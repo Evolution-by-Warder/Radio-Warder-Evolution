@@ -1,5 +1,6 @@
 """Country/colour/location selection and a scrolling, line-by-line download log."""
-from enigma import eListboxPythonMultiContent, gFont, getDesktop, RT_HALIGN_LEFT, RT_VALIGN_CENTER, RT_ELLIPSIS
+import enigma
+from enigma import eListboxPythonMultiContent, gFont, getDesktop, RT_HALIGN_LEFT, RT_VALIGN_CENTER
 from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Components.MenuList import MenuList
@@ -25,7 +26,7 @@ class TextList(MenuList):
     def build(self, text, key=None):
         n = lambda v: max(1, round(v * self.ui_scale))
         return [None, MultiContentEntryText(pos=(n(12), 0), size=(n(1200), n(44)),
-                    font=0, flags=RT_HALIGN_LEFT | RT_VALIGN_CENTER | RT_ELLIPSIS, text=text)]
+                    font=0, flags=RT_HALIGN_LEFT | RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0), text=text)]
 
 
 def window_skin(name, title, progress=False):
