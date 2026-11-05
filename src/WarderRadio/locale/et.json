@@ -137,5 +137,7 @@
   "Too many folders": "Liiga palju kaustu",
   "Add station to favourites": "Lisa jaam lemmikutesse",
   "Remove station from favourites": "Eemalda jaam lemmikutest",
-  "Update radio catalogue": "Uuenda raadiojaamade kataloogi"
+  "Update radio catalogue": "Uuenda raadiojaamade kataloogi",
+  "Stop radio playback": "Peata raadio taasesitus",
+  "Start radio playback": "Alusta raadio taasesitust"
 }

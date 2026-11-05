@@ -124,6 +124,7 @@ class WarderRadio(Screen):
         # Build the window before reading/validating thousands of station rows.
         self.catalogue = Catalogue(self.store.directory, load=False)
         self.playback = Playback(session.nav, eServiceReference)
+        self.last_radio_station = dict(self.store.history[0]) if self.store.history else None
         self.starting, self.startup_autoplay = True, True
         self.startup_submitted = False
         self.startup_navigation = self.playback.key(session.nav.getCurrentlyPlayingServiceReference())
@@ -566,6 +567,7 @@ class WarderRadio(Screen):
                 self.playback.play_file(item)
             else:
                 self.playback.play(item)
+                self.last_radio_station = dict(item)
                 if remember:
                     try:
                         self.store.played(item)
@@ -574,6 +576,7 @@ class WarderRadio(Screen):
         except Exception:
             self['status'].setText(t('Cannot play station'))
             self['track'].setText(t('Cannot play station'))
+            self.settings_form.refresh_playback()
             return
         self.metadata()
 
@@ -585,6 +588,7 @@ class WarderRadio(Screen):
             self['status'].setText('')
             self.spectrum.resume()
             self.sync_spectrum()
+            self.settings_form.refresh_playback()
 
     def sync_spectrum(self):
         # Some image/session combinations resume the parent without an onShow
@@ -633,6 +637,7 @@ class WarderRadio(Screen):
         self.update_artwork(artist, title)
         if self['status'].getText() == t('Connecting…'):
             self['status'].setText('')
+        self.settings_form.refresh_playback()
 
     def ended(self):
         if self.video_active:
@@ -643,6 +648,7 @@ class WarderRadio(Screen):
         if self.playback.current and self.playback.owns():
             self['status'].setText(t('Playback ended'))
             self['track'].setText(t('Playback ended'))
+        self.settings_form.refresh_playback()
 
     def failed(self):
         if self.video_active:
@@ -653,6 +659,24 @@ class WarderRadio(Screen):
         if self.playback.current and self.playback.owns():
             self['status'].setText(t('Cannot play station'))
             self['track'].setText(t('Cannot play station'))
+        self.settings_form.refresh_playback()
+
+    def radio_running(self):
+        return bool(self.playing and not self.video_active and self.playback.owns()
+                    and self.playback.current and self.playback.current.get('url'))
+
+    def toggle_radio_playback(self):
+        if self.closed or self.installing:
+            return
+        if self.radio_running():
+            self.stop()
+        else:
+            item = self.last_radio_station or self.current()
+            if item and item.get('url'):
+                self.play_item(dict(item), remember=self.last_radio_station is None)
+            else:
+                self.notify(t('No stations'))
+            self.settings_form.refresh_playback()
 
     def stop(self):
         self.startup_autoplay = False
@@ -660,6 +684,8 @@ class WarderRadio(Screen):
         self.video_pending = False
         self.playing = False
         self.metadata_monitor.clear()
+        if self.playback.current and self.playback.current.get('url'):
+            self.last_radio_station = dict(self.playback.current)
         self.playback.stop()
         self['station'].setText(t('Ready to listen'))
         self['artist'].setText('')
@@ -667,6 +693,7 @@ class WarderRadio(Screen):
         self['details'].setText('')
         self['status'].setText(t('Stopped'))
         self.reset_artwork()
+        self.settings_form.refresh_playback()
 
     def reset_artwork(self):
         self.cover_generation += 1
@@ -853,7 +880,7 @@ class WarderRadio(Screen):
         elif action == 'record':
             self.toggle_recording()
         elif action == 'stop':
-            self.stop()
+            self.toggle_radio_playback()
         elif action == 'about':
             if self.mode != 'settings':
                 self.open_settings()
@@ -1077,6 +1104,7 @@ class WarderRadio(Screen):
             self.metadata_monitor.clear()
             if self.cover_key:
                 self.reset_artwork()
+        self.settings_form.refresh_playback()
         if self.recording_was_running:
             if self.recording.running():
                 self['details'].setText('● REC  ' + time.strftime('%H:%M:%S', time.gmtime(time.monotonic() - self.recording.started)))

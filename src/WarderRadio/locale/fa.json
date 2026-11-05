@@ -137,5 +137,7 @@
   "Too many folders": "تعداد پوشه‌ها بیش از حد است",
   "Add station to favourites": "افزودن ایستگاه به علاقه‌مندی‌ها",
   "Remove station from favourites": "حذف ایستگاه از علاقه‌مندی‌ها",
-  "Update radio catalogue": "به‌روزرسانی فهرست ایستگاه‌های رادیویی"
+  "Update radio catalogue": "به‌روزرسانی فهرست ایستگاه‌های رادیویی",
+  "Stop radio playback": "توقف پخش رادیو",
+  "Start radio playback": "شروع پخش رادیو"
 }

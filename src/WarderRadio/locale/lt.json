@@ -137,5 +137,7 @@
   "Too many folders": "Per daug aplankų",
   "Add station to favourites": "Pridėti stotį prie mėgstamiausių",
   "Remove station from favourites": "Pašalinti stotį iš mėgstamiausių",
-  "Update radio catalogue": "Atnaujinti radijo stočių katalogą"
+  "Update radio catalogue": "Atnaujinti radijo stočių katalogą",
+  "Stop radio playback": "Sustabdyti radijo atkūrimą",
+  "Start radio playback": "Pradėti radijo atkūrimą"
 }

@@ -94,10 +94,18 @@ class SettingsForm:
                    (t(favourite), 'favourite'), (t('Add station'), 'add'),
                    (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if host.recording.running() else 'Start recording'), 'record'),
-                   (t('Stop'), 'stop'), (t('About'), 'about')]
+                   (t('Stop radio playback' if host.radio_running() else 'Start radio playback'), 'stop'),
+                   (t('About'), 'about')]
         if host.settings_return[0] == 'recordings':
             choices.insert(0, (t('Delete'), 'delete-recording'))
         return choices
+
+    def refresh_playback(self):
+        if self.visible and self.view == 'menu':
+            expected = t('Stop radio playback' if self.host.radio_running() else 'Start radio playback')
+            current = next((row[0] for row in self.host['settings_options'].list if row[1] == 'stop'), None)
+            if current != expected:
+                self.refresh()
 
     def refresh(self):
         if not self.visible:

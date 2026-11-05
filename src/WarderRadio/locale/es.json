@@ -137,5 +137,7 @@
   "Too many folders": "Demasiadas carpetas",
   "Add station to favourites": "Añadir emisora a favoritos",
   "Remove station from favourites": "Quitar emisora de favoritos",
-  "Update radio catalogue": "Actualizar catálogo de radios"
+  "Update radio catalogue": "Actualizar catálogo de radios",
+  "Stop radio playback": "Detener reproducción de radio",
+  "Start radio playback": "Iniciar reproducción de radio"
 }

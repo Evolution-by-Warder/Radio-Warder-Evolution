@@ -137,5 +137,7 @@
   "Too many folders": "Túl sok mappa",
   "Add station to favourites": "Állomás hozzáadása a kedvencekhez",
   "Remove station from favourites": "Állomás eltávolítása a kedvencek közül",
-  "Update radio catalogue": "Rádiókatalógus frissítése"
+  "Update radio catalogue": "Rádiókatalógus frissítése",
+  "Stop radio playback": "Rádiólejátszás leállítása",
+  "Start radio playback": "Rádiólejátszás indítása"
 }

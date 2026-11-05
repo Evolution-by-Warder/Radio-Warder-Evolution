@@ -137,5 +137,7 @@
   "Too many folders": "Te veel mappen",
   "Add station to favourites": "Station toevoegen aan favorieten",
   "Remove station from favourites": "Station uit favorieten verwijderen",
-  "Update radio catalogue": "Radiocatalogus bijwerken"
+  "Update radio catalogue": "Radiocatalogus bijwerken",
+  "Stop radio playback": "Radio afspelen stoppen",
+  "Start radio playback": "Radio afspelen starten"
 }

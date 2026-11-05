@@ -137,5 +137,7 @@
   "Too many folders": "Příliš mnoho složek",
   "Add station to favourites": "Přidat stanici do oblíbených",
   "Remove station from favourites": "Odebrat stanici z oblíbených",
-  "Update radio catalogue": "Aktualizovat katalog rádií"
+  "Update radio catalogue": "Aktualizovat katalog rádií",
+  "Stop radio playback": "Zastavit přehrávání rádia",
+  "Start radio playback": "Spustit přehrávání rádia"
 }
