@@ -130,5 +130,9 @@
   "Storage is not mounted": "حافظه متصل نشده است",
   "Invalid folder": "پوشه نامعتبر",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "استفاده از پوشه",
+  "Folder: {path}": "پوشه: {path}",
+  "Cannot open folder": "پوشه باز نمی‌شود",
+  "Too many folders": "تعداد پوشه‌ها بیش از حد است"
 }

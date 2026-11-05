@@ -282,11 +282,13 @@ class WarderRadio(Screen):
         self['picon_options'].selectionEnabled(focus == 'picon_options')
         self.update_country_caption()
         if focus in ('picon_form','picon_options'):
-            hint = t('Select with OK') if focus=='picon_options' else t('Choose countries, colour and location')
+            hint = ''
         elif focus == 'stations':
             hint = t('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options')
         else:
             hint = t('Use left/right to switch panels · MENU: options')
+        if self.mode=='picons':
+            hint=''
         self['hint'].setText(hint)
 
     def left(self):
@@ -405,6 +407,7 @@ class WarderRadio(Screen):
 
     def update_count(self):
         if self.mode == 'picons':
+            self.picon_form.cursor_changed()
             return
         index = self['stations'].getSelectionIndex() if self.rows else -1
         self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
@@ -806,7 +809,7 @@ class WarderRadio(Screen):
         if getattr(self, 'closed', False):
             return
         settings = PiconSettings(self.store.directory)
-        self['stations'].picon_library = PiconLibrary(settings.location, settings.style)
+        self['stations'].picon_library = PiconLibrary(settings.location,settings.style,settings.legacy_location)
         self['stations'].picons.clear()
         if hasattr(self, 'rows') and self.rows:
             index = self['stations'].getSelectionIndex()
@@ -1005,6 +1008,7 @@ class WarderRadio(Screen):
                         message += ' %d%%' % min(100, done * 100 // total)
                     self['status'].setText(message)
             self.catalogue_jobs.poll()
+            self.picon_form.poll()
             progress = self.update_state.take()
             if progress is not None and self.update_window is not None:
                 self.update_window.set_stage(*progress)
@@ -1120,6 +1124,7 @@ class WarderRadio(Screen):
             self.video_dialog.close()
             self.video_dialog = None
         self.video_jobs.close()
+        self.picon_form.cleanup()
         self.cancel_catalogue()
         self.catalogue_jobs.close()
         if self.update_window is not None:

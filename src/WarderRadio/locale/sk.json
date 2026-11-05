@@ -130,5 +130,9 @@
   "Storage is not mounted": "Úložisko nie je pripojené",
   "Invalid folder": "Neplatný priečinok",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Použiť priečinok",
+  "Folder: {path}": "Priečinok: {path}",
+  "Cannot open folder": "Priečinok sa nedá otvoriť",
+  "Too many folders": "Príliš veľa priečinkov"
 }

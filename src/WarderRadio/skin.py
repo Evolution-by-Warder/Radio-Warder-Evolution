@@ -95,12 +95,12 @@ def make_skin(width, height):
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (n(520),n(352),n(1348),n(130)*3))
+                 % (n(520),n(310),n(1348),n(130)*3))
     parts.append('<widget name="picon_options" zPosition="6" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                 % (n(520),n(352),n(1348),n(60)*8))
+                 % (n(520),n(310),n(1348),n(60)*8))
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
         parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))

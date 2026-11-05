@@ -130,5 +130,9 @@
   "Storage is not mounted": "Salvestusseade pole ühendatud",
   "Invalid folder": "Vigane kaust",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Kasuta kausta",
+  "Folder: {path}": "Kaust: {path}",
+  "Cannot open folder": "Kausta ei saa avada",
+  "Too many folders": "Liiga palju kaustu"
 }

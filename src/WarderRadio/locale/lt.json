@@ -130,5 +130,9 @@
   "Storage is not mounted": "Laikmena neprijungta",
   "Invalid folder": "Netinkamas aplankas",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Naudoti aplanką",
+  "Folder: {path}": "Aplankas: {path}",
+  "Cannot open folder": "Nepavyko atidaryti aplanko",
+  "Too many folders": "Per daug aplankų"
 }

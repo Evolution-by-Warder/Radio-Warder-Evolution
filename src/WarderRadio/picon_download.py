@@ -59,26 +59,43 @@ class PiconTask(CatalogueTask):
         return events
 
 
+def radio_location(base):
+    """Keep a dedicated Radio directory, without duplicating the suffix."""
+    base = os.path.normpath(base)
+    if os.path.basename(base) == 'warderradio':
+        return base
+    if os.path.basename(base) != 'picon':
+        base = os.path.join(base, 'picon')
+    return os.path.join(base, 'warderradio')
+
+
+def upgraded_location(path):
+    if path == '/etc/enigma2/warder-radio/picons':
+        return '/usr/share/enigma2/picon/warderradio'
+    suffix = '/WarderRadio/picons'
+    return radio_location(path[:-len(suffix)]) if path.startswith('/media/') and path.endswith(suffix) else radio_location(path)
+
+
 def locations():
     """Offer actual mounted storage, plus the plugin's own internal directory."""
-    paths = ['/etc/enigma2/warder-radio/picons']
+    paths = ['/usr/share/enigma2/picon/warderradio']
     try:
         for name in sorted(os.listdir('/media')):
             mount = os.path.join('/media', name)
-            if os.path.ismount(mount) and os.access(mount, os.W_OK):
-                paths.append(os.path.join(mount, 'WarderRadio', 'picons'))
+            if name != 'autofs' and os.path.ismount(mount) and os.access(mount, os.W_OK):
+                paths.append(radio_location(mount))
     except OSError:
         pass
     return paths
 
 
 def location_choices():
-    choices = [('Receiver memory','/etc/enigma2/warder-radio/picons'),
-               ('Hard disk','/media/hdd/WarderRadio/picons'),
-               ('USB','/media/usb/WarderRadio/picons'),
-               ('SD card','/media/sdcard/WarderRadio/picons'),
-               ('MMC','/media/mmc/WarderRadio/picons'),
-               ('Folder','/picon')]
+    choices = [('Receiver memory','/usr/share/enigma2/picon/warderradio'),
+               ('Hard disk','/media/hdd/picon/warderradio'),
+               ('USB','/media/usb/picon/warderradio'),
+               ('SD card','/media/sdcard/picon/warderradio'),
+               ('MMC','/media/mmc/picon/warderradio'),
+               ('Folder','/picon/warderradio')]
     known = {path for _label,path in choices}
     choices.extend(('Folder',path) for path in locations() if path not in known)
     return choices
@@ -110,15 +127,26 @@ class PiconSettings:
         self.countries = [c[0] for c in COUNTRIES if c[0] in selected]
         self.style = value.get('style') if value.get('style') in STYLES else 'black'
         path = value.get('location')
-        self.location = path if isinstance(path, str) and os.path.isabs(path) else locations()[-1]
+        self.legacy_location = None
+        if isinstance(path,str) and os.path.isabs(path):
+            self.location = path if value.get('schema') == 2 else os.path.realpath(upgraded_location(path))
+            legacy = value.get('legacy_location') if value.get('schema') == 2 else path
+            if isinstance(legacy,str) and os.path.isabs(legacy) and legacy != self.location:
+                self.legacy_location = legacy
+        else:
+            available=locations()
+            self.location=os.path.realpath(next((p for p in ['/media/usb/picon/warderradio','/media/hdd/picon/warderradio'] if p in available),available[0]))
 
     def save(self):
-        atomic_json(self.path, {'countries': self.countries, 'style': self.style, 'location': self.location})
+        atomic_json(self.path, {'schema':2,'countries':self.countries,'style':self.style,
+                               'location':self.location,'legacy_location':self.legacy_location})
 
 
 class PiconLibrary:
-    def __init__(self, location, style):
+    def __init__(self, location, style, legacy_location=None):
+        self.location = location
         self.directory = os.path.join(location, SIZE, style)
+        self.legacy = PiconLibrary(legacy_location,style) if legacy_location and legacy_location != location else None
         value = read_json(os.path.join(self.directory, 'index.json'), {}, MAX_MANIFEST)
         self.files = {name: digest for name, digest in value.items()
                       if FILENAME.fullmatch(name) and isinstance(digest, str) and HEX.fullmatch(digest)} if isinstance(value, dict) else {}
@@ -129,12 +157,34 @@ class PiconLibrary:
         if not FILENAME.fullmatch(name):
             return ''
         # A user's reference-named override takes precedence over managed objects.
-        custom = os.path.join(self.directory, name)
-        if os.path.isfile(custom):
-            return custom
+        for directory in (self.directory,self.location):
+            custom = os.path.join(directory,name)
+            if os.path.isfile(custom):
+                return custom
         digest = self.files.get(name)
         candidate = os.path.join(self.directory, digest + '.png') if digest else ''
-        return candidate if candidate and os.path.isfile(candidate) else ''
+        if candidate and os.path.isfile(candidate):
+            return candidate
+        return self.legacy.lookup(item) if self.legacy is not None else ''
+
+
+def directory_snapshot(path):
+    """Read only directory names; call on the browser's dedicated I/O worker."""
+    path=os.path.realpath(path)
+    entries=[]
+    with os.scandir(path) as iterator:
+        for entry in iterator:
+            try:
+                if entry.is_dir() and not any(ord(c)<32 for c in entry.name):
+                    entries.append((entry.name,entry.path))
+                    if len(entries)>2000:
+                        raise ValueError('Too many folders')
+            except OSError:
+                continue
+    entries.sort(key=lambda row:row[0].casefold())
+    if path!='/':
+        entries.insert(0,('..',os.path.dirname(path)))
+    return {'path':path,'entries':entries}
 
 
 def fetch(url, maximum, task, opener=None, total=0):
@@ -239,6 +289,60 @@ def references(directory, countries, task, opener=None):
     return result
 
 
+def migrate_library(library, task):
+    """Copy the previous Radio collection on the worker; never remove sources."""
+    old=library.legacy
+    if old is None or not (os.path.isdir(old.directory) or os.path.isdir(old.location)):
+        return
+    task.log('Saving picons…')
+    index=os.path.join(library.directory,'index.json')
+    def copy(body,target):
+        task.check()
+        validate_location(library.location)
+        if os.path.lexists(target):
+            return
+        disk=os.statvfs(library.directory)
+        if disk.f_bavail*disk.f_frsize < len(body)+5*1024*1024:
+            raise OSError('Not enough free space')
+        atomic_bytes(target,body)
+    # Reference-named user overrides are preserved before managed images.
+    for folder in dict.fromkeys((old.directory,old.location)):
+        try:
+            with os.scandir(folder) as entries:
+                for entry in entries:
+                    task.check()
+                    if FILENAME.fullmatch(entry.name) and entry.is_file(follow_symlinks=False):
+                        with open(entry.path,'rb') as stream:
+                            body=stream.read(MAX_PNG+1)
+                        if len(body)<=MAX_PNG:
+                            copy(body,os.path.join(library.directory,entry.name))
+        except FileNotFoundError:
+            continue
+    for name,digest in old.files.items():
+        task.check()
+        if name in library.files:
+            continue
+        source=os.path.join(old.directory,digest+'.png')
+        if os.path.islink(source):
+            continue
+        try:
+            with open(source,'rb') as stream:
+                body=stream.read(MAX_PNG+1)
+        except FileNotFoundError:
+            continue
+        if len(body)>MAX_PNG:
+            continue
+        if hashlib.sha256(body).hexdigest()!=digest:
+            copy(body,os.path.join(library.directory,name))
+            continue
+        validate_png(body)
+        copy(body,os.path.join(library.directory,digest+'.png'))
+        target=os.path.join(library.directory,digest+'.png')
+        if not os.path.islink(target) and digest_file(target)==digest:
+            library.files[name]=digest
+            atomic_json(index,library.files)
+
+
 def install(directory, settings, task, opener=None, reference_loader=references):
     """Verify each complete archive before publishing immutable individual PNGs.
 
@@ -249,10 +353,11 @@ def install(directory, settings, task, opener=None, reference_loader=references)
         raise ValueError('Invalid picon selection')
     validate_location(settings.location)
     task.check()
-    library = PiconLibrary(settings.location, settings.style)
+    library = PiconLibrary(settings.location,settings.style,settings.legacy_location)
     os.makedirs(library.directory, mode=0o700, exist_ok=True)
     if os.path.realpath(library.directory) != library.directory:
         raise ValueError('Invalid picon location')
+    migrate_library(library,task)
     index = os.path.join(library.directory, 'index.json')
     summary = dict(added=0, updated=0, unchanged=0, preserved=0, failed=0, missing=0)
     collections = list(dict.fromkeys(c[3] for c in COUNTRIES if c[0] in settings.countries))
@@ -273,7 +378,7 @@ def install(directory, settings, task, opener=None, reference_loader=references)
                 override = os.path.join(library.directory, name)
                 old = library.files.get(name)
                 old_path = os.path.join(library.directory, old + '.png') if old else ''
-                if os.path.lexists(override) or (old_path and os.path.lexists(old_path) and (os.path.islink(old_path) or digest_file(old_path) != old)):
+                if os.path.lexists(override) or os.path.lexists(os.path.join(library.location,name)) or (old_path and os.path.lexists(old_path) and (os.path.islink(old_path) or digest_file(old_path) != old)):
                     summary['preserved'] += 1
                     task.log('Kept custom picon: {name}', name=wanted.get(name, name))
                 elif old == digest and os.path.isfile(old_path):

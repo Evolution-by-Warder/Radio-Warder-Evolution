@@ -263,6 +263,56 @@ class PiconDownloadTests(unittest.TestCase):
         self.assertEqual(result['added'], 0)
         self.assertEqual(self.library().files, {})
 
+    def test_storage_roots_always_have_the_dedicated_radio_suffix(self):
+        paths=dict(p.location_choices())
+        self.assertEqual(paths['Receiver memory'],'/usr/share/enigma2/picon/warderradio')
+        self.assertEqual(paths['Hard disk'],'/media/hdd/picon/warderradio')
+        self.assertEqual(paths['USB'],'/media/usb/picon/warderradio')
+        self.assertEqual(p.radio_location('/media/hdd'),'/media/hdd/picon/warderradio')
+        self.assertEqual(p.radio_location('/media/hdd/picon'),'/media/hdd/picon/warderradio')
+        self.assertEqual(p.radio_location('/media/hdd/picon/warderradio'),'/media/hdd/picon/warderradio')
+
+    def test_previous_location_remains_readable_and_migrates_on_worker_without_redownload(self):
+        self.install();old=self.settings.location
+        old_path=self.library().lookup(self.item())
+        Path(self.settings.path).write_text(json.dumps({'countries':['SK'],'style':'black','location':old}))
+        self.settings=p.PiconSettings(self.directory)
+        self.assertEqual(self.settings.location,p.radio_location(old))
+        self.assertEqual(self.settings.legacy_location,old)
+        transitional=p.PiconLibrary(self.settings.location,'black',old)
+        self.assertEqual(transitional.lookup(self.item()),old_path)
+        self.backend.requests.clear();result=self.install()
+        self.assertEqual(result['unchanged'],1)
+        self.assertEqual(len(self.backend.requests),1)
+        new_path=self.library().lookup(self.item())
+        self.assertNotEqual(new_path,old_path)
+        self.assertEqual(Path(new_path).read_bytes(),Path(old_path).read_bytes())
+        self.assertTrue(Path(old_path).exists())
+
+    def test_migration_preserves_modified_user_picon_as_override(self):
+        self.install();old=self.settings.location
+        source=Path(self.library().lookup(self.item()));source.write_bytes(png(90))
+        Path(self.settings.path).write_text(json.dumps({'countries':['SK'],'style':'black','location':old}))
+        self.settings=p.PiconSettings(self.directory)
+        result=self.install()
+        self.assertEqual(result['preserved'],1)
+        self.assertEqual(Path(self.library().lookup(self.item())).read_bytes(),png(90))
+        self.assertEqual(source.read_bytes(),png(90))
+
+    def test_directory_browser_lists_folders_and_parent_but_not_files(self):
+        root=Path(self.directory,'browser');root.mkdir()
+        (root/'B').mkdir();(root/'a').mkdir();(root/'plain.txt').write_text('file')
+        snapshot=p.directory_snapshot(str(root))
+        self.assertEqual(snapshot['path'],str(root))
+        self.assertEqual([name for name,_path in snapshot['entries']],['..','a','B'])
+
+    def test_configured_library_never_falls_back_to_other_system_picons(self):
+        missing=p.PiconLibrary(str(Path(self.directory,'empty')),'black')
+        isfile=os.path.isfile
+        with patch('WarderRadio.picons.os.path.isfile',side_effect=lambda path:
+                   path.startswith('/usr/share/enigma2/picon/') or isfile(path)):
+            self.assertTrue(path_for(self.item(),missing).endswith('plugin.png'))
+
 
 if __name__ == '__main__':
     unittest.main()

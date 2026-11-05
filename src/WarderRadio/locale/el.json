@@ -130,5 +130,9 @@
   "Storage is not mounted": "Το μέσο αποθήκευσης δεν είναι προσαρτημένο",
   "Invalid folder": "Μη έγκυρος φάκελος",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Χρήση φακέλου",
+  "Folder: {path}": "Φάκελος: {path}",
+  "Cannot open folder": "Δεν είναι δυνατό το άνοιγμα του φακέλου",
+  "Too many folders": "Πάρα πολλοί φάκελοι"
 }

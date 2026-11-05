@@ -130,5 +130,9 @@
   "Storage is not mounted": "Opslag is niet aangekoppeld",
   "Invalid folder": "Ongeldige map",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Map gebruiken",
+  "Folder: {path}": "Map: {path}",
+  "Cannot open folder": "Kan map niet openen",
+  "Too many folders": "Te veel mappen"
 }

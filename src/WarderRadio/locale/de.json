@@ -130,5 +130,9 @@
   "Storage is not mounted": "Speicher ist nicht eingehängt",
   "Invalid folder": "Ungültiger Ordner",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Ordner verwenden",
+  "Folder: {path}": "Ordner: {path}",
+  "Cannot open folder": "Ordner kann nicht geöffnet werden",
+  "Too many folders": "Zu viele Ordner"
 }

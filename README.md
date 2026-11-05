@@ -16,7 +16,7 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current release: **0.1.3**, with inline country, background and folder selectors.
+Current release: **0.1.4**, with confirmed selectors and a native directory browser.
 It upgrades both the previous stable 0.1.1 and the 0.1.2-testN picon candidates
 through the plugin's existing verified update channels.
 The preceding 0.1.0-test39 remains available as a receiver-test prerelease.
@@ -63,16 +63,22 @@ registered in the plugin browser.
   player settings are changed and optional backends are not auto-installed.
 - Persistent favourites, last 100 played stations, accent-insensitive search
   across the catalogue and custom HTTP/HTTPS stations.
-- Native/PiconHub picon lookup, with a neutral Warder Radio fallback logo.
+- Picon lookup from the configured Radio collection, with a neutral Warder fallback.
 - Main left menu → Picon downloads, directly below Radio stations: select multiple countries, a transparent,
   white or black background and an internal or currently mounted location.
   The centre and right panels become one wide numbered settings form.
-  Country, background and folder lists appear inside this same panel. Country
-  marks apply with Green → Confirm selection; Back discards pending changes.
-  Background and folder choices apply with OK. Folder choices include labelled
+  Country, background and folder lists appear inside this same panel. Each
+  selection applies with Green → Confirm selection; Back discards pending changes.
+  Folder choices include labelled
   internal storage, HDD, USB, SD, MMC, /picon and a custom directory. Missing
-  external storage cannot silently write to receiver flash. Custom path entry
-  uses the receiver keyboard; ordinary choices do not open system dialogs.
+  external storage cannot silently write to receiver flash. Custom folders use
+  a read-only directory browser inside the same panel: OK opens a directory,
+  the `..` row opens its parent, and Green → Use folder confirms the displayed
+  location. No path keyboard is opened. Repeated instructional text is removed.
+  Radio collections use `picon/warderradio` beneath the selected storage root,
+  for example `/media/hdd/picon/warderradio` or `/media/usb/picon/warderradio`.
+  Selecting an existing `picon` or `warderradio` directory avoids duplicating
+  that suffix. The plugin immediately reloads the confirmed location.
   Size is automatic (220×132). Available country packages are currently Slovakia,
   Czechia, Austria, Germany, Hungary and Poland. The scrollable progress window
   logs checks, downloads, verification and each saved station in order; red cancels.
@@ -83,10 +89,13 @@ registered in the plugin browser.
   artwork retains the neutral fallback. Closing the log refreshes the picon library;
   red/EXIT in the form restores the preceding station view and selection without
   restarting the GUI or interrupting playback.
-  The selected collection takes precedence inside Radio; native picons remain
-  the fallback and their files are never overwritten. A custom reference-named
+  The selected collection is the source inside Radio; other system picon folders
+  are not searched when it is configured. A custom reference-named
   PNG in the selected Radio variant directory takes precedence over its managed
   image. Editing a managed image also protects it from later replacement.
+  Previous Radio storage locations remain readable during the upgrade. The
+  next download copies verified existing images and user overrides on the I/O
+  worker, preserving the original files and avoiding an unchanged ZIP download.
 - Mounted-disk recordings folder `/media/hdd/WarderRadio`; playback of recordings.
   The package depends on `streamripper`; opkg installs it from the receiver’s configured feeds.
   Blue/Delete in Recordings, or MENU → Delete, removes the selected recording after confirmation.
@@ -116,7 +125,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.3_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.4_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.

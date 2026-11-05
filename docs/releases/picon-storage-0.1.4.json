@@ -1,0 +1,41 @@
+{
+  "release": "0.1.4",
+  "date": "2026-11-05",
+  "source_base": "74f54ea0d9ec1034e121b0f6b769905b85b72d14",
+  "unit_tests": 144,
+  "native_replays": {
+    "OpenPLi release-9.2": 60,
+    "OpenATV 8.1 reviewed base": 60,
+    "OpenATV 8.0-next": 60
+  },
+  "checked_behaviour": [
+    "Green confirmation for countries, background and storage; Back discards provisional edits",
+    "Inline read-only directory browser with OK to open, parent row and Green Use folder",
+    "Directory reads on dedicated worker; cancellation and stale-result guards",
+    "Selection instructions empty inside panel and header hint",
+    "Dedicated picon/warderradio suffix for internal and external storage without duplication",
+    "Confirmed path immediately persisted and used for loading",
+    "Configured collections do not search other system picon directories",
+    "Legacy Radio images readable during transition and copied by download worker without deleting originals",
+    "Unchanged migrated package does not download ZIP again",
+    "User-edited images preserved as overrides during migration",
+    "All four GUI resolutions, 21 locales and 48 spectrum frames retained"
+  ],
+  "default_paths": {
+    "memory": "/usr/share/enigma2/picon/warderradio",
+    "hdd": "/media/hdd/picon/warderradio",
+    "usb": "/media/usb/picon/warderradio",
+    "sd": "/media/sdcard/picon/warderradio",
+    "mmc": "/media/mmc/picon/warderradio"
+  },
+  "automatic_variant_subdirectories": "220x132/<background>",
+  "receiver_hardware_tested": false,
+  "local_build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.4-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.4_all.ipk",
+    "sha256": "34b972304fcbcf17408c11a275e2004979d25f7993421159be598cc3286157da",
+    "bytes": 3160588,
+    "files": 112
+  }
+}

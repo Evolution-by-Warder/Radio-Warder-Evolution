@@ -1,4 +1,5 @@
 """Country/colour/location selection and a scrolling, line-by-line download log."""
+import os
 import enigma
 from enigma import eListboxPythonMultiContent, gFont, getDesktop, RT_HALIGN_LEFT, RT_VALIGN_CENTER
 from Components.ActionMap import ActionMap
@@ -7,11 +8,10 @@ from Components.MenuList import MenuList
 from Components.MultiContent import MultiContentEntryText
 from Components.ProgressBar import ProgressBar
 from Screens.Screen import Screen
-from Screens.VirtualKeyBoard import VirtualKeyBoard
 
 from .i18n import t
 from .jobs import Jobs
-from .picon_download import COUNTRIES, STYLES, PiconSettings, PiconTask, install, location_choices, validate_location
+from .picon_download import COUNTRIES, STYLES, PiconSettings, PiconTask, install, location_choices, validate_location, radio_location, directory_snapshot
 from .skin import geometry, PANEL_BACKGROUND
 
 
@@ -89,42 +89,50 @@ class PiconOptions(TextList):
         flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0)
         return [None,
             MultiContentEntryText(pos=(n(16),0),size=(n(42),n(58)),font=0,
-                flags=flags,text='✓' if selected else '○',color=0x00ceff,color_sel=0x00ceff),
-            MultiContentEntryText(pos=(n(78),0),size=(n(1220),n(58)),font=0,
+                flags=flags,text='' if selected is None else '✓' if selected else '○',color=0x00ceff,color_sel=0x00ceff),
+            MultiContentEntryText(pos=(n(16 if selected is None else 78),0),size=(n(1220),n(58)),font=0,
                 flags=flags,text=text)]
 
 
 class PiconForm:
-    """Main-window form and inline country, background and folder selectors."""
-    widgets = ('picon_panel', 'picon_edge_top', 'picon_edge_bottom',
-               'picon_edge_left', 'picon_edge_right', 'picon_title',
-               'picon_description', 'picon_form', 'picon_options', 'picon_help', 'picon_status')
-    player_widgets = ('stations', 'count', 'art', 'nowlabel', 'station', 'artist', 'track', 'details')
-    style_names = {'transparent':'Transparent', 'white':'White', 'black':'Black'}
+    """Inline selectors with explicit confirmation and a read-only folder browser."""
+    widgets = ('picon_panel','picon_edge_top','picon_edge_bottom','picon_edge_left',
+               'picon_edge_right','picon_title','picon_description','picon_form',
+               'picon_options','picon_help','picon_status')
+    player_widgets = ('stations','count','art','nowlabel','station','artist','track','details')
+    style_names = {'transparent':'Transparent','white':'White','black':'Black'}
 
-    def __init__(self, host, directory, scale):
-        self.host, self.session, self.directory = host, host.session, directory
-        self.settings = PiconSettings(directory)
-        self.visible, self.view = False, 'form'
-        self.pending_countries = set()
-        self.return_index = 0
+    def __init__(self,host,directory,scale):
+        self.host,self.session,self.directory=host,host.session,directory
+        self.settings=PiconSettings(directory)
+        self.visible,self.view=False,'form'
+        self.pending_countries=set()
+        self.pending_style=self.settings.style
+        self.pending_location=self.settings.location
+        self.return_index=self.location_index=0
+        self.browser_path='/'
+        self.browser_entries=[]
+        self.browser_ready=False
+        self.browser_generation=0
+        self.browser_jobs=Jobs()
         for name in self.widgets:
-            host[name] = (PiconRows(scale) if name == 'picon_form' else
-                          PiconOptions(scale) if name == 'picon_options' else Label(''))
+            host[name]=(PiconRows(scale) if name=='picon_form' else
+                        PiconOptions(scale) if name=='picon_options' else Label(''))
         self.refresh()
 
     @property
     def focus_name(self):
-        return 'picon_form' if self.view == 'form' else 'picon_options'
+        return 'picon_form' if self.view=='form' else 'picon_options'
 
-    def set_visible(self, visible):
-        changed = visible != self.visible
-        self.visible = visible
+    def set_visible(self,visible):
+        changed=visible!=self.visible
+        self.visible=visible
         if not visible:
-            self.view = 'form'
+            self.browser_generation+=1
+            self.view='form'
             self.pending_countries.clear()
         for name in self.widgets:
-            show = visible and (name not in ('picon_form','picon_options') or name == self.focus_name)
+            show=visible and (name not in ('picon_form','picon_options') or name==self.focus_name)
             (self.host[name].show if show else self.host[name].hide)()
         if changed:
             for name in self.player_widgets:
@@ -134,129 +142,176 @@ class PiconForm:
         return changed
 
     def refresh(self):
-        row = self.host['picon_form']
-        index = row.getSelectionIndex()
-        names = ', '.join(t(c[1]) for c in COUNTRIES if c[0] in self.settings.countries)
-        row.setList([(t('Picon countries'),names or '—','countries',1),
-                     (t('Background'),t(self.style_names[self.settings.style]),'style',2),
-                     (t('Folder'),self.settings.location,'location',3)])
-        row.moveToIndex(index)
-        if self.view != 'form':
+        rows=self.host['picon_form'];index=rows.getSelectionIndex()
+        names=', '.join(t(c[1]) for c in COUNTRIES if c[0] in self.settings.countries)
+        rows.setList([(t('Picon countries'),names or '—','countries',1),
+                      (t('Background'),t(self.style_names[self.settings.style]),'style',2),
+                      (t('Folder'),self.settings.location,'location',3)])
+        rows.moveToIndex(index)
+        if self.view!='form':
             self.refresh_options()
-        title = {'form':'Picon downloads','countries':'Picon countries','style':'Background','location':'Folder'}[self.view]
-        self.host['picon_title'].setText(t(title))
-        self.host['picon_description'].setText(t('Choose countries, colour and location') if self.view=='form' else t('Select with OK'))
-        self.host['picon_help'].setText(t('OK: select country · Green: save') if self.view=='countries' else
-                                      t('Green: download / update · Red: close') if self.view=='form' else t('Select with OK'))
+        title=(t('Folder: {path}').format(path=self.browser_path) if self.view=='browser' else
+               t({'form':'Picon downloads','countries':'Picon countries','style':'Background','location':'Folder'}[self.view]))
+        self.host['picon_title'].setText(title)
+        self.host['picon_description'].setText('')
+        self.host['picon_help'].setText('')
         if self.visible:
+            self.host['hint'].setText('')
             self.host['red'].setText(t('Back') if self.view!='form' else t('Close'))
-            self.host['green'].setText(t('Download') if self.view=='form' else t('Confirm selection') if self.view=='countries' else '')
+            self.host['green'].setText(t('Download') if self.view=='form' else t('Use folder') if self.view=='browser' else t('Confirm selection'))
             self.host['yellow'].setText('');self.host['blue'].setText('')
 
     def refresh_options(self):
-        options = self.host['picon_options']
-        index = options.getSelectionIndex()
-        if self.view == 'countries':
-            rows = [(t(name),code,code in self.pending_countries) for code,name,_group,_collection in COUNTRIES]
-        elif self.view == 'style':
-            rows = [(t(self.style_names[style]),style,style==self.settings.style) for style in STYLES]
+        options=self.host['picon_options'];index=options.getSelectionIndex()
+        if self.view=='countries':
+            rows=[(t(name),code,code in self.pending_countries) for code,name,_group,_collection in COUNTRIES]
+        elif self.view=='style':
+            rows=[(t(self.style_names[style]),style,style==self.pending_style) for style in STYLES]
+        elif self.view=='browser':
+            rows=[(name,path,None) for name,path in self.browser_entries]
         else:
-            rows = [(t(label)+' — '+path,path,path==self.settings.location) for label,path in location_choices()]
+            rows=[(t(label)+' — '+path,path,path==self.pending_location) for label,path in location_choices()]
             if self.settings.location not in {row[1] for row in rows}:
-                rows.append((self.settings.location,self.settings.location,True))
+                rows.append((self.settings.location,self.settings.location,self.settings.location==self.pending_location))
             rows.append((t('Custom folder…'),'custom',False))
-        options.setList(rows)
-        options.moveToIndex(index)
+        options.setList(rows);options.moveToIndex(index)
 
     def choose(self):
         if self.host.closed:
             return
-        if self.view == 'form':
-            current = self.host['picon_form'].getCurrent()
-            if not current:
+        if self.view=='form':
+            row=self.host['picon_form'].getCurrent()
+            if not row:
                 return
-            self.return_index = self.host['picon_form'].getSelectionIndex()
-            self.view = current[2]
-            self.pending_countries = set(self.settings.countries)
+            self.return_index=self.host['picon_form'].getSelectionIndex()
+            self.view=row[2]
+            self.pending_countries=set(self.settings.countries)
+            self.pending_style=self.settings.style
+            self.pending_location=self.settings.location
             self.host['picon_status'].setText('')
             self.host['picon_form'].hide();self.host['picon_options'].show()
             self.refresh()
-            key = self.settings.style if self.view=='style' else self.settings.location if self.view=='location' else None
+            key=self.settings.style if self.view=='style' else self.settings.location if self.view=='location' else None
             self.host['picon_options'].moveToIndex(next((i for i,row in enumerate(self.host['picon_options'].list) if row[1]==key),0))
             self.host.set_focus('picon_options')
             return
-        current = self.host['picon_options'].getCurrent()
-        if not current:
+        row=self.host['picon_options'].getCurrent()
+        if not row:
             return
-        key = current[1]
-        if self.view == 'countries':
-            if key in self.pending_countries:
-                self.pending_countries.remove(key)
-            else:
-                self.pending_countries.add(key)
+        key=row[1]
+        if self.view=='countries':
+            if key in self.pending_countries:self.pending_countries.remove(key)
+            else:self.pending_countries.add(key)
             self.refresh()
-        elif self.view == 'style':
-            self.settings.style = key
-            self.back()
-        elif key == 'custom':
-            self.session.openWithCallback(self.custom_folder_done,VirtualKeyBoard,
-                                          title=t('Folder'),text=self.settings.location)
+        elif self.view=='style':
+            self.pending_style=key;self.refresh()
+        elif self.view=='browser':
+            self.browse(key)
+        elif key=='custom':
+            self.location_index=self.host['picon_options'].getSelectionIndex()
+            self.browse('/')
         else:
-            self.select_location(key)
+            self.pending_location=key;self.refresh()
+
+    def cursor_changed(self):
+        row=self.host['picon_options'].getCurrent()
+        if not row:return
+        if self.view=='style':self.pending_style=row[1]
+        elif self.view=='location':self.pending_location=row[1]
+        else:return
+        self.refresh_options()
 
     def green(self):
-        if self.view == 'form':
+        if self.view=='form':
             self.start()
-        elif self.view == 'countries':
-            self.settings.countries = [c[0] for c in COUNTRIES if c[0] in self.pending_countries]
-            self.back()
+        elif self.view=='countries':
+            values=[c[0] for c in COUNTRIES if c[0] in self.pending_countries]
+            if self.commit('countries',values):self.show_form()
+        elif self.view=='style':
+            row=self.host['picon_options'].getCurrent()
+            if row and self.commit('style',row[1]):self.show_form()
+        elif self.view=='location':
+            row=self.host['picon_options'].getCurrent()
+            if row:
+                if row[1]=='custom':
+                    self.location_index=self.host['picon_options'].getSelectionIndex();self.browse('/')
+                else:self.apply_location(row[1])
+        elif self.view=='browser' and self.browser_ready:
+            self.apply_location(radio_location(self.browser_path))
 
-    def back(self):
-        if self.view == 'form':
-            return False
-        self.view = 'form'
-        self.pending_countries.clear()
-        self.host['picon_status'].setText('')
-        self.host['picon_options'].hide();self.host['picon_form'].show()
-        self.refresh()
-        self.host['picon_form'].moveToIndex(self.return_index)
-        self.host.set_focus('picon_form')
+    def commit(self,key,value):
+        old=getattr(self.settings,key)
+        legacy=self.settings.legacy_location
+        setattr(self.settings,key,value)
+        if key=='location' and os.path.realpath(value)!=os.path.realpath(old):self.settings.legacy_location=None
+        try:self.settings.save()
+        except OSError:
+            setattr(self.settings,key,old);self.settings.legacy_location=legacy
+            self.host['picon_status'].setText(t('Cannot save settings'));return False
+        self.host.reload_picons()
         return True
 
-    def custom_folder_done(self, path):
-        if not self.host.closed and self.visible and self.view=='location' and path is not None:
-            self.select_location(path)
+    def show_form(self):
+        self.browser_generation+=1
+        self.view='form';self.pending_countries.clear()
+        self.host['picon_status'].setText('')
+        self.host['picon_options'].hide();self.host['picon_form'].show()
+        self.refresh();self.host['picon_form'].moveToIndex(self.return_index)
+        self.host.set_focus('picon_form')
 
-    def select_location(self, path):
+    def back(self):
+        if self.view=='form':return False
+        if self.view=='browser':
+            self.browser_generation+=1;self.view='location'
+            self.host['picon_status'].setText('')
+            self.refresh();self.host['picon_options'].moveToIndex(self.location_index)
+            self.host.set_focus('picon_options')
+        else:self.show_form()
+        return True
+
+    def browse(self,path):
+        self.view='browser';self.browser_path=path
+        self.browser_entries=[];self.browser_ready=False;self.browser_generation+=1
+        generation=self.browser_generation
+        self.host['picon_status'].setText(t('Please wait…'))
+        self.refresh();self.host.set_focus('picon_options')
+        queued=self.browser_jobs.replace('folders',lambda:directory_snapshot(path),
+            lambda result,error:self.folders_loaded(generation,result,error))
+        if not queued:self.folders_loaded(generation,None,'queue full')
+
+    def folders_loaded(self,generation,result,error):
+        if self.host.closed or not self.visible or self.view!='browser' or generation!=self.browser_generation:return
+        if error:
+            self.host['picon_status'].setText(t('Cannot open folder'));return
+        self.browser_path=result['path'];self.browser_entries=result['entries'];self.browser_ready=True
+        self.host['picon_status'].setText('')
+        self.refresh();self.host['picon_options'].moveToIndex(0)
+
+    def apply_location(self,path):
         try:
-            # Resolve an explicit user's chosen mount alias before saving it.
-            import os
-            if not isinstance(path,str) or not path.startswith('/') or any(ord(c)<32 for c in path):
-                raise ValueError('Invalid folder')
-            target = os.path.realpath(os.path.normpath(path))
+            target=os.path.realpath(os.path.normpath(path))
             validate_location(target)
         except (OSError,ValueError) as error:
-            self.host['picon_status'].setText(t(str(error)))
-            return
-        self.settings.location = target
-        self.back()
+            self.host['picon_status'].setText(t(str(error)));return
+        if self.commit('location',target):self.show_form()
+
+    def poll(self):
+        self.browser_jobs.poll()
+
+    def cleanup(self):
+        self.browser_generation+=1;self.browser_jobs.close()
 
     def start(self):
-        if self.host.closed or self.host.installing or self.view!='form':
-            return
+        if self.host.closed or self.host.installing or self.view!='form':return
         if not self.settings.countries:
-            self.host['picon_status'].setText(t('Select at least one country'))
-            return
+            self.host['picon_status'].setText(t('Select at least one country'));return
         self.host['picon_status'].setText('')
         self.session.openWithCallback(self.finished,PiconProgress,self.directory,self.settings)
 
     def finished(self,_result=None):
-        if self.host.closed:
-            return
-        self.settings = PiconSettings(self.directory)
-        self.refresh()
-        self.host.reload_picons()
-        self.host.sync_spectrum()
+        if self.host.closed:return
+        self.settings=PiconSettings(self.directory)
+        self.refresh();self.host.reload_picons();self.host.sync_spectrum()
 
 
 class PiconProgress(Screen):

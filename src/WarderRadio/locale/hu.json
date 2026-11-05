@@ -130,5 +130,9 @@
   "Storage is not mounted": "A tároló nincs csatolva",
   "Invalid folder": "Érvénytelen mappa",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Mappa használata",
+  "Folder: {path}": "Mappa: {path}",
+  "Cannot open folder": "A mappa nem nyitható meg",
+  "Too many folders": "Túl sok mappa"
 }
