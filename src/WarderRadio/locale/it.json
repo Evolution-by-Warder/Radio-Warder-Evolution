@@ -130,5 +130,9 @@
   "Storage is not mounted": "Il dispositivo non è montato",
   "Invalid folder": "Cartella non valida",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Usa cartella",
+  "Folder: {path}": "Cartella: {path}",
+  "Cannot open folder": "Impossibile aprire la cartella",
+  "Too many folders": "Troppe cartelle"
 }

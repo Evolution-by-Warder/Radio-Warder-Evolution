@@ -76,7 +76,7 @@ class UpdateTests(unittest.TestCase):
             calls.append(url)
             channel='testing' if url.endswith('/testing.json') else 'stable'
             return io.BytesIO(json.dumps(manifest(VERSION,channel)).encode())
-        for installed in ['0.1.1','0.1.2-test1','0.1.2-test2','0.1.2-test3']:
+        for installed in ['0.1.1','0.1.2-test1','0.1.2-test2','0.1.2-test3','0.1.3']:
             with self.subTest(installed=installed):
                 self.assertEqual(update.check_release(installed,opener).version,VERSION)
                 self.assertTrue(calls[-1].endswith('/testing.json' if '-test' in installed else '/stable.json'))
@@ -86,7 +86,7 @@ class UpdateTests(unittest.TestCase):
         import shutil
         import subprocess
         if shutil.which('dpkg'):
-            for installed in ['0.1.1-1','0.1.2-test1-1','0.1.2-test2-1','0.1.2-test3-1']:
+            for installed in ['0.1.1-1','0.1.2-test1-1','0.1.2-test2-1','0.1.2-test3-1','0.1.3-1']:
                 with self.subTest(installed=installed):
                     result=subprocess.run(['dpkg','--compare-versions',VERSION+'-1','gt',installed])
                     self.assertEqual(result.returncode,0)

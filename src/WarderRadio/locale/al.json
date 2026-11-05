@@ -130,5 +130,9 @@
   "Storage is not mounted": "Pajisja e ruajtjes nuk është montuar",
   "Invalid folder": "Dosje e pavlefshme",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Përdor dosjen",
+  "Folder: {path}": "Dosja: {path}",
+  "Cannot open folder": "Dosja nuk mund të hapet",
+  "Too many folders": "Shumë dosje"
 }

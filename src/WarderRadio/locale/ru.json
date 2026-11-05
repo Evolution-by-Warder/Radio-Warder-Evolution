@@ -130,5 +130,9 @@
   "Storage is not mounted": "Накопитель не подключён",
   "Invalid folder": "Недопустимая папка",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Использовать папку",
+  "Folder: {path}": "Папка: {path}",
+  "Cannot open folder": "Не удалось открыть папку",
+  "Too many folders": "Слишком много папок"
 }

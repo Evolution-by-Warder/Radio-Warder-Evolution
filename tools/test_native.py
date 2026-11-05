@@ -384,7 +384,7 @@ class NativeTests(unittest.TestCase):
         screen['picon_options'].moveToIndex(3);screen.ok();screen.green_pressed()
         self.assertEqual(screen.picon_form.settings.countries,['SK','CZ','DE'])
         screen['picon_form'].moveToIndex(1);screen.ok()
-        screen['picon_options'].moveToIndex(1);screen.ok()
+        screen['picon_options'].moveToIndex(1);screen.ok();screen.green_pressed()
         self.assertEqual(screen.picon_form.settings.style,'white')
         self.assertEqual(session.nav.current, playing)
         screen['picon_form'].moveToIndex(0);screen.ok()
@@ -447,50 +447,109 @@ class NativeTests(unittest.TestCase):
         screen.ok();screen['picon_options'].moveToIndex(1);screen.ok();screen.green_pressed()
         self.assertEqual(screen.picon_form.settings.countries,['SK','CZ'])
         self.assertEqual(len(session.dialogs),dialogs)
-        self.assertFalse(Path(self.tmp.name,'picon-settings.json').exists())
+        self.assertEqual(PiconSettings(self.tmp.name).countries,['SK','CZ'])
 
-    def test_background_picker_uses_ok_and_back_without_popup_or_download(self):
-        screen,session,_=self.new();screen.open_picons()
-        dialogs=len(session.dialogs)
+    def test_background_picker_requires_green_and_back_discards_changes(self):
+        screen,session,_=self.new();screen.open_picons();dialogs=len(session.dialogs)
         screen['picon_form'].moveToIndex(1);screen.ok()
+        self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
+        screen['picon_options'].moveToIndex(0);screen.ok()
         self.assertEqual(screen.picon_form.view,'style')
-        self.assertEqual(screen['picon_title'].getText(),radio.t('Background'))
-        self.assertEqual(screen['picon_options'].getSelectionIndex(),2)
-        screen['picon_options'].moveToIndex(0);screen.green_pressed()
-        self.assertEqual(len(session.dialogs),dialogs)
+        self.assertEqual(screen.picon_form.settings.style,'black')
         screen.exit();self.assertEqual(screen.picon_form.settings.style,'black')
         screen.ok();screen['picon_options'].moveToIndex(1);screen.ok()
+        self.assertEqual(screen.picon_form.settings.style,'black')
+        screen.green_pressed()
         self.assertEqual(screen.picon_form.view,'form')
         self.assertEqual(screen.picon_form.settings.style,'white')
         self.assertEqual(screen['picon_form'].getSelectionIndex(),1)
+        self.assertEqual(PiconSettings(self.tmp.name).style,'white')
         self.assertEqual(len(session.dialogs),dialogs)
 
-    def test_folder_picker_lists_storage_and_accepts_custom_folder(self):
-        screen,session,_=self.new();screen.open_picons()
+    def wait_for_folders(self,screen):
+        deadline=time.monotonic()+2
+        while not screen.picon_form.browser_ready and time.monotonic()<deadline:
+            screen.poll();time.sleep(.001)
+        self.assertTrue(screen.picon_form.browser_ready)
+
+    def test_folder_browser_has_no_keyboard_and_commits_selected_location_with_green(self):
+        from WarderRadio.picon_download import radio_location
+        screen,session,_=self.new();screen.open_picons();dialogs=len(session.dialogs)
         screen['picon_form'].moveToIndex(2);screen.ok()
-        self.assertEqual(screen.picon_form.view,'location')
         options=screen['picon_options'].list
-        for path in ['/etc/enigma2/warder-radio/picons','/media/hdd/WarderRadio/picons',
-                     '/media/usb/WarderRadio/picons','/media/sdcard/WarderRadio/picons',
-                     '/media/mmc/WarderRadio/picons','/picon','custom']:
+        self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
+        for path in ['/usr/share/enigma2/picon/warderradio','/media/hdd/picon/warderradio',
+                     '/media/usb/picon/warderradio','/media/sdcard/picon/warderradio',
+                     '/media/mmc/picon/warderradio','/picon/warderradio','custom']:
             self.assertIn(path,[row[1] for row in options])
-        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(options) if row[1]=='/media/usb/WarderRadio/picons'))
-        with patch('WarderRadio.picon_download.os.path.ismount',return_value=False):
-            screen.ok()
+        previous=screen.picon_form.settings.location
+        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(options) if row[1]=='/media/usb/picon/warderradio'))
+        screen.ok();self.assertEqual(screen.picon_form.settings.location,previous)
+        with patch('WarderRadio.picon_download.os.path.ismount',return_value=False):screen.green_pressed()
         self.assertEqual(screen.picon_form.view,'location')
         self.assertEqual(screen['picon_status'].getText(),radio.t('Storage is not mounted'))
         screen['picon_options'].moveToIndex(next(i for i,row in enumerate(options) if row[1]=='custom'));screen.ok()
-        self.assertEqual(session.dialogs[-1][1],screen.picon_form.custom_folder_done)
-        screen.picon_form.custom_folder_done(None)
-        self.assertEqual(screen.picon_form.view,'location')
-        screen.picon_form.custom_folder_done('relative/path')
-        self.assertEqual(screen['picon_status'].getText(),radio.t('Invalid folder'))
-        path=str(Path(self.tmp.name,'own-radio-picons'))
-        screen.picon_form.custom_folder_done(path)
-        self.assertEqual(screen.picon_form.settings.location,path)
+        self.wait_for_folders(screen)
+        self.assertEqual(screen.picon_form.view,'browser')
+        self.assertEqual(screen['green'].getText(),radio.t('Use folder'))
+        self.assertEqual(len(session.dialogs),dialogs)
+        base=Path(self.tmp.name,'storage');base.mkdir();(base/'child').mkdir();(base/'file.txt').write_text('not a directory')
+        screen.picon_form.browse(str(base));self.wait_for_folders(screen)
+        names=[row[0] for row in screen['picon_options'].list]
+        self.assertEqual(names,['..','child'])
+        self.assertEqual(screen['picon_title'].getText(),radio.t('Folder: {path}').format(path=base))
+        screen['picon_options'].moveToIndex(1);screen.ok();self.wait_for_folders(screen)
+        self.assertEqual(screen.picon_form.browser_path,str(base/'child'))
+        screen['picon_options'].moveToIndex(0);screen.ok();self.wait_for_folders(screen)
+        self.assertEqual(screen.picon_form.browser_path,str(base))
+        screen.green_pressed()
+        expected=radio_location(str(base))
+        self.assertEqual(screen.picon_form.settings.location,expected)
+        self.assertEqual(PiconSettings(self.tmp.name).location,expected)
+        self.assertEqual(screen['stations'].picon_library.location,expected)
         self.assertEqual(screen.picon_form.view,'form')
         self.assertEqual(screen['picon_form'].getSelectionIndex(),2)
-        self.assertFalse(Path(path).exists())
+        self.assertFalse(Path(expected).exists())
+        self.assertEqual(len(session.dialogs),dialogs)
+
+    def test_picon_picker_hints_are_empty_and_every_picker_has_green_confirmation(self):
+        screen,session,_=self.new();screen.open_picons()
+        for index,view in [(0,'countries'),(1,'style'),(2,'location')]:
+            screen['picon_form'].moveToIndex(index);screen.ok()
+            self.assertEqual(screen.picon_form.view,view)
+            self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
+            for name in ['hint','picon_description','picon_help']:
+                self.assertEqual(screen[name].getText(),'')
+            screen.exit()
+            self.assertEqual(screen.picon_form.view,'form')
+
+    def test_folder_browser_cancel_and_stale_results_never_change_location(self):
+        screen,session,_=self.new();screen.open_picons()
+        screen['picon_form'].moveToIndex(2);screen.ok()
+        previous=screen.picon_form.settings.location
+        callbacks=[]
+        screen.picon_form.browser_jobs.replace=lambda key,work,cb:callbacks.append(cb) or True
+        screen.picon_form.browse('/')
+        screen.exit();self.assertEqual(screen.picon_form.view,'location')
+        callbacks[0]({'path':'/','entries':[('late','/late')]},None)
+        self.assertEqual(screen.picon_form.view,'location')
+        self.assertEqual(screen.picon_form.settings.location,previous)
+        screen.exit();self.assertEqual(screen.picon_form.view,'form')
+        screen.cleanup();callbacks[0]({'path':'/','entries':[]},None)
+        self.assertTrue(screen.picon_form.browser_jobs.closed.is_set())
+
+    def test_selected_library_is_used_immediately_without_system_picon_fallback(self):
+        from WarderRadio.picon_download import radio_location
+        screen,session,_=self.new();item=screen.current();screen.open_picons()
+        base=Path(self.tmp.name,'selected');base.mkdir()
+        target=Path(radio_location(str(base)));target.mkdir(parents=True)
+        name=item['reference'].replace(':','_')+'.png'
+        (target/name).write_bytes((ROOT/'src/WarderRadio/plugin.png').read_bytes())
+        screen['picon_form'].moveToIndex(2);screen.ok()
+        screen.picon_form.browse(str(base));self.wait_for_folders(screen);screen.green_pressed()
+        self.assertEqual(radio.path_for(item,screen['stations'].picon_library),str(target/name))
+        missing=dict(item,reference='4097:0:2:FFFF:FFFF:ED:0:0:0:0')
+        self.assertEqual(radio.path_for(missing,screen['stations'].picon_library),str(ROOT/'src/WarderRadio/plugin.png'))
 
     def test_picon_log_keeps_order_scrolls_and_finishes_without_restart(self):
         settings = PiconSettings(self.tmp.name)

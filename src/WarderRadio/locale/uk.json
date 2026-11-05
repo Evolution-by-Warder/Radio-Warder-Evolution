@@ -130,5 +130,9 @@
   "Storage is not mounted": "Накопичувач не підключено",
   "Invalid folder": "Неприпустима тека",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Використати теку",
+  "Folder: {path}": "Тека: {path}",
+  "Cannot open folder": "Не вдалося відкрити теку",
+  "Too many folders": "Забагато тек"
 }

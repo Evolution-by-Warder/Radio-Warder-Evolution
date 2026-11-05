@@ -1,3 +1,24 @@
+# 0.1.4 (confirmed selectors and dedicated Radio storage)
+
+- Confirm countries, background and storage with the bottom green button.
+  OK marks a choice; Back discards provisional edits. Remove repeated selection
+  instructions from the panel and top hint while picon settings are active.
+- Replace custom-path keyboard entry with an inline directory browser.
+  OK opens a folder, `..` opens its parent and Green → Use folder confirms
+  the displayed directory. Directory reads run on a dedicated worker; closing
+  or leaving the browser discards stale results.
+- Store Radio picons beneath `picon/warderradio` on the selected storage device.
+  Internal storage uses `/usr/share/enigma2/picon/warderradio`; HDD and USB use
+  `/media/hdd/picon/warderradio` and `/media/usb/picon/warderradio`.
+  Existing picon/warderradio suffixes are not duplicated. Variant size/background
+  subdirectories remain automatic.
+- Persist confirmed choices and reload the configured collection immediately.
+  A missing picon uses the Radio fallback rather than searching other system
+  picon folders. Read old Radio locations during migration and copy verified
+  images and user overrides on the download worker without deleting originals.
+- Preserve the main menu position, playback, equalizer, verified packages and
+  ordered download log. All 21 locales include the directory browser labels.
+
 # 0.1.3 (picon downloads through the plugin updater)
 
 - Release the inline country/background/folder selectors, main-menu entry

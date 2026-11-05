@@ -130,5 +130,9 @@
   "Storage is not mounted": "Depolama bağlı değil",
   "Invalid folder": "Geçersiz klasör",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Klasörü kullan",
+  "Folder: {path}": "Klasör: {path}",
+  "Cannot open folder": "Klasör açılamıyor",
+  "Too many folders": "Çok fazla klasör"
 }

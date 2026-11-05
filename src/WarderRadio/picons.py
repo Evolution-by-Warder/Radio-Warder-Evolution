@@ -1,13 +1,12 @@
-"""Reuse PiconHub/native service-reference picons, with our own neutral fallback."""
+"""Configured Radio collection; native lookup only for callers without a library."""
 import os
 from . import ROOT
 
 
 def path_for(item, library=None):
     fallback = os.path.join(ROOT, 'plugin.png')
-    managed = library.lookup(item) if library is not None else ''
-    if managed:
-        return managed
+    if library is not None:
+        return library.lookup(item) or fallback
     reference = item.get('reference') if item else None
     if reference:
         try:

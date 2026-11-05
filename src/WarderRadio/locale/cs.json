@@ -130,5 +130,9 @@
   "Storage is not mounted": "Úložiště není připojeno",
   "Invalid folder": "Neplatná složka",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Použít složku",
+  "Folder: {path}": "Složka: {path}",
+  "Cannot open folder": "Složku nelze otevřít",
+  "Too many folders": "Příliš mnoho složek"
 }

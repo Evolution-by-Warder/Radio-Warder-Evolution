@@ -130,5 +130,9 @@
   "Storage is not mounted": "Dispozitivul de stocare nu este montat",
   "Invalid folder": "Dosar nevalid",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Folosește dosarul",
+  "Folder: {path}": "Dosar: {path}",
+  "Cannot open folder": "Dosarul nu poate fi deschis",
+  "Too many folders": "Prea multe dosare"
 }

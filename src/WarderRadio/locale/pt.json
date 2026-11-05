@@ -130,5 +130,9 @@
   "Storage is not mounted": "O armazenamento não está montado",
   "Invalid folder": "Pasta inválida",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Usar pasta",
+  "Folder: {path}": "Pasta: {path}",
+  "Cannot open folder": "Não é possível abrir a pasta",
+  "Too many folders": "Demasiadas pastas"
 }

@@ -130,5 +130,9 @@
   "Storage is not mounted": "Storage is not mounted",
   "Invalid folder": "Invalid folder",
   "USB": "USB",
-  "MMC": "MMC"
+  "MMC": "MMC",
+  "Use folder": "Use folder",
+  "Folder: {path}": "Folder: {path}",
+  "Cannot open folder": "Cannot open folder",
+  "Too many folders": "Too many folders"
 }
