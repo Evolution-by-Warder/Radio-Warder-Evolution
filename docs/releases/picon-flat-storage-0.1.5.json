@@ -1,0 +1,31 @@
+{
+  "release": "0.1.5",
+  "date": "2026-11-05",
+  "source_base": "aab0c8fc6bd57b96d26276a6aa72bc27146c7217",
+  "unit_tests": 148,
+  "native_replays": {
+    "OpenPLi release-9.2": 60,
+    "OpenATV 8.1 reviewed base": 60,
+    "OpenATV 8.0-next": 60
+  },
+  "checked_behaviour": [
+    "Selected 220x132 background archive still fetched from commit-pinned GitHub URL",
+    "PNG objects and index saved directly in the selected Radio root; no size/background directories created",
+    "Lookup uses the selected flat root",
+    "Background changes update managed images in the same root",
+    "Previous nested collections readable before migration and copied on download worker",
+    "Unchanged migrated images do not download archive again",
+    "Edited picons and source files preserved",
+    "Atomic image/index publication and cancellation/resume retained"
+  ],
+  "automatic_variant_subdirectories": false,
+  "receiver_hardware_tested": false,
+  "local_build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.5-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.5_all.ipk",
+    "sha256": "91f2397c505f42960fbbd18d037f7c4a8583f5197d8533406ec87d6f448ecfcb",
+    "bytes": 3160860,
+    "files": 112
+  }
+}
