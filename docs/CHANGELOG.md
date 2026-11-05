@@ -1,3 +1,15 @@
+# 0.1.5 (flat Radio picon storage)
+
+- Download the selected background at 220 × 132 from GitHub and save PNGs and
+  their index directly in the chosen `picon/warderradio` folder. Do not create
+  size or background subdirectories. Load the active collection from that root.
+- Keep existing nested collections readable until the next download copies them
+  into the root. Preserve custom images and originals; skip the package ZIP when
+  migrated images already match the selected release. Background changes update
+  the managed selection in the same folder.
+- Retain verified downloads, atomic publication, cancellation/resume and
+  content-addressed image paths to avoid stale native pixmap cache entries.
+
 # 0.1.4 (confirmed selectors and dedicated Radio storage)
 
 - Confirm countries, background and storage with the bottom green button.

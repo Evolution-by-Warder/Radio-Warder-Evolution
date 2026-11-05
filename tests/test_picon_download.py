@@ -96,6 +96,58 @@ class PiconDownloadTests(unittest.TestCase):
         self.assertLess(events.index('Downloading picons: {country}'), events.index('Verifying picons: {country}'))
         self.assertIn(('Saved picon: {name}', {'name': 'Radio One'}), records)
 
+    def test_download_uses_selected_root_without_size_or_background_folders(self):
+        self.install()
+        root=Path(self.settings.location)
+        self.assertEqual(Path(self.library().lookup(self.item())).parent,root)
+        self.assertTrue((root/'index.json').is_file())
+        self.assertFalse(any(path.is_dir() for path in root.rglob('*')))
+        self.assertTrue(any('-black-220x132.zip' in url for url in self.backend.requests))
+
+    def nested_collection(self, body=None):
+        body=body or png()
+        folder=Path(self.settings.location,p.SIZE,self.settings.style)
+        folder.mkdir(parents=True)
+        digest=hashlib.sha256(body).hexdigest()
+        path=folder/(digest+'.png');path.write_bytes(body)
+        (folder/'index.json').write_text(json.dumps({NAME:digest}))
+        return path
+
+    def test_previous_nested_collection_is_readable_and_copied_to_root_without_zip(self):
+        previous=self.nested_collection()
+        self.assertEqual(self.library().lookup(self.item()),str(previous))
+        self.assertEqual(self.install()['unchanged'],1)
+        self.assertEqual(len(self.backend.requests),1)
+        current=Path(self.library().lookup(self.item()))
+        self.assertEqual(current.parent,Path(self.settings.location))
+        self.assertEqual(current.read_bytes(),png())
+        self.assertEqual(previous.read_bytes(),png())
+
+    def test_modified_nested_picon_is_preserved_in_root(self):
+        previous=self.nested_collection();previous.write_bytes(b'custom edit')
+        self.assertEqual(self.install()['preserved'],1)
+        current=Path(self.library().lookup(self.item()))
+        self.assertEqual(current,Path(self.settings.location,NAME))
+        self.assertEqual(current.read_bytes(),b'custom edit')
+        self.assertEqual(previous.read_bytes(),b'custom edit')
+
+    def test_background_change_replaces_managed_selection_in_same_root(self):
+        self.install()
+        manifest,body=fixture({NAME:png(70)})
+        entry=manifest['packages'][p.SIZE].pop('black')
+        entry['url']=entry['url'].replace('-black-','-white-')
+        manifest['packages'][p.SIZE]['white']=entry
+        self.settings.style='white'
+        backend=Backend(manifest,body)
+        self.assertEqual(self.install(backend)['updated'],1)
+        current=Path(self.library().lookup(self.item()))
+        self.assertEqual(current.parent,Path(self.settings.location))
+        self.assertEqual(current.read_bytes(),png(70))
+        backend.requests.clear()
+        self.assertEqual(self.install(backend)['unchanged'],1)
+        self.assertEqual(len(backend.requests),1)
+        self.assertFalse(any(path.is_dir() for path in current.parent.rglob('*')))
+
     def test_changed_png_gets_a_new_path_and_only_changed_object_is_written(self):
         self.install()
         previous = self.library().lookup(self.item())

@@ -143,10 +143,20 @@ class PiconSettings:
 
 
 class PiconLibrary:
-    def __init__(self, location, style, legacy_location=None):
+    def __init__(self, location, style, legacy_location=None, _directory=None):
         self.location = location
-        self.directory = os.path.join(location, SIZE, style)
-        self.legacy = PiconLibrary(legacy_location,style) if legacy_location and legacy_location != location else None
+        # Size/background select the GitHub archive, not directories on disk.
+        self.directory = location if _directory is None else _directory
+        self.legacy = None
+        if _directory is None:
+            previous = [(location, os.path.join(location, SIZE, style))]
+            if legacy_location and legacy_location != location:
+                previous.extend([(legacy_location, legacy_location),
+                                 (legacy_location, os.path.join(legacy_location, SIZE, style))])
+            for root, folder in reversed(previous):
+                source = PiconLibrary(root, style, _directory=folder)
+                source.legacy = self.legacy
+                self.legacy = source
         value = read_json(os.path.join(self.directory, 'index.json'), {}, MAX_MANIFEST)
         self.files = {name: digest for name, digest in value.items()
                       if FILENAME.fullmatch(name) and isinstance(digest, str) and HEX.fullmatch(digest)} if isinstance(value, dict) else {}
@@ -292,7 +302,15 @@ def references(directory, countries, task, opener=None):
 def migrate_library(library, task):
     """Copy the previous Radio collection on the worker; never remove sources."""
     old=library.legacy
-    if old is None or not (os.path.isdir(old.directory) or os.path.isdir(old.location)):
+    while old is not None:
+        migrate_source(library,old,task)
+        old=old.legacy
+
+
+def migrate_source(library, old, task):
+    if (old.directory == library.directory or
+            not (os.path.isdir(old.directory) or
+                 (old.location != library.location and os.path.isdir(old.location)))):
         return
     task.log('Saving picons…')
     index=os.path.join(library.directory,'index.json')
