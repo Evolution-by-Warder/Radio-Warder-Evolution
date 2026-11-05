@@ -81,14 +81,32 @@ class SpectrumTests(unittest.TestCase):
         self.assertFalse(self.effect.timer.active)
         self.assertEqual(len(self.widget.paints), 2)
 
-    def test_missing_visual_is_disabled_without_retries_and_cannot_break_playback(self):
+    def test_missing_visual_has_bounded_retries_and_cannot_break_playback(self):
         self.effect.loader = lambda *args, **kwargs: None
         self.effect.start(); self.effect.timer.fire()
+        self.assertFalse(self.effect.failed)
+        self.assertEqual(self.effect.timer.starts[-1], (1000, True))
+        self.effect.timer.fire(); self.effect.timer.fire()
         self.assertTrue(self.effect.failed)
         self.assertFalse(self.widget.visible)
         self.assertFalse(self.effect.timer.active)
         for _ in range(10): self.effect.start(); self.effect.tick()
         self.assertEqual(self.widget.paints, [])
+
+    def test_transient_frame_failure_recovers_and_return_can_restart_disabled_visual(self):
+        load = self.effect.loader
+        outcomes = iter([None, 'valid-frame'])
+        self.effect.loader = lambda *args, **kwargs: next(outcomes)
+        self.effect.start();self.effect.timer.fire()
+        self.assertFalse(self.widget.visible)
+        self.effect.timer.fire()
+        self.assertTrue(self.widget.visible)
+        self.assertEqual(self.widget.paints, ['valid-frame'])
+        self.effect.pause();self.effect.failed=True
+        self.effect.loader=load
+        self.effect.resume();self.effect.timer.fire()
+        self.assertFalse(self.effect.failed)
+        self.assertTrue(self.widget.visible)
 
     def test_assets_match_original_fullhdglass_manifest_and_png_dimensions(self):
         directory = Path(ROOT) / 'artwork/spectrum'

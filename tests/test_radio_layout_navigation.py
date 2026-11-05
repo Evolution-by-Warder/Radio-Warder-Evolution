@@ -6,6 +6,29 @@ from WarderRadio.skin import make_skin
 
 
 class RadioLayoutNavigationTests(unittest.TestCase):
+    def test_embedded_picon_form_replaces_both_panels_and_leaves_left_spectrum_clear(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            scale=min(width/1920.0,height/1080.0)
+            root=ET.fromstring(make_skin(width,height))
+            widgets={node.get('name'):node for node in root.findall('widget')}
+            def box(name):
+                node=widgets[name]
+                return tuple(map(int,(node.get('position')+','+node.get('size')).split(',')))
+            x,y,w,h=box('picon_panel')
+            self.assertEqual((x,y,w,h),tuple(round(v*scale) for v in (500,204,1388,790)))
+            ax,ay,aw,ah=box('activity')
+            self.assertLess(ax+aw,x)
+            fx,fy,fw,fh=box('picon_form')
+            self.assertGreaterEqual(fx,x);self.assertLessEqual(fx+fw,x+w)
+            self.assertEqual(fh,round(130*scale)*3)
+            self.assertLessEqual(fy+fh,y+h)
+            self.assertGreater(int(widgets['picon_form'].get('zPosition')),
+                               int(widgets['picon_panel'].get('zPosition')))
+            ox,oy,ow,oh=box('picon_options')
+            self.assertEqual(oh,round(60*scale)*8)
+            self.assertGreaterEqual(ox,x);self.assertLessEqual(ox+ow,x+w)
+            self.assertLessEqual(oy+oh,box('picon_help')[1])
+
     def test_piconhub_and_gsu_header_geometry_at_all_resolutions(self):
         expected = {
             'day': (1110, 25, 270, 36, 25, 'right'),
@@ -37,7 +60,7 @@ class RadioLayoutNavigationTests(unittest.TestCase):
                                  [round(1392 * scale), round(1664 * scale)])
                 self.assertTrue(all(node.get('zPosition') == '3' for node in stripes))
 
-    def test_eight_full_station_rows_and_seven_menu_rows(self):
+    def test_eight_full_station_rows_and_eight_menu_rows(self):
         for width, height in ((1280, 720), (1920, 1080), (2560, 1440), (3840, 2160)):
             with self.subTest(resolution=(width, height)):
                 root = ET.fromstring(make_skin(width, height))
@@ -50,7 +73,7 @@ class RadioLayoutNavigationTests(unittest.TestCase):
                 self.assertEqual(sh, row * 8)
                 self.assertLessEqual(sy + sh, round(994 * scale))
                 menu = widgets['functions']
-                self.assertEqual(int(menu.get('size').split(',')[1]), round(72 * scale) * 7)
+                self.assertEqual(int(menu.get('size').split(',')[1]), round(64 * scale) * 8)
                 self.assertEqual(int(menu.get('position').split(',')[1]), round(232 * scale))
                 nav = widgets['navtitle']
                 self.assertLessEqual(int(nav.get('position').split(',')[1]) +

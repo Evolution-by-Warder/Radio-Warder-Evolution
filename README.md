@@ -16,7 +16,9 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current stable release: **0.1.1** (the first production update channel).
+Current release: **0.1.3**, with inline country, background and folder selectors.
+It upgrades both the previous stable 0.1.1 and the 0.1.2-testN picon candidates
+through the plugin's existing verified update channels.
 The preceding 0.1.0-test39 remains available as a receiver-test prerelease.
 
 0.1.1 follows 0.1.0-test39 deliberately: the higher numeric version allows
@@ -62,6 +64,29 @@ registered in the plugin browser.
 - Persistent favourites, last 100 played stations, accent-insensitive search
   across the catalogue and custom HTTP/HTTPS stations.
 - Native/PiconHub picon lookup, with a neutral Warder Radio fallback logo.
+- Main left menu → Picon downloads, directly below Radio stations: select multiple countries, a transparent,
+  white or black background and an internal or currently mounted location.
+  The centre and right panels become one wide numbered settings form.
+  Country, background and folder lists appear inside this same panel. Country
+  marks apply with Green → Confirm selection; Back discards pending changes.
+  Background and folder choices apply with OK. Folder choices include labelled
+  internal storage, HDD, USB, SD, MMC, /picon and a custom directory. Missing
+  external storage cannot silently write to receiver flash. Custom path entry
+  uses the receiver keyboard; ordinary choices do not open system dialogs.
+  Size is automatic (220×132). Available country packages are currently Slovakia,
+  Czechia, Austria, Germany, Hungary and Poland. The scrollable progress window
+  logs checks, downloads, verification and each saved station in order; red cancels.
+  Green starts downloading from the form; LEFT returns to the main menu.
+  Verified packages come from PiconHub's existing radio collections, filtered
+  by the selected countries' station identities. The final summary distinguishes
+  new, updated, current, preserved, missing and failed items. Missing station
+  artwork retains the neutral fallback. Closing the log refreshes the picon library;
+  red/EXIT in the form restores the preceding station view and selection without
+  restarting the GUI or interrupting playback.
+  The selected collection takes precedence inside Radio; native picons remain
+  the fallback and their files are never overwritten. A custom reference-named
+  PNG in the selected Radio variant directory takes precedence over its managed
+  image. Editing a managed image also protects it from later replacement.
 - Mounted-disk recordings folder `/media/hdd/WarderRadio`; playback of recordings.
   The package depends on `streamripper`; opkg installs it from the receiver’s configured feeds.
   Blue/Delete in Recordings, or MENU → Delete, removes the selected recording after confirmation.
@@ -91,7 +116,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.1_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.3_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.
@@ -102,7 +127,7 @@ catalogue URL for the remembered identity where available, with the saved entry
 as fallback. It makes one attempt and leaves the interface usable on failure.
 The country selector is the first item of the left function menu, above Radio stations.
 It is raised slightly and separated visually from the radio-list menu item without
-changing the height of the seven menu rows. The navigation hint beneath the logo
+using eight complete compact menu rows. The navigation hint beneath the logo
 follows the receiver's system language across all 21 supported locales.
 Its current country is shown in Warder cyan, slightly larger and higher in the left panel. There are eight fully visible station
 rows in the centre at every supported resolution, without shrinking picons.
@@ -111,7 +136,7 @@ pages up, and only when the first station is selected does LEFT move to the
 left function menu. RIGHT from the menu returns to the previous station and
 scroll position. Press 0 from any station to focus Choose country in the left
 menu; OK opens its country choices. UP from the first station no longer changes
-panels. UP/DOWN inside the left menu move among its seven function entries,
+panels. UP/DOWN inside the left menu move among its eight function entries,
 wrapping normally. MENU → Choose country remains available as well.
 Selecting a country preserves playback and saves the choice. Cancel keeps the
 previous selection. The left function-menu selection identifies the active section, including

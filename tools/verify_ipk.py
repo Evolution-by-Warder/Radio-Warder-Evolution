@@ -48,6 +48,9 @@ assert len(json.loads(files[base + 'seed.json'])) == 5444
 assert len([name for name in files if name.startswith(base + 'locale/') and name.endswith('.json')]) == 21
 assert files[base + 'plugin.png'] == (ROOT / 'src/WarderRadio/artwork/warder-radio-logo.png').read_bytes()
 assert files[base + 'version.txt'].decode().strip() == VERSION
+for frame in range(48):
+    name = base + 'artwork/spectrum/frame-%02d.png' % frame
+    assert name in files and files[name].startswith(b'\x89PNG\r\n\x1a\n'), name
 with tempfile.TemporaryDirectory() as tmp:
     with tarfile.open(fileobj=io.BytesIO(parts['control.tar.gz']), mode='r:gz') as tar:
         control = tar.extractfile('./control').read().decode()

@@ -1,0 +1,36 @@
+{
+  "candidate": "0.1.2-test3",
+  "date": "2026-11-05",
+  "previous_candidate_commit": "315d23972085b963a9157456ab98ab6294db85bf",
+  "unit_tests": 137,
+  "native_replays": {
+    "OpenPLi release-9.2": 57,
+    "OpenATV 8.1 reviewed base": 57,
+    "OpenATV 8.0-next": 57
+  },
+  "checked_behaviour": [
+    "Main menu label Sťahovanie Piconov immediately below Radio stations",
+    "Country, background and folder selectors replace content inside the same main-window panel",
+    "Country marks remain provisional until green Confirm selection",
+    "Back discards pending country marks",
+    "Background selection uses OK and restores original settings row",
+    "Green in a single-choice list cannot accidentally start a download",
+    "Labelled receiver memory, HDD, USB, SD, MMC, /picon and custom-folder entry",
+    "Custom-folder keyboard supports cancellation, invalid paths and valid absolute paths",
+    "Unplugged storage is rejected without creating a receiver-flash directory",
+    "Custom folders below an actual mount are supported",
+    "Eight complete selector rows fit at HD, Full HD, QHD and UHD",
+    "Existing line-by-line download progress and equalizer recovery retained"
+  ],
+  "receiver_test": "pending",
+  "feeds_changed": false,
+  "publication": "paused following owner request",
+  "ipk": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.2-test3-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.2-test3_all.ipk",
+    "sha256": "bf2feedba18a55eb62511bed37db7be8ccae3b7c40a7d509f8814bd620c9ba88",
+    "bytes": 3158070,
+    "files": 112
+  }
+}

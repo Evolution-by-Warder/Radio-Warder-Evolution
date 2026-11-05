@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 sys.path.insert(0, str(ROOT / 'tests'))
 from country_support import Backend, country_fixture, rows as country_rows
+from WarderRadio.picon_download import PiconSettings
 UP = args.upstream
 
 
@@ -163,7 +164,8 @@ class Session:
     def open(self, screen, *args, **kwargs): self.dialogs.append((screen, args, kwargs))
     def openWithCallback(self, callback, screen, *args, **kwargs):
         self.dialogs.append((screen, callback, args, kwargs))
-        if screen in (radio.UpdateProgress, radio.VideoPlayer):
+        if screen in (radio.UpdateProgress, radio.VideoPlayer,
+                      picon_screen.PiconProgress):
             dialog = screen(self, *args, **kwargs)
             mount(dialog)
             dialog.execing = True
@@ -285,6 +287,7 @@ exec(compile(ast.fix_missing_locations(ast.Module(body=[classic_class],type_igno
 ClassicMoviePlayer=movie_scope['MoviePlayer']
 infobar.MoviePlayer=ClassicMoviePlayer
 from WarderRadio import screen as radio
+from WarderRadio import picon_screen
 from WarderRadio import plugin
 from WarderRadio.model import Store
 from WarderRadio.metadata import IcyMonitor
@@ -362,6 +365,199 @@ class NativeTests(unittest.TestCase):
             screen.poll(); time.sleep(.001)
         self.assertFalse(screen.updating, 'Country worker did not finish')
 
+    def test_picons_main_menu_replaces_both_panels_and_keeps_playback(self):
+        screen, session, root = self.new()
+        screen['stations'].moveToIndex(3)
+        screen.play()
+        playing = session.nav.current
+        self.assertEqual(screen['functions'].list[1:3], [(radio.t('Radio stations'),'radio'), (radio.t('Picon downloads'),'picons')])
+        before = len(session.dialogs)
+        screen['functions'].moveToIndex(2); screen.set_focus('functions'); screen.ok()
+        self.assertEqual(screen.mode, 'picons')
+        self.assertEqual(screen.focus, 'picon_form')
+        self.assertEqual(len(session.dialogs), before)
+        self.assertTrue(screen['picon_panel'].instance.isVisible())
+        self.assertFalse(screen['stations'].instance.isVisible())
+        self.assertFalse(screen['art'].instance.isVisible())
+        self.assertEqual([row[2] for row in screen['picon_form'].list], ['countries','style','location'])
+        screen.ok();self.assertEqual(screen.focus,'picon_options')
+        screen['picon_options'].moveToIndex(3);screen.ok();screen.green_pressed()
+        self.assertEqual(screen.picon_form.settings.countries,['SK','CZ','DE'])
+        screen['picon_form'].moveToIndex(1);screen.ok()
+        screen['picon_options'].moveToIndex(1);screen.ok()
+        self.assertEqual(screen.picon_form.settings.style,'white')
+        self.assertEqual(session.nav.current, playing)
+        screen['picon_form'].moveToIndex(0);screen.ok()
+        for index in [0,1,3]:
+            screen['picon_options'].moveToIndex(index);screen.ok()
+        screen.green_pressed();screen.green_pressed()
+        self.assertEqual(screen['picon_status'].getText(),radio.t('Select at least one country'))
+        screen.left();self.assertEqual(screen.focus,'functions')
+        screen.right();self.assertEqual(screen.focus,'picon_form')
+        screen.exit()
+        self.assertEqual(screen.mode,'radio')
+        self.assertEqual(screen['stations'].getSelectionIndex(),3)
+        self.assertFalse(screen['picon_panel'].instance.isVisible())
+        self.assertTrue(screen['stations'].instance.isVisible())
+        self.assertTrue(screen['art'].instance.isVisible())
+        self.assertEqual(session.nav.current,playing)
+
+    def test_picon_form_green_starts_existing_line_log_and_late_art_stays_hidden(self):
+        screen,session,_=self.new();screen.play();screen.open_picons()
+        screen.cover_loaded(screen.cover_generation, (str(ROOT/'src/WarderRadio/plugin.png'),'iTunes'),None)
+        self.assertFalse(screen['art'].instance.isVisible())
+        screen.reset_artwork()
+        self.assertFalse(screen['art'].instance.isVisible())
+        screen['actions'].actions['green']()
+        self.assertIsInstance(session.current_dialog,picon_screen.PiconProgress)
+        session.current_dialog.cleanup()
+        screen['functions'].moveToIndex(3);screen.set_focus('functions');screen.ok()
+        self.assertEqual(screen.mode,'favourites')
+        self.assertFalse(screen['picon_form'].instance.isVisible())
+        self.assertTrue(screen['stations'].instance.isVisible())
+
+    def test_spectrum_resumes_on_return_and_stays_visible_in_picon_form(self):
+        screen,session,_=self.new();screen.show();screen.play()
+        screen.spectrum.tick()
+        self.assertTrue(screen['activity'].instance.isVisible())
+        screen.hide();self.assertFalse(screen.spectrum.running)
+        screen.show();self.assertTrue(screen.spectrum.running)
+        screen.spectrum.tick();self.assertIn('frame-',screen['activity'].instance.pixmap)
+        screen.open_picons();screen.spectrum.tick()
+        self.assertTrue(screen['activity'].instance.isVisible())
+        self.assertEqual(screen['activity'].instance.attributes['position'],'77,840')
+        screen.spectrum.pause();screen.tick()
+        self.assertTrue(screen.spectrum.running)
+        screen.hide();screen.tick();self.assertFalse(screen.spectrum.running)
+
+
+    def test_picon_country_multiselect_confirm_and_cancel_stay_inside_main_window(self):
+        screen,session,_=self.new();screen.open_picons()
+        screen.picon_form.settings.countries=['SK'];screen.picon_form.refresh()
+        dialogs=len(session.dialogs)
+        screen.ok();screen['picon_options'].moveToIndex(1);screen.ok()
+        self.assertEqual(screen.picon_form.pending_countries,{'SK','CZ'})
+        self.assertEqual(screen.picon_form.settings.countries,['SK'])
+        self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
+        self.assertTrue(screen['picon_options'].instance.isVisible())
+        self.assertFalse(screen['picon_form'].instance.isVisible())
+        screen.exit()
+        self.assertEqual(screen.mode,'picons');self.assertEqual(screen.picon_form.view,'form')
+        self.assertEqual(screen.picon_form.settings.countries,['SK'])
+        screen.ok();screen['picon_options'].moveToIndex(1);screen.ok();screen.green_pressed()
+        self.assertEqual(screen.picon_form.settings.countries,['SK','CZ'])
+        self.assertEqual(len(session.dialogs),dialogs)
+        self.assertFalse(Path(self.tmp.name,'picon-settings.json').exists())
+
+    def test_background_picker_uses_ok_and_back_without_popup_or_download(self):
+        screen,session,_=self.new();screen.open_picons()
+        dialogs=len(session.dialogs)
+        screen['picon_form'].moveToIndex(1);screen.ok()
+        self.assertEqual(screen.picon_form.view,'style')
+        self.assertEqual(screen['picon_title'].getText(),radio.t('Background'))
+        self.assertEqual(screen['picon_options'].getSelectionIndex(),2)
+        screen['picon_options'].moveToIndex(0);screen.green_pressed()
+        self.assertEqual(len(session.dialogs),dialogs)
+        screen.exit();self.assertEqual(screen.picon_form.settings.style,'black')
+        screen.ok();screen['picon_options'].moveToIndex(1);screen.ok()
+        self.assertEqual(screen.picon_form.view,'form')
+        self.assertEqual(screen.picon_form.settings.style,'white')
+        self.assertEqual(screen['picon_form'].getSelectionIndex(),1)
+        self.assertEqual(len(session.dialogs),dialogs)
+
+    def test_folder_picker_lists_storage_and_accepts_custom_folder(self):
+        screen,session,_=self.new();screen.open_picons()
+        screen['picon_form'].moveToIndex(2);screen.ok()
+        self.assertEqual(screen.picon_form.view,'location')
+        options=screen['picon_options'].list
+        for path in ['/etc/enigma2/warder-radio/picons','/media/hdd/WarderRadio/picons',
+                     '/media/usb/WarderRadio/picons','/media/sdcard/WarderRadio/picons',
+                     '/media/mmc/WarderRadio/picons','/picon','custom']:
+            self.assertIn(path,[row[1] for row in options])
+        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(options) if row[1]=='/media/usb/WarderRadio/picons'))
+        with patch('WarderRadio.picon_download.os.path.ismount',return_value=False):
+            screen.ok()
+        self.assertEqual(screen.picon_form.view,'location')
+        self.assertEqual(screen['picon_status'].getText(),radio.t('Storage is not mounted'))
+        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(options) if row[1]=='custom'));screen.ok()
+        self.assertEqual(session.dialogs[-1][1],screen.picon_form.custom_folder_done)
+        screen.picon_form.custom_folder_done(None)
+        self.assertEqual(screen.picon_form.view,'location')
+        screen.picon_form.custom_folder_done('relative/path')
+        self.assertEqual(screen['picon_status'].getText(),radio.t('Invalid folder'))
+        path=str(Path(self.tmp.name,'own-radio-picons'))
+        screen.picon_form.custom_folder_done(path)
+        self.assertEqual(screen.picon_form.settings.location,path)
+        self.assertEqual(screen.picon_form.view,'form')
+        self.assertEqual(screen['picon_form'].getSelectionIndex(),2)
+        self.assertFalse(Path(path).exists())
+
+    def test_picon_log_keeps_order_scrolls_and_finishes_without_restart(self):
+        settings = PiconSettings(self.tmp.name)
+        window = picon_screen.PiconProgress(Session(), self.tmp.name, settings)
+        mount(window); self.addCleanup(window.cleanup)
+        window.task.log('Checking picons: {country}', country='Slovakia')
+        window.task.log('Downloading picons: {country}', country='Slovakia')
+        window.task.log('Saved picon: {name}', name='Radio One')
+        window.drain()
+        self.assertEqual(window.lines[-1], radio.t('Saved picon: {name}').format(name='Radio One'))
+        self.assertEqual(window['list'].getSelectionIndex(), 2)
+        window.scroll('up'); self.assertEqual(window['list'].getSelectionIndex(), 1)
+        window.task.log('Saved picon: {name}', name='Radio Two'); window.drain()
+        self.assertEqual(window['list'].getSelectionIndex(), 1)
+        result = dict(added=2, updated=0, unchanged=0, preserved=0, missing=1, failed=0)
+        window.done(result, None)
+        self.assertTrue(window.finished)
+        self.assertEqual(window['bar'].value, 100)
+        self.assertFalse(window.timer.timer.active)
+        self.assertIn('OK', window['footer'].getText())
+        self.assertNotIn('restart', window['status'].getText().lower())
+
+    def test_picon_cancel_stops_worker_and_ignores_late_gui_callbacks(self):
+        settings = PiconSettings(self.tmp.name)
+        window = picon_screen.PiconProgress(Session(), self.tmp.name, settings)
+        mount(window); self.addCleanup(window.cleanup)
+        window.cancel()
+        self.assertTrue(window.task.cancelled.is_set())
+        window.done(None, 'Cancelled')
+        self.assertEqual(window['status'].getText(), radio.t('Picon download cancelled'))
+        window.cleanup(); window.poll()
+        self.assertTrue(window.jobs.closed.is_set())
+        self.assertEqual(window.timer.timer.callback, [])
+
+    def test_picon_worker_log_is_delivered_by_gui_timer(self):
+        settings = PiconSettings(self.tmp.name)
+        settings.location = str(Path(self.tmp.name, 'picons'))
+        threads = []
+        def work(directory, chosen, task):
+            threads.append(threading.get_ident())
+            task.log('Saved picon: {name}', name='Radio Worker')
+            return dict(added=1, updated=0, unchanged=0, preserved=0, missing=0, failed=0)
+        with patch.object(picon_screen, 'install', side_effect=work):
+            window = picon_screen.PiconProgress(Session(), self.tmp.name, settings)
+            mount(window); self.addCleanup(window.cleanup)
+            window.on_shown(); window.poll()
+            deadline = time.monotonic() + 2
+            while not window.finished and time.monotonic() < deadline:
+                window.poll(); time.sleep(.001)
+        self.assertTrue(window.finished)
+        self.assertNotEqual(threads, [threading.get_ident()])
+        self.assertIn(radio.t('Saved picon: {name}').format(name='Radio Worker'), window.lines)
+
+    def test_picon_windows_fit_each_native_resolution_with_complete_log_rows(self):
+        for width, height in [(1280,720),(1920,1080),(2560,1440),(3840,2160)]:
+            DESKTOP[:] = width, height
+            window = picon_screen.PiconProgress(Session(), self.tmp.name, PiconSettings(self.tmp.name))
+            self.addCleanup(window.cleanup)
+            root = mount(window)
+            w, h = map(int, root.attrib['size'].split(','))
+            for node in root:
+                x,y = map(int,node.attrib['position'].split(',')); nw,nh = map(int,node.attrib['size'].split(','))
+                self.assertLessEqual(x+nw,w);self.assertLessEqual(y+nh,h)
+            height_list = int(next(node for node in root if node.get('name') == 'list').get('size').split(',')[1])
+            self.assertEqual(height_list // round(46*window.ui_scale), 12)
+            self.assertEqual(len(window['list'].build('Rendered after native skin scaling')), 2)
+
     def test_startup_paints_before_catalogue_work_and_close_cancels_late_results(self):
         original = radio.Catalogue
         entered, release = threading.Event(), threading.Event()
@@ -404,7 +600,7 @@ class NativeTests(unittest.TestCase):
             screen, session, _ = self.new(wait_ready=False)
             screen.finish_startup()
             if navigate:
-                screen.left(); screen['functions'].moveToIndex(2); screen.ok()
+                screen.left(); screen['functions'].moveToIndex(3); screen.ok()
             else:
                 session.nav.current = Reference('externally selected TV')
             current = session.nav.current
@@ -473,7 +669,7 @@ class NativeTests(unittest.TestCase):
         screen.favourite()
         self.assertTrue(screen.store.is_favourite(selected))
         self.assertEqual(len(screen.store.history), 1)
-        screen.left(); screen['functions'].moveToIndex(2); screen.ok()
+        screen.left(); screen['functions'].moveToIndex(3); screen.ok()
         self.assertEqual(screen.mode, 'favourites')
         self.assertEqual(screen.current()['id'], selected['id'])
         screen.ended(); self.assertFalse(screen.playing)
@@ -539,7 +735,7 @@ class NativeTests(unittest.TestCase):
             screen.group_done(('Čechy','Čechy'))
             self.assertTrue(entered.wait(1))
             self.assertEqual(screen.active_group,'Slovensko')
-            screen.left();screen['functions'].moveToIndex(2);screen.ok()
+            screen.left();screen['functions'].moveToIndex(3);screen.ok()
             self.assertEqual(screen.mode,'favourites')
             self.assertIs(session.nav.current,playing)
             screen.group_done(('Slovensko','Slovensko'))
@@ -1159,7 +1355,7 @@ class NativeTests(unittest.TestCase):
         screen, session, root = self.new()
         self.assertEqual(screen['functions'].list[-2:], [(radio.t('Settings'), 'settings'), (radio.t('Update'), 'plugin-update')])
         self.assertNotIn('update', screen)
-        self.assertEqual(int(root.find("widget[@name='functions']").attrib['size'].split(',')[1]), screen['functions'].l.height * 7)
+        self.assertEqual(int(root.find("widget[@name='functions']").attrib['size'].split(',')[1]), screen['functions'].l.height * 8)
         screen['actions'].actions['update']()
         self.assertTrue(screen.update_manual)
         self.assertEqual(screen['status'].getText(), radio.t('Checking for updates…'))
@@ -1169,7 +1365,7 @@ class NativeTests(unittest.TestCase):
         screen.jobs.close()
         screen.jobs.submit = lambda key, work, callback: queued.append(key) or True
         screen.left()
-        screen['functions'].moveToIndex(6)
+        screen['functions'].moveToIndex(7)
         screen.ok()
         self.assertEqual(screen.focus, 'functions')
         self.assertEqual(screen.mode, 'radio')
@@ -1312,9 +1508,9 @@ class NativeTests(unittest.TestCase):
         radio_content = screen['functions'].l.build(*screen['functions'].l.rows[1])
         self.assertEqual(country_content[1][2], 1)  # scaled zero clamps to one pixel
         self.assertEqual(country_content[1][4], 58)
-        self.assertEqual(radio_content[1][2], 10)
-        self.assertEqual(radio_content[1][4], 56)
-        self.assertEqual(72 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 23)
+        self.assertEqual(radio_content[1][2], 6)
+        self.assertEqual(radio_content[1][4], 52)
+        self.assertEqual(64 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 11)
         self.assertEqual(screen['functions'].l.fonts[2], ('Regular', 24))
         self.assertLessEqual(box('navtitle')[1] + box('navtitle')[3], box('functions')[1])
         self.assertEqual(box('art')[2:], (520, 520))

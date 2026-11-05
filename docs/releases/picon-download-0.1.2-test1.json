@@ -1,0 +1,108 @@
+{
+  "candidate": "0.1.2-test1",
+  "date": "2026-11-05",
+  "source_base": "c717a34076d873375aa00f60514bb6b5f6ca1935",
+  "unit_tests": 134,
+  "native_replays": {
+    "OpenPLi release-9.2": 53,
+    "OpenATV 8.1 reviewed base": 53,
+    "OpenATV 8.0-next": 53
+  },
+  "live_package_checks": {
+    "black": [
+      {
+        "countries": [
+          "SK",
+          "CZ",
+          "AT",
+          "DE",
+          "HU",
+          "PL"
+        ],
+        "style": "black",
+        "first": {
+          "added": 450,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 0,
+          "failed": 0,
+          "missing": 4267
+        }
+      },
+      {
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 450,
+          "preserved": 0,
+          "failed": 0,
+          "missing": 4267
+        }
+      }
+    ],
+    "transparent": [
+      {
+        "countries": [
+          "SK",
+          "CZ"
+        ],
+        "style": "transparent",
+        "first": {
+          "added": 338,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 0,
+          "failed": 0,
+          "missing": 1
+        }
+      },
+      {
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 338,
+          "preserved": 0,
+          "failed": 0,
+          "missing": 1
+        }
+      }
+    ],
+    "white": [
+      {
+        "countries": [
+          "SK",
+          "CZ"
+        ],
+        "style": "white",
+        "first": {
+          "added": 338,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 0,
+          "failed": 0,
+          "missing": 1
+        }
+      },
+      {
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 338,
+          "preserved": 0,
+          "failed": 0,
+          "missing": 1
+        }
+      }
+    ]
+  },
+  "receiver_test": "pending",
+  "feeds_changed": false,
+  "ipk": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.2-test1-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.2-test1_all.ipk",
+    "sha256": "003f65b7b4d860327bfa9c1b09522124ff2c70d10c23763c16386c3b9fb8d269",
+    "bytes": 3153072,
+    "files": 112
+  }
+}

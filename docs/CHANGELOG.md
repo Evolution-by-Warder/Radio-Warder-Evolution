@@ -1,3 +1,68 @@
+# 0.1.3 (picon downloads through the plugin updater)
+
+- Release the inline country/background/folder selectors, main-menu entry
+  Sťahovanie Piconov, verified picon downloader, ordered progress log and
+  equalizer recovery from the 0.1.2 receiver-test candidates.
+- Use a higher numeric version so opkg can upgrade both stable 0.1.1 and all
+  0.1.2-testN packages. Publish to stable and testing manifests only after
+  downloading and verifying the public IPK bytes and SHA-256.
+- Preserve the immutable legacy migration bridge and all user settings,
+  favourites, history, recordings, catalogue caches and picon collections.
+- Automated native replays cover OpenATV/OpenPLi. Physical receiver rendering,
+  remote control and external storage still require receiver verification.
+
+# 0.1.2-test3 (inline picon selectors)
+
+- Rename the main menu entry to Picon downloads (Sťahovanie Piconov in Slovak),
+  retaining its position immediately below Radio stations.
+- Country, background and folder choices now use the same main-window content
+  panel. Country check marks remain provisional until Green → Confirm selection;
+  Back discards pending marks. Background and folder choices use OK and return
+  to the original form row. Ordinary choices no longer open system dialogs.
+- Offer labelled receiver memory, HDD, USB, SD, MMC, /picon and a custom-folder
+  entry. Only custom text entry uses the receiver keyboard. Validate mounted
+  storage, preserve the existing Radio-owned subdirectories and reject unsafe
+  roots or invalid paths. A missing drive leaves the selection open with a reason.
+- Retain automatic image size, the line-by-line download log and equalizer
+  recovery. Translate picker controls and storage labels in all 21 locales.
+
+# 0.1.2-test2 (embedded picon settings and spectrum recovery)
+
+- Place Picons immediately below Radio stations in the main left menu.
+  Opening it replaces the centre and right content panels with one wide,
+  numbered country/colour/location form in the existing Radio window.
+- Green starts the existing line-by-line download log. LEFT returns to the
+  main menu; red/EXIT restores the preceding station view and selection.
+  Playback continues, and delayed artwork cannot cover the settings form.
+- Fit all eight main menu rows above the status and spectrum areas at HD,
+  Full HD, QHD and UHD. Keep image size automatic.
+- Resume the decorative equalizer after returning to the main screen and
+  use the clock as a watchdog for a paused animation timer. Retry transient
+  frame-load failures at most three times; returning or starting a station
+  permits recovery without repeated work while hidden or closed.
+- Keep all 48 approved equalizer frames unchanged. Receiver verification of
+  the reported missing equalizer remains necessary.
+
+# 0.1.2-test1 (picon downloader candidate)
+
+- MENU → Download / update picons selects one or more available countries,
+  transparent/white/black colour and internal or mounted storage. The plugin
+  selects 220×132 images automatically; no resolution choice is shown.
+- A separate window shows an ordered, scrollable log for country checks,
+  downloads, package verification and individual station saves, plus real
+  download progress, cancellation and a final summary.
+- Read verified PiconHub radio packages for Slovakia, Czechia, Austria,
+  Germany, Hungary and Poland. Filter every package through the selected
+  country's catalogue identities; shared SK/CZ packages download once.
+- Verify archive and PNG hashes, dimensions and inventory before publishing
+  images. Publish immutable PNGs and their index atomically, resume interrupted
+  installs, skip unchanged packages and retain custom picons. Reopen the list
+  with its current selection after setup closes, without a GUI restart.
+- Preserve playback, favourites, catalogue state and native picon lookup.
+  All new controls and log messages use the existing 21 interface languages.
+- This candidate does not advance either update feed. Physical receiver
+  painting, remote control and storage behaviour need a receiver test.
+
 # 0.1.1 (first stable release, OpenATV / OpenPLi)
 
 - Promote the tested Warder Radio 0.1.0-test39 functionality to a stable version
