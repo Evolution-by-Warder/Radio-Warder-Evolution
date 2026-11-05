@@ -1,3 +1,23 @@
+# 0.1.2-test1 (picon downloader candidate)
+
+- MENU → Download / update picons selects one or more available countries,
+  transparent/white/black colour and internal or mounted storage. The plugin
+  selects 220×132 images automatically; no resolution choice is shown.
+- A separate window shows an ordered, scrollable log for country checks,
+  downloads, package verification and individual station saves, plus real
+  download progress, cancellation and a final summary.
+- Read verified PiconHub radio packages for Slovakia, Czechia, Austria,
+  Germany, Hungary and Poland. Filter every package through the selected
+  country's catalogue identities; shared SK/CZ packages download once.
+- Verify archive and PNG hashes, dimensions and inventory before publishing
+  images. Publish immutable PNGs and their index atomically, resume interrupted
+  installs, skip unchanged packages and retain custom picons. Reopen the list
+  with its current selection after setup closes, without a GUI restart.
+- Preserve playback, favourites, catalogue state and native picon lookup.
+  All new controls and log messages use the existing 21 interface languages.
+- This candidate does not advance either update feed. Physical receiver
+  painting, remote control and storage behaviour need a receiver test.
+
 # 0.1.1 (first stable release, OpenATV / OpenPLi)
 
 - Promote the tested Warder Radio 0.1.0-test39 functionality to a stable version

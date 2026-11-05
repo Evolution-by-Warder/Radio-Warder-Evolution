@@ -24,6 +24,8 @@ from .model import Store, Playback
 from .country_catalogue import CountryCatalogue as Catalogue, CatalogueTask
 from .recording import Recording
 from .picons import path_for
+from .picon_download import PiconSettings, PiconLibrary
+from .picon_screen import PiconSetup
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .header_clock import clock_text
@@ -71,6 +73,7 @@ class RadioList(MenuList):
         self.l.setFont(2, gFont('Regular', round(24 * scale)))
         self.l.setBuildFunc(self.build)
         self.picons = {}
+        self.picon_library = None
 
     def build(self, item, key=None):
         def n(value):
@@ -94,7 +97,7 @@ class RadioList(MenuList):
             return [None, MultiContentEntryText(pos=(n(16), n(10)),
                                                size=(n(350), n(56)),
                                                font=0, flags=flags, text=item)]
-        path = path_for(item)
+        path = path_for(item, self.picon_library)
         if path not in self.picons:
             if len(self.picons) >= 128:
                 self.picons.clear()
@@ -158,6 +161,7 @@ class WarderRadio(Screen):
                                       (t('History'), 'history'), (t('Recordings'), 'recordings'),
                                       (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
+        self.reload_picons()
         for name in ('day', 'date', 'clock', 'seconds', 'version_caption', 'version', 'navtitle', 'section', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
@@ -677,6 +681,7 @@ class WarderRadio(Screen):
     def options(self):
         self.startup_autoplay = False
         choices = [(t('Choose country'), 'group'), (t('Update catalogue'), 'update'),
+                   (t('Download / update picons'), 'picons'),
                    (t('Favourite'), 'favourite'),
                    (t('Add station'), 'add'), (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if self.recording.running() else 'Start recording'), 'record'),
@@ -697,6 +702,8 @@ class WarderRadio(Screen):
             self.favourite()
         elif action == 'update':
             self.update_catalogue()
+        elif action == 'picons':
+            self.session.openWithCallback(self.reload_picons, PiconSetup, self.store.directory)
         elif action == 'plugin-update':
             self.check_updates(manual=True)
         elif action == 'add':
@@ -709,6 +716,17 @@ class WarderRadio(Screen):
             self.notify('Warder Radio ' + VERSION + '\nWorld of Radio Stations\n\n'
                         + 'OpenPLi / OpenATV\n' + str(self.catalogue.total_stations()) + ' stations · PiconHub\n\n'
                         + t('Recordings folder') + ':\n' + self.recording.directory)
+
+    def reload_picons(self, _result=None):
+        if getattr(self, 'closed', False):
+            return
+        settings = PiconSettings(self.store.directory)
+        self['stations'].picon_library = PiconLibrary(settings.location, settings.style)
+        self['stations'].picons.clear()
+        if hasattr(self, 'rows') and self.rows:
+            index = self['stations'].getSelectionIndex()
+            self['stations'].setList([(item,) for item in self.rows])
+            self['stations'].moveToIndex(index)
 
     def update_country_caption(self):
         country = group_label(self.active_group) if self.active_group else t('All groups')

@@ -45,13 +45,13 @@ class UpdateTests(unittest.TestCase):
     def test_first_stable_version_and_both_update_paths(self):
         # The testing channel can promote installed receiver-test packages,
         # while a stable install reads the dedicated stable channel.
-        self.assertEqual(VERSION, '0.1.1')
+        self.assertGreaterEqual(update.version_key(VERSION), update.version_key('0.1.1'))
         release = manifest('0.1.1', 'testing')
         offered = []
         def for_tester(url):
             offered.append(url)
             return io.BytesIO(json.dumps(release).encode())
-        self.assertEqual(update.check_release('0.1.0-test39', for_tester).version, VERSION)
+        self.assertEqual(update.check_release('0.1.0-test39', for_tester).version, '0.1.1')
         self.assertTrue(offered[-1].endswith('/update/v2/testing.json'))
         release['channel'] = 'stable'
         def for_stable(url):
@@ -59,6 +59,15 @@ class UpdateTests(unittest.TestCase):
             return io.BytesIO(json.dumps(release).encode())
         self.assertIsNone(update.check_release('0.1.1', for_stable))
         self.assertTrue(offered[-1].endswith('/update/v2/stable.json'))
+
+    def test_picon_candidate_upgrades_stable_but_does_not_downgrade_to_the_feed(self):
+        self.assertGreater(update.version_key(VERSION), update.version_key('0.1.1'))
+        calls = []
+        def opener(url):
+            calls.append(url)
+            return io.BytesIO(json.dumps(manifest('0.1.1', 'testing')).encode())
+        self.assertIsNone(update.check_release(VERSION, opener))
+        self.assertTrue(calls[-1].endswith('/update/v2/testing.json'))
 
     def test_stable_publication_never_changes_legacy_bridge_channel(self):
         root = Path(__file__).resolve().parents[1]

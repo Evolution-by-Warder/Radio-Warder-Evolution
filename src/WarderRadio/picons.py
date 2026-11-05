@@ -3,8 +3,11 @@ import os
 from . import ROOT
 
 
-def path_for(item):
+def path_for(item, library=None):
     fallback = os.path.join(ROOT, 'plugin.png')
+    managed = library.lookup(item) if library is not None else ''
+    if managed:
+        return managed
     reference = item.get('reference') if item else None
     if reference:
         try:

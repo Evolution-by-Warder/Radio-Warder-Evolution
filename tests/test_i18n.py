@@ -14,7 +14,7 @@ class TranslationTests(unittest.TestCase):
                     'lt', 'nl', 'pl', 'pt', 'ro', 'ru', 'sk', 'tr', 'uk', 'zh'}
         self.assertEqual(set(i18n.SUPPORTED), expected)
         english = i18n.translations('en')
-        self.assertEqual(len(english), 84)
+        self.assertEqual(len(english), 117)
         for code in expected:
             with self.subTest(code=code):
                 translated = i18n.translations(code)
@@ -26,6 +26,9 @@ class TranslationTests(unittest.TestCase):
                 if code != 'en':
                     self.assertNotEqual(translated[hint], hint)
                 self.assertTrue(all(isinstance(s, str) and s.strip() for s in translated.values()))
+                for key, value in english.items():
+                    fields = lambda text: {name for _, name, _, _ in string.Formatter().parse(text) if name}
+                    self.assertEqual(fields(translated[key]), fields(value), (code, key))
                 self.assertEqual(translated['Install update {version}?'].count('{version}'), 1)
                 self.assertIn('0.2.0', translated['Install update {version}?'].format(version='0.2.0'))
                 self.assertEqual(translated['Delete recording {name}?'].count('{name}'), 1)

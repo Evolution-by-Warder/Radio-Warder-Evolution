@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 sys.path.insert(0, str(ROOT / 'tests'))
 from country_support import Backend, country_fixture, rows as country_rows
+from WarderRadio.picon_download import PiconSettings
 UP = args.upstream
 
 
@@ -163,7 +164,8 @@ class Session:
     def open(self, screen, *args, **kwargs): self.dialogs.append((screen, args, kwargs))
     def openWithCallback(self, callback, screen, *args, **kwargs):
         self.dialogs.append((screen, callback, args, kwargs))
-        if screen in (radio.UpdateProgress, radio.VideoPlayer):
+        if screen in (radio.UpdateProgress, radio.VideoPlayer, picon_screen.PiconSetup,
+                      picon_screen.CountrySelection, picon_screen.PiconProgress):
             dialog = screen(self, *args, **kwargs)
             mount(dialog)
             dialog.execing = True
@@ -285,6 +287,7 @@ exec(compile(ast.fix_missing_locations(ast.Module(body=[classic_class],type_igno
 ClassicMoviePlayer=movie_scope['MoviePlayer']
 infobar.MoviePlayer=ClassicMoviePlayer
 from WarderRadio import screen as radio
+from WarderRadio import picon_screen
 from WarderRadio import plugin
 from WarderRadio.model import Store
 from WarderRadio.metadata import IcyMonitor
@@ -361,6 +364,98 @@ class NativeTests(unittest.TestCase):
         while screen.updating and time.monotonic() < deadline:
             screen.poll(); time.sleep(.001)
         self.assertFalse(screen.updating, 'Country worker did not finish')
+
+    def test_picon_setup_has_only_countries_colour_and_location_and_keeps_playback(self):
+        screen, session, _ = self.new()
+        screen.play()
+        playing = session.nav.current
+        screen.option_done(('picons', 'picons'))
+        setup = session.current_dialog
+        self.assertIsInstance(setup, picon_screen.PiconSetup)
+        self.assertEqual([row[1] for row in setup['list'].list], ['countries', 'style', 'location'])
+        setup.countries_done(['DE', 'SK', 'CZ'])
+        self.assertEqual(setup.settings.countries, ['SK', 'CZ', 'DE'])
+        setup.style_done(('white', 'white'))
+        self.assertEqual(setup.settings.style, 'white')
+        self.assertEqual(session.nav.current, playing)
+        setup.countries_done([]); setup.start()
+        self.assertEqual(setup['status'].getText(), radio.t('Select at least one country'))
+
+    def test_picon_country_multiselect_and_cancel_do_not_save(self):
+        session = Session()
+        window = picon_screen.CountrySelection(session, ['SK'])
+        mount(window)
+        window['list'].moveToIndex(1); window.toggle()
+        self.assertEqual(window.selected, {'SK', 'CZ'})
+        window.toggle()
+        self.assertEqual(window.selected, {'SK'})
+        self.assertFalse(Path(self.tmp.name, 'picon-settings.json').exists())
+
+    def test_picon_log_keeps_order_scrolls_and_finishes_without_restart(self):
+        settings = PiconSettings(self.tmp.name)
+        window = picon_screen.PiconProgress(Session(), self.tmp.name, settings)
+        mount(window); self.addCleanup(window.cleanup)
+        window.task.log('Checking picons: {country}', country='Slovakia')
+        window.task.log('Downloading picons: {country}', country='Slovakia')
+        window.task.log('Saved picon: {name}', name='Radio One')
+        window.drain()
+        self.assertEqual(window.lines[-1], radio.t('Saved picon: {name}').format(name='Radio One'))
+        self.assertEqual(window['list'].getSelectionIndex(), 2)
+        window.scroll('up'); self.assertEqual(window['list'].getSelectionIndex(), 1)
+        window.task.log('Saved picon: {name}', name='Radio Two'); window.drain()
+        self.assertEqual(window['list'].getSelectionIndex(), 1)
+        result = dict(added=2, updated=0, unchanged=0, preserved=0, missing=1, failed=0)
+        window.done(result, None)
+        self.assertTrue(window.finished)
+        self.assertEqual(window['bar'].value, 100)
+        self.assertFalse(window.timer.timer.active)
+        self.assertIn('OK', window['footer'].getText())
+        self.assertNotIn('restart', window['status'].getText().lower())
+
+    def test_picon_cancel_stops_worker_and_ignores_late_gui_callbacks(self):
+        settings = PiconSettings(self.tmp.name)
+        window = picon_screen.PiconProgress(Session(), self.tmp.name, settings)
+        mount(window); self.addCleanup(window.cleanup)
+        window.cancel()
+        self.assertTrue(window.task.cancelled.is_set())
+        window.done(None, 'Cancelled')
+        self.assertEqual(window['status'].getText(), radio.t('Picon download cancelled'))
+        window.cleanup(); window.poll()
+        self.assertTrue(window.jobs.closed.is_set())
+        self.assertEqual(window.timer.timer.callback, [])
+
+    def test_picon_worker_log_is_delivered_by_gui_timer(self):
+        settings = PiconSettings(self.tmp.name)
+        settings.location = str(Path(self.tmp.name, 'picons'))
+        threads = []
+        def work(directory, chosen, task):
+            threads.append(threading.get_ident())
+            task.log('Saved picon: {name}', name='Radio Worker')
+            return dict(added=1, updated=0, unchanged=0, preserved=0, missing=0, failed=0)
+        with patch.object(picon_screen, 'install', side_effect=work):
+            window = picon_screen.PiconProgress(Session(), self.tmp.name, settings)
+            mount(window); self.addCleanup(window.cleanup)
+            window.on_shown(); window.poll()
+            deadline = time.monotonic() + 2
+            while not window.finished and time.monotonic() < deadline:
+                window.poll(); time.sleep(.001)
+        self.assertTrue(window.finished)
+        self.assertNotEqual(threads, [threading.get_ident()])
+        self.assertIn(radio.t('Saved picon: {name}').format(name='Radio Worker'), window.lines)
+
+    def test_picon_windows_fit_each_native_resolution_with_complete_log_rows(self):
+        for width, height in [(1280,720),(1920,1080),(2560,1440),(3840,2160)]:
+            DESKTOP[:] = width, height
+            window = picon_screen.PiconProgress(Session(), self.tmp.name, PiconSettings(self.tmp.name))
+            self.addCleanup(window.cleanup)
+            root = mount(window)
+            w, h = map(int, root.attrib['size'].split(','))
+            for node in root:
+                x,y = map(int,node.attrib['position'].split(',')); nw,nh = map(int,node.attrib['size'].split(','))
+                self.assertLessEqual(x+nw,w);self.assertLessEqual(y+nh,h)
+            height_list = int(next(node for node in root if node.get('name') == 'list').get('size').split(',')[1])
+            self.assertEqual(height_list // round(46*window.ui_scale), 12)
+            self.assertEqual(len(window['list'].build('Rendered after native skin scaling')), 2)
 
     def test_startup_paints_before_catalogue_work_and_close_cancels_late_results(self):
         original = radio.Catalogue

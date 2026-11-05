@@ -17,6 +17,7 @@ piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ruč
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
 Current stable release: **0.1.1** (the first production update channel).
+Prepared development candidate: **0.1.2-test1**, adding the country picon downloader.
 The preceding 0.1.0-test39 remains available as a receiver-test prerelease.
 
 0.1.1 follows 0.1.0-test39 deliberately: the higher numeric version allows
@@ -62,6 +63,20 @@ registered in the plugin browser.
 - Persistent favourites, last 100 played stations, accent-insensitive search
   across the catalogue and custom HTTP/HTTPS stations.
 - Native/PiconHub picon lookup, with a neutral Warder Radio fallback logo.
+- MENU → Download / update picons: select multiple countries, a transparent,
+  white or black background and an internal or currently mounted location.
+  Size is automatic (220×132). Available country packages are currently Slovakia,
+  Czechia, Austria, Germany, Hungary and Poland. The scrollable progress window
+  logs checks, downloads, verification and each saved station in order; red cancels.
+  Verified packages come from PiconHub's existing radio collections, filtered
+  by the selected countries' station identities. The final summary distinguishes
+  new, updated, current, preserved, missing and failed items. Missing station
+  artwork retains the neutral fallback. Close setup to refresh picons without
+  restarting the GUI or interrupting playback.
+  The selected collection takes precedence inside Radio; native picons remain
+  the fallback and their files are never overwritten. A custom reference-named
+  PNG in the selected Radio variant directory takes precedence over its managed
+  image. Editing a managed image also protects it from later replacement.
 - Mounted-disk recordings folder `/media/hdd/WarderRadio`; playback of recordings.
   The package depends on `streamripper`; opkg installs it from the receiver’s configured feeds.
   Blue/Delete in Recordings, or MENU → Delete, removes the selected recording after confirmation.
