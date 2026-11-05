@@ -137,5 +137,7 @@
   "Too many folders": "Shumë dosje",
   "Add station to favourites": "Shto stacionin te të preferuarat",
   "Remove station from favourites": "Hiq stacionin nga të preferuarat",
-  "Update radio catalogue": "Përditëso katalogun e radiove"
+  "Update radio catalogue": "Përditëso katalogun e radiove",
+  "Stop radio playback": "Ndalo luajtjen e radios",
+  "Start radio playback": "Fillo luajtjen e radios"
 }

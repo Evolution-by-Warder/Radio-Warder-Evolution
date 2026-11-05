@@ -137,5 +137,7 @@
   "Too many folders": "Πάρα πολλοί φάκελοι",
   "Add station to favourites": "Προσθήκη σταθμού στα αγαπημένα",
   "Remove station from favourites": "Αφαίρεση σταθμού από τα αγαπημένα",
-  "Update radio catalogue": "Ενημέρωση καταλόγου ραδιοφώνων"
+  "Update radio catalogue": "Ενημέρωση καταλόγου ραδιοφώνων",
+  "Stop radio playback": "Διακοπή αναπαραγωγής ραδιοφώνου",
+  "Start radio playback": "Έναρξη αναπαραγωγής ραδιοφώνου"
 }

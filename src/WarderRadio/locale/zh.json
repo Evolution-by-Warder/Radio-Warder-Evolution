@@ -137,5 +137,7 @@
   "Too many folders": "文件夹过多",
   "Add station to favourites": "将电台添加到收藏",
   "Remove station from favourites": "从收藏中移除电台",
-  "Update radio catalogue": "更新电台目录"
+  "Update radio catalogue": "更新电台目录",
+  "Stop radio playback": "停止播放电台",
+  "Start radio playback": "开始播放电台"
 }

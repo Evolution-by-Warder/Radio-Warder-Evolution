@@ -137,5 +137,7 @@
   "Too many folders": "Prea multe dosare",
   "Add station to favourites": "Adaugă postul la favorite",
   "Remove station from favourites": "Elimină postul din favorite",
-  "Update radio catalogue": "Actualizează catalogul radio"
+  "Update radio catalogue": "Actualizează catalogul radio",
+  "Stop radio playback": "Oprește redarea radioului",
+  "Start radio playback": "Pornește redarea radioului"
 }

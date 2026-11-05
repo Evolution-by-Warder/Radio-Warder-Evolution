@@ -137,5 +137,7 @@
   "Too many folders": "Слишком много папок",
   "Add station to favourites": "Добавить станцию в избранное",
   "Remove station from favourites": "Удалить станцию из избранного",
-  "Update radio catalogue": "Обновить каталог радиостанций"
+  "Update radio catalogue": "Обновить каталог радиостанций",
+  "Stop radio playback": "Остановить воспроизведение радио",
+  "Start radio playback": "Начать воспроизведение радио"
 }

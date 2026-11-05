@@ -1,3 +1,15 @@
+# 0.1.8 (stop and resume the same radio)
+
+- Replace the Settings Stop action with Stop radio playback while a radio is
+  playing, or Start radio playback when stopped. Update the label after menu
+  actions, the remote STOP key, stream end/failure and external navigation.
+- Remember the last radio independently of the highlighted station and recording
+  playback. Starting restores that radio's saved identity/URL without reordering
+  listening history. On first use, start the selected radio and remember it.
+  Keep the saved radio available for retry if starting fails.
+- Translate both explicit labels in all 21 locales. Retain service ownership
+  and previous-TV restoration, the inline Settings/picon panels and flat storage.
+
 # 0.1.7 (inline picon progress and explicit menu actions)
 
 - Keep picon download progress, destination, ordered log and final summary

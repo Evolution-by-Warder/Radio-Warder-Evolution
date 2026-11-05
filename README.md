@@ -16,7 +16,10 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current release: **0.1.7**, with picon download progress, ordered log and final
+Current release: **0.1.8**, with a Settings action that switches between Stop
+radio playback and Start radio playback. Starting restores the stopped radio
+even after a different station is highlighted, without adding duplicate history.
+Picon download progress, ordered log and final
 summary inside the main Radio window. Favourite actions explicitly offer Add
 or Remove according to the selected station; the catalogue action is labelled
 Update radio catalogue in all 21 languages.

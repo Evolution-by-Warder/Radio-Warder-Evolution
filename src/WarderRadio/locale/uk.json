@@ -137,5 +137,7 @@
   "Too many folders": "Забагато тек",
   "Add station to favourites": "Додати станцію до обраного",
   "Remove station from favourites": "Вилучити станцію з обраного",
-  "Update radio catalogue": "Оновити каталог радіостанцій"
+  "Update radio catalogue": "Оновити каталог радіостанцій",
+  "Stop radio playback": "Зупинити відтворення радіо",
+  "Start radio playback": "Почати відтворення радіо"
 }

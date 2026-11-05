@@ -1,0 +1,31 @@
+{
+  "release": "0.1.8",
+  "date": "2026-11-05",
+  "source_base": "e7f5443f4bd002a16ccead2e7b302d80aad0797b",
+  "unit_tests": 148,
+  "native_replays": {
+    "OpenPLi release-9.2": 70,
+    "OpenATV 8.1 reviewed base": 70,
+    "OpenATV 8.0-next": 70
+  },
+  "checked_behaviour": [
+    "Settings Stop radio playback changes to Start radio playback after stopping",
+    "Restart uses the stopped radio identity/URL even after highlighting another station",
+    "Stop and resume keep previous-TV ownership and do not duplicate/reorder listening history",
+    "First Settings start uses selected station and records listening history",
+    "Failed restart retains radio for retry",
+    "Recording playback does not replace remembered radio",
+    "Remote STOP, stream end/failure and external navigation refresh the action label",
+    "Both labels translated in all 21 locales",
+    "Existing inline Settings, picon progress, flat storage and video cover alignment retained"
+  ],
+  "receiver_hardware_tested": false,
+  "local_build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.8-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.8_all.ipk",
+    "sha256": "ff0e3ff4e457ef691d30c64ed09910f01de31bd93b628d425117880674c38ea4",
+    "bytes": 3165464,
+    "files": 113
+  }
+}
