@@ -87,8 +87,11 @@ class SettingsForm:
 
     def choices(self):
         host = self.host
-        choices = [(t('Choose country'), 'group'), (t('Update catalogue'), 'update'),
-                   (t('Favourite'), 'favourite'), (t('Add station'), 'add'),
+        item = host.current()
+        favourite = ('Remove station from favourites' if item and host.store.is_favourite(item)
+                     else 'Add station to favourites')
+        choices = [(t('Choose country'), 'group'), (t('Update radio catalogue'), 'update'),
+                   (t(favourite), 'favourite'), (t('Add station'), 'add'),
                    (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if host.recording.running() else 'Start recording'), 'record'),
                    (t('Stop'), 'stop'), (t('About'), 'about')]

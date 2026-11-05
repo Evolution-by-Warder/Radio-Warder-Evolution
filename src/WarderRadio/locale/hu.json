@@ -134,5 +134,8 @@
   "Use folder": "Mappa használata",
   "Folder: {path}": "Mappa: {path}",
   "Cannot open folder": "A mappa nem nyitható meg",
-  "Too many folders": "Túl sok mappa"
+  "Too many folders": "Túl sok mappa",
+  "Add station to favourites": "Állomás hozzáadása a kedvencekhez",
+  "Remove station from favourites": "Állomás eltávolítása a kedvencek közül",
+  "Update radio catalogue": "Rádiókatalógus frissítése"
 }

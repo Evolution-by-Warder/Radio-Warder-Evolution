@@ -134,5 +134,8 @@
   "Use folder": "Kasuta kausta",
   "Folder: {path}": "Kaust: {path}",
   "Cannot open folder": "Kausta ei saa avada",
-  "Too many folders": "Liiga palju kaustu"
+  "Too many folders": "Liiga palju kaustu",
+  "Add station to favourites": "Lisa jaam lemmikutesse",
+  "Remove station from favourites": "Eemalda jaam lemmikutest",
+  "Update radio catalogue": "Uuenda raadiojaamade kataloogi"
 }

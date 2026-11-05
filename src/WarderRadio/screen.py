@@ -281,17 +281,18 @@ class WarderRadio(Screen):
     def set_focus(self, focus):
         if self.mode == 'settings' and focus != 'functions':
             focus = self.settings_form.focus_name
-        if self.mode == 'picons' and focus in ('stations','picon_form','picon_options'):
+        if self.mode == 'picons' and focus in ('stations','picon_form','picon_options','picon_log'):
             focus = self.picon_form.focus_name
         self.focus = focus
         self['functions'].selectionEnabled(focus == 'functions')
         self['stations'].selectionEnabled(focus == 'stations')
         self['picon_form'].selectionEnabled(focus == 'picon_form')
         self['picon_options'].selectionEnabled(focus == 'picon_options')
+        self['picon_log'].selectionEnabled(focus == 'picon_log')
         self['settings_options'].selectionEnabled(focus == 'settings_options')
         self['settings_keys'].selectionEnabled(focus == 'settings_keys')
         self.update_country_caption()
-        if focus in ('picon_form','picon_options'):
+        if focus in ('picon_form','picon_options','picon_log'):
             hint = ''
         elif focus == 'stations':
             hint = t('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options')
@@ -310,7 +311,7 @@ class WarderRadio(Screen):
                 else:
                     self.settings_form.back()
             return
-        if self.focus in ('picon_form','picon_options'):
+        if self.focus in ('picon_form','picon_options','picon_log'):
             if not self.picon_form.back():
                 self.set_focus('functions')
             return
@@ -325,7 +326,7 @@ class WarderRadio(Screen):
             if not self.settings_form.horizontal(1):
                 self.settings_form.choose()
             return
-        if self.focus in ('picon_form','picon_options'):
+        if self.focus in ('picon_form','picon_options','picon_log'):
             self.picon_form.choose()
             return
         if self.focus == 'stations':
@@ -363,7 +364,7 @@ class WarderRadio(Screen):
         if self.focus in ('settings_options', 'settings_keys'):
             self.settings_form.choose()
             return
-        if self.focus in ('picon_form','picon_options'):
+        if self.focus in ('picon_form','picon_options','picon_log'):
             self.picon_form.choose()
             return
         if self.focus == 'stations':

@@ -134,5 +134,8 @@
   "Use folder": "Usar carpeta",
   "Folder: {path}": "Carpeta: {path}",
   "Cannot open folder": "No se puede abrir la carpeta",
-  "Too many folders": "Demasiadas carpetas"
+  "Too many folders": "Demasiadas carpetas",
+  "Add station to favourites": "Añadir emisora a favoritos",
+  "Remove station from favourites": "Quitar emisora de favoritos",
+  "Update radio catalogue": "Actualizar catálogo de radios"
 }

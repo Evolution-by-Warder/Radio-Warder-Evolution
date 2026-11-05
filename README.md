@@ -16,7 +16,11 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current release: **0.1.6**, with Settings and nested choices inside the main
+Current release: **0.1.7**, with picon download progress, ordered log and final
+summary inside the main Radio window. Favourite actions explicitly offer Add
+or Remove according to the selected station; the catalogue action is labelled
+Update radio catalogue in all 21 languages.
+Settings and nested choices stay inside the main
 Radio content panel, including country selection, custom-station text entry,
 About and action confirmations. Green confirms; red returns or discards a draft.
 Video cover artwork now sits on the infopanel title rail.

@@ -1,18 +1,16 @@
 """Country/colour/location selection and a scrolling, line-by-line download log."""
+import copy
 import os
 import enigma
-from enigma import eListboxPythonMultiContent, gFont, getDesktop, RT_HALIGN_LEFT, RT_VALIGN_CENTER
-from Components.ActionMap import ActionMap
+from enigma import eListboxPythonMultiContent, gFont, RT_HALIGN_LEFT, RT_VALIGN_CENTER
 from Components.Label import Label
 from Components.MenuList import MenuList
 from Components.MultiContent import MultiContentEntryText
 from Components.ProgressBar import ProgressBar
-from Screens.Screen import Screen
 
 from .i18n import t
 from .jobs import Jobs
 from .picon_download import COUNTRIES, STYLES, PiconSettings, PiconTask, install, location_choices, validate_location, radio_location, directory_snapshot
-from .skin import geometry, PANEL_BACKGROUND
 
 
 class TextList(MenuList):
@@ -27,31 +25,6 @@ class TextList(MenuList):
         n = lambda v: max(1, round(v * self.ui_scale))
         return [None, MultiContentEntryText(pos=(n(12), 0), size=(n(1200), n(44)),
                     font=0, flags=RT_HALIGN_LEFT | RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0), text=text)]
-
-
-def window_skin(name, title, progress=False):
-    size = getDesktop(0).size()
-    scale = geometry(size.width(), size.height())[0]
-    n = lambda v: max(1, round(v * scale))
-    def rect(x, y, w, h):
-        return 'position="%d,%d" size="%d,%d"' % (n(x), n(y), n(w), n(h))
-    def label(key, x, y, w, h, font, color='#d9e6ef'):
-        return ('<widget name="%s" zPosition="2" %s font="Regular;%d" '
-                'foregroundColor="%s" backgroundColor="#ff000000" transparent="1" '
-                'valign="center" noWrap="1" />' % (key, rect(x, y, w, h), n(font), color))
-    skin = ('<screen name="%s" position="center,center" size="%d,%d" '
-            'title="%s" backgroundColor="%s">' % (name, n(1300), n(850), title, PANEL_BACKGROUND))
-    skin += label('title', 36, 20, 1228, 50, 30, '#00ceff')
-    skin += label('description', 36, 78, 1228, 48, 22)
-    list_rect = 'position="%d,%d" size="%d,%d"' % (n(36), n(146), n(1228), round(46 * scale) * 12)
-    skin += ('<widget name="list" zPosition="2" %s scrollbarMode="showOnDemand" '
-             'backgroundColor="%s" foregroundColor="#d9e6ef" />' % (list_rect, PANEL_BACKGROUND))
-    if progress:
-        skin += ('<widget name="bar" zPosition="2" %s borderWidth="1" '
-                 'foregroundColor="#0000ceff" backgroundColor="#00132134" />' % rect(36, 712, 1228, 18))
-    skin += label('status', 36, 738, 1228, 42, 22, '#00ceff')
-    skin += label('footer', 36, 790, 1228, 40, 22)
-    return skin + '</screen>', scale
 
 
 class PiconRows(MenuList):
@@ -98,7 +71,7 @@ class PiconForm:
     """Inline selectors with explicit confirmation and a read-only folder browser."""
     widgets = ('picon_panel','picon_edge_top','picon_edge_bottom','picon_edge_left',
                'picon_edge_right','picon_title','picon_description','picon_form',
-               'picon_options','picon_help','picon_status')
+               'picon_options','picon_help','picon_status','picon_log','picon_bar')
     player_widgets = ('stations','count','art','nowlabel','station','artist','track','details')
     style_names = {'transparent':'Transparent','white':'White','black':'Black'}
 
@@ -115,24 +88,32 @@ class PiconForm:
         self.browser_ready=False
         self.browser_generation=0
         self.browser_jobs=Jobs()
+        self.progress=None
         for name in self.widgets:
             host[name]=(PiconRows(scale) if name=='picon_form' else
-                        PiconOptions(scale) if name=='picon_options' else Label(''))
+                        PiconOptions(scale) if name=='picon_options' else
+                        TextList([],scale) if name=='picon_log' else
+                        ProgressBar() if name=='picon_bar' else Label(''))
         self.refresh()
 
     @property
     def focus_name(self):
-        return 'picon_form' if self.view=='form' else 'picon_options'
+        return 'picon_log' if self.view=='progress' else 'picon_form' if self.view=='form' else 'picon_options'
 
     def set_visible(self,visible):
         changed=visible!=self.visible
         self.visible=visible
         if not visible:
+            if changed and self.progress and not self.progress.finished:
+                self.progress.cancel()
             self.browser_generation+=1
             self.view='form'
             self.pending_countries.clear()
+        elif self.progress and not self.progress.finished:
+            self.view='progress'
         for name in self.widgets:
-            show=visible and (name not in ('picon_form','picon_options') or name==self.focus_name)
+            show=visible and (name not in ('picon_form','picon_options','picon_log','picon_bar')
+                             or name==self.focus_name or name=='picon_bar' and self.view=='progress')
             (self.host[name].show if show else self.host[name].hide)()
         if changed:
             for name in self.player_widgets:
@@ -142,6 +123,9 @@ class PiconForm:
         return changed
 
     def refresh(self):
+        if self.view=='progress' and self.progress:
+            if self.visible:self.progress.render()
+            return
         rows=self.host['picon_form'];index=rows.getSelectionIndex()
         names=', '.join(t(c[1]) for c in COUNTRIES if c[0] in self.settings.countries)
         rows.setList([(t('Picon countries'),names or '—','countries',1),
@@ -179,6 +163,8 @@ class PiconForm:
     def choose(self):
         if self.host.closed:
             return
+        if self.view=='progress':
+            self.progress.close_finished();return
         if self.view=='form':
             row=self.host['picon_form'].getCurrent()
             if not row:
@@ -214,6 +200,8 @@ class PiconForm:
             self.pending_location=key;self.refresh()
 
     def cursor_changed(self):
+        if self.view=='progress':
+            self.progress.follow=False;return
         row=self.host['picon_options'].getCurrent()
         if not row:return
         if self.view=='style':self.pending_style=row[1]
@@ -222,7 +210,9 @@ class PiconForm:
         self.refresh_options()
 
     def green(self):
-        if self.view=='form':
+        if self.view=='progress':
+            self.progress.close_finished()
+        elif self.view=='form':
             self.start()
         elif self.view=='countries':
             values=[c[0] for c in COUNTRIES if c[0] in self.pending_countries]
@@ -256,11 +246,14 @@ class PiconForm:
         self.view='form';self.pending_countries.clear()
         self.host['picon_status'].setText('')
         self.host['picon_options'].hide();self.host['picon_form'].show()
+        self.host['picon_log'].hide();self.host['picon_bar'].hide()
         self.refresh();self.host['picon_form'].moveToIndex(self.return_index)
         self.host.set_focus('picon_form')
 
     def back(self):
         if self.view=='form':return False
+        if self.view=='progress':
+            self.progress.cancel();return True
         if self.view=='browser':
             self.browser_generation+=1;self.view='location'
             self.host['picon_status'].setText('')
@@ -297,16 +290,21 @@ class PiconForm:
 
     def poll(self):
         self.browser_jobs.poll()
+        if self.progress:self.progress.poll()
 
     def cleanup(self):
         self.browser_generation+=1;self.browser_jobs.close()
+        if self.progress:self.progress.cleanup()
 
     def start(self):
-        if self.host.closed or self.host.installing or self.view!='form':return
+        if self.host.closed or self.host.installing or not self.visible or self.view!='form':return
+        if self.progress and not self.progress.finished:return
         if not self.settings.countries:
             self.host['picon_status'].setText(t('Select at least one country'));return
-        self.host['picon_status'].setText('')
-        self.session.openWithCallback(self.finished,PiconProgress,self.directory,self.settings)
+        if self.progress:self.progress.cleanup()
+        self.progress=PiconProgress(self)
+        self.view='progress';self.set_visible(True)
+        self.host.set_focus('picon_log')
 
     def finished(self,_result=None):
         if self.host.closed:return
@@ -314,56 +312,55 @@ class PiconForm:
         self.refresh();self.host.reload_picons();self.host.sync_spectrum()
 
 
-class PiconProgress(Screen):
-    def __init__(self, session, directory, settings):
-        self.skin, self.ui_scale = window_skin('WarderRadioPiconProgress', 'Warder Radio', True)
-        Screen.__init__(self, session)
-        self.directory, self.settings = directory, settings
+class PiconProgress:
+    """One worker and scrolling log driven by the main Radio GUI timer."""
+    def __init__(self, form):
+        self.form,self.host,self.directory=form,form.host,form.directory
+        self.settings=copy.copy(form.settings)
+        self.settings.countries=list(form.settings.countries)
         self.task, self.jobs = PiconTask(), Jobs()
         self.lines = []
         self.started, self.finished, self.disposed = False, False, False
         self.follow = True
-        self['title'] = Label(t('Download / update picons'))
-        self['description'] = Label(settings.location)
-        self['status'] = Label(t('Please wait…'))
-        self['footer'] = Label(t('Red: cancel · Up/Down: log'))
-        self['list'] = TextList([], self.ui_scale)
-        self['bar'] = ProgressBar()
+        self.message=t('Please wait…')
+        self['list'].setList([])
         self['bar'].setValue(0)
-        self['actions'] = ActionMap(['WarderRadioActions'], {
-            'ok': self.close_finished, 'cancel': self.cancel, 'red': self.cancel,
-            'up': lambda: self.scroll('up'), 'down': lambda: self.scroll('down'),
-            'pageUp': lambda: self.scroll('pageUp'), 'pageDown': lambda: self.scroll('pageDown'),
-        }, -2)
-        # Use the same two native eTimer APIs as the main screen.
-        from .screen import Timer
-        self.timer = Timer(self.poll)
-        self.onShown.append(self.on_shown)
-        self.onClose.append(self.cleanup)
 
-    def on_shown(self):
-        if not self.started:
-            self.started = True
-            self.timer.start(1, True)
+    def __getitem__(self,key):
+        return self.host[{'list':'picon_log','bar':'picon_bar','status':'picon_status'}[key]]
+
+    def render(self):
+        self.host['picon_title'].setText(t('Download / update picons'))
+        self.host['picon_description'].setText(self.settings.location)
+        self.host['picon_help'].setText('')
+        self['status'].setText(self.message)
+        self.host['hint'].setText('')
+        self.host['red'].setText(t('Back'))
+        self.host['green'].setText(t('Close') if self.finished else '')
+        self.host['yellow'].setText('');self.host['blue'].setText('')
+
+    def status(self,message):
+        self.message=message
+        if self.form.visible and self.form.view=='progress':self.render()
 
     def poll(self):
-        if self.disposed:
+        if self.disposed or self.finished or self.host.closed:
             return
-        if self.jobs.thread is None and not self.finished:
+        if not self.started:
+            self.started=True
             queued = self.jobs.submit('picons', lambda: install(self.directory, self.settings, self.task), self.done)
             if not queued:
                 self.done(None, t('Update failed'))
+                return
         self.drain()
         state = self.task.take()
         if state:
             stage, name, done, total = state
             percent = max(0, min(100, done * 100 // total)) if total else 0
             phase = t('Downloading picons…') if stage == 'download' else t('Saving picons…') if stage == 'install' else t('Please wait…')
-            self['status'].setText(phase + (' %d %%' % percent if total else ''))
+            self.status(phase + (' %d %%' % percent if total else ''))
             self['bar'].setValue(percent)
         self.jobs.poll()
-        if not self.finished:
-            self.timer.start(100, True)
 
     def drain(self):
         events = self.task.drain()
@@ -385,11 +382,11 @@ class PiconProgress(Screen):
         getattr(self['list'], direction)()
 
     def done(self, result, error):
-        if self.disposed:
+        if self.disposed or self.finished or self.host.closed:
             return
         self.drain()
         self.finished = True
-        self.timer.close()
+        self.jobs.close()
         if self.task.cancelled.is_set():
             message = t('Picon download cancelled')
         elif error:
@@ -400,21 +397,22 @@ class PiconProgress(Screen):
             self.lines.extend(message.split(' · '))
             self['bar'].setValue(100 if not result['failed'] else 0)
         self.lines.append(t('Picon download finished') if not error and not self.task.cancelled.is_set() else message)
+        self.lines=self.lines[-2000:]
         self['list'].setList([(line,) for line in self.lines])
         self['list'].moveToIndex(max(0, len(self.lines) - 1))
-        self['status'].setText(t('Picon download finished') if not error and not self.task.cancelled.is_set() else message)
-        self['footer'].setText('OK · ' + t('Close') + ' · ' + t('Up/Down: log'))
+        self.status(t('Picon download finished') if not error and not self.task.cancelled.is_set() else message)
+        self.form.finished()
 
     def cancel(self):
         if self.finished:
-            self.close()
+            self.close_finished()
         elif not self.task.cancelled.is_set():
             self.task.cancel()
-            self['status'].setText(t('Cancelling picon download…'))
+            self.status(t('Cancelling picon download…'))
 
     def close_finished(self):
         if self.finished:
-            self.close()
+            self.form.show_form()
 
     def cleanup(self):
         if self.disposed:
@@ -422,4 +420,3 @@ class PiconProgress(Screen):
         self.disposed = True
         self.task.cancel()
         self.jobs.close()
-        self.timer.close()

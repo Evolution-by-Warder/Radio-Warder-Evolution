@@ -134,5 +134,8 @@
   "Use folder": "Χρήση φακέλου",
   "Folder: {path}": "Φάκελος: {path}",
   "Cannot open folder": "Δεν είναι δυνατό το άνοιγμα του φακέλου",
-  "Too many folders": "Πάρα πολλοί φάκελοι"
+  "Too many folders": "Πάρα πολλοί φάκελοι",
+  "Add station to favourites": "Προσθήκη σταθμού στα αγαπημένα",
+  "Remove station from favourites": "Αφαίρεση σταθμού από τα αγαπημένα",
+  "Update radio catalogue": "Ενημέρωση καταλόγου ραδιοφώνων"
 }

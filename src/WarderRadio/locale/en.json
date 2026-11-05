@@ -134,5 +134,8 @@
   "Use folder": "Use folder",
   "Folder: {path}": "Folder: {path}",
   "Cannot open folder": "Cannot open folder",
-  "Too many folders": "Too many folders"
+  "Too many folders": "Too many folders",
+  "Add station to favourites": "Add station to favourites",
+  "Remove station from favourites": "Remove station from favourites",
+  "Update radio catalogue": "Update radio catalogue"
 }

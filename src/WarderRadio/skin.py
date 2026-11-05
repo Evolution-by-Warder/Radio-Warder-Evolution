@@ -89,7 +89,7 @@ def make_skin(width, height):
             ('title', (534,228,1300,56), 34, '#00ceff'),
             ('description', (534,292,1300,44), 25, '#a6bed1'),
             ('help', (534,860,1300,44), 25, '#a6bed1'),
-            ('status', (534,926,1300,44), 25, '#00ceff')]:
+            ('status', (534,940,1300,40), 25, '#00ceff')]:
         parts.append(label('picon_' + key, *box, font, color).replace('zPosition="2"', 'zPosition="6"'))
     parts.append('<widget name="picon_form" zPosition="6" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
@@ -101,6 +101,14 @@ def make_skin(width, height):
                  'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
                  % (n(520),n(310),n(1348),n(60)*8))
+    parts.append('<widget name="picon_log" zPosition="6" position="%d,%d" size="%d,%d" '
+                 'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
+                 'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
+                 'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
+                 % (n(520),n(350),n(1348),n(46)*12))
+    parts.append('<widget name="picon_bar" zPosition="6" %s borderWidth="1" '
+                 'foregroundColor="#0000ceff" backgroundColor="#00132134" />'
+                 % rect(534,916,1300,16))
     # Settings and every nested choice stay in the same combined content area.
     parts.append('<widget name="settings_panel" zPosition="4" %s backgroundColor="#00091b30" />'
                  % rect(500, 204, 1388, 790))

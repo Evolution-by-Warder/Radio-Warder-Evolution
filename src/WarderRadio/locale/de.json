@@ -134,5 +134,8 @@
   "Use folder": "Ordner verwenden",
   "Folder: {path}": "Ordner: {path}",
   "Cannot open folder": "Ordner kann nicht geöffnet werden",
-  "Too many folders": "Zu viele Ordner"
+  "Too many folders": "Zu viele Ordner",
+  "Add station to favourites": "Sender zu Favoriten hinzufügen",
+  "Remove station from favourites": "Sender aus Favoriten entfernen",
+  "Update radio catalogue": "Radiosenderkatalog aktualisieren"
 }

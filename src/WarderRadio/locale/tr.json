@@ -134,5 +134,8 @@
   "Use folder": "Klasörü kullan",
   "Folder: {path}": "Klasör: {path}",
   "Cannot open folder": "Klasör açılamıyor",
-  "Too many folders": "Çok fazla klasör"
+  "Too many folders": "Çok fazla klasör",
+  "Add station to favourites": "İstasyonu favorilere ekle",
+  "Remove station from favourites": "İstasyonu favorilerden çıkar",
+  "Update radio catalogue": "Radyo kataloğunu güncelle"
 }

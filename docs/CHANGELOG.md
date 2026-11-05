@@ -1,3 +1,19 @@
+# 0.1.7 (inline picon progress and explicit menu actions)
+
+- Keep picon download progress, destination, ordered log and final summary
+  inside the existing combined centre/right Radio panel. No external download
+  screen is opened; the banner, clock, left menu and equalizer remain visible.
+- Drive the bounded log and real download/install progress with the main GUI
+  timer and a dedicated worker. Back cancels an active transfer, then returns
+  to the form after completion. OK/Green returns from the completed log.
+  Leaving the panel cancels its transfer; closing Radio cancels work and ignores
+  late callbacks. A new transfer cannot replace one still running.
+- Change Favourite to Add station to favourites or Remove station from favourites
+  based on the selected station. Refresh the label immediately after a toggle
+  and preserve it if saving fails. Rename Update catalogue to Update radio
+  catalogue. Include the three explicit labels in all 21 locales.
+- Retain the flat selected storage path and verified 220 × 132 packages.
+
 # 0.1.6 (embedded Settings and video cover alignment)
 
 - Replace the external Settings ChoiceBox with a combined centre/right panel
