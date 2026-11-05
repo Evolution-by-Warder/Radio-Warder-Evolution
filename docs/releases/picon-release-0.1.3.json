@@ -1,0 +1,32 @@
+{
+  "release": "0.1.3",
+  "date": "2026-11-05",
+  "source_candidate_commit": "2ee6b7c95a9b4eb4bd55812dbb9b23f8ee4cd1c6",
+  "unit_tests": 139,
+  "native_replays": {
+    "OpenPLi release-9.2": 57,
+    "OpenATV 8.1 reviewed base": 57,
+    "OpenATV 8.0-next": 57
+  },
+  "upgrade_paths_checked": [
+    "0.1.1",
+    "0.1.2-test1",
+    "0.1.2-test2",
+    "0.1.2-test3"
+  ],
+  "version_checks": [
+    "Receiver version comparator offers 0.1.3 from stable and testing feeds",
+    "dpkg ordering above stable and all picon candidates",
+    "No current-version reinstall or downgrade"
+  ],
+  "publication_policy": "Existing release workflow must verify public IPK bytes and SHA256 before advancing stable and testing manifests; legacy migration bridge remains immutable",
+  "receiver_hardware_tested": false,
+  "local_build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.3-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.3_all.ipk",
+    "sha256": "8997d3347f3446cdf81629bb5c1cd682869dc36b32a4b6aa654854725832cbd4",
+    "bytes": 3158072,
+    "files": 112
+  }
+}

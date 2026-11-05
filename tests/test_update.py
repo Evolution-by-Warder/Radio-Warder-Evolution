@@ -61,13 +61,35 @@ class UpdateTests(unittest.TestCase):
         self.assertTrue(offered[-1].endswith('/update/v2/stable.json'))
 
     def test_picon_candidate_upgrades_stable_but_does_not_downgrade_to_the_feed(self):
-        self.assertGreater(update.version_key(VERSION), update.version_key('0.1.1'))
+        candidate='0.1.2-test3'
+        self.assertGreater(update.version_key(candidate), update.version_key('0.1.1'))
         calls = []
         def opener(url):
             calls.append(url)
             return io.BytesIO(json.dumps(manifest('0.1.1', 'testing')).encode())
-        self.assertIsNone(update.check_release(VERSION, opener))
+        self.assertIsNone(update.check_release(candidate, opener))
         self.assertTrue(calls[-1].endswith('/update/v2/testing.json'))
+
+    def test_current_release_is_offered_to_stable_and_picon_test_installs(self):
+        calls=[]
+        def opener(url):
+            calls.append(url)
+            channel='testing' if url.endswith('/testing.json') else 'stable'
+            return io.BytesIO(json.dumps(manifest(VERSION,channel)).encode())
+        for installed in ['0.1.1','0.1.2-test1','0.1.2-test2','0.1.2-test3']:
+            with self.subTest(installed=installed):
+                self.assertEqual(update.check_release(installed,opener).version,VERSION)
+                self.assertTrue(calls[-1].endswith('/testing.json' if '-test' in installed else '/stable.json'))
+        self.assertIsNone(update.check_release(VERSION,opener))
+
+    def test_release_opkg_version_is_newer_than_stable_and_picon_test_packages(self):
+        import shutil
+        import subprocess
+        if shutil.which('dpkg'):
+            for installed in ['0.1.1-1','0.1.2-test1-1','0.1.2-test2-1','0.1.2-test3-1']:
+                with self.subTest(installed=installed):
+                    result=subprocess.run(['dpkg','--compare-versions',VERSION+'-1','gt',installed])
+                    self.assertEqual(result.returncode,0)
 
     def test_stable_publication_never_changes_legacy_bridge_channel(self):
         root = Path(__file__).resolve().parents[1]

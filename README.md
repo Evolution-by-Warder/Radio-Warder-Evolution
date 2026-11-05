@@ -16,8 +16,9 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current stable release: **0.1.1** (the first production update channel).
-Prepared development candidate: **0.1.2-test3**, with inline country, background and folder selectors.
+Current release: **0.1.3**, with inline country, background and folder selectors.
+It upgrades both the previous stable 0.1.1 and the 0.1.2-testN picon candidates
+through the plugin's existing verified update channels.
 The preceding 0.1.0-test39 remains available as a receiver-test prerelease.
 
 0.1.1 follows 0.1.0-test39 deliberately: the higher numeric version allows
@@ -115,7 +116,7 @@ a sleep timer and recording schedules are not included.
 Copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.1_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.3_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.

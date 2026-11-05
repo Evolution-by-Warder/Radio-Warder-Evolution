@@ -1,3 +1,16 @@
+# 0.1.3 (picon downloads through the plugin updater)
+
+- Release the inline country/background/folder selectors, main-menu entry
+  Sťahovanie Piconov, verified picon downloader, ordered progress log and
+  equalizer recovery from the 0.1.2 receiver-test candidates.
+- Use a higher numeric version so opkg can upgrade both stable 0.1.1 and all
+  0.1.2-testN packages. Publish to stable and testing manifests only after
+  downloading and verifying the public IPK bytes and SHA-256.
+- Preserve the immutable legacy migration bridge and all user settings,
+  favourites, history, recordings, catalogue caches and picon collections.
+- Automated native replays cover OpenATV/OpenPLi. Physical receiver rendering,
+  remote control and external storage still require receiver verification.
+
 # 0.1.2-test3 (inline picon selectors)
 
 - Rename the main menu entry to Picon downloads (Sťahovanie Piconov in Slovak),
