@@ -95,6 +95,11 @@
   "Germany": "Γερμανία",
   "Hungary": "Ουγγαρία",
   "Poland": "Πολωνία",
+  "Argentina": "Αργεντινή",
+  "Sweden": "Σουηδία",
+  "Ukraine": "Ουκρανία",
+  "United Kingdom": "Ηνωμένο Βασίλειο",
+  "United States": "Ηνωμένες Πολιτείες",
   "OK: select country · Green: save": "OK: επιλογή χώρας · Πράσινο: αποθήκευση",
   "Green: download / update · Red: close": "Πράσινο: λήψη / ενημέρωση · Κόκκινο: κλείσιμο",
   "Select at least one country": "Επιλέξτε τουλάχιστον μία χώρα",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Αφαίρεση σταθμού από τα αγαπημένα",
   "Update radio catalogue": "Ενημέρωση καταλόγου ραδιοφώνων",
   "Stop radio playback": "Διακοπή αναπαραγωγής ραδιοφώνου",
-  "Start radio playback": "Έναρξη αναπαραγωγής ραδιοφώνου"
+  "Start radio playback": "Έναρξη αναπαραγωγής ραδιοφώνου",
+  "Picons: {count}/{total}": "Εικονίδια: {count}/{total}",
+  "Unavailable": "Μη διαθέσιμο",
+  "Using saved picon availability": "Χρήση αποθηκευμένης διαθεσιμότητας εικονιδίων",
+  "Checking picon availability…": "Έλεγχος διαθεσιμότητας εικονιδίων…",
+  "Picons not published: {country}": "Δεν έχουν δημοσιευτεί εικονίδια: {country}"
 }

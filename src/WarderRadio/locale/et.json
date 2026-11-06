@@ -95,6 +95,11 @@
   "Germany": "Saksamaa",
   "Hungary": "Ungari",
   "Poland": "Poola",
+  "Argentina": "Argentina",
+  "Sweden": "Rootsi",
+  "Ukraine": "Ukraina",
+  "United Kingdom": "Ühendkuningriik",
+  "United States": "Ameerika Ühendriigid",
   "OK: select country · Green: save": "OK: vali riik · Roheline: salvesta",
   "Green: download / update · Red: close": "Roheline: laadi alla / uuenda · Punane: sulge",
   "Select at least one country": "Vali vähemalt üks riik",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Eemalda jaam lemmikutest",
   "Update radio catalogue": "Uuenda raadiojaamade kataloogi",
   "Stop radio playback": "Peata raadio taasesitus",
-  "Start radio playback": "Alusta raadio taasesitust"
+  "Start radio playback": "Alusta raadio taasesitust",
+  "Picons: {count}/{total}": "Pikonid: {count}/{total}",
+  "Unavailable": "Pole saadaval",
+  "Using saved picon availability": "Kasutatakse salvestatud pikonite saadavust",
+  "Checking picon availability…": "Pikonite saadavuse kontrollimine…",
+  "Picons not published: {country}": "Pikonid pole avaldatud: {country}"
 }

@@ -95,6 +95,11 @@
   "Germany": "Nemecko",
   "Hungary": "Maďarsko",
   "Poland": "Poľsko",
+  "Argentina": "Argentína",
+  "Sweden": "Švédsko",
+  "Ukraine": "Ukrajina",
+  "United Kingdom": "Spojené kráľovstvo",
+  "United States": "Spojené štáty",
   "OK: select country · Green: save": "OK: vybrať krajinu · Zelené: uložiť",
   "Green: download / update · Red: close": "Zelené: stiahnuť / aktualizovať · Červené: zavrieť",
   "Select at least one country": "Vyberte aspoň jednu krajinu",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Odobrať stanicu z obľúbených",
   "Update radio catalogue": "Aktualizovať katalóg rádií",
   "Stop radio playback": "Zastaviť prehrávanie rádia",
-  "Start radio playback": "Spustiť prehrávanie rádia"
+  "Start radio playback": "Spustiť prehrávanie rádia",
+  "Picons: {count}/{total}": "Picony: {count}/{total}",
+  "Unavailable": "Nedostupné",
+  "Using saved picon availability": "Používa sa uložená dostupnosť piconov",
+  "Checking picon availability…": "Overuje sa dostupnosť piconov…",
+  "Picons not published: {country}": "Picony nie sú publikované: {country}"
 }

@@ -14,6 +14,7 @@ import zlib
 
 from WarderRadio import picon_download as p
 from WarderRadio.picons import path_for
+from WarderRadio.picon_catalogue import INDEX_URL, PiconCatalogue
 
 NAME = '4097_0_2_1234_ABCD_EC_0_0_0_0.png'
 NAME2 = '4097_0_2_5678_ABCD_EC_0_0_0_0.png'
@@ -52,10 +53,21 @@ class Backend:
     def __init__(self, manifest, body):
         self.requests = []
         self.manifest, self.body = manifest, body
+        self.index = copy.deepcopy(PiconCatalogue(tempfile.gettempdir()).document)
+        raw = json.dumps(manifest).encode()
+        collection = manifest['collection']
+        for row in self.index['countries']:
+            row.update(picons=0, status='unavailable', release=None)
+            if row['collection'] == collection:
+                row.update(picons=1, status='partial' if row['stations'] > 1 else 'complete', release={
+                    'commit': COMMIT, 'url': p.BASE + COMMIT + '/picons/' + collection + '/catalog/release.json',
+                    'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()})
 
     def __call__(self, request, **kwargs):
         url = request.full_url
         self.requests.append(url)
+        if url == INDEX_URL:
+            return io.BytesIO(json.dumps(self.index).encode())
         if url.endswith('/catalog/release.json'):
             return io.BytesIO(json.dumps(self.manifest).encode())
         return io.BytesIO(self.body)
@@ -90,7 +102,7 @@ class PiconDownloadTests(unittest.TestCase):
         self.assertEqual(p.PiconSettings(self.directory).location, self.settings.location)
         self.backend.requests.clear()
         self.assertEqual(self.install()['unchanged'], 1)
-        self.assertEqual(len(self.backend.requests), 1)
+        self.assertEqual(len(self.backend.requests), 2)
         records = task.drain()
         events = [e[0] for e in records]
         self.assertLess(events.index('Downloading picons: {country}'), events.index('Verifying picons: {country}'))
@@ -117,7 +129,7 @@ class PiconDownloadTests(unittest.TestCase):
         previous=self.nested_collection()
         self.assertEqual(self.library().lookup(self.item()),str(previous))
         self.assertEqual(self.install()['unchanged'],1)
-        self.assertEqual(len(self.backend.requests),1)
+        self.assertEqual(len(self.backend.requests),2)
         current=Path(self.library().lookup(self.item()))
         self.assertEqual(current.parent,Path(self.settings.location))
         self.assertEqual(current.read_bytes(),png())
@@ -145,7 +157,7 @@ class PiconDownloadTests(unittest.TestCase):
         self.assertEqual(current.read_bytes(),png(70))
         backend.requests.clear()
         self.assertEqual(self.install(backend)['unchanged'],1)
-        self.assertEqual(len(backend.requests),1)
+        self.assertEqual(len(backend.requests),2)
         self.assertFalse(any(path.is_dir() for path in current.parent.rglob('*')))
 
     def test_changed_png_gets_a_new_path_and_only_changed_object_is_written(self):
@@ -165,7 +177,7 @@ class PiconDownloadTests(unittest.TestCase):
     def test_sk_cz_share_one_archive_download(self):
         self.settings.countries = ['SK', 'CZ']
         self.install()
-        self.assertEqual(len(self.backend.requests), 2)
+        self.assertEqual(len(self.backend.requests), 3)
 
     def test_reference_named_custom_logo_is_preserved(self):
         library = self.library()
@@ -176,7 +188,7 @@ class PiconDownloadTests(unittest.TestCase):
         self.assertEqual(result['preserved'], 1)
         self.assertEqual(custom.read_bytes(), b'user logo')
         self.assertEqual(self.library().lookup(self.item()), str(custom))
-        self.assertEqual(len(self.backend.requests), 1)
+        self.assertEqual(len(self.backend.requests), 2)
 
     def test_modified_managed_object_is_preserved(self):
         self.install()
@@ -289,7 +301,7 @@ class PiconDownloadTests(unittest.TestCase):
         with patch.object(p.os, 'statvfs', return_value=disk):
             result = self.install()
         self.assertEqual(result['failed'], 1)
-        self.assertEqual(len(self.backend.requests), 1)
+        self.assertEqual(len(self.backend.requests), 2)
         self.assertEqual(self.library().files, {})
 
     def test_bad_selection_and_corrupt_settings(self):
@@ -335,7 +347,7 @@ class PiconDownloadTests(unittest.TestCase):
         self.assertEqual(transitional.lookup(self.item()),old_path)
         self.backend.requests.clear();result=self.install()
         self.assertEqual(result['unchanged'],1)
-        self.assertEqual(len(self.backend.requests),1)
+        self.assertEqual(len(self.backend.requests),2)
         new_path=self.library().lookup(self.item())
         self.assertNotEqual(new_path,old_path)
         self.assertEqual(Path(new_path).read_bytes(),Path(old_path).read_bytes())

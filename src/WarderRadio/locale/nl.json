@@ -95,6 +95,11 @@
   "Germany": "Duitsland",
   "Hungary": "Hongarije",
   "Poland": "Polen",
+  "Argentina": "Argentinië",
+  "Sweden": "Zweden",
+  "Ukraine": "Oekraïne",
+  "United Kingdom": "Verenigd Koninkrijk",
+  "United States": "Verenigde Staten",
   "OK: select country · Green: save": "OK: land kiezen · Groen: opslaan",
   "Green: download / update · Red: close": "Groen: downloaden / bijwerken · Rood: sluiten",
   "Select at least one country": "Selecteer minstens één land",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Station uit favorieten verwijderen",
   "Update radio catalogue": "Radiocatalogus bijwerken",
   "Stop radio playback": "Radio afspelen stoppen",
-  "Start radio playback": "Radio afspelen starten"
+  "Start radio playback": "Radio afspelen starten",
+  "Picons: {count}/{total}": "Picons: {count}/{total}",
+  "Unavailable": "Niet beschikbaar",
+  "Using saved picon availability": "Opgeslagen piconbeschikbaarheid wordt gebruikt",
+  "Checking picon availability…": "Beschikbaarheid van picons controleren…",
+  "Picons not published: {country}": "Picons niet gepubliceerd: {country}"
 }

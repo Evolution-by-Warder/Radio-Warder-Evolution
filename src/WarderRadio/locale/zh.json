@@ -95,6 +95,11 @@
   "Germany": "德国",
   "Hungary": "匈牙利",
   "Poland": "波兰",
+  "Argentina": "阿根廷",
+  "Sweden": "瑞典",
+  "Ukraine": "乌克兰",
+  "United Kingdom": "英国",
+  "United States": "美国",
   "OK: select country · Green: save": "OK：选择国家 · 绿键：保存",
   "Green: download / update · Red: close": "绿键：下载 / 更新 · 红键：关闭",
   "Select at least one country": "请至少选择一个国家",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "从收藏中移除电台",
   "Update radio catalogue": "更新电台目录",
   "Stop radio playback": "停止播放电台",
-  "Start radio playback": "开始播放电台"
+  "Start radio playback": "开始播放电台",
+  "Picons: {count}/{total}": "台标：{count}/{total}",
+  "Unavailable": "暂不可用",
+  "Using saved picon availability": "使用已保存的台标可用状态",
+  "Checking picon availability…": "正在检查台标可用状态…",
+  "Picons not published: {country}": "台标尚未发布：{country}"
 }

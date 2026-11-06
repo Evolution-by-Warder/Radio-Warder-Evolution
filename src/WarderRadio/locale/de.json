@@ -95,6 +95,11 @@
   "Germany": "Deutschland",
   "Hungary": "Ungarn",
   "Poland": "Polen",
+  "Argentina": "Argentinien",
+  "Sweden": "Schweden",
+  "Ukraine": "Ukraine",
+  "United Kingdom": "Vereinigtes Königreich",
+  "United States": "Vereinigte Staaten",
   "OK: select country · Green: save": "OK: Land auswählen · Grün: speichern",
   "Green: download / update · Red: close": "Grün: herunterladen / aktualisieren · Rot: schließen",
   "Select at least one country": "Mindestens ein Land auswählen",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Sender aus Favoriten entfernen",
   "Update radio catalogue": "Radiosenderkatalog aktualisieren",
   "Stop radio playback": "Radiowiedergabe stoppen",
-  "Start radio playback": "Radiowiedergabe starten"
+  "Start radio playback": "Radiowiedergabe starten",
+  "Picons: {count}/{total}": "Picons: {count}/{total}",
+  "Unavailable": "Nicht verfügbar",
+  "Using saved picon availability": "Gespeicherte Picon-Verfügbarkeit wird verwendet",
+  "Checking picon availability…": "Picon-Verfügbarkeit wird geprüft…",
+  "Picons not published: {country}": "Picons nicht veröffentlicht: {country}"
 }

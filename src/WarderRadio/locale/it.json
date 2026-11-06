@@ -95,6 +95,11 @@
   "Germany": "Germania",
   "Hungary": "Ungheria",
   "Poland": "Polonia",
+  "Argentina": "Argentina",
+  "Sweden": "Svezia",
+  "Ukraine": "Ucraina",
+  "United Kingdom": "Regno Unito",
+  "United States": "Stati Uniti",
   "OK: select country · Green: save": "OK: scegli paese · Verde: salva",
   "Green: download / update · Red: close": "Verde: scarica / aggiorna · Rosso: chiudi",
   "Select at least one country": "Seleziona almeno un paese",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Rimuovi la stazione dai preferiti",
   "Update radio catalogue": "Aggiorna catalogo radio",
   "Stop radio playback": "Interrompi riproduzione radio",
-  "Start radio playback": "Avvia riproduzione radio"
+  "Start radio playback": "Avvia riproduzione radio",
+  "Picons: {count}/{total}": "Picon: {count}/{total}",
+  "Unavailable": "Non disponibile",
+  "Using saved picon availability": "Uso della disponibilità salvata dei picon",
+  "Checking picon availability…": "Verifica della disponibilità dei picon…",
+  "Picons not published: {country}": "Picon non pubblicati: {country}"
 }

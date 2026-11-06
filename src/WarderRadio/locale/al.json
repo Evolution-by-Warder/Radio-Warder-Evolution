@@ -95,6 +95,11 @@
   "Germany": "Gjermania",
   "Hungary": "Hungaria",
   "Poland": "Polonia",
+  "Argentina": "Argjentinë",
+  "Sweden": "Suedi",
+  "Ukraine": "Ukrainë",
+  "United Kingdom": "Mbretëria e Bashkuar",
+  "United States": "Shtetet e Bashkuara",
   "OK: select country · Green: save": "OK: zgjidh shtetin · Jeshile: ruaj",
   "Green: download / update · Red: close": "Jeshile: shkarko / përditëso · Kuqe: mbyll",
   "Select at least one country": "Zgjidhni të paktën një shtet",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Hiq stacionin nga të preferuarat",
   "Update radio catalogue": "Përditëso katalogun e radiove",
   "Stop radio playback": "Ndalo luajtjen e radios",
-  "Start radio playback": "Fillo luajtjen e radios"
+  "Start radio playback": "Fillo luajtjen e radios",
+  "Picons: {count}/{total}": "Pikona: {count}/{total}",
+  "Unavailable": "Nuk disponohet",
+  "Using saved picon availability": "Po përdoret disponueshmëria e ruajtur e pikonave",
+  "Checking picon availability…": "Po kontrollohet disponueshmëria e pikonave…",
+  "Picons not published: {country}": "Pikonat nuk janë publikuar: {country}"
 }

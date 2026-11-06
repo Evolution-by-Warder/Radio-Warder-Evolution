@@ -95,6 +95,11 @@
   "Germany": "Germania",
   "Hungary": "Ungaria",
   "Poland": "Polonia",
+  "Argentina": "Argentina",
+  "Sweden": "Suedia",
+  "Ukraine": "Ucraina",
+  "United Kingdom": "Regatul Unit",
+  "United States": "Statele Unite",
   "OK: select country · Green: save": "OK: alege țara · Verde: salvează",
   "Green: download / update · Red: close": "Verde: descarcă / actualizează · Roșu: închide",
   "Select at least one country": "Selectați cel puțin o țară",
@@ -139,5 +144,10 @@
   "Remove station from favourites": "Elimină postul din favorite",
   "Update radio catalogue": "Actualizează catalogul radio",
   "Stop radio playback": "Oprește redarea radioului",
-  "Start radio playback": "Pornește redarea radioului"
+  "Start radio playback": "Pornește redarea radioului",
+  "Picons: {count}/{total}": "Piconuri: {count}/{total}",
+  "Unavailable": "Indisponibil",
+  "Using saved picon availability": "Se folosește disponibilitatea salvată a piconurilor",
+  "Checking picon availability…": "Se verifică disponibilitatea piconurilor…",
+  "Picons not published: {country}": "Piconuri nepublicate: {country}"
 }

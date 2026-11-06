@@ -10,7 +10,8 @@ from Components.ProgressBar import ProgressBar
 
 from .i18n import t
 from .jobs import Jobs
-from .picon_download import COUNTRIES, STYLES, PiconSettings, PiconTask, install, location_choices, validate_location, radio_location, directory_snapshot
+from .picon_download import STYLES, PiconSettings, PiconTask, install, location_choices, validate_location, radio_location, directory_snapshot
+from .picon_catalogue import PiconCatalogue
 
 
 class TextList(MenuList):
@@ -57,14 +58,14 @@ class PiconOptions(TextList):
         self.l.setItemHeight(round(60 * scale))
         self.l.setFont(0, gFont('Regular', round(29 * scale)))
 
-    def build(self, text, key=None, selected=False):
+    def build(self, text, key=None, selected=False, available=True):
         n = lambda v: max(1, round(v * self.ui_scale))
         flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0)
         return [None,
             MultiContentEntryText(pos=(n(16),0),size=(n(42),n(58)),font=0,
-                flags=flags,text='' if selected is None else '✓' if selected else '○',color=0x00ceff,color_sel=0x00ceff),
+                flags=flags,text='' if selected is None else '✓' if selected else '○' if available else '—',color=0x00ceff if available else 0x888888,color_sel=0x00ceff if available else 0x888888),
             MultiContentEntryText(pos=(n(16 if selected is None else 78),0),size=(n(1220),n(58)),font=0,
-                flags=flags,text=text)]
+                flags=flags,text=text,color=0xffffff if available else 0x888888)]
 
 
 class PiconForm:
@@ -88,6 +89,10 @@ class PiconForm:
         self.browser_ready=False
         self.browser_generation=0
         self.browser_jobs=Jobs()
+        self.country_index=PiconCatalogue(directory)
+        self.country_jobs=Jobs()
+        self.country_task=None
+        self.country_generation=0
         self.progress=None
         for name in self.widgets:
             host[name]=(PiconRows(scale) if name=='picon_form' else
@@ -107,6 +112,7 @@ class PiconForm:
             if changed and self.progress and not self.progress.finished:
                 self.progress.cancel()
             self.browser_generation+=1
+            self.cancel_availability()
             self.view='form'
             self.pending_countries.clear()
         elif self.progress and not self.progress.finished:
@@ -127,7 +133,7 @@ class PiconForm:
             if self.visible:self.progress.render()
             return
         rows=self.host['picon_form'];index=rows.getSelectionIndex()
-        names=', '.join(t(c[1]) for c in COUNTRIES if c[0] in self.settings.countries)
+        names=', '.join(t(c[1]) for c in self.country_index.countries if c[0] in self.settings.countries)
         rows.setList([(t('Picon countries'),names or '—','countries',1),
                       (t('Background'),t(self.style_names[self.settings.style]),'style',2),
                       (t('Folder'),self.settings.location,'location',3)])
@@ -148,7 +154,13 @@ class PiconForm:
     def refresh_options(self):
         options=self.host['picon_options'];index=options.getSelectionIndex()
         if self.view=='countries':
-            rows=[(t(name),code,code in self.pending_countries) for code,name,_group,_collection in COUNTRIES]
+            rows=[]
+            for code,name,_group,_collection in self.country_index.countries:
+                entry=self.country_index.entry(code)
+                available=entry['status']!='unavailable'
+                status=(t('Picons: {count}/{total}').format(count=entry['picons'],total=entry['stations'])
+                        if available else t('Unavailable'))
+                rows.append((t(name)+' — '+status,code,code in self.pending_countries,available))
         elif self.view=='style':
             rows=[(t(self.style_names[style]),style,style==self.pending_style) for style in STYLES]
         elif self.view=='browser':
@@ -180,6 +192,7 @@ class PiconForm:
             key=self.settings.style if self.view=='style' else self.settings.location if self.view=='location' else None
             self.host['picon_options'].moveToIndex(next((i for i,row in enumerate(self.host['picon_options'].list) if row[1]==key),0))
             self.host.set_focus('picon_options')
+            if self.view=='countries':self.load_availability()
             return
         row=self.host['picon_options'].getCurrent()
         if not row:
@@ -187,7 +200,9 @@ class PiconForm:
         key=row[1]
         if self.view=='countries':
             if key in self.pending_countries:self.pending_countries.remove(key)
-            else:self.pending_countries.add(key)
+            elif self.country_index.entry(key)['status']!='unavailable':self.pending_countries.add(key)
+            else:
+                self.host['picon_status'].setText(t('Unavailable'));return
             self.refresh()
         elif self.view=='style':
             self.pending_style=key;self.refresh()
@@ -215,7 +230,7 @@ class PiconForm:
         elif self.view=='form':
             self.start()
         elif self.view=='countries':
-            values=[c[0] for c in COUNTRIES if c[0] in self.pending_countries]
+            values=[c[0] for c in self.country_index.countries if c[0] in self.pending_countries]
             if self.commit('countries',values):self.show_form()
         elif self.view=='style':
             row=self.host['picon_options'].getCurrent()
@@ -243,6 +258,7 @@ class PiconForm:
 
     def show_form(self):
         self.browser_generation+=1
+        self.cancel_availability()
         self.view='form';self.pending_countries.clear()
         self.host['picon_status'].setText('')
         self.host['picon_options'].hide();self.host['picon_form'].show()
@@ -290,11 +306,33 @@ class PiconForm:
 
     def poll(self):
         self.browser_jobs.poll()
+        self.country_jobs.poll()
         if self.progress:self.progress.poll()
 
     def cleanup(self):
         self.browser_generation+=1;self.browser_jobs.close()
+        self.cancel_availability();self.country_jobs.close()
         if self.progress:self.progress.cleanup()
+
+    def cancel_availability(self):
+        self.country_generation+=1
+        if self.country_task:self.country_task.cancel()
+
+    def load_availability(self):
+        self.cancel_availability()
+        generation=self.country_generation
+        task=self.country_task=PiconTask()
+        self.host['picon_status'].setText(t('Checking picon availability…'))
+        queued=self.country_jobs.replace('availability',lambda:self.country_index.refresh(task),
+            lambda result,error:self.availability_loaded(generation,result,error))
+        if not queued:self.availability_loaded(generation,None,'queue full')
+
+    def availability_loaded(self,generation,result,error):
+        if self.host.closed or not self.visible or self.view!='countries' or generation!=self.country_generation:return
+        if not error:
+            self.country_index.document=result['document']
+        self.host['picon_status'].setText('' if not error and result['online'] else t('Using saved picon availability'))
+        self.refresh_options()
 
     def start(self):
         if self.host.closed or self.host.installing or not self.visible or self.view!='form':return

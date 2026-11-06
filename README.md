@@ -56,6 +56,15 @@ stations in the centre and the player on the right. The header places the actual
 package version after the clock. The approved transparent WARDER RADIO icon is
 registered in the plugin browser.
 
+## Working country integration
+
+The current work branch replaces the fixed picon country menu with all 219
+catalogue countries and online package availability. Unpublished countries stay
+visible; partial packages can be downloaded. Further country publication needs
+only packages and an index update, with no new IPK. The receiver downloads only
+220×132 in the chosen background. See [the architecture and publication order](docs/picon-country-availability.md).
+Production merge and a new IPK remain pending approval.
+
 ## Included
 
 - Offline startup seed: 89 Slovak stations with original stream URLs
