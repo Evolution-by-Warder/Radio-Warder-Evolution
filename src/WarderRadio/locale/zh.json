@@ -149,5 +149,6 @@
   "Unavailable": "暂不可用",
   "Using saved picon availability": "使用已保存的台标可用状态",
   "Checking picon availability…": "正在检查台标可用状态…",
-  "Picons not published: {country}": "台标尚未发布：{country}"
+  "Picons not published: {country}": "台标尚未发布：{country}",
+  "Update available: {version}": "有可用更新：{version}"
 }

@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: read
 jobs:
   build:
     if: github.ref == 'refs/heads/main'
@@ -30,6 +31,7 @@ jobs:
         run: |
           python3 tools/build_ipk.py
           python3 tools/build_ipk.py --legacy-bridge
+          python3 tools/build_ipk.py --tester-bridge
           echo "RADIO_VERSION=$(cat src/WarderRadio/version.txt)" >> "$GITHUB_ENV"
       - name: Unit tests
         env:
@@ -55,6 +57,13 @@ jobs:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: '1'
         run: python3 tools/verify_country_catalogue.py
+      - name: Verify real offline opkg upgrades
+        if: env.RADIO_VERSION == '0.1.9'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh tools/run_019_opkg_checks.sh
+      - name: Verify live picon downloader in all backgrounds
+        run: python3 tools/verify_receiver_candidate.py
       - name: Verify current-song artwork against live provider
         env:
           PYTHONPATH: src
@@ -124,6 +133,19 @@ jobs:
             fi
             gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json
           fi
+          if [ "$RADIO_VERSION" = "0.1.9" ]; then
+          tester_tag="warder-radio-v0.1.9-test3"
+          if ! gh release view "$tester_tag" >/dev/null 2>&1; then
+            gh release create "$tester_tag" --target "$GITHUB_SHA" --prerelease \
+              --title "Warder Radio 0.1.9 tester migration" \
+              --notes "Compatibility step for installed 0.1.9-test1/test2. After GUI restart use Update again to install stable 0.1.9. No manual IPK copy is needed."
+            gh release upload "$tester_tag" dist/tester-bridge/*.ipk dist/tester-bridge/SHA256SUMS dist/tester-bridge/build.json
+          else
+            mkdir -p dist/tester-published
+            gh release download "$tester_tag" --pattern "*.ipk" --dir dist/tester-published
+            cmp dist/tester-bridge/*.ipk dist/tester-published/*.ipk
+          fi
+          fi
           bridge_tag="warder-radio-v0.1.0-test11"
           if ! gh release view "$bridge_tag" >/dev/null 2>&1; then
             gh release create "$bridge_tag" --target "$GITHUB_SHA" --prerelease \
@@ -149,6 +171,14 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- update/testing.json update/v2/testing.json update/v2/stable.json
           if ! git diff --cached --quiet; then
-            git commit -m "Publish verified Warder Radio $RADIO_VERSION testing feed [skip ci]"
+            git commit -m "Publish verified Warder Radio $RADIO_VERSION stable and tester migration feeds [skip ci]"
             git push origin HEAD:main
           fi
+      - name: Verify published stable and tester migration feeds
+        if: env.RADIO_VERSION == '0.1.9'
+        run: python3 tools/verify_public_019.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warder-radio-publication-proof
+          path: dist/*proof*.json

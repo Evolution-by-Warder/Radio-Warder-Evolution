@@ -149,5 +149,6 @@
   "Unavailable": "Nuk disponohet",
   "Using saved picon availability": "Po përdoret disponueshmëria e ruajtur e pikonave",
   "Checking picon availability…": "Po kontrollohet disponueshmëria e pikonave…",
-  "Picons not published: {country}": "Pikonat nuk janë publikuar: {country}"
+  "Picons not published: {country}": "Pikonat nuk janë publikuar: {country}",
+  "Update available: {version}": "Përditësim i disponueshëm: {version}"
 }

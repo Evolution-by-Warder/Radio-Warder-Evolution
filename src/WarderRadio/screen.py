@@ -35,6 +35,7 @@ from .youtube import find_video, song_query
 from .video_player import VideoPlayer, dash_available
 from .cover_display import CoverDisplay
 from .update_progress import UpdateProgress
+from .update_result import UpdateResult
 from .update_state import UpdateState
 from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair, station_charset, repair_legacy_pair
 
@@ -150,6 +151,7 @@ class WarderRadio(Screen):
         self.update_inline = False
         self.installing = False
         self.update_window = None
+        self.update_result = None
         self.update_state = UpdateState()
         self.update_restart_ready = False
         self.mode = 'radio'
@@ -313,6 +315,9 @@ class WarderRadio(Screen):
                     self.settings_form.back()
             return
         if self.focus in ('picon_form','picon_options','picon_log'):
+            if self.focus == 'picon_options' and self.picon_form.view == 'countries' and self['picon_options'].getSelectionIndex() > 0:
+                self.page_up()
+                return
             if not self.picon_form.back():
                 self.set_focus('functions')
             return
@@ -328,6 +333,9 @@ class WarderRadio(Screen):
                 self.settings_form.choose()
             return
         if self.focus in ('picon_form','picon_options','picon_log'):
+            if self.focus == 'picon_options' and self.picon_form.view == 'countries':
+                self.page_down()
+                return
             self.picon_form.choose()
             return
         if self.focus == 'stations':
@@ -1156,6 +1164,8 @@ class WarderRadio(Screen):
             self['status'].setText(t('Checking for updates…' if self.update_pending else 'Update check failed'))
             if self.mode == 'settings':
                 self.settings_form.status(self['status'].getText())
+            if not self.update_pending:
+                self.update_checked(None, 'queue full')
 
     def update_checked(self, release, error):
         self.update_pending = False
@@ -1163,12 +1173,31 @@ class WarderRadio(Screen):
             return
         if error:
             if self.update_manual:
-                self.notify(t('Update check failed'), True)
+                self.show_update_result('failed')
             return
         if release is None:
             if self.update_manual:
-                self.notify(t('No update available'))
+                self.show_update_result('current')
             return
+        if self.update_manual or self.mode == 'settings':
+            self.show_update_result('available', release)
+            return
+        self.confirm_update(release)
+
+    def show_update_result(self, state, release=None):
+        self['status'].setText('')
+        if self.mode == 'settings':
+            self.settings_form.status('')
+        self.update_result = self.session.openWithCallback(
+            lambda requested: self.update_result_closed(requested, release),
+            UpdateResult, state, release.version if release else '')
+
+    def update_result_closed(self, requested=False, release=None):
+        self.update_result = None
+        if requested and release is not None and not self.closed and not self.installing:
+            self.confirm_update(release)
+
+    def confirm_update(self, release):
         self.update_release = release
         if self.mode == 'settings':
             self.settings_form.confirm(t('Install update {version}?').format(version=release.version), self.update_answered)

@@ -42,7 +42,20 @@ target.write_text(json.dumps(feed, indent=2) + '\n')
 # The stable release outranks all earlier 0.1.0-testN versions for both the
 # internal version comparator and opkg packaging (stable is 0.1.1).
 if not is_testing:
-    testing_feed = dict(feed, channel='testing')
+    if version == '0.1.9':
+        tester = json.loads((ROOT / 'dist/tester-bridge/build.json').read_text())
+        assert tester['version'] == '0.1.9-test3-1'
+        tester_tag = 'warder-radio-v0.1.9-test3'
+        tester_url = ('https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/'
+                      + tester_tag + '/' + tester['file'])
+        verify_public(tester_url, tester)
+        tester_release = {'version': '0.1.9-test3', 'tag': tester_tag, 'url': tester_url,
+                         'sha256': tester['sha256'], 'bytes': tester['bytes'],
+                         'notes': 'Compatibility step: after GUI restart use Update again to install stable 0.1.9.',
+                         'notes_i18n': {}, 'migration_target': '0.1.9'}
+        testing_feed = dict(feed, channel='testing', release=tester_release)
+    else:
+        testing_feed = dict(feed, channel='testing')
     (ROOT / 'update/v2/testing.json').write_text(json.dumps(testing_feed, indent=2) + '\n')
 
 print('Verified public IPK; prepared %s feed:' % channel, version, build['sha256'])

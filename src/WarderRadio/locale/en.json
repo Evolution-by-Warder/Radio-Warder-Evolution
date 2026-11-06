@@ -149,5 +149,6 @@
   "Unavailable": "Unavailable",
   "Using saved picon availability": "Using saved picon availability",
   "Checking picon availability…": "Checking picon availability…",
-  "Picons not published: {country}": "Picons not published: {country}"
+  "Picons not published: {country}": "Picons not published: {country}",
+  "Update available: {version}": "Update available: {version}"
 }

@@ -108,7 +108,14 @@ class Widget:
         self.content.index = max(0, min(index, len(self.content.rows) - 1))
     def moveSelection(self, direction):
         if self.content.rows:
-            self.content.index = (self.content.index + direction) % len(self.content.rows)
+            if direction in (self.pageUp, self.pageDown):
+                # Model a visible page from the mounted XML. C++ painting and
+                # its partial-last-page behavior remain hardware test scope.
+                rows = max(1, self.size().height() // max(1, self.content.height))
+                delta = rows if direction == self.pageDown else -rows
+                self.content.index = max(0, min(len(self.content.rows)-1, self.content.index + delta))
+            else:
+                self.content.index = (self.content.index + direction) % len(self.content.rows)
     def setRange(self, *args): self.range = args
     def setValue(self, value): self.value = value
     def setFocus(self, *args): pass
@@ -164,7 +171,7 @@ class Session:
     def open(self, screen, *args, **kwargs): self.dialogs.append((screen, args, kwargs))
     def openWithCallback(self, callback, screen, *args, **kwargs):
         self.dialogs.append((screen, callback, args, kwargs))
-        if screen in (radio.UpdateProgress, radio.VideoPlayer):
+        if screen in (radio.UpdateProgress, radio.UpdateResult, radio.VideoPlayer):
             dialog = screen(self, *args, **kwargs)
             mount(dialog)
             dialog.execing = True
@@ -514,13 +521,17 @@ class NativeTests(unittest.TestCase):
     def test_settings_update_choice_requires_green_and_back_drops_late_check(self):
         screen,session,_=self.new();screen.options()
         screen.update_checked(NS(version='0.1.7'),None)
+        result=screen.update_result
+        self.assertIsInstance(result,radio.UpdateResult)
+        self.assertIn('0.1.7',result['message'].getText())
+        result['actions'].actions['green']()
         self.assertEqual(screen.settings_form.view,'confirm')
         self.assertIn('0.1.7',screen['settings_text'].getText())
         screen.ok();self.assertFalse(screen.installing)
         screen.exit();self.assertEqual(screen.settings_form.view,'menu')
         self.assertIsNone(screen.settings_form.confirm_callback)
-        self.assertEqual(session.dialogs,[])
         screen.update_checked(NS(version='0.1.7'),None)
+        screen.update_result['actions'].actions['green']()
         screen.green_pressed()
         self.assertTrue(screen.installing)
         self.assertIsInstance(screen.update_window,radio.UpdateProgress)
@@ -529,6 +540,124 @@ class NativeTests(unittest.TestCase):
         before=len(session.dialogs)
         screen.update_checked(NS(version='0.1.8'),None)
         self.assertEqual(len(session.dialogs),before)
+
+    def test_picon_country_arrows_page_visible_rows_without_changing_selection(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:]=width,height
+            screen,session,root=self.new()
+            screen.open_picons()
+            form=screen.picon_form
+            form.country_jobs.replace=lambda *args:True
+            form.settings.countries=['SK','CZ','DE'];form.settings.save()
+            saved=Path(form.settings.path).read_bytes()
+            screen.ok()
+            options=screen['picon_options']
+            pending=set(form.pending_countries)
+            page=options.instance.size().height()//options.l.height
+            self.assertEqual(page,8)
+            self.assertEqual(len(options.list),219)
+            original=list(options.list)
+            screen.right();self.assertEqual(options.getSelectionIndex(),page)
+            screen.down();self.assertEqual(options.getSelectionIndex(),page+1)
+            screen.up();self.assertEqual(options.getSelectionIndex(),page)
+            screen.right();self.assertEqual(options.getSelectionIndex(),page*2)
+            screen.left();self.assertEqual(options.getSelectionIndex(),page)
+            screen.left();self.assertEqual(options.getSelectionIndex(),0)
+            self.assertEqual(form.view,'countries')
+            self.assertEqual(form.pending_countries,pending)
+            self.assertEqual(options.list,original)
+            self.assertEqual(Path(form.settings.path).read_bytes(),saved)
+            screen.left();self.assertEqual(form.view,'form')
+            self.assertEqual(form.settings.countries,['SK','CZ','DE'])
+            screen.cleanup()
+
+    def test_picon_country_ok_toggles_and_page_boundaries_keep_pending_countries(self):
+        screen,_,_=self.new();screen.open_picons()
+        form=screen.picon_form;form.country_jobs.replace=lambda *args:True
+        screen.ok();options=screen['picon_options']
+        before=set(form.pending_countries)
+        screen.ok();self.assertEqual(form.pending_countries,before ^ {'SK'})
+        screen.ok();self.assertEqual(form.pending_countries,before)
+        for index in (1,7,8,210,218):
+            options.moveToIndex(index)
+            screen.right();self.assertEqual(form.view,'countries')
+            screen.left();self.assertEqual(form.view,'countries')
+            self.assertEqual(form.pending_countries,before)
+        options.moveToIndex(1);screen.left()
+        self.assertEqual(options.getSelectionIndex(),0)
+        self.assertEqual(form.view,'countries')
+        form.pending_countries.add('DE')
+        screen.right();screen.green_pressed()
+        self.assertIn('DE',PiconSettings(self.tmp.name).countries)
+
+    def test_manual_update_results_are_modal_and_ok_exit_never_install(self):
+        for state,release,error,key in (
+                ('current',None,None,'No update available'),
+                ('available',NS(version='9.0.0'),None,'Update available: {version}'),
+                ('failed',None,'offline','Update check failed')):
+            for action in ('ok','cancel'):
+                screen,session,_=self.new();screen.options()
+                screen.update_manual=True
+                before=screen['settings_options'].getSelectionIndex()
+                screen.update_checked(release,error)
+                result=screen.update_result
+                self.assertIsInstance(result,radio.UpdateResult)
+                self.assertEqual(result.state,state)
+                self.assertEqual(result['message'].getText(),radio.t(key).format(version='9.0.0'))
+                self.assertTrue(result.instance.isVisible())
+                self.assertEqual(ET.fromstring(result.skin).get('backgroundColor'),PANEL_BACKGROUND)
+                self.assertEqual(screen['settings_status'].getText(),'')
+                self.assertEqual(screen['status'].getText(),'')
+                result['actions'].actions[action]()
+                self.assertIsNone(screen.update_result)
+                self.assertFalse(screen.installing)
+                self.assertEqual(screen.settings_form.view,'menu')
+                self.assertEqual(screen['settings_options'].getSelectionIndex(),before)
+                self.assertIsNone(screen.settings_form.confirm_callback)
+                screen.cleanup()
+
+    def test_failed_update_queue_opens_result_and_automatic_checks_stay_quiet(self):
+        screen,session,_=self.new();screen.options();screen.jobs.close()
+        screen.update_pending=False
+        screen.jobs.submit=lambda *args:False
+        screen.check_updates(manual=True)
+        self.assertEqual(screen.update_result.state,'failed')
+        result=screen.update_result
+        result['actions'].actions['green']()
+        self.assertIs(screen.update_result,result)
+        self.assertFalse(screen.installing)
+        result.dismiss()
+        screen.update_manual=False;screen.update_inline=False
+        before=len(session.dialogs)
+        screen.update_checked(None,None);screen.update_checked(None,'offline')
+        self.assertEqual(len(session.dialogs),before)
+
+    def test_update_result_request_after_host_close_never_offers_install(self):
+        screen,session,_=self.new();screen.options();screen.update_manual=True
+        screen.update_checked(NS(version='9.0.0'),None)
+        result=screen.update_result
+        screen.cleanup();before=len(session.dialogs)
+        result.request_install()
+        self.assertFalse(screen.installing)
+        self.assertIsNone(screen.settings_form.confirm_callback)
+        self.assertEqual(len(session.dialogs),before)
+
+    def test_update_result_layout_uses_warder_style_at_all_resolutions(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:]=width,height
+            session=Session()
+            for state in ('current','available','failed'):
+                dialog=radio.UpdateResult(session,state,'9.0.0')
+                root=mount(dialog)
+                w,h=map(int,root.get('size').split(','))
+                self.assertEqual(root.get('backgroundColor'),PANEL_BACKGROUND)
+                self.assertEqual(root.get('flags'),'wfNoBorder')
+                self.assertLess(w,width);self.assertLess(h,height)
+                self.assertEqual(len(root.findall('eLabel')),4)
+                for node in root.findall('widget'):
+                    x,y=map(int,node.get('position').split(','));dw,dh=map(int,node.get('size').split(','))
+                    self.assertGreaterEqual(x,0);self.assertGreaterEqual(y,0)
+                    self.assertLessEqual(x+dw,w);self.assertLessEqual(y+dh,h)
 
     def test_settings_catalogue_update_and_errors_do_not_leave_the_panel(self):
         screen,session,_=self.new();screen.options()
@@ -1714,7 +1843,9 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.update_manual)
         self.assertEqual(screen['status'].getText(), radio.t('Checking for updates…'))
         screen.update_checked(None, None)
-        self.assertEqual(session.dialogs[-1][1][0], radio.t('No update available'))
+        self.assertIsInstance(screen.update_result,radio.UpdateResult)
+        self.assertEqual(screen.update_result['message'].getText(),radio.t('No update available'))
+        screen.update_result.dismiss()
         queued = []
         screen.jobs.close()
         screen.jobs.submit = lambda key, work, callback: queued.append(key) or True

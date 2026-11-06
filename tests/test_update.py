@@ -78,7 +78,11 @@ class UpdateTests(unittest.TestCase):
             return io.BytesIO(json.dumps(manifest(VERSION,channel)).encode())
         for installed in ['0.1.1','0.1.2-test1','0.1.2-test2','0.1.2-test3','0.1.3']:
             with self.subTest(installed=installed):
-                self.assertEqual(update.check_release(installed,opener).version,VERSION)
+                if '-test' in VERSION and '-test' not in installed:
+                    with self.assertRaisesRegex(update.UpdateError, 'Development build in stable channel'):
+                        update.check_release(installed,opener)
+                else:
+                    self.assertEqual(update.check_release(installed,opener).version,VERSION)
                 self.assertTrue(calls[-1].endswith('/testing.json' if '-test' in installed else '/stable.json'))
         self.assertIsNone(update.check_release(VERSION,opener))
 
@@ -146,6 +150,12 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(update.verify_payload(VERSION, root), VERSION)
         runner = Mock(return_value=Mock(returncode=0, stdout='Package: ' + update.PACKAGE_ID + '\nVersion: ' + VERSION + '-1\nStatus: install ok installed\n'))
         self.assertEqual(update.verify_installation(VERSION, runner=runner, runtime=root), VERSION)
+        runner.return_value.stdout = runner.return_value.stdout.replace('install ok installed', 'install user installed')
+        self.assertEqual(update.verify_installation(VERSION, runner=runner, runtime=root), VERSION)
+        runner.return_value.stdout = runner.return_value.stdout.replace('install user installed', 'install reinstreq,user installed')
+        with self.assertRaises(update.UpdateError):
+            update.verify_installation(VERSION, runner=runner, runtime=root)
+        runner.return_value.stdout = runner.return_value.stdout.replace('install reinstreq,user installed', 'install ok installed')
         runner.return_value.stdout = runner.return_value.stdout.replace('install ok installed', 'install ok unpacked')
         with self.assertRaises(update.UpdateError):
             update.verify_installation(VERSION, runner=runner, runtime=root)

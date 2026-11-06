@@ -149,5 +149,6 @@
   "Unavailable": "Nepasiekiama",
   "Using saved picon availability": "Naudojami išsaugoti piktogramų prieinamumo duomenys",
   "Checking picon availability…": "Tikrinamas piktogramų prieinamumas…",
-  "Picons not published: {country}": "Piktogramos nepaskelbtos: {country}"
+  "Picons not published: {country}": "Piktogramos nepaskelbtos: {country}",
+  "Update available: {version}": "Yra naujinys: {version}"
 }

@@ -1,0 +1,48 @@
+name: Radio 0.1.9-test2 receiver candidate (no publishing)
+on:
+  push:
+    branches: [work/radio-0.1.9-test2-navigation-update-20261106]
+    paths:
+      - '.github/workflows/radio-receiver-candidate.yml'
+      - 'src/**'
+      - 'tools/**'
+      - 'tests/**'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build and verify IPK
+        run: |
+          python3 tools/build_ipk.py
+          python3 tools/build_ipk.py --legacy-bridge
+          python3 tools/build_ipk.py --tester-bridge
+          python3 tools/verify_ipk.py
+      - name: Run unit tests
+        env:
+          PYTHONPATH: src
+        run: python3 -m unittest discover -s tests -v > dist/unit.log 2>&1
+      - name: Replay pinned native widgets
+        run: |
+          python3 tools/fetch_native.py
+          python3 tools/test_native.py --upstream fixtures/openpli-release-9.2 -v > dist/openpli.log 2>&1
+          python3 tools/test_native.py --upstream fixtures/openatv-81-reviewed-base -v > dist/openatv81.log 2>&1
+          python3 tools/test_native.py --upstream fixtures/openatv-8.0-next -v > dist/openatv80.log 2>&1
+      - name: Verify live downloader and sample user data
+        run: python3 tools/verify_receiver_candidate.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warder-radio-0.1.9-test2-receiver-test
+          path: |
+            dist/*.ipk
+            dist/build.json
+            dist/SHA256SUMS
+            dist/receiver-candidate-proof.json
+            dist/*.log

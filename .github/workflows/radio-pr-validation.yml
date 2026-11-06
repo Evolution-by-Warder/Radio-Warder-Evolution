@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - work/radio-country-left-navigation-eight-rows
+      - release/radio-0.1.9-20261106
 permissions:
   contents: read
 jobs:
@@ -21,6 +22,7 @@ jobs:
         run: |
           python3 tools/build_ipk.py
           python3 tools/build_ipk.py --legacy-bridge
+          python3 tools/build_ipk.py --tester-bridge
       - name: Run complete unit suite
         env:
           PYTHONPATH: src

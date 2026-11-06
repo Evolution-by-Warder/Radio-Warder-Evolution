@@ -149,5 +149,6 @@
   "Unavailable": "Недоступно",
   "Using saved picon availability": "Використовується збережена доступність піконів",
   "Checking picon availability…": "Перевірка доступності піконів…",
-  "Picons not published: {country}": "Пікони не опубліковані: {country}"
+  "Picons not published: {country}": "Пікони не опубліковані: {country}",
+  "Update available: {version}": "Доступне оновлення: {version}"
 }

@@ -149,5 +149,6 @@
   "Unavailable": "در دسترس نیست",
   "Using saved picon availability": "استفاده از وضعیت ذخیره‌شدهٔ پیکون‌ها",
   "Checking picon availability…": "بررسی دسترسی به پیکون‌ها…",
-  "Picons not published: {country}": "پیکون‌ها منتشر نشده‌اند: {country}"
+  "Picons not published: {country}": "پیکون‌ها منتشر نشده‌اند: {country}",
+  "Update available: {version}": "به‌روزرسانی موجود است: {version}"
 }

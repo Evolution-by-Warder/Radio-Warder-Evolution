@@ -149,5 +149,6 @@
   "Unavailable": "Kullanılamıyor",
   "Using saved picon availability": "Kaydedilmiş pikon kullanılabilirliği kullanılıyor",
   "Checking picon availability…": "Pikon kullanılabilirliği denetleniyor…",
-  "Picons not published: {country}": "Pikonlar yayımlanmadı: {country}"
+  "Picons not published: {country}": "Pikonlar yayımlanmadı: {country}",
+  "Update available: {version}": "Güncelleme mevcut: {version}"
 }
