@@ -93,7 +93,17 @@ def run(opkg, baseline, initial, expected_hash):
         steps = []
         offered = old['check_release'](initial, opener)
         assert offered is not None
-        old['install_release'](offered, opener=opener, runner=runner)
+        legacy_false_failure = False
+        try:
+            old['install_release'](offered, opener=opener, runner=runner)
+        except old['UpdateError'] as error:
+            # Preserve the actual old code. It rejects opkg's legitimate
+            # 'install user installed' state even after a successful install.
+            # Prove the exact installed payload and real database before
+            # classifying this as the known legacy false-negative.
+            assert str(error) == 'Warder Radio package is not completely installed'
+            assert current.verify_installation(offered.version, runner=runner, runtime=runtime) == offered.version
+            legacy_false_failure = True
         steps.append(offered.version)
         if initial == '0.1.9-test2':
             assert offered.version == '0.1.9-test3'
@@ -111,6 +121,8 @@ def run(opkg, baseline, initial, expected_hash):
         assert final['check_release']('0.1.9', opener) is None
         for path, data in files.items(): assert path.read_bytes() == data, str(path)
         return dict(initial=initial, steps=steps, final='0.1.9', user_files_preserved=len(files),
+                    legacy_verifier_false_failure=legacy_false_failure,
+                    manual_gui_restart_after_first_step=legacy_false_failure,
                     commands=commands, feed_requests=[u for u in requests if u.endswith('.json')])
 
 

@@ -157,6 +157,14 @@ Update once more for stable 0.1.9. The testing feed intentionally offers test3,
 whose updater then reads the stable feed. This avoids opkg treating the final
 0.1.9 package as an older build. All user files are retained.
 
+The installed 0.1.8/test2 verifier may report "Warder Radio package is not
+completely installed" after a successful first update, because it only accepts
+`install ok installed` and rejects opkg's valid `install user installed` state.
+If that exact legacy message appears, restart the GUI once. The new updater
+accepts both complete states, checks the exact package/runtime version, and
+retains the automatic successful-update restart. Never retry a package install
+blindly after a different error; that error needs its own diagnosis.
+
 For a first installation only, copy the IPK to `/tmp`, then run:
 
 ```sh

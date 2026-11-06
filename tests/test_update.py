@@ -150,6 +150,12 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(update.verify_payload(VERSION, root), VERSION)
         runner = Mock(return_value=Mock(returncode=0, stdout='Package: ' + update.PACKAGE_ID + '\nVersion: ' + VERSION + '-1\nStatus: install ok installed\n'))
         self.assertEqual(update.verify_installation(VERSION, runner=runner, runtime=root), VERSION)
+        runner.return_value.stdout = runner.return_value.stdout.replace('install ok installed', 'install user installed')
+        self.assertEqual(update.verify_installation(VERSION, runner=runner, runtime=root), VERSION)
+        runner.return_value.stdout = runner.return_value.stdout.replace('install user installed', 'install reinstreq,user installed')
+        with self.assertRaises(update.UpdateError):
+            update.verify_installation(VERSION, runner=runner, runtime=root)
+        runner.return_value.stdout = runner.return_value.stdout.replace('install reinstreq,user installed', 'install ok installed')
         runner.return_value.stdout = runner.return_value.stdout.replace('install ok installed', 'install ok unpacked')
         with self.assertRaises(update.UpdateError):
             update.verify_installation(VERSION, runner=runner, runtime=root)

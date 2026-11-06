@@ -12,6 +12,7 @@
   the 0.1.9-test3 migration prerelease; after restart, Update offers stable 0.1.9.
   Only this exact migration permits opkg's packaging-order downgrade, after full
   hash, size and package identity verification. Other updates use ordinary opkg.
+- Accept the legitimate opkg `install user installed` state as well as `install ok installed`, while rejecting incomplete/error states. The old installed verifier can falsely report failure after the first successful migration; a one-time GUI restart loads the fixed updater. No manual IPK installation is required.
 - Stable and tester-migration feeds are verified against public IPK bytes before
   publication. The unrelated legacy package-name bridge stays immutable.
 

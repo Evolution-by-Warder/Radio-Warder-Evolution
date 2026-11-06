@@ -225,9 +225,12 @@ def verify_installation(expected_version, runner=subprocess.run, runtime=None):
     for paragraph in result.stdout.split('\n\n'):
         fields = dict(line.split(': ', 1) for line in paragraph.splitlines()
                       if ': ' in line and not line[:1].isspace())
+        state = fields.get('Status', '').split()
+        complete = (len(state) == 3 and state[0] == 'install' and state[2] == 'installed'
+                    and set(state[1].split(',')) <= {'ok', 'user'})
         if (fields.get('Package') == PACKAGE_ID and
                 fields.get('Version') == installed + '-1' and
-                fields.get('Status', '').split() == ['install', 'ok', 'installed']):
+                complete):
             return installed
     raise UpdateError('Warder Radio package is not completely installed')
 
