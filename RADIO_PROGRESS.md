@@ -29,6 +29,13 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – finálna kontrola spoločného kandidáta
+
+- [PiconHub PR #65](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/65) smeruje na [`bb44e9e`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/bb44e9e8f7359ab115ea0d671c51f33889db78ae) s dávkami 23–27 a pracovným indexom **219 krajín, 16 dostupných, 491 referencií**. Dávka 27 je súčasťou spoločných DE a GB balíkov. [Radio PR #15](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/15) používa ten istý formát online indexu.
+- Porovnanie všetkých deviatich variantov v 15 kolekciách potvrdilo zhodu **4 968 pôvodných SHA-256 položiek**. Spätne stiahnutých a overených bolo 57 ZIPov: všetky tri pozadia 220×132 pre dostupné kolekcie a oba ďalšie rozmery zmenených DE a GB balíkov. Nové PNG sa zhodujú s manifestom dávky 27.
+- Finálny downloader na `c1820b0` prešiel s reálnymi katalógovými balíkmi všetkých 16 dostupných krajín, ich manifestmi a ZIPmi. V každom pozadí nainštaloval 490 piconov a zachoval jeden používateľský. Pri opakovaní nesťahoval ZIPy. Nedostupná voľba zostala uložená a spoločný SK/CZ balík sa stiahol iba raz na pozadie.
+- Prešlo 159 jednotkových testov, lokálna kontrola IPK a [GitHub CI s natívnymi replaymi](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/42220201366). Fyzický prijímač zostáva otvorený. Oba PR sú predložené na schválenie. Produkčný merge, publikácia a vydanie IPK vyžadujú súhlas.
+
 ### 6. 11. 2026 – dávka 27
 
 - [Pracovný commit `bb44e9e`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/bb44e9e8f7359ab115ea0d671c51f33889db78ae) rozširuje DE o Technoszene a Lkwfreunde a GB o Like Country. [Manifest dávky](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/bb44e9e8f7359ab115ea0d671c51f33889db78ae/picons/radio-world/staging/batch-27/manifest.json) obsahuje **3 referencie, 27 PNG a 5 odložených kandidátov**. Pri odložených položkách chýba potvrdené párovanie presného streamu a loga.
@@ -93,5 +100,5 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 1. Pokračovať od krajinských kandidátov dávky 27. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
-3. Predložiť overenú integráciu krajín na schválenie. Po schválení konkrétneho rozsahu postupovať v poradí krajinské balíky a univerzálny index, overenie živého sťahovania, Radio PR #15 a samostatné schválenie vydania. PiconHub PR #65 zahŕňa dávku 26; PR #64 zostáva starším kandidátom.
+3. Predložiť overenú integráciu krajín na schválenie. Po schválení konkrétneho rozsahu postupovať v poradí krajinské balíky a univerzálny index, overenie živého sťahovania, Radio PR #15 a samostatné schválenie vydania. PiconHub PR #65 zahŕňa dávku 27; PR #64 zostáva starším kandidátom.
 4. Overiť nové správanie na fyzickom prijímači a zapísať výsledok oddelene od CI a lokálnych testov.
