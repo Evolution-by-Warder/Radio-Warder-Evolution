@@ -61,7 +61,9 @@ def run(opkg, baseline, initial, expected_hash):
             # Execute package scripts with IPKG_INSTROOT set; their guard exits
             # before touching the host. This option is test-harness-only.
             options = ['--force-postinstall'] if 'install' in command else []
-            return subprocess.run([str(opkg), '-o', str(root), '-f', str(conf)] + options + command[1:], **kwargs)
+            result = subprocess.run([str(opkg), '-o', str(root), '-f', str(conf)] + options + command[1:], **kwargs)
+            print('OPKG', command[:2], 'exit', result.returncode, result.stdout, flush=True)
+            return result
         result = runner(['opkg', 'install', str(baseline)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         assert result.returncode == 0, result.stdout
         runtime = root / PREFIX
