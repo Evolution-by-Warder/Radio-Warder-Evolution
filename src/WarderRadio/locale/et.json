@@ -150,5 +150,6 @@
   "Using saved picon availability": "Kasutatakse salvestatud pikonite saadavust",
   "Checking picon availability…": "Pikonite saadavuse kontrollimine…",
   "Picons not published: {country}": "Pikonid pole avaldatud: {country}",
-  "Update available: {version}": "Uuendus on saadaval: {version}"
+  "Update available: {version}": "Uuendus on saadaval: {version}",
+  "No YouTube video could be found for the current song.": "Praeguse loo jaoks ei leitud YouTube’ist videot."
 }

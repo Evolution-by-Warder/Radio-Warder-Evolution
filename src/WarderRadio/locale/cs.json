@@ -150,5 +150,6 @@
   "Using saved picon availability": "Používá se uložená dostupnost piconů",
   "Checking picon availability…": "Ověřuje se dostupnost piconů…",
   "Picons not published: {country}": "Picony nejsou publikovány: {country}",
-  "Update available: {version}": "Dostupná aktualizace: {version}"
+  "Update available: {version}": "Dostupná aktualizace: {version}",
+  "No YouTube video could be found for the current song.": "Pro aktuální skladbu se nepodařilo najít video na YouTube."
 }

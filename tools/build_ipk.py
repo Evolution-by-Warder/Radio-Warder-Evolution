@@ -19,9 +19,11 @@ parser.add_argument('--legacy-bridge', action='store_true')
 parser.add_argument('--tester-bridge', action='store_true')
 args = parser.parse_args()
 assert not (args.legacy_bridge and args.tester_bridge)
-VERSION = ('0.1.0-test11' if args.legacy_bridge else '0.1.9-test3' if args.tester_bridge
-           else (SOURCE / 'version.txt').read_text().strip())
-assert re.fullmatch(r'\d+\.\d+\.\d+(?:-test\d+)?', VERSION), VERSION
+TARGET_VERSION = (SOURCE / 'version.txt').read_text().strip()
+BRIDGE_VERSION = '0.1.9.1-test2' if TARGET_VERSION == '0.1.9.1' else '0.1.9-test3'
+VERSION = ('0.1.0-test11' if args.legacy_bridge else BRIDGE_VERSION if args.tester_bridge
+           else TARGET_VERSION)
+assert re.fullmatch(r'\d+\.\d+\.\d+(?:\.\d+)?(?:-test\d+)?', VERSION), VERSION
 EPOCH = int(os.environ.get('SOURCE_DATE_EPOCH', '1793664000'))
 PACKAGE = ('enigma2-plugin-extensions-warderradio' if args.legacy_bridge
            else 'enigma2-plugin-extensions-radio-warder-evolution')

@@ -6,6 +6,7 @@ on:
     branches:
       - work/radio-country-left-navigation-eight-rows
       - release/radio-0.1.9-20261106
+      - release/radio-0.1.9.1-20261106
 permissions:
   contents: read
 jobs:

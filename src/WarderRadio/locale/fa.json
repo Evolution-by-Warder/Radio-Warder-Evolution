@@ -150,5 +150,6 @@
   "Using saved picon availability": "استفاده از وضعیت ذخیره‌شدهٔ پیکون‌ها",
   "Checking picon availability…": "بررسی دسترسی به پیکون‌ها…",
   "Picons not published: {country}": "پیکون‌ها منتشر نشده‌اند: {country}",
-  "Update available: {version}": "به‌روزرسانی موجود است: {version}"
+  "Update available: {version}": "به‌روزرسانی موجود است: {version}",
+  "No YouTube video could be found for the current song.": "برای آهنگ فعلی ویدیویی در یوتیوب پیدا نشد."
 }

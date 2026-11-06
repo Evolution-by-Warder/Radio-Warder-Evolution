@@ -150,5 +150,6 @@
   "Using saved picon availability": "Se folosește disponibilitatea salvată a piconurilor",
   "Checking picon availability…": "Se verifică disponibilitatea piconurilor…",
   "Picons not published: {country}": "Piconuri nepublicate: {country}",
-  "Update available: {version}": "Actualizare disponibilă: {version}"
+  "Update available: {version}": "Actualizare disponibilă: {version}",
+  "No YouTube video could be found for the current song.": "Nu a fost găsit niciun videoclip pe YouTube pentru melodia curentă."
 }

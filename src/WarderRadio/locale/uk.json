@@ -150,5 +150,6 @@
   "Using saved picon availability": "Використовується збережена доступність піконів",
   "Checking picon availability…": "Перевірка доступності піконів…",
   "Picons not published: {country}": "Пікони не опубліковані: {country}",
-  "Update available: {version}": "Доступне оновлення: {version}"
+  "Update available: {version}": "Доступне оновлення: {version}",
+  "No YouTube video could be found for the current song.": "Для поточної композиції не вдалося знайти відео на YouTube."
 }
