@@ -4,6 +4,7 @@ import io
 import json
 from pathlib import Path
 import runpy
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -26,6 +27,32 @@ def feed(folder, channel):
 
 @unittest.skipUnless(VERSION == '0.1.9', 'one-release migration fixtures')
 class TesterStableMigrationTests(unittest.TestCase):
+    def test_feed_publisher_keeps_stable_tester_and_legacy_targets_separate(self):
+        routes = {}
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for folder in ('dist','dist/tester-bridge','dist/legacy'):
+                metadata = json.loads((ROOT/folder/'build.json').read_text())
+                target = root/folder;target.mkdir(parents=True,exist_ok=True)
+                shutil.copyfile(ROOT/folder/'build.json',target/'build.json')
+                version = metadata['version'].removesuffix('-1')
+                url = 'https://github.com/'+update.REPOSITORY+'/releases/download/warder-radio-v'+version+'/'+metadata['file']
+                routes[url] = (ROOT/folder/metadata['file']).read_bytes()
+            (root/'src/WarderRadio').mkdir(parents=True)
+            (root/'src/WarderRadio/version.txt').write_text('0.1.9\n')
+            (root/'tools').mkdir()
+            (root/'update').mkdir()
+            shutil.copyfile(ROOT/'tools/publish_feed.py',root/'tools/publish_feed.py')
+            with patch('urllib.request.urlopen',side_effect=lambda request,**kw:io.BytesIO(routes[request.full_url])):
+                runpy.run_path(str(root/'tools/publish_feed.py'))
+            stable = json.loads((root/'update/v2/stable.json').read_text())
+            testing = json.loads((root/'update/v2/testing.json').read_text())
+            legacy = json.loads((root/'update/testing.json').read_text())
+            self.assertEqual((stable['channel'],stable['release']['version']),('stable','0.1.9'))
+            self.assertEqual((testing['channel'],testing['release']['version']),('testing','0.1.9-test3'))
+            self.assertEqual(legacy['release']['version'],'0.1.0-test11')
+            self.assertEqual(testing['release']['migration_target'],'0.1.9')
+
     def test_frozen_test2_installer_discovers_and_validates_test3_then_stable(self):
         path = ROOT / 'tools/fixtures/updater-through-0.1.9-test2.py.txt'
         self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),
