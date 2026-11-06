@@ -6,7 +6,7 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 | Oblasť | Vetva alebo vydanie | Posledný overený commit a stav |
 | --- | --- | --- |
-| Warder Radio | `main` | [`349fd7e`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/349fd7ec25e3f7979cb28b8dab0ed5f3fbf2434b), publikácia testovacieho kanála. Aktuálne manifesty v2 pre stabilný aj testovací kanál uvádzajú [0.1.8](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.8). |
+| Warder Radio | `main` | [`c988c30`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/c988c30f415eee0565a1365a5be986d36101cee5), zlúčenie dokumentácie. Posledný commit vydania na tejto vetve je [`349fd7e`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/349fd7ec25e3f7979cb28b8dab0ed5f3fbf2434b), publikácia testovacieho kanála. Aktuálne manifesty v2 pre stabilný aj testovací kanál uvádzajú [0.1.8](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.8). |
 | Warder Radio 0.1.8 | Zdroj vydania | [`26225c0`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/26225c0d2a61d04663c1ed3d3cf083faa0d94305), zastavenie a obnovenie prehrávania pôvodnej stanice bez duplikovania histórie. [Záznam vydania](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/blob/349fd7ec25e3f7979cb28b8dab0ed5f3fbf2434b/docs/releases/radio-resume-0.1.8.json) uvádza 148 jednotkových testov a po 70 natívnych testov na OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next. Fyzický test 0.1.8 v zázname nie je. |
 | Rádiový katalóg a živé balíky | PiconHub `main` | [`e90a1fe`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/e90a1fe3a2734b555f48f343284f9103530180fb), 40 903 servisných referencií v 219 krajinských skupinách a skupine HDF. |
 | Svetový checkpoint 22 | PiconHub `work/radio-catalogue-strict-ocr-20261105` | [`4dd8220`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/4dd8220efc5180db9e0fca56335b4a01b9193558/migration/radio-reconciled-checkpoint-20261105/summary.json), 19 756 pripravených referencií a 177 804 PNG, z toho 19 706 referencií v hlavnom katalógu checkpointu. Evidovaných 21 197 nepokrytých referencií. Stav je pracovný. |
@@ -28,6 +28,13 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 [Prehľad všetkých skupín](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/02aafea7e4e326aace955f72b6d20c68c7e45eba/picons/radio-world/coverage.json) vedie živé pokrytie, dávku 23 a známe nevyriešené položky oddelene. Úplný inventár a ZIPy checkpointu 22 sa v dostupných podkladoch nepodarilo nájsť. Jedinečný súčet naprieč checkpointom a novou dávkou preto zostáva otvorený.
 
 ## Denník významných zmien
+
+### 6. 11. 2026 – krajinské balíky dávky 23
+
+- [Radio PR #14](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/14) a [FullHDGlass PR #46](https://github.com/Evolution-by-Warder/FullHDGlass-Warder-Evolution/pull/46) boli zlúčené po výslovnom schválení. V `main` sú overené oba rádiové súbory a spoločný `AGENTS.md` s pôvodnými pokynmi a odkazom na rádiový register.
+- [Pracovný commit `6832fb4`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/6832fb4d5a63842984cbc2af01fa62de12dee3d4) ukladá opakovateľný postup zostavenia a [kontrolné súčty 54 ZIPov](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/6832fb4d5a63842984cbc2af01fa62de12dee3d4/picons/radio-world/staging/batch-23/country-pack-checksums.json) pre AR, DE, GB, SE, UA a US. Výstup obsahuje existujúcich 90 nemeckých referencií v každom variante s bitovo identickými PNG a deväť nových referencií naprieč krajinami.
+- Dve zostavenia dali rovnaký výstup. Prešlo 29 testov downloadera a lokálna inštalácia troch pozadí 220×132 cez testovací endpoint. Zachovala existujúci index aj používateľský picon a pri opakovaní ZIPy nesťahovala.
+- Ďalej pripraviť výber ďalších krajín v plugine. Pracovné ZIPy treba pred prípadným zverejnením pripnúť k commitu s balíkmi a pripraviť manifesty pre downloader. Publikovanie balíkov a zmeny v produkčnom plugine čakajú na samostatné schválenie.
 
 ### 6. 11. 2026 – dávka 23
 
