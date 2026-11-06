@@ -35,9 +35,18 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 | GB · United Kingdom | 1 345 | 5 | Čiastočné |
 | US · United States | 4 881 | 14 | Čiastočné |
 
-Úplný inventár checkpointu 22 stále chýba. Čísla vyššie pochádzajú z produkčného indexu, historický checkpoint je vedený oddelene.
+Úplný historický manifest cez dávku 28 bol obnovený: 22 751 pripravených referencií a register 18 307 skontrolovaných zdrojov. Ich PNG payloady nie sú všetky lokálne obnovené. Čísla tabuľky vyššie pochádzajú z produkčného indexu; historický checkpoint a nové pracovné dávky sú vedené oddelene.
 
 ## Denník významných zmien
+
+### 6. 11. 2026 – testovací IPK 0.1.9-test1 a pokračovanie dávkou 29
+
+- Podľa zadania je pripravený samostatný testovací balík `0.1.9-test1`, bez stabilného vydania, GitHub Release alebo zmeny aktualizačných kanálov. Základ je produkčný Radio `428f64a` po merge `095e88d` a PiconHub `648c52b`. [Zdroj testovacieho kandidáta `101445e`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/101445efe2c6e90634928ca65bde3352f0838840) mení v runtime iba `version.txt`; existujúci kód univerzálneho downloadera sa zachoval.
+- [Testovací CI beh](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/42227033576) prešiel: **159 jednotkových testov**, **73 natívnych replayov na každom** z OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next, gramatika Python 3.9 a kontrola IPK vrátane povolených ciest a offline inštalačných skriptov. Lokálne aj CI IPK majú rovnaké bajty a SHA-256 `4091be762cb772ff240027eddbadd1dcfc2c5d320eaf202aae3aa502e4735cef` (3 175 204 B).
+- Živý index má **219 krajín, 16 dostupných a 491 pokrytých referencií**. V každom z troch pozadí 220×132 sa overilo 15 skutočných ZIPov, nainštalovalo 490 piconov a zachoval jeden vlastný picon. Nastavenia, obľúbené aj história vzorových používateľských dát zostali zhodné; nedostupná uložená krajina zostala vybraná. Opakovanie nevyžiadalo ZIPy. Lokálny prvý pokus prerušil timeout švédskeho archívu; úplný čistý CI replay všetkých krajín a pozadí prešiel.
+- Balík bol odovzdaný priamo na fyzickú skúšku. [Inštalačný a skúšobný postup](docs/receiver-test-0.1.9-test1.md), [presný záznam zostavenia](docs/releases/radio-0.1.9-test1.json). Fyzický prijímač **zatiaľ neoverený**. Budúca stabilná verzia musí byť aj podľa opkg novšia než `0.1.9-test1` (napríklad `0.1.10`); jej vydanie zatiaľ nie je povolené.
+- Pre ďalšie picony bol obnovený presný historický manifest cez uzavretú dávku 28: 22 751 pripravených referencií a 18 307 skontrolovaných zdrojov. Overili sa aj dávky 23–27 a nezmenený živý katalóg 40 903 referencií. Nová [samostatná pracovná vetva dávky 29](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-world-batch29-20261106) pripravuje **4 nové referencie / 36 PNG**: Schwendermarkt (AT), Durisima Radio (CO), 2000er Hits by MineMusic a Radio AENA (DE). [Zdrojový plán `de00619`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/de00619a5c74cc45a7f5e73cc0ef315f5464204d) uchováva dôkazy a 16 odložených kandidátov. Žiadna hotová referencia ani schválené PNG sa neprekresľovali. Nové balíky zostávajú staging, bez zápisu do živého indexu.
+
 
 ### 6. 11. 2026 – produkčná publikácia dávok 23–27
 
@@ -116,5 +125,5 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 1. Pokračovať od krajinských kandidátov dávky 27. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
-3. Pripraviť samostatnú testovaciu verziu na fyzické overenie. Produkčné vydanie IPK vyžaduje výslovný súhlas.
+3. Fyzicky overiť pripravenú verziu 0.1.9-test1 podľa skúšobného postupu; stabilné vydanie zostáva pozastavené.
 4. Overiť nové správanie na fyzickom prijímači a zapísať výsledok oddelene od CI a lokálnych testov.

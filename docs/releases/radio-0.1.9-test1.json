@@ -1,0 +1,145 @@
+{
+  "date": "2026-11-06",
+  "status": "receiver-test-only",
+  "version": "0.1.9-test1",
+  "radio_production_base": "428f64a3cedfa4eabf09d1986ffb98477a0cb897",
+  "approved_radio_merge": "095e88dbec8a9504931978a6c79b378dd753b5b2",
+  "piconhub_production_commit": "648c52b5cc69038bd1b6a1d7ad5b5514c308458d",
+  "candidate_source_commit": "101445efe2c6e90634928ca65bde3352f0838840",
+  "runtime_changes_from_production": [
+    "version.txt only"
+  ],
+  "build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.9-test1-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.9-test1_all.ipk",
+    "sha256": "4091be762cb772ff240027eddbadd1dcfc2c5d320eaf202aae3aa502e4735cef",
+    "bytes": 3175204,
+    "files": 115
+  },
+  "reproducible_local_ci_bytes": true,
+  "unit_tests": 159,
+  "native_replays": {
+    "OpenPLi 9.2": 73,
+    "OpenATV 8.1 reviewed base": 73,
+    "OpenATV 8.0-next": 73
+  },
+  "ci_url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/42227033576",
+  "ipk_verification": {
+    "architecture": "all",
+    "python_grammar": "3.9",
+    "payload_scope": "owned plugin and documentation paths only",
+    "offline_maintainer_scripts": "pass",
+    "upgrade_version_order": "0.1.8-1 < 0.1.9-test1-1 < 0.1.10-1"
+  },
+  "downloader": {
+    "version": "0.1.9-test1",
+    "index_url": "https://raw.githubusercontent.com/Evolution-by-Warder/PiconHub-Warder-Evolution/main/picons/radio-world/catalog/countries.json",
+    "index_sha256": "4eeb574748362d215ae5ce71e945a2e768f4f7e0128e21a5bb6f8cdd3b8e5613",
+    "countries": 219,
+    "available_countries": [
+      "SK",
+      "CZ",
+      "AR",
+      "AT",
+      "CL",
+      "DE",
+      "GR",
+      "HU",
+      "LT",
+      "PL",
+      "RO",
+      "LK",
+      "SE",
+      "UA",
+      "GB",
+      "US"
+    ],
+    "covered_country_references": 491,
+    "styles": [
+      {
+        "style": "transparent",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "white",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "black",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      }
+    ],
+    "receiver_hardware_tested": false
+  },
+  "local_live_attempt": "First transparent replay installed 489, preserved one custom file; Sweden archive timed out. Full clean replay on GitHub CI passed all countries and styles.",
+  "publication": {
+    "stable_release": false,
+    "testing_release": false,
+    "stable_feed_changed": false,
+    "testing_feed_changed": false,
+    "delivery": "direct test IPK and CI artifact only"
+  },
+  "receiver_hardware_tested": false,
+  "next_stable_version_note": "Use a version newer than 0.1.9-test1 under both opkg and plugin ordering, e.g. 0.1.10. No stable release authorized."
+}
