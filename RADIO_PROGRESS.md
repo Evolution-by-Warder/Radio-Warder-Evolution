@@ -39,6 +39,13 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – dávka 33, obnovené zdroje a overená miestna integrácia
+
+- Z 19 dodaných častí (6/6/7) boli zložené všetky tri pôvodné archívy. Veľkosti, SHA-256, ZIP CRC a SHA-256 troch vložených manifestov sa zhodujú s GitHub checkpointom. Všetkých 5 400 položiek PNG sa zhoduje s uloženým inventárom podľa SHA-256, Git blob SHA-1 a veľkosti. [Dôkaz obnovy](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/446b4540b7d948584ab50ddeb254b54265c83718).
+- Miestne integrovaných **586 referencií / 5 274 PNG** v 19 krajinách. Všetkých **171 krajinských ZIPov** sa bitovo zhoduje s historickým preflightom. Nezávislá kontrola potvrdila SHA-256 **990 pôvodných PNG** v dotknutých balíkoch. Odložených 14 referencií stále čaká na vyriešenie zaradenia HDF/krajina.
+- Miestny navrhovaný index eviduje **219 krajín, 33 dostupných a 1 085 pokrytých referencií**. Downloader stabilného Radio 0.1.9.2 nainštaloval pri 220×132 pre každé z troch pozadí 669 spravovaných PNG, zachoval jeden vlastný picon, obľúbené, históriu aj nastavenia. Opakovanie použilo nula ZIPov. Skúška bežala nad lokálnymi nemennými kandidátmi a verifikovanými katalógovými vstupmi. [Dôkaz replayu](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/0e4ea6555ea92fb7522032ce89cfe8f8d0b87ce8).
+- Na GitHube sú uložené dôkazy. Tri zdrojové ZIPy ani krajinské binárne balíky dávky 33 zatiaľ na pracovnej vetve nie sú a `source-ready.json` nebol vytvorený. Existujúce pripojenie nemá operáciu pre priamy binárny upload do pracovného draftu. Po sprístupnení schváleného binárneho prenosu overiť na GitHube všetky tri vstupy a až potom spustiť pracovné integračné CI. Produkcia sa nemenila.
+
 ### 6. 11. 2026 – dávka 33, overený audit obnovy
 
 - [Checkpoint `f65e4f92`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/f65e4f925483124f8a11ae3283232ff0f2ec7ae5) a [výsledok GitHub Actions](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42261440557). Audit prešiel aktuálne špičky 60 vetiev, 425 rádiových ZIP objektov, 84 záznamov artefaktov a 30 záznamov súborov vydaní. Podľa SHA-256 našiel **9 z 5 400 položiek PNG**. V tomto rozsahu chýba **5 391 položiek (5 211 unikátnych PNG)**. [Očakávané zdrojové ZIPy, veľkosti a SHA-256](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/f65e4f925483124f8a11ae3283232ff0f2ec7ae5/picons/radio-world/staging/batch-33/recovery-audit/remote-audit.verified.json) · [Presný zoznam chýbajúcich vstupov](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/f65e4f925483124f8a11ae3283232ff0f2ec7ae5/picons/radio-world/staging/batch-33/recovery-audit/missing-inputs.verified.json).
@@ -241,7 +248,7 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Zostávajúce úlohy
 
-1. Dávka 32 už začlenila staging dávky 29–31 do AT, CO a DE. Pri dávke 33 nadviazať na vyššie uvedený audit, získať tri zdrojové ZIPy a overiť ich pred integračným CI.
+1. Dávka 33 má obnovené tri pôvodné ZIPy a overené miestne balíky. Nadviazať ich schváleným binárnym prenosom a pracovným integračným CI.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
 3. Stabilná 0.1.9.2 je schválená, publikovaná a automaticky aj verejne overená; oba v2 kanály umožňujú priamu aktualizáciu aj z fyzicky testovanej revízie 2.
 4. Fyzické overenie YouTube UI aj oboch modrých aktualizačných okien používateľom je zapísané. Prípadné následné fyzické overenie migrácie stabilného balíka evidovať oddelene od automatických opkg skúšok.
