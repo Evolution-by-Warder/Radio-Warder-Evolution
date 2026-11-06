@@ -78,7 +78,11 @@ class UpdateTests(unittest.TestCase):
             return io.BytesIO(json.dumps(manifest(VERSION,channel)).encode())
         for installed in ['0.1.1','0.1.2-test1','0.1.2-test2','0.1.2-test3','0.1.3']:
             with self.subTest(installed=installed):
-                self.assertEqual(update.check_release(installed,opener).version,VERSION)
+                if '-test' in VERSION and '-test' not in installed:
+                    with self.assertRaisesRegex(update.UpdateError, 'Development build in stable channel'):
+                        update.check_release(installed,opener)
+                else:
+                    self.assertEqual(update.check_release(installed,opener).version,VERSION)
                 self.assertTrue(calls[-1].endswith('/testing.json' if '-test' in installed else '/stable.json'))
         self.assertIsNone(update.check_release(VERSION,opener))
 
