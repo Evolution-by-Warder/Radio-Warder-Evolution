@@ -151,5 +151,8 @@
   "Checking picon availability…": "Ověřuje se dostupnost piconů…",
   "Picons not published: {country}": "Picony nejsou publikovány: {country}",
   "Update available: {version}": "Dostupná aktualizace: {version}",
-  "No YouTube video could be found for the current song.": "Pro aktuální skladbu se nepodařilo najít video na YouTube."
+  "No YouTube video could be found for the current song.": "Pro aktuální skladbu se nepodařilo najít video na YouTube.",
+  "Yes": "Ano",
+  "No": "Ne",
+  "A new version is available. Do you want to install it?": "Je dostupná nová verze. Chcete ji nainstalovat?"
 }

@@ -1,7 +1,7 @@
-name: Radio 0.1.9.1-test1 receiver candidate (no publishing)
+name: Radio 0.1.9.1-test1-r2 receiver candidate (no publishing)
 on:
   push:
-    branches: [work/radio-youtube-info-0.1.9.1-test1-20261106]
+    branches: [work/radio-update-confirm-0.1.9.1-test1-r2-20261106]
     paths:
       - '.github/workflows/radio-receiver-candidate.yml'
       - 'src/**'
@@ -28,6 +28,11 @@ jobs:
         env:
           PYTHONPATH: src
         run: python3 -m unittest discover -s tests -v > dist/unit.log 2>&1
+      - name: Build and verify private receiver revision
+        run: |
+          python3 tools/build_ipk.py --package-revision 2
+          python3 tools/verify_ipk.py
+          python3 tools/verify_confirm_candidate.py
       - name: Replay pinned native widgets
         run: |
           python3 tools/fetch_native.py
@@ -39,10 +44,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: warder-radio-0.1.9.1-test1-receiver-test
+          name: warder-radio-0.1.9.1-test1-r2-receiver-test
           path: |
-            dist/*.ipk
+            dist/*-2_all.ipk
             dist/build.json
             dist/SHA256SUMS
             dist/receiver-candidate-proof.json
+            dist/confirmation-candidate-proof.json
             dist/*.log

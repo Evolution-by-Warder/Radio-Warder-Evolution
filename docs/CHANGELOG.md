@@ -1,3 +1,17 @@
+# 0.1.9.2 (owner-verified blue update confirmation)
+
+- Promote the physically verified 0.1.9.1-test1 revision 2 confirmation unchanged:
+  translucent blue Warder panel, cyan frame, centered typography, target version
+  and Yes/No. No remains the default; arrows select, OK confirms, EXIT cancels.
+- Retain the approved installation progress, all existing update safety checks,
+  YouTube information window, radio/video playback and the other screen designs.
+- Update directly from stable 0.1.9.1 and earlier supported test/stable builds,
+  including private test1 revision 2. Both v2 channels offer stable 0.1.9.2; no
+  new compatibility bridge or packaging downgrade is required.
+- Preserve settings, favourites, history, custom stations, user picons and the
+  online 219-country catalogue. Prior release assets and the legacy bridge stay
+  immutable. No satellite picons or external skin are changed.
+
 # 0.1.9.1 (owner-verified Warder YouTube information window)
 
 - Promote exactly the physically verified 0.1.9.1-test1 YouTube notice: approved

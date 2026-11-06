@@ -1213,12 +1213,7 @@ class WarderRadio(Screen):
 
     def confirm_update(self, release):
         self.update_release = release
-        if self.mode == 'settings':
-            self.settings_form.confirm(t('Install update {version}?').format(version=release.version), self.update_answered)
-            return
-        self.session.openWithCallback(self.update_answered, MessageBox,
-            t('Install update {version}?').format(version=release.version),
-            type=MessageBox.TYPE_YESNO, default=False)
+        self.session.openWithCallback(self.update_answered, UpdateResult, 'confirm', release.version)
 
     def update_answered(self, accepted):
         if not accepted or self.closed or self.installing:

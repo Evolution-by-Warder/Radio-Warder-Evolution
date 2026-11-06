@@ -151,5 +151,8 @@
   "Checking picon availability…": "Tikrinamas piktogramų prieinamumas…",
   "Picons not published: {country}": "Piktogramos nepaskelbtos: {country}",
   "Update available: {version}": "Yra naujinys: {version}",
-  "No YouTube video could be found for the current song.": "Dabartinei dainai „YouTube“ vaizdo įrašo rasti nepavyko."
+  "No YouTube video could be found for the current song.": "Dabartinei dainai „YouTube“ vaizdo įrašo rasti nepavyko.",
+  "Yes": "Taip",
+  "No": "Ne",
+  "A new version is available. Do you want to install it?": "Yra nauja versija. Ar norite ją įdiegti?"
 }

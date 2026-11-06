@@ -151,5 +151,8 @@
   "Checking picon availability…": "Pikonok elérhetőségének ellenőrzése…",
   "Picons not published: {country}": "Még nem közzétett pikonok: {country}",
   "Update available: {version}": "Elérhető frissítés: {version}",
-  "No YouTube video could be found for the current song.": "Az aktuális zeneszámhoz nem található videó a YouTube-on."
+  "No YouTube video could be found for the current song.": "Az aktuális zeneszámhoz nem található videó a YouTube-on.",
+  "Yes": "Igen",
+  "No": "Nem",
+  "A new version is available. Do you want to install it?": "Új verzió érhető el. Szeretné telepíteni?"
 }

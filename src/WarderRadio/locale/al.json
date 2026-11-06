@@ -151,5 +151,8 @@
   "Checking picon availability…": "Po kontrollohet disponueshmëria e pikonave…",
   "Picons not published: {country}": "Pikonat nuk janë publikuar: {country}",
   "Update available: {version}": "Përditësim i disponueshëm: {version}",
-  "No YouTube video could be found for the current song.": "Nuk u gjet video në YouTube për këngën aktuale."
+  "No YouTube video could be found for the current song.": "Nuk u gjet video në YouTube për këngën aktuale.",
+  "Yes": "Po",
+  "No": "Jo",
+  "A new version is available. Do you want to install it?": "Një version i ri është i disponueshëm. Dëshironi ta instaloni?"
 }

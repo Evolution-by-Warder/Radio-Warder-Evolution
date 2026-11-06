@@ -151,5 +151,8 @@
   "Checking picon availability…": "Pikon kullanılabilirliği denetleniyor…",
   "Picons not published: {country}": "Pikonlar yayımlanmadı: {country}",
   "Update available: {version}": "Güncelleme mevcut: {version}",
-  "No YouTube video could be found for the current song.": "Geçerli şarkı için YouTube’da video bulunamadı."
+  "No YouTube video could be found for the current song.": "Geçerli şarkı için YouTube’da video bulunamadı.",
+  "Yes": "Evet",
+  "No": "Hayır",
+  "A new version is available. Do you want to install it?": "Yeni bir sürüm mevcut. Yüklemek istiyor musunuz?"
 }

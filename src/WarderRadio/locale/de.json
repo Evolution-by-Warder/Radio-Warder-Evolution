@@ -151,5 +151,8 @@
   "Checking picon availability…": "Picon-Verfügbarkeit wird geprüft…",
   "Picons not published: {country}": "Picons nicht veröffentlicht: {country}",
   "Update available: {version}": "Aktualisierung verfügbar: {version}",
-  "No YouTube video could be found for the current song.": "Für den aktuellen Titel wurde kein Video auf YouTube gefunden."
+  "No YouTube video could be found for the current song.": "Für den aktuellen Titel wurde kein Video auf YouTube gefunden.",
+  "Yes": "Ja",
+  "No": "Nein",
+  "A new version is available. Do you want to install it?": "Eine neue Version ist verfügbar. Möchten Sie sie installieren?"
 }

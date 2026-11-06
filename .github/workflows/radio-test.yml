@@ -67,6 +67,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: sh tools/run_0191_opkg_checks.sh
+      - name: Verify real offline 0.1.9.2 upgrades
+        if: env.RADIO_VERSION == '0.1.9.2'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh tools/run_0192_opkg_checks.sh
       - name: Verify live picon downloader in all backgrounds
         run: python3 tools/verify_receiver_candidate.py
       - name: Verify current-song artwork against live provider
@@ -186,6 +191,9 @@ jobs:
       - name: Verify published 0.1.9.1 channels
         if: env.RADIO_VERSION == '0.1.9.1'
         run: python3 tools/verify_public_0191.py
+      - name: Verify published 0.1.9.2 channels
+        if: env.RADIO_VERSION == '0.1.9.2'
+        run: python3 tools/verify_public_0192.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

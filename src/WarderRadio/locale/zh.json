@@ -151,5 +151,8 @@
   "Checking picon availability…": "正在检查台标可用状态…",
   "Picons not published: {country}": "台标尚未发布：{country}",
   "Update available: {version}": "有可用更新：{version}",
-  "No YouTube video could be found for the current song.": "未能在 YouTube 上找到当前歌曲的视频。"
+  "No YouTube video could be found for the current song.": "未能在 YouTube 上找到当前歌曲的视频。",
+  "Yes": "是",
+  "No": "否",
+  "A new version is available. Do you want to install it?": "有新版本可用。是否安装？"
 }
