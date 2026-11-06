@@ -23,10 +23,12 @@ MAX_IPK_BYTES = 128 * 1024 * 1024
 # opkg order puts 0.1.9-testN above 0.1.9. A discoverable test3 bridge first
 # updates that installer, then reads the stable feed after GUI restart.
 TESTER_BRIDGE_VERSION = '0.1.9-test3'
+# Each test-to-stable exception is restricted to an installed migration build.
+TESTER_MIGRATIONS = {TESTER_BRIDGE_VERSION: '0.1.9', '0.1.9.1-test2': '0.1.9.1'}
 
 
 def release_channel(current_version):
-    if current_version == TESTER_BRIDGE_VERSION:
+    if current_version in TESTER_MIGRATIONS:
         return 'stable'
     return 'testing' if '-test' in current_version else 'stable'
 
@@ -236,7 +238,7 @@ def verify_installation(expected_version, runner=subprocess.run, runtime=None):
 
 
 def install_release(release, opener=_open, runner=subprocess.run, verifier=verify_installation, progress=None):
-    """Install verified bytes after confirmation; handle one exact test migration."""
+    """Install verified bytes after confirmation; handle exact test migrations."""
     with tempfile.TemporaryDirectory(prefix="warder-radio-update-") as temporary:
         path = download_release(release, pathlib.Path(temporary) / "update.ipk", opener, progress)
         if progress is not None:
@@ -245,7 +247,7 @@ def install_release(release, opener=_open, runner=subprocess.run, verifier=verif
         if progress is not None:
             progress("install")
         command = ['opkg', 'install', str(path)]
-        if release.version == '0.1.9' and verify_payload() == TESTER_BRIDGE_VERSION:
+        if release.version in TESTER_MIGRATIONS.values() and TESTER_MIGRATIONS.get(verify_payload()) == release.version:
             # Only this known packaging-order transition may bypass the opkg
             # downgrade guard. Identity, SHA-256, size, payload version and final
             # installed state remain mandatory; all other installs are ordinary.

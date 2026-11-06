@@ -1,7 +1,7 @@
-name: Stable 0.1.9 real package migration check
+name: Stable 0.1.9.1 real package migration check
 on:
   push:
-    branches: [release/radio-0.1.9-20261106]
+    branches: [release/radio-0.1.9.1-20261106]
     paths:
       - 'src/**'
       - 'tools/**'
@@ -27,11 +27,11 @@ jobs:
       - name: Test real opkg installs with the original installed updater
         env:
           GH_TOKEN: ${{ github.token }}
-        run: sh tools/run_019_opkg_checks.sh
+        run: sh tools/run_0191_opkg_checks.sh
       - name: Verify live picon packages and user data
         run: python3 tools/verify_receiver_candidate.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: radio-019-upgrade-proof
+          name: radio-0191-upgrade-proof
           path: dist/

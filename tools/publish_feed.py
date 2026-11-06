@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 build = json.loads((ROOT / 'dist/build.json').read_text())
 version = (ROOT / 'src/WarderRadio/version.txt').read_text().strip()
 assert build['version'] == version + '-1'
-assert re.fullmatch(r'\d+\.\d+\.\d+(?:-test\d+)?', version)
+assert re.fullmatch(r'\d+\.\d+\.\d+(?:\.\d+)?(?:-test\d+)?', version)
 is_testing = '-test' in version
 assert build['file'] == 'enigma2-plugin-extensions-radio-warder-evolution_' + version + '_all.ipk'
 tag = 'warder-radio-v' + version
@@ -42,17 +42,18 @@ target.write_text(json.dumps(feed, indent=2) + '\n')
 # The stable release outranks all earlier 0.1.0-testN versions for both the
 # internal version comparator and opkg packaging (stable is 0.1.1).
 if not is_testing:
-    if version == '0.1.9':
+    if version in ('0.1.9', '0.1.9.1'):
         tester = json.loads((ROOT / 'dist/tester-bridge/build.json').read_text())
-        assert tester['version'] == '0.1.9-test3-1'
-        tester_tag = 'warder-radio-v0.1.9-test3'
+        bridge_version = '0.1.9.1-test2' if version == '0.1.9.1' else '0.1.9-test3'
+        assert tester['version'] == bridge_version + '-1'
+        tester_tag = 'warder-radio-v' + bridge_version
         tester_url = ('https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/'
                       + tester_tag + '/' + tester['file'])
         verify_public(tester_url, tester)
-        tester_release = {'version': '0.1.9-test3', 'tag': tester_tag, 'url': tester_url,
+        tester_release = {'version': bridge_version, 'tag': tester_tag, 'url': tester_url,
                          'sha256': tester['sha256'], 'bytes': tester['bytes'],
-                         'notes': 'Compatibility step: after GUI restart use Update again to install stable 0.1.9.',
-                         'notes_i18n': {}, 'migration_target': '0.1.9'}
+                         'notes': 'Compatibility step: after GUI restart use Update again to install stable ' + version + '.',
+                         'notes_i18n': {}, 'migration_target': version}
         testing_feed = dict(feed, channel='testing', release=tester_release)
     else:
         testing_feed = dict(feed, channel='testing')

@@ -62,6 +62,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: sh tools/run_019_opkg_checks.sh
+      - name: Verify real offline 0.1.9.1 upgrades
+        if: env.RADIO_VERSION == '0.1.9.1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh tools/run_0191_opkg_checks.sh
       - name: Verify live picon downloader in all backgrounds
         run: python3 tools/verify_receiver_candidate.py
       - name: Verify current-song artwork against live provider
@@ -133,12 +138,13 @@ jobs:
             fi
             gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json
           fi
-          if [ "$RADIO_VERSION" = "0.1.9" ]; then
-          tester_tag="warder-radio-v0.1.9-test3"
+          if [ "$RADIO_VERSION" = "0.1.9" ] || [ "$RADIO_VERSION" = "0.1.9.1" ]; then
+          tester_version=$(python3 -c "import json; print(json.load(open('dist/tester-bridge/build.json'))['version'].removesuffix('-1'))")
+          tester_tag="warder-radio-v$tester_version"
           if ! gh release view "$tester_tag" >/dev/null 2>&1; then
             gh release create "$tester_tag" --target "$GITHUB_SHA" --prerelease \
-              --title "Warder Radio 0.1.9 tester migration" \
-              --notes "Compatibility step for installed 0.1.9-test1/test2. After GUI restart use Update again to install stable 0.1.9. No manual IPK copy is needed."
+              --title "Warder Radio $tester_version tester migration" \
+              --notes "Compatibility step for installed test builds. After GUI restart use Update again to install stable $RADIO_VERSION. No manual IPK copy is needed."
             gh release upload "$tester_tag" dist/tester-bridge/*.ipk dist/tester-bridge/SHA256SUMS dist/tester-bridge/build.json
           else
             mkdir -p dist/tester-published
@@ -177,6 +183,9 @@ jobs:
       - name: Verify published stable and tester migration feeds
         if: env.RADIO_VERSION == '0.1.9'
         run: python3 tools/verify_public_019.py
+      - name: Verify published 0.1.9.1 channels
+        if: env.RADIO_VERSION == '0.1.9.1'
+        run: python3 tools/verify_public_0191.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

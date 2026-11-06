@@ -39,6 +39,14 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – schválená stabilná 0.1.9.1, príprava vydania
+
+- Používateľ fyzicky potvrdil úspech 0.1.9.1-test1: YouTube okno, schválený Warder dizajn a zatváranie fungujú. Výslovne schválil stabilnú 0.1.9.1, merge, Release a stabilný aktualizačný kanál. Model prijímača a presný image neboli uvedené.
+- Vetva `release/radio-0.1.9.1-20261106` vychádza z presne otestovanej vetvy `5c7436e56df820e1f2eb5147f81b32b2bfae8801` (kód `5a22be9`). Produkčný základ Radio `cbe4470`, PiconHub `648c52b`, posledná piconová dávka 30 `be28d0e`. Nové UI/YouTube zmeny sa nerobia; mení sa označenie verzie a nevyhnutný vydávací/migračný mechanizmus.
+- opkg radí 0.1.9.1-test1 nad 0.1.9.1. Testing preto poskytne samostatnú migračnú 0.1.9.1-test2, ktorej updater po reštarte číta stable a povoľuje downgrade iba pre presný pár test2 → 0.1.9.1 po overení hash/veľkosti/identity a výsledného opkg stavu. Stabilná 0.1.9 aktualizuje priamo. Starší test2 z radu 0.1.9 môže použiť rovnaký most; pôvodná test3 číta stable priamo. Staršie bridge assets ostanú nemenné.
+- Lokálne prešlo 167 unit testov (163 úspešných; 4 historické testy výhradne pre 0.1.9 preskočené), vrátane zmrazeného updatera fyzicky overeného test1, presných migračných výnimiek, odmietania iného kanála/poškodeného IPK a oddeleného publikovania feedov. Nasledujú natívne replaye, CI a reálny opkg 0.3.3/0.6.1 pre 0.1.8, 0.1.9, starý test2 aj nový test1. Dáta používateľa, katalóg 219 krajín a rádio/picony zostávajú zachované; do satelitných piconov ani skinu sa nezasahuje. Stav: schválené na publikovanie po úspešných kontrolách, zatiaľ nevydané.
+
+
 ### 6. 11. 2026 – YouTube hlásenie vo Warder dizajne, pracovný test
 
 - Samostatná vetva `work/radio-youtube-info-0.1.9.1-test1-20261106` vychádza z produkčného `cbe44708caf3b8a597c071f951f97f5f529058c4`. Na výslovnú žiadosť používateľa sa pripravuje iba testovacie IPK; main, stabilné vydanie 0.1.9 a oba aktualizačné kanály zostávajú nedotknuté.

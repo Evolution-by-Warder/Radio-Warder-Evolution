@@ -1,3 +1,15 @@
+# 0.1.9.1 (owner-verified Warder YouTube information window)
+
+- Promote exactly the physically verified 0.1.9.1-test1 YouTube notice: approved
+  Warder update-result design, OK/EXIT and the original 8-second timeout.
+- Retain YouTube search, video/radio playback, all other screen designs, all 219
+  countries, online counts, settings, favourites, history and user-owned picons.
+- Stable 0.1.9 updates directly through Update, green and confirmation. Installed
+  test builds receive the 0.1.9.1-test2 migration build first, then stable 0.1.9.1
+  after GUI restart and another Update. Only the exact bridge-to-stable pair
+  permits opkg's packaging-order downgrade, after full integrity checks.
+- Prior immutable releases and the legacy package-name migration are retained.
+
 # 0.1.9 (owner-verified universal countries and update results)
 
 - Promote the physically verified 0.1.9-test2 country navigation and Warder update
