@@ -29,6 +29,11 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – dávka 25
+
+- [Pracovný manifest](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/3cf90597d6fd644e257ff79d231332c6fc7d9e46/picons/radio-world/staging/batch-25/manifest.json) obsahuje 4 referencie USA a 36 PNG. Backlink Broadcast, Grok and Roll, OpenAir a Thinking Frequencies majú pôvodné grafiky prevádzkovateľa a zhodu presných streamov s katalógom.
+- [Zostavenie](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42203293074) prešlo po oprave zápisu príkazu v prvom behu. Deväť ZIPov bolo opätovne stiahnutých a overených. Dávky 24 a 25 spolu pridávajú 20 navzájom odlišných pracovných referencií a 180 PNG. Zlúčenie s úplným historickým inventárom checkpointu 22 zostáva otvorené.
+
 ### 6. 11. 2026 – integrácia krajín a manifestov
 
 - [Radio PR #15](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/15) pridáva Argentínu, Švédsko, Ukrajinu, Spojené kráľovstvo a USA s názvami vo všetkých 21 jazykoch. Nemecko využíva existujúci výber. Automatický rozmer v prijímači je 220×132. Kandidátske balíky obsahujú aj 50×30 a 400×240, každý v troch pozadiach.
@@ -56,7 +61,7 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Zostávajúce úlohy
 
-1. Naviazať na dávku 23. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
+1. Naviazať na dávky 24 a 25 a pripraviť ich zlúčenie do pracovných krajinských balíkov. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
 3. Predložiť overenú integráciu krajín na schválenie. Po schválení postupovať v poradí PiconHub PR #64, overenie živých balíkov, Radio PR #15 a samostatné schválenie vydania.
 4. Overiť nové správanie na fyzickom prijímači a zapísať výsledok oddelene od CI a lokálnych testov.
