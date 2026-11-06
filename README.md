@@ -16,7 +16,7 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current release: **0.1.9**, with a Settings action that switches between Stop
+Current release: **0.1.9.1**, with a Settings action that switches between Stop
 radio playback and Start radio playback. Starting restores the stopped radio
 even after a different station is highlighted, without adding duplicate history.
 Picon download progress, ordered log and final
@@ -63,7 +63,7 @@ catalogue countries and online package availability. Unpublished countries stay
 visible; partial packages can be downloaded. Further country publication needs
 only packages and an index update, with no new IPK. The receiver downloads only
 220×132 in the chosen background. See [the architecture and publication order](docs/picon-country-availability.md).
-The owner physically verified 0.1.9-test2 and approved stable 0.1.9. Country paging uses the native visible page; OK alone toggles countries. Manual update results use a separate Warder dialog; OK/EXIT close it and green continues to the existing installation confirmation.
+The owner physically verified 0.1.9.1-test1 and approved stable 0.1.9.1. The YouTube no-result notice now uses the same Warder dialog design, with OK/EXIT and the original eight-second timeout; search and playback remain unchanged. Country paging uses the native visible page; OK alone toggles countries. Manual update results use a separate Warder dialog; OK/EXIT close it and green continues to the existing installation confirmation.
 
 ## Included
 
@@ -151,11 +151,14 @@ When a release is available, press green in the result window, then confirm the
 installation. SHA-256, package identity and installed state are verified before
 success and the GUI restart. No manual IPK download is needed.
 
-Stable 0.1.8 upgrades directly to 0.1.9. Installed 0.1.9-test1/test2 use the
-intentional 0.1.9-test3 compatibility prerelease first; after GUI restart, use
-Update once more for stable 0.1.9. The testing feed intentionally offers test3,
-whose updater then reads the stable feed. This avoids opkg treating the final
-0.1.9 package as an older build. All user files are retained.
+Stable 0.1.8/0.1.9 upgrade directly to 0.1.9.1. Installed 0.1.9-test1/test2
+and 0.1.9.1-test1 use the intentional 0.1.9.1-test2 compatibility prerelease
+first; after GUI restart, use Update once more for stable 0.1.9.1. The testing
+feed intentionally offers this migration, whose updater then reads stable.
+Existing 0.1.9-test3 already reads stable directly. This avoids opkg treating
+the matching stable package as older. All user files are retained. See the
+[0.1.9.1 update guide](docs/stable-update-0.1.9.1.md) and
+[verified release record](docs/releases/radio-0.1.9.1.json).
 
 The installed 0.1.8/test2 verifier may report "Warder Radio package is not
 completely installed" after a successful first update, because it only accepts
@@ -168,7 +171,7 @@ blindly after a different error; that error needs its own diagnosis.
 For a first installation only, copy the IPK to `/tmp`, then run:
 
 ```sh
-opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.9_all.ipk
+opkg install /tmp/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1_all.ipk
 ```
 
 Restart the GUI manually, then open **Radio Warder Evolution** from Plugins or Extensions.

@@ -669,5 +669,7 @@
     "future_stable_recognized": true,
     "receiver_hardware_tested": false
   },
-  "publication_result": "success"
+  "publication_result": "success",
+  "independent_local_public_verifier": "success; original and new updaters downloaded and validated public IPKs after publication",
+  "reproducible_release_source": "Build tag warder-radio-v0.1.9.1 / commit 3ab96a529de859d445a8d03ed1c37f9a5f5d6170. Later documentation commits update the repository README without replacing the immutable released package."
 }
