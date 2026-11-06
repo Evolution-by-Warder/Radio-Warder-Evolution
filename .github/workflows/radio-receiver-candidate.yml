@@ -1,12 +1,12 @@
-name: Radio 0.1.9-test1 receiver candidate (no publishing)
+name: Radio 0.1.9-test2 receiver candidate (no publishing)
 on:
   push:
-    branches: [work/radio-0.1.9-test1-219-countries-20261106]
+    branches: [work/radio-0.1.9-test2-navigation-update-20261106]
     paths:
       - '.github/workflows/radio-receiver-candidate.yml'
-      - 'src/WarderRadio/version.txt'
-      - 'tools/verify_receiver_candidate.py'
-      - 'tests/test_update.py'
+      - 'src/**'
+      - 'tools/**'
+      - 'tests/**'
 permissions:
   contents: read
 jobs:
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: warder-radio-0.1.9-test1-receiver-test
+          name: warder-radio-0.1.9-test2-receiver-test
           path: |
             dist/*.ipk
             dist/build.json

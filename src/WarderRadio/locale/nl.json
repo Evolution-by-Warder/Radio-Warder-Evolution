@@ -149,5 +149,6 @@
   "Unavailable": "Niet beschikbaar",
   "Using saved picon availability": "Opgeslagen piconbeschikbaarheid wordt gebruikt",
   "Checking picon availability…": "Beschikbaarheid van picons controleren…",
-  "Picons not published: {country}": "Picons niet gepubliceerd: {country}"
+  "Picons not published: {country}": "Picons niet gepubliceerd: {country}",
+  "Update available: {version}": "Update beschikbaar: {version}"
 }

@@ -149,5 +149,6 @@
   "Unavailable": "Pole saadaval",
   "Using saved picon availability": "Kasutatakse salvestatud pikonite saadavust",
   "Checking picon availability…": "Pikonite saadavuse kontrollimine…",
-  "Picons not published: {country}": "Pikonid pole avaldatud: {country}"
+  "Picons not published: {country}": "Pikonid pole avaldatud: {country}",
+  "Update available: {version}": "Uuendus on saadaval: {version}"
 }

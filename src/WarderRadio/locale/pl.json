@@ -149,5 +149,6 @@
   "Unavailable": "Niedostępne",
   "Using saved picon availability": "Używana jest zapisana dostępność pikonów",
   "Checking picon availability…": "Sprawdzanie dostępności pikonów…",
-  "Picons not published: {country}": "Pikony nie zostały opublikowane: {country}"
+  "Picons not published: {country}": "Pikony nie zostały opublikowane: {country}",
+  "Update available: {version}": "Dostępna aktualizacja: {version}"
 }

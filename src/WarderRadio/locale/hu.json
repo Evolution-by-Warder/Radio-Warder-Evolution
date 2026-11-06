@@ -149,5 +149,6 @@
   "Unavailable": "Nem érhető el",
   "Using saved picon availability": "A mentett pikonelérhetőség használata",
   "Checking picon availability…": "Pikonok elérhetőségének ellenőrzése…",
-  "Picons not published: {country}": "Még nem közzétett pikonok: {country}"
+  "Picons not published: {country}": "Még nem közzétett pikonok: {country}",
+  "Update available: {version}": "Elérhető frissítés: {version}"
 }

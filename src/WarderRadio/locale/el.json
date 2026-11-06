@@ -149,5 +149,6 @@
   "Unavailable": "Μη διαθέσιμο",
   "Using saved picon availability": "Χρήση αποθηκευμένης διαθεσιμότητας εικονιδίων",
   "Checking picon availability…": "Έλεγχος διαθεσιμότητας εικονιδίων…",
-  "Picons not published: {country}": "Δεν έχουν δημοσιευτεί εικονίδια: {country}"
+  "Picons not published: {country}": "Δεν έχουν δημοσιευτεί εικονίδια: {country}",
+  "Update available: {version}": "Διαθέσιμη ενημέρωση: {version}"
 }

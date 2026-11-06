@@ -149,5 +149,6 @@
   "Unavailable": "Nedostupné",
   "Using saved picon availability": "Používa sa uložená dostupnosť piconov",
   "Checking picon availability…": "Overuje sa dostupnosť piconov…",
-  "Picons not published: {country}": "Picony nie sú publikované: {country}"
+  "Picons not published: {country}": "Picony nie sú publikované: {country}",
+  "Update available: {version}": "Dostupná aktualizácia: {version}"
 }

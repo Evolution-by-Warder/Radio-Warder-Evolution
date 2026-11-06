@@ -39,6 +39,15 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – oprava navigácie a výsledku aktualizácie, 0.1.9-test2
+
+- Používateľ fyzicky otestoval `0.1.9-test1`: potvrdil fungovanie zoznamu 219 krajín, aktívne dostupné krajiny a zobrazenie počtov piconov. Toto je používateľom potvrdený fyzický rozsah; model prijímača a presná verzia image neboli uvedené. Nové opravy ešte fyzicky overené nie sú.
+- Samostatná vetva `work/radio-0.1.9-test2-navigation-update-20261106` vychádza z testovacieho základu `f26b558a4f307fd5936843516c797afe87eb10bc`. Produkčné Radio `main` je `428f64a`, PiconHub `main` je `648c52b`; posledná piconová vetva dávky 29 je `7a650606`. V tomto zadaní sa mení iba Radio.
+- V krajinskom výbere ľavá a pravá volajú natívne pageUp/pageDown. Ľavá opustí výber až pri indexe 0; hore/dole zostávajú po jednej položke. OK výhradne prepína dostupnú krajinu. Stránkovanie nemení rozpracované ani uložené označenia. Výber 219 krajín, online dostupnosť a počty ostávajú nezmenené.
+- Ručná kontrola aktualizácie otvára samostatné bezrámové informačné okno Warder Radio pre aktuálnu verziu, dostupnú aktualizáciu aj zlyhanie vrátane odmietnutej pracovnej fronty. OK/EXIT zatvárajú bez inštalácie. Pri dostupnej aktualizácii zelené tlačidlo otvorí existujúce explicitné potvrdenie; samotné zobrazenie výsledku nič neinštaluje. Bezpečný updater a priebeh inštalácie sa nemenia. Nový stav dostupnosti je preložený do všetkých 21 jazykov.
+- Lokálne prešlo 159 jednotkových testov a po 79 natívnych replayov na OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next, vrátane stránkovania v 720p/1080p/1440p/2160p a troch stavov informačného okna. Prešla kontrola IPK a gramatiky Python 3.9. Hlavný XML dizajn, downloader, model používateľských dát a bezpečný updater sú bajtovo zhodné so základom test1. GitHub CI a živý downloader sa ešte overujú. Publikácia: iba pracovná vetva a priame testovacie IPK; stabilné vydanie ani aktualizačné kanály nie sú povolené. Najbližší krok: dokončiť CI a odovzdať `0.1.9-test2` na fyzickú skúšku.
+
+
 ### 6. 11. 2026 – testovací IPK 0.1.9-test1 a pokračovanie dávkou 29
 
 - Podľa zadania je pripravený samostatný testovací balík `0.1.9-test1`, bez stabilného vydania, GitHub Release alebo zmeny aktualizačných kanálov. Základ je produkčný Radio `428f64a` po merge `095e88d` a PiconHub `648c52b`. [Zdroj testovacieho kandidáta `101445e`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/101445efe2c6e90634928ca65bde3352f0838840) mení v runtime iba `version.txt`; existujúci kód univerzálneho downloadera sa zachoval.

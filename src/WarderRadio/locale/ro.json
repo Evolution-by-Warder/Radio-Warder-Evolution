@@ -149,5 +149,6 @@
   "Unavailable": "Indisponibil",
   "Using saved picon availability": "Se folosește disponibilitatea salvată a piconurilor",
   "Checking picon availability…": "Se verifică disponibilitatea piconurilor…",
-  "Picons not published: {country}": "Piconuri nepublicate: {country}"
+  "Picons not published: {country}": "Piconuri nepublicate: {country}",
+  "Update available: {version}": "Actualizare disponibilă: {version}"
 }
