@@ -25,6 +25,11 @@ COUNTRIES = (
     ('DE', 'Germany', 'Germany', 'IPTV-DE'),
     ('HU', 'Hungary', 'Hungary', 'IPTV-HU'),
     ('PL', 'Poland', 'Poland', 'IPTV-PL'),
+    ('AR', 'Argentina', 'Argentina', 'IPTV-AR'),
+    ('SE', 'Sweden', 'Sweden', 'IPTV-SE'),
+    ('UA', 'Ukraine', 'Ukraine', 'IPTV-UA'),
+    ('GB', 'United Kingdom', 'United Kingdom', 'IPTV-GB'),
+    ('US', 'United States', 'United States', 'IPTV-US'),
 )
 STYLES = ('transparent', 'white', 'black')
 SIZE = '220x132'
