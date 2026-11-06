@@ -1,0 +1,169 @@
+{
+  "date": "2026-11-06",
+  "version": "0.1.9-test2",
+  "status": "receiver-test-only",
+  "base_commit": "f26b558a4f307fd5936843516c797afe87eb10bc",
+  "candidate_source_commit": "aece59bfc738fdb88c15c1187f002b7058334127",
+  "production_radio": "428f64a3cedfa4eabf09d1986ffb98477a0cb897",
+  "production_piconhub": "648c52b5cc69038bd1b6a1d7ad5b5514c308458d",
+  "physical_test_report": {
+    "version": "0.1.9-test1",
+    "reported_by": "owner",
+    "confirmed": [
+      "219 countries visible",
+      "available countries enabled",
+      "picon counts visible"
+    ],
+    "receiver_model": null,
+    "image_version": null,
+    "test2_hardware_tested": false
+  },
+  "changes": {
+    "navigation": "Native MenuList pageUp/pageDown for picon countries; left leaves only at index zero; OK toggles; arrow movement preserves selections",
+    "update_results": "Separate persistent Warder-style result modal for current/available/failed; OK/EXIT close without installing; green on available continues to original confirmation",
+    "translations": 21
+  },
+  "build": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.9-test2-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.9-test2_all.ipk",
+    "sha256": "81594a7401cdb52b8466ff8fc0a887a04019a8a1576aba428030f2472be30f2d",
+    "bytes": 3176184,
+    "files": 116
+  },
+  "identical_local_and_ci_ipk_bytes": true,
+  "tests": {
+    "unit": 159,
+    "native_replays_per_fixture": 79,
+    "fixtures": [
+      "OpenPLi 9.2",
+      "OpenATV 8.1 reviewed base",
+      "OpenATV 8.0-next"
+    ],
+    "navigation_resolutions": [
+      "1280x720",
+      "1920x1080",
+      "2560x1440",
+      "3840x2160"
+    ],
+    "ipk": "payload scope, Python 3.9 grammar, offline scripts pass",
+    "opkg_version_order": "0.1.9-test1-1 < 0.1.9-test2-1"
+  },
+  "ci_url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/42231547865",
+  "downloader": {
+    "version": "0.1.9-test2",
+    "index_url": "https://raw.githubusercontent.com/Evolution-by-Warder/PiconHub-Warder-Evolution/main/picons/radio-world/catalog/countries.json",
+    "index_sha256": "4eeb574748362d215ae5ce71e945a2e768f4f7e0128e21a5bb6f8cdd3b8e5613",
+    "countries": 219,
+    "available_countries": [
+      "SK",
+      "CZ",
+      "AR",
+      "AT",
+      "CL",
+      "DE",
+      "GR",
+      "HU",
+      "LT",
+      "PL",
+      "RO",
+      "LK",
+      "SE",
+      "UA",
+      "GB",
+      "US"
+    ],
+    "covered_country_references": 491,
+    "styles": [
+      {
+        "style": "transparent",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "white",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "black",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      }
+    ],
+    "receiver_hardware_tested": false
+  },
+  "unchanged_runtime_sha256": {
+    "skin.py": "3e28c0c30955494ea342923ac9984a68c7f7a683d4249a7d30100f497c91728e",
+    "picon_catalogue.py": "1786d2788e8597ac5ff2fd3fb66ffeb7aee074c4c982878de7f582d2f5b80c5b",
+    "picon_download.py": "96e5ccbdb928ac5c5505d697a2f8f295dd836cd10570f1d5077b12b624efd3f0",
+    "picon_screen.py": "b0ea687a048805fb7570799322465b678281be728fe1b545fa4e0d94661483de",
+    "warder_update.py": "44515d03a66f6743a0a8539aec908647307df026d962f7098be7f3459fec314d",
+    "model.py": "0ec424c423e6c743380f511b9588278c2c86312149beb3fdc06c88d6f73e6b66"
+  },
+  "publication": {
+    "github_release_created": false,
+    "stable_feed_changed": false,
+    "testing_feed_changed": false,
+    "production_merge": false,
+    "delivery": "direct test IPK and CI artifact"
+  },
+  "receiver_hardware_tested": false
+}
