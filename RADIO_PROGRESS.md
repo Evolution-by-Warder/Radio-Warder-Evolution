@@ -6,28 +6,44 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 | Oblasť | Vetva alebo vydanie | Posledný overený commit a stav |
 | --- | --- | --- |
-| Warder Radio | `main` | [`c988c30`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/c988c30f415eee0565a1365a5be986d36101cee5), zlúčenie dokumentácie. Posledný commit vydania na tejto vetve je [`349fd7e`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/349fd7ec25e3f7979cb28b8dab0ed5f3fbf2434b), publikácia testovacieho kanála. Aktuálne manifesty v2 pre stabilný aj testovací kanál uvádzajú [0.1.8](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.8). |
+| Warder Radio | `main` | [`095e88d`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/095e88dbec8a9504931978a6c79b378dd753b5b2), univerzálny downloader zlúčený. Stabilný aj testovací kanál naďalej uvádzajú [0.1.8](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.8). |
 | Warder Radio 0.1.8 | Zdroj vydania | [`26225c0`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/26225c0d2a61d04663c1ed3d3cf083faa0d94305), zastavenie a obnovenie prehrávania pôvodnej stanice bez duplikovania histórie. [Záznam vydania](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/blob/349fd7ec25e3f7979cb28b8dab0ed5f3fbf2434b/docs/releases/radio-resume-0.1.8.json) uvádza 148 jednotkových testov a po 70 natívnych testov na OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next. Fyzický test 0.1.8 v zázname nie je. |
-| Rádiový katalóg a živé balíky | PiconHub `main` | [`e90a1fe`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/e90a1fe3a2734b555f48f343284f9103530180fb), 40 903 servisných referencií v 219 krajinských skupinách a skupine HDF. |
+| Rádiový katalóg a živé balíky | PiconHub `main` | [`648c52b`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/648c52b5cc69038bd1b6a1d7ad5b5514c308458d), balíky cez dávku 27 a univerzálny index. Zdrojový katalóg má 40 903 servisných referencií v 219 krajinských skupinách a skupine HDF. |
 | Svetový checkpoint 22 | PiconHub `work/radio-catalogue-strict-ocr-20261105` | [`4dd8220`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/4dd8220efc5180db9e0fca56335b4a01b9193558/migration/radio-reconciled-checkpoint-20261105/summary.json), 19 756 pripravených referencií a 177 804 PNG, z toho 19 706 referencií v hlavnom katalógu checkpointu. Evidovaných 21 197 nepokrytých referencií. Stav je pracovný. |
 | Dávka 23 | PiconHub `work/warder-radio-world-batch23-20261106` | [`02aafea7`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/02aafea7e4e326aace955f72b6d20c68c7e45eba), 9 referencií a 81 PNG, pripravené v pracovnej vetve. |
 
 ## Pokrytie krajín
 
-Živé inventáre všetkých deviatich variantov pokrývajú **464 presných referencií** z aktuálneho katalógu vrátane 14 zo skupiny HDF. Úplné pokrytie krajinskej skupiny je overené pre **Slovensko a Česko**. Súčet 338 nižšie vychádza z referencií v aktuálnych krajinských skupinách. Historický audit SK/CZ r6 uvádza 320 staníc a 358 súborov na variant podľa svojho rozsahu. [Audit r6](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/e90a1fe3a2734b555f48f343284f9103530180fb/reports/radio-country-quality-20261105.json)
+[Živý online index](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/main/picons/radio-world/catalog/countries.json) eviduje **219 krajín, 16 dostupných a 491 pokrytých krajinských referencií**. Skupina HDF je vedená oddelene. Úplné pokrytie je overené pre Slovensko a Česko.
 
 | Krajina | Referencie v katalógu | Živé pokrytie | Stav |
 | --- | ---: | ---: | --- |
-| Slovensko | 89 | 89 | Úplné |
-| Česko | 249 | 249 | Úplné |
-| Rakúsko | 219 | 12 | Čiastočné |
-| Nemecko | 3 422 | 64 | Čiastočné |
-| Maďarsko | 237 | 11 | Čiastočné |
-| Poľsko | 500 | 25 | Čiastočné |
+| SK · Slovensko | 89 | 89 | Úplné |
+| CZ · Čechy | 249 | 249 | Úplné |
+| AR · Argentina | 841 | 3 | Čiastočné |
+| AT · Austria | 219 | 12 | Čiastočné |
+| CL · Chile | 415 | 1 | Čiastočné |
+| DE · Germany | 3 422 | 76 | Čiastočné |
+| GR · Greece | 1 597 | 1 | Čiastočné |
+| HU · Hungary | 237 | 11 | Čiastočné |
+| LT · Lithuania | 80 | 1 | Čiastočné |
+| PL · Poland | 500 | 25 | Čiastočné |
+| RO · Romania | 657 | 1 | Čiastočné |
+| LK · Sri Lanka | 51 | 1 | Čiastočné |
+| SE · Sweden | 115 | 1 | Čiastočné |
+| UA · Ukraine | 202 | 1 | Čiastočné |
+| GB · United Kingdom | 1 345 | 5 | Čiastočné |
+| US · United States | 4 881 | 14 | Čiastočné |
 
-[Prehľad všetkých skupín](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/02aafea7e4e326aace955f72b6d20c68c7e45eba/picons/radio-world/coverage.json) vedie živé pokrytie, dávku 23 a známe nevyriešené položky oddelene. Úplný inventár a ZIPy checkpointu 22 sa v dostupných podkladoch nepodarilo nájsť. Jedinečný súčet naprieč checkpointom a novou dávkou preto zostáva otvorený.
+Úplný inventár checkpointu 22 stále chýba. Čísla vyššie pochádzajú z produkčného indexu, historický checkpoint je vedený oddelene.
 
 ## Denník významných zmien
+
+### 6. 11. 2026 – produkčná publikácia dávok 23–27
+
+- Po výslovnom schválení zlúčený [PiconHub PR #65](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/65) ako [`648c52b`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/648c52b5cc69038bd1b6a1d7ad5b5514c308458d). Živý index a 15 manifestov sa zhodujú s pripnutými schválenými údajmi. Všetkých 135 produkčných ZIPov bolo stiahnutých a overených kontrolou SHA-256, CRC a SHA-256 členov. Zachovalo sa všetkých 4 968 pôvodných súčtov PNG z kandidáta cez dávku 26 aj pôvodné PNG zo starších živých kolekcií.
+- Po kontrole PiconHubu zlúčený [Radio PR #15](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/15) ako [`095e88d`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/095e88dbec8a9504931978a6c79b378dd753b5b2). Pred aj po zlúčení prešiel downloader s produkčným indexom, reálnymi katalógovými dátami a ZIPmi pre všetkých 16 dostupných krajín. Každé pozadie 220×132 nainštalovalo 490 piconov a zachovalo jeden používateľský. Opakovanie nevyžiadalo ZIPy.
+- Radio merge bol označený `[skip ci]`, aby sa nespustilo automatické vydávanie. Overená nulová aktivita release workflow pre tento commit, nezmenené súbory aktualizačných kanálov a nezmenené GitHub release assety. Fyzická skúška prijímača je otvorená. Príprava testovacej verzie IPK je ďalší krok.
 
 ### 6. 11. 2026 – finálna kontrola spoločného kandidáta
 
@@ -100,5 +116,5 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 1. Pokračovať od krajinských kandidátov dávky 27. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
-3. Predložiť overenú integráciu krajín na schválenie. Po schválení konkrétneho rozsahu postupovať v poradí krajinské balíky a univerzálny index, overenie živého sťahovania, Radio PR #15 a samostatné schválenie vydania. PiconHub PR #65 zahŕňa dávku 27; PR #64 zostáva starším kandidátom.
+3. Pripraviť samostatnú testovaciu verziu na fyzické overenie. Produkčné vydanie IPK vyžaduje výslovný súhlas.
 4. Overiť nové správanie na fyzickom prijímači a zapísať výsledok oddelene od CI a lokálnych testov.
