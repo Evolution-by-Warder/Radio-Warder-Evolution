@@ -39,6 +39,14 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – fyzicky schválené potvrdenie, príprava stabilnej 0.1.9.2
+
+- Používateľ fyzicky potvrdil nové modré potvrdenie aj následné okno inštalácie z test1 revízie 2. Schválil presný vzhľad, ovládanie Áno/Nie, OK/EXIT a bezpečné potvrdenie. Výslovne súhlasí s publikovaním najbližšej stabilnej opravy po úspešných testoch. Model prijímača a verzia image neboli uvedené.
+- Overený Radio main `5551691e75d397427bbea48c35547cea16b91c17`, testovaná vetva `9c3de0da920a3af2f1b3dff45546e2a7e24d49ca` (kód `5e347d5`). Otvorené PR ani novšie zmeny neboli nájdené; stabilná 0.1.9.1 a migračná test2 zostávajú nemenné. Git tag 0.1.9.2 je voľný. Samostatná vetva `release/radio-0.1.9.2-20261106` preberá schválený kód, mení iba verziu a vydávacie/testovacie podklady.
+- Vyššia stabilná 0.1.9.2 umožní priamy prechod z 0.1.9.1 aj test1 revízie 2. Existujúci publisher poskytne rovnakú 0.1.9.2 obom v2 kanálom so správnymi channel hodnotami; nevznikne ďalší migračný balík. Updater, jeho obmedzenia a oba schválené UI komponenty sú bez zmien. Pred merge nasledujú unit/native/IPK kontroly a reálny opkg 0.3.3/0.6.1 so siedmimi pôvodnými IPK a zachovaním dát.
+- PiconHub main `648c52b`, dávka 31 `f896d7e`, online index 219/16/491 sú overené a nedotknuté. Rádiové dávky zostávajú samostatné; žiadny skin alebo satelitné picony sa nemenia. Stav: používateľom schválené na vydanie po kontrolách, zatiaľ nevydané. [Aktualizačný postup](docs/stable-update-0.1.9.2.md).
+
+
 ### 6. 11. 2026 – pracovná skúška modrého potvrdenia aktualizácie
 
 - Po vydaní stabilnej 0.1.9.1 používateľ požiadal iba o nový vzhľad potvrdenia pred inštaláciou, s fyzickou skúškou pred stabilným povýšením. Samostatná vetva `work/radio-update-confirm-0.1.9.1-test1-r2-20261106` vychádza z main `5551691e75d397427bbea48c35547cea16b91c17`. Stabilné vydanie ani oba aktualizačné kanály sa nemenia.
