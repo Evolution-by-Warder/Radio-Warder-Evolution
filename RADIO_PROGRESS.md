@@ -39,6 +39,11 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – dávka 33, prenos krajinských ZIPov na GitHub
+
+- Na [pracovnej vetve](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-batch33-country-zips-20261106) je uložených a spätným stiahnutím overených **9 zo 171 ZIPov** podľa veľkosti a SHA-256. Zostáva 162. Súbory, ktorých názov už existuje v produkcii, majú samostatný názov s príponou `-batch33`.
+- EG · 9 ZIPov · [`581ff7b`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/581ff7b6c898a9a6b01cb633e24de7bfe6c7e636).
+
 ### 6. 11. 2026 – dávka 33, obnovené zdroje a overená miestna integrácia
 
 - Z 19 dodaných častí (6/6/7) boli zložené všetky tri pôvodné archívy. Veľkosti, SHA-256, ZIP CRC a SHA-256 troch vložených manifestov sa zhodujú s GitHub checkpointom. Všetkých 5 400 položiek PNG sa zhoduje s uloženým inventárom podľa SHA-256, Git blob SHA-1 a veľkosti. [Dôkaz obnovy](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/446b4540b7d948584ab50ddeb254b54265c83718).
