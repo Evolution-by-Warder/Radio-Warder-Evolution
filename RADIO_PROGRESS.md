@@ -29,6 +29,14 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – dávka 26 a univerzálny manifest
+
+- [Pracovný commit `fe6a52a`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/fe6a52a41b9b359bdf842d8b194830d4c0718e16) integruje **9 referencií a 81 PNG** do siedmich krajinských kolekcií. CL, GR, LT, LK, RO a GB pridali po jednej referencii, US tri. Dávky 23–25 zostali uložené bez opätovného renderovania.
+- [Kontrola SHA-256 a zostavenie](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42219235514) prešli. Pred každým balíkovým commitom sa overovalo všetkých **1 071 pôvodných PNG položiek** v šiestich pracovných kolekciách proti `1eff65c`; ostatné schválené kolekcie a staršie ZIPy sú chránené aj kontrolou Git rozdielu. Zostavenie používa zmrazených deväť originálov, takže už nezávisí od dostupnosti Gavdos alebo ďalšieho vysielateľa.
+- [Pracovný univerzálny manifest](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/fe6a52a41b9b359bdf842d8b194830d4c0718e16/picons/radio-world/catalog/countries.json) má **219 krajín, 16 dostupných a 488 pokrytých krajinských referencií**. Ďalšie dva rozmery sú naďalej v ZIPoch na GitHube.
+- Na [Radio PR #15](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/15) prešlo 159 jednotkových testov a kontrola lokálneho IPK. Skúška s reálnym pracovným indexom, pripnutými manifestmi a ZIPmi overila pri každom z troch pozadí 22 spravovaných inštalácií, zachovanie jedného vlastného piconu a opakovanie bez ZIPov. Vyžadované ZIPy boli výhradne 220×132. Fyzické overenie zostáva otvorené.
+- Zverejnenie pracovných balíkov, zlúčenie a vydanie IPK čakajú na schválenie. Ďalšia dávka pokračuje oddelene od tohto kandidáta.
+
 ### 6. 11. 2026 – krajinské balíky cez dávku 25
 
 - [Pracovný commit `1eff65c`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/1eff65c3698280657fd7ac1b8db4cff40cb80089) pridáva 20 referencií z dávok 24 a 25 do krajinských kandidátov. Počty súborov na variant sú AR 2 → 3, DE 91 → 100, GB 2 → 3 a US 2 → 11. SE a UA zostávajú na balíkoch dávky 23.
