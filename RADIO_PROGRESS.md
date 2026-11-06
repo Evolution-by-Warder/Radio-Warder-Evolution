@@ -39,6 +39,14 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – dávka 33 pripravená na finálne schválenie
+
+- [PiconHub PR #66](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/66), vetva `work/radio-batch33-country-zips-20261106`, integračný HEAD [`7171674`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/7171674720f43698a55bdff521e5e435a32e79d9). Všetkých **171 ZIPov** na GitHube sa zhoduje s preflightom podľa veľkosti a SHA-256. [Dôkaz](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/7171674720f43698a55bdff521e5e435a32e79d9/picons/radio-world/staging/batch-33/integration-proof.json) zahŕňa 19 krajín, 586 historických referencií / 5 274 PNG a 990 zachovaných schválených PNG. [14 sporných HDF referencií](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/7171674720f43698a55bdff521e5e435a32e79d9/picons/radio-world/staging/batch-33/held-hdf-references.json) ostáva oddelene.
+- [Krajinské manifesty](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/4d064ae129a81353f4fb2470ed520aeca88ab0ba) a [univerzálny index](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/4729d206515fe1b0e48175c44924b126c6750b17/picons/radio-world/catalog/countries.json) pripravené. Index má **219 krajín, 33 dostupných, 1 084 pokrytých referencií**. Pre DE/GR je pripnutý [snapshot `3bd8ea5`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/3bd8ea5659eb4d21c913ab4edb090d890d646a39) s 18 pôvodnými Git blobmi pod názvami stabilného downloadera. Vetva `work/radio-batch33-legacy-payload-20261106` drží tento snapshot.
+- [Lokálny test stabilného Radio 0.1.9.2](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/7171674720f43698a55bdff521e5e435a32e79d9/picons/radio-world/staging/batch-33/downloader-proof.json) cez verejné GitHub manifesty a 57 ZIPov prešiel pre transparentné, biele aj čierne 220 × 132. Každý variant nainštaloval 669 spravovaných PNG, zachoval 1 vlastný picon, obľúbené, históriu a nastavenia. Pri opakovaní sa stiahlo 0 ZIPov. Fyzická skúška na prijímači neprebehla.
+- PiconHub `main` je na [`8e8241a`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/8e8241aa842cd4e8621af8515be82450fcccc395), živý index zostáva 219/16/491. Produkcia ani IPK sa nemenili. Nasleduje finálne schválenie PR #66.
+
+
 ### 6. 11. 2026 – dávka 33, prenos krajinských ZIPov na GitHub
 
 - Na [pracovnej vetve](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-batch33-country-zips-20261106) je uložených a spätným stiahnutím overených **9 zo 171 ZIPov** podľa veľkosti a SHA-256. Zostáva 162. Súbory, ktorých názov už existuje v produkcii, majú samostatný názov s príponou `-batch33`.
