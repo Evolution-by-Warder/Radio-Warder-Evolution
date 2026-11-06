@@ -39,6 +39,15 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – celosvetové picony, bezpečný checkpoint dávky 32
+
+- Na výslovnú požiadavku používateľa je 0.1.9.2 uzavretá; tento krok nemení runtime, dizajn, vydanie ani aktualizačné kanály. Prioritou sú pracovné rádiové balíky, produkčná publikácia vyžaduje ďalší súhlas.
+- [Vetva dávky 32](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-world-batch32-20261106), finálny checkpoint **`2ab2c6587c0c22e8abd516c86ac78658d1691df9`**, začlenila uložené dávky 29–31 do **AT, CO a DE**. Pridaných 8 presných referencií / 72 PNG, pripravených 27 krajinských ZIPov. Všetkých **1 071 pôvodných PNG** (AT 17 a DE 102 referencií × 9 variantov, vrátane existujúcich súborov mimo aktuálneho katalógu) je chránených SHA-256 a zostalo bitovo zhodných. Žiadne logá sa znovu nerenderovali.
+- [CI 42253396577](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42253396577) prešlo: všetky 3 rozmery/3 pozadia, ZIP/PNG/SHA-256, presná identita podľa katalógu a živé nemenné URL. [Navrhovaný index](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/2ab2c6587c0c22e8abd516c86ac78658d1691df9/picons/radio-world/staging/batch-32/countries.proposed.json) zachováva 219 krajín a ponúka **17 dostupných / 499 krajinských referencií**; nová je CO. Reálny downloader zo stabilného Radio `b7384bf` úspešne nainštaloval 95 spravovaných + zachoval 1 používateľský picon pri každom pozadí, 9 ZIPov spolu, opakovanie bez ZIPov; nastavenia a obľúbené/história zostali zachované.
+- Z historických archívov boli obnovené prvé **600 už schválené referencie / 5 400 PNG z 19 rôznych krajín**. Všetky PNG sa overili proti úplnému checkpointu 28, vrátane SHA-256, veľkosti a dekódovania; 0 nezhôd. Ide o použitie hotových bajtov, nie o novú výrobu alebo nové schválenie artworku. Prebieha príprava importu na [vetve dávky 33](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-world-batch33-history-20261106) po malých binárnych archívoch bez Base64 cyklov.
+- Produkčný PiconHub main `648c52b` a živý index **219/16/491** zostávajú nezmenené. Dávka 32 je pripravená na schválenie produkčnej publikácie; ďalší vykonateľný krok je dokončiť import obnovených PNG do krajinských kandidátov a pokračovať z historického inventára. Skin, satelitné picony a Vhannibal sú mimo rozsahu.
+
+
 ### 6. 11. 2026 – stabilná 0.1.9.2 vydaná a verejne overená
 
 - Používateľ fyzicky schválil obe modré okná z test1 revízie 2 a výslovne autorizoval stabilnú opravu po testoch. [PR #18](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/18) zlúčený: kandidát `66d15f9d21cc6449720962653dca72d3359ee7f8`, merge **`b7384bfdb55621beaf183ca6d40e9dedacaecdb9`**. Kontrola aktuálneho main, otvorených PR, vydaní a voľného tagu zabránila prepísaniu novšej práce alebo duplicitnému vydaniu.
