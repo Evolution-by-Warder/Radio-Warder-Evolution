@@ -144,5 +144,10 @@
   "Remove station from favourites": "Állomás eltávolítása a kedvencek közül",
   "Update radio catalogue": "Rádiókatalógus frissítése",
   "Stop radio playback": "Rádiólejátszás leállítása",
-  "Start radio playback": "Rádiólejátszás indítása"
+  "Start radio playback": "Rádiólejátszás indítása",
+  "Picons: {count}/{total}": "Pikonok: {count}/{total}",
+  "Unavailable": "Nem érhető el",
+  "Using saved picon availability": "A mentett pikonelérhetőség használata",
+  "Checking picon availability…": "Pikonok elérhetőségének ellenőrzése…",
+  "Picons not published: {country}": "Még nem közzétett pikonok: {country}"
 }

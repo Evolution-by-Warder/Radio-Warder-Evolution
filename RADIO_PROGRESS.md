@@ -29,6 +29,15 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – univerzálna dostupnosť všetkých krajín (pracovná integrácia)
+
+- Výber piconov už obsahuje všetkých **219 krajín** katalógu. Samostatná skupina HDF sa nepovažuje za krajinu. Online manifest `picons/radio-world/catalog/countries.json` určuje dostupnosť, počet pokrytých referencií a nemenný manifest každého balíka. Krajina bez publikovaných piconov zostáva viditeľná a nedá sa novo vybrať; čiastočná krajina umožňuje stiahnuť existujúce picony.
+- Sprístupnenie ďalšej krajiny vyžaduje iba balíky a aktualizáciu online manifestu, bez nového IPK. Plugin overuje presnú cestu, SHA-256 a veľkosť krajinského manifestu, ZIP aj PNG. Sťahuje výhradne **220×132** v zvolenom transparentnom, bielom alebo čiernom pozadí. Ďalšie rozmery zostávajú v GitHube.
+- Sieťová obnova výberu aj sťahovanie bežia mimo GUI. Zachováva sa posledný platný manifest a pribalený stav publikovaných šiestich krajín; chybná alebo neúplná obnova neprepíše dobrú cache. Pôvodné nastavenia, zvolené krajiny a vlastné PNG zostávajú zachované. Odchod z výberu ruší obnovu a ignoruje oneskorené výsledky.
+- Lokálne prešlo **159 jednotkových testov**, kontrola IPK vrátane gramatiky Python 3.9 a **73 natívnych replayov na každej z troch vetiev**: OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next. Testy zahŕňajú sprístupnenie krajiny iba zmenou manifestu, všetky tri pozadia, vylúčenie 50×30/400×240, neúplný manifest, výpadok siete, pôvodné nastavenia a používateľské picony. Fyzický prijímač nebol testovaný.
+- PiconHub pracovný commit [`c33c3cb`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/c33c3cb33c4fc32682ca5dc1c4ad1933bdb96803) spája dávky 24 a 25 do šiestich krajinských balíkov: **119 PNG súborov na variant**, z toho 99 predchádzajúcich zostáva bajtovo zhodných. Pracovný univerzálny index rozlišuje všetkých 219 krajín, 11 dostupných krajín a 479 presných krajinských referencií. Živý index/publikované balíky zostávajú oddelené od pracovného stavu.
+- Podrobnosti a poradie nasadenia: [online dostupnosť krajín](docs/picon-country-availability.md). Pracovné zmeny sú schválené; produkčný merge, publikácia balíkov a vydanie IPK čakajú na výslovné schválenie. Najbližší krok je integrácia overenej dávky 26, prehratie reálnych manifestov a ZIPov a aktualizácia draft PR.
+
 ### 6. 11. 2026 – dávka 25
 
 - [Pracovný manifest](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/3cf90597d6fd644e257ff79d231332c6fc7d9e46/picons/radio-world/staging/batch-25/manifest.json) obsahuje 4 referencie USA a 36 PNG. Backlink Broadcast, Grok and Roll, OpenAir a Thinking Frequencies majú pôvodné grafiky prevádzkovateľa a zhodu presných streamov s katalógom.

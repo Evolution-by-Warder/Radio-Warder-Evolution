@@ -144,5 +144,10 @@
   "Remove station from favourites": "Вилучити станцію з обраного",
   "Update radio catalogue": "Оновити каталог радіостанцій",
   "Stop radio playback": "Зупинити відтворення радіо",
-  "Start radio playback": "Почати відтворення радіо"
+  "Start radio playback": "Почати відтворення радіо",
+  "Picons: {count}/{total}": "Пікони: {count}/{total}",
+  "Unavailable": "Недоступно",
+  "Using saved picon availability": "Використовується збережена доступність піконів",
+  "Checking picon availability…": "Перевірка доступності піконів…",
+  "Picons not published: {country}": "Пікони не опубліковані: {country}"
 }

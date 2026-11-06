@@ -144,5 +144,10 @@
   "Remove station from favourites": "Odebrat stanici z oblíbených",
   "Update radio catalogue": "Aktualizovat katalog rádií",
   "Stop radio playback": "Zastavit přehrávání rádia",
-  "Start radio playback": "Spustit přehrávání rádia"
+  "Start radio playback": "Spustit přehrávání rádia",
+  "Picons: {count}/{total}": "Picony: {count}/{total}",
+  "Unavailable": "Nedostupné",
+  "Using saved picon availability": "Používá se uložená dostupnost piconů",
+  "Checking picon availability…": "Ověřuje se dostupnost piconů…",
+  "Picons not published: {country}": "Picony nejsou publikovány: {country}"
 }

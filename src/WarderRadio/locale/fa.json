@@ -144,5 +144,10 @@
   "Remove station from favourites": "حذف ایستگاه از علاقه‌مندی‌ها",
   "Update radio catalogue": "به‌روزرسانی فهرست ایستگاه‌های رادیویی",
   "Stop radio playback": "توقف پخش رادیو",
-  "Start radio playback": "شروع پخش رادیو"
+  "Start radio playback": "شروع پخش رادیو",
+  "Picons: {count}/{total}": "پیکون‌ها: {count}/{total}",
+  "Unavailable": "در دسترس نیست",
+  "Using saved picon availability": "استفاده از وضعیت ذخیره‌شدهٔ پیکون‌ها",
+  "Checking picon availability…": "بررسی دسترسی به پیکون‌ها…",
+  "Picons not published: {country}": "پیکون‌ها منتشر نشده‌اند: {country}"
 }

@@ -144,5 +144,10 @@
   "Remove station from favourites": "Quitar emisora de favoritos",
   "Update radio catalogue": "Actualizar catálogo de radios",
   "Stop radio playback": "Detener reproducción de radio",
-  "Start radio playback": "Iniciar reproducción de radio"
+  "Start radio playback": "Iniciar reproducción de radio",
+  "Picons: {count}/{total}": "Picons: {count}/{total}",
+  "Unavailable": "No disponible",
+  "Using saved picon availability": "Se usa la disponibilidad guardada de picons",
+  "Checking picon availability…": "Comprobando disponibilidad de picons…",
+  "Picons not published: {country}": "Picons sin publicar: {country}"
 }

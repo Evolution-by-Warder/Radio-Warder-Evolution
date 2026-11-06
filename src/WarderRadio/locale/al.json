@@ -144,5 +144,10 @@
   "Remove station from favourites": "Hiq stacionin nga të preferuarat",
   "Update radio catalogue": "Përditëso katalogun e radiove",
   "Stop radio playback": "Ndalo luajtjen e radios",
-  "Start radio playback": "Fillo luajtjen e radios"
+  "Start radio playback": "Fillo luajtjen e radios",
+  "Picons: {count}/{total}": "Pikona: {count}/{total}",
+  "Unavailable": "Nuk disponohet",
+  "Using saved picon availability": "Po përdoret disponueshmëria e ruajtur e pikonave",
+  "Checking picon availability…": "Po kontrollohet disponueshmëria e pikonave…",
+  "Picons not published: {country}": "Pikonat nuk janë publikuar: {country}"
 }

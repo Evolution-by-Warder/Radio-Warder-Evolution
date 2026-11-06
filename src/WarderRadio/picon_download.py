@@ -16,21 +16,9 @@ from urllib.request import Request, urlopen
 from . import VERSION
 from .country_catalogue import CountryCatalogue, CatalogueTask, Cancelled
 from .model import atomic_json, read_json
+from .picon_catalogue import COUNTRIES, CODE, PiconCatalogue, verify_release
 
 BASE = 'https://raw.githubusercontent.com/Evolution-by-Warder/PiconHub-Warder-Evolution/'
-COUNTRIES = (
-    ('SK', 'Slovakia', 'Slovensko', 'IPTV-SK-CZ'),
-    ('CZ', 'Czechia', 'Čechy', 'IPTV-SK-CZ'),
-    ('AT', 'Austria', 'Austria', 'IPTV-AT'),
-    ('DE', 'Germany', 'Germany', 'IPTV-DE'),
-    ('HU', 'Hungary', 'Hungary', 'IPTV-HU'),
-    ('PL', 'Poland', 'Poland', 'IPTV-PL'),
-    ('AR', 'Argentina', 'Argentina', 'IPTV-AR'),
-    ('SE', 'Sweden', 'Sweden', 'IPTV-SE'),
-    ('UA', 'Ukraine', 'Ukraine', 'IPTV-UA'),
-    ('GB', 'United Kingdom', 'United Kingdom', 'IPTV-GB'),
-    ('US', 'United States', 'United States', 'IPTV-US'),
-)
 STYLES = ('transparent', 'white', 'black')
 SIZE = '220x132'
 HEX = re.compile(r'[a-f0-9]{64}\Z')
@@ -125,11 +113,11 @@ def validate_location(path):
 class PiconSettings:
     def __init__(self, directory):
         self.path = os.path.join(directory, 'picon-settings.json')
-        value = read_json(self.path, {}, 4096)
+        value = read_json(self.path, {}, 8192)
         value = value if isinstance(value, dict) else {}
         selected = value.get('countries', ['SK', 'CZ'])
         selected = selected if isinstance(selected, list) else ['SK', 'CZ']
-        self.countries = [c[0] for c in COUNTRIES if c[0] in selected]
+        self.countries = list(dict.fromkeys(c for c in selected if isinstance(c, str) and CODE.fullmatch(c)))
         self.style = value.get('style') if value.get('style') in STYLES else 'black'
         path = value.get('location')
         self.legacy_location = None
@@ -372,10 +360,17 @@ def install(directory, settings, task, opener=None, reference_loader=references)
     Each new object is fsynced before its index is atomically published. An
     interrupted update leaves every published picon usable; repeating resumes.
     """
-    if settings.style not in STYLES or not settings.countries or any(code not in {c[0] for c in COUNTRIES} for code in settings.countries):
+    if settings.style not in STYLES or not settings.countries or any(not isinstance(code, str) or not CODE.fullmatch(code) for code in settings.countries):
         raise ValueError('Invalid picon selection')
     validate_location(settings.location)
     task.check()
+    catalogue = PiconCatalogue(directory)
+    availability = catalogue.refresh(task, opener)
+    catalogue.document = availability['document']
+    if not availability['online']:
+        task.log('Using saved picon availability')
+    if any(catalogue.entry(code) is None for code in settings.countries):
+        raise ValueError('Invalid picon selection')
     library = PiconLibrary(settings.location,settings.style,settings.legacy_location)
     os.makedirs(library.directory, mode=0o700, exist_ok=True)
     if os.path.realpath(library.directory) != library.directory:
@@ -383,15 +378,25 @@ def install(directory, settings, task, opener=None, reference_loader=references)
     migrate_library(library,task)
     index = os.path.join(library.directory, 'index.json')
     summary = dict(added=0, updated=0, unchanged=0, preserved=0, failed=0, missing=0)
-    collections = list(dict.fromkeys(c[3] for c in COUNTRIES if c[0] in settings.countries))
+    choices = [c for c in catalogue.countries if c[0] in settings.countries]
+    available = []
+    for country in choices:
+        entry = catalogue.entry(country[0])
+        if entry['status'] == 'unavailable':
+            summary['missing'] += entry['stations']
+            task.log('Picons not published: {country}', country=country[1])
+        else:
+            available.append(country)
+    collections = list(dict.fromkeys(c[3] for c in available))
     for collection in collections:
         task.check()
-        countries = [c for c in COUNTRIES if c[0] in settings.countries and c[3] == collection]
+        countries = [c for c in available if c[3] == collection]
         label = ', '.join(c[1] for c in countries)
         try:
             task.log('Checking picons: {country}', country=label)
-            raw = fetch(BASE + 'main/picons/' + collection + '/catalog/release.json', MAX_MANIFEST, task, opener)
-            entry = descriptor(json.loads(raw.decode('utf-8')), collection, settings.style)
+            release = catalogue.entry(countries[0][0])['release']
+            raw = fetch(release['url'], release['bytes'], task, opener)
+            entry = descriptor(verify_release(raw, release), collection, settings.style)
             wanted = reference_loader(directory, countries, task, opener)
             names = sorted(set(entry['files']) & set(wanted))
             summary['missing'] += len(set(wanted) - set(entry['files']))

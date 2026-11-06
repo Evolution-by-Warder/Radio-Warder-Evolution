@@ -144,5 +144,10 @@
   "Remove station from favourites": "Pašalinti stotį iš mėgstamiausių",
   "Update radio catalogue": "Atnaujinti radijo stočių katalogą",
   "Stop radio playback": "Sustabdyti radijo atkūrimą",
-  "Start radio playback": "Pradėti radijo atkūrimą"
+  "Start radio playback": "Pradėti radijo atkūrimą",
+  "Picons: {count}/{total}": "Piktogramos: {count}/{total}",
+  "Unavailable": "Nepasiekiama",
+  "Using saved picon availability": "Naudojami išsaugoti piktogramų prieinamumo duomenys",
+  "Checking picon availability…": "Tikrinamas piktogramų prieinamumas…",
+  "Picons not published: {country}": "Piktogramos nepaskelbtos: {country}"
 }

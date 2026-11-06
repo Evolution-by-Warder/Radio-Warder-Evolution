@@ -380,14 +380,14 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['art'].instance.isVisible())
         self.assertEqual([row[2] for row in screen['picon_form'].list], ['countries','style','location'])
         screen.ok();self.assertEqual(screen.focus,'picon_options')
-        screen['picon_options'].moveToIndex(3);screen.ok();screen.green_pressed()
+        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(screen['picon_options'].list) if row[1]=='DE'));screen.ok();screen.green_pressed()
         self.assertEqual(screen.picon_form.settings.countries,['SK','CZ','DE'])
         screen['picon_form'].moveToIndex(1);screen.ok()
         screen['picon_options'].moveToIndex(1);screen.ok();screen.green_pressed()
         self.assertEqual(screen.picon_form.settings.style,'white')
         self.assertEqual(session.nav.current, playing)
         screen['picon_form'].moveToIndex(0);screen.ok()
-        for index in [0,1,3]:
+        for index in [i for i,row in enumerate(screen['picon_options'].list) if row[1] in ('SK','CZ','DE')]:
             screen['picon_options'].moveToIndex(index);screen.ok()
         screen.green_pressed();screen.green_pressed()
         self.assertEqual(screen['picon_status'].getText(),radio.t('Select at least one country'))
@@ -602,6 +602,52 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['picon_form'].getSelectionIndex(),1)
         self.assertEqual(PiconSettings(self.tmp.name).style,'white')
         self.assertEqual(len(session.dialogs),dialogs)
+
+    def test_all_picon_countries_are_visible_and_unavailable_country_cannot_be_added(self):
+        screen,session,_=self.new();screen.open_picons()
+        calls=[]
+        screen.picon_form.country_jobs.replace=lambda key,work,callback:calls.append((work,callback)) or True
+        screen.ok()
+        rows=screen['picon_options'].list
+        self.assertEqual(len(rows),219)
+        self.assertEqual({row[1] for row in rows},{row[0] for row in screen.picon_form.country_index.countries})
+        index=next(i for i,row in enumerate(rows) if row[1]=='FR')
+        self.assertFalse(rows[index][3])
+        self.assertIn(radio.t('Unavailable'),rows[index][0])
+        screen['picon_options'].moveToIndex(index);screen.ok()
+        self.assertNotIn('FR',screen.picon_form.pending_countries)
+        self.assertEqual(screen['picon_status'].getText(),radio.t('Unavailable'))
+        self.assertEqual(len(calls),1)
+
+    def test_online_picon_availability_enables_country_without_ipk_and_keeps_selection(self):
+        import copy
+        screen,session,_=self.new();screen.open_picons()
+        callbacks=[]
+        screen.picon_form.country_jobs.replace=lambda key,work,callback:callbacks.append(callback) or True
+        screen.ok()
+        form=screen.picon_form
+        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(screen['picon_options'].list) if row[1]=='FR'))
+        value=copy.deepcopy(form.country_index.document)
+        row=next(row for row in value['countries'] if row['id']=='FR')
+        row.update(status='partial',picons=12,release={'test':'GUI only; backend validates real descriptors'})
+        callbacks[0]({'document':value,'online':True},None)
+        self.assertEqual(screen['picon_options'].getCurrent()[1],'FR')
+        self.assertTrue(screen['picon_options'].getCurrent()[3])
+        screen.ok();screen.green_pressed()
+        self.assertIn('FR',PiconSettings(self.tmp.name).countries)
+        self.assertEqual(form.view,'form')
+
+    def test_leaving_country_picker_cancels_refresh_and_ignores_late_result(self):
+        screen,session,_=self.new();screen.open_picons()
+        callbacks=[]
+        screen.picon_form.country_jobs.replace=lambda key,work,callback:callbacks.append(callback) or True
+        screen.ok();form=screen.picon_form;task=form.country_task
+        old=form.country_index.document
+        screen.exit()
+        self.assertTrue(task.cancelled.is_set())
+        callbacks[0]({'document':{'bad':'late'},'online':True},None)
+        self.assertIs(form.country_index.document,old)
+        self.assertEqual(form.view,'form')
 
     def wait_for_folders(self,screen):
         deadline=time.monotonic()+2

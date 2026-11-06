@@ -144,5 +144,10 @@
   "Remove station from favourites": "Eemalda jaam lemmikutest",
   "Update radio catalogue": "Uuenda raadiojaamade kataloogi",
   "Stop radio playback": "Peata raadio taasesitus",
-  "Start radio playback": "Alusta raadio taasesitust"
+  "Start radio playback": "Alusta raadio taasesitust",
+  "Picons: {count}/{total}": "Pikonid: {count}/{total}",
+  "Unavailable": "Pole saadaval",
+  "Using saved picon availability": "Kasutatakse salvestatud pikonite saadavust",
+  "Checking picon availability…": "Pikonite saadavuse kontrollimine…",
+  "Picons not published: {country}": "Pikonid pole avaldatud: {country}"
 }

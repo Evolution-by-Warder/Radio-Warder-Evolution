@@ -144,5 +144,10 @@
   "Remove station from favourites": "Elimină postul din favorite",
   "Update radio catalogue": "Actualizează catalogul radio",
   "Stop radio playback": "Oprește redarea radioului",
-  "Start radio playback": "Pornește redarea radioului"
+  "Start radio playback": "Pornește redarea radioului",
+  "Picons: {count}/{total}": "Piconuri: {count}/{total}",
+  "Unavailable": "Indisponibil",
+  "Using saved picon availability": "Se folosește disponibilitatea salvată a piconurilor",
+  "Checking picon availability…": "Se verifică disponibilitatea piconurilor…",
+  "Picons not published: {country}": "Piconuri nepublicate: {country}"
 }

@@ -144,5 +144,10 @@
   "Remove station from favourites": "İstasyonu favorilerden çıkar",
   "Update radio catalogue": "Radyo kataloğunu güncelle",
   "Stop radio playback": "Radyo çalmayı durdur",
-  "Start radio playback": "Radyo çalmayı başlat"
+  "Start radio playback": "Radyo çalmayı başlat",
+  "Picons: {count}/{total}": "Pikonlar: {count}/{total}",
+  "Unavailable": "Kullanılamıyor",
+  "Using saved picon availability": "Kaydedilmiş pikon kullanılabilirliği kullanılıyor",
+  "Checking picon availability…": "Pikon kullanılabilirliği denetleniyor…",
+  "Picons not published: {country}": "Pikonlar yayımlanmadı: {country}"
 }
