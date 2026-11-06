@@ -29,6 +29,18 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – integrácia krajín a manifestov
+
+- [Radio PR #15](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/15) pridáva Argentínu, Švédsko, Ukrajinu, Spojené kráľovstvo a USA s názvami vo všetkých 21 jazykoch. Nemecko využíva existujúci výber. Automatický rozmer v prijímači je 220×132. Kandidátske balíky obsahujú aj 50×30 a 400×240, každý v troch pozadiach.
+- [PiconHub PR #64](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/64) obsahuje šesť manifestov [`5829aca`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/5829aca2b1809d2945a9acc20d81dae30acfb10f) a 54 ZIPov v nemennom [commite `1707bdf`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/1707bdf858c9f831515d2be89d9d115280af8f6d). Overené spätným stiahnutím, SHA-256, CRC a SHA-256 každej PNG položky. V Nemecku je 91 súborov na variant, z toho 90 pôvodných s identickými PNG bajtmi.
+- [CI pluginu](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/42202245581) prešlo vrátane natívnych replayov OpenPLi a OpenATV. Lokálne prešlo 148 jednotkových testov, kontrola IPK a opakovaná inštalácia s reálnymi pracovnými manifestmi vo všetkých troch pozadiach. Test potvrdil zachovanie vlastného piconu a preskočenie ZIPov pri opakovaní. Fyzický prijímač nebol testovaný.
+- Oba PR sú drafty. Po výslovnom schválení nasadiť balíky a overiť ich manifesty v `main`, potom zlúčiť plugin. Vydanie IPK má samostatné schválenie.
+
+### 6. 11. 2026 – dávka 24
+
+- [Pracovný manifest a dôkazy](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/5821c5e29c306c546cffb01a167b42fba27a42ee/picons/radio-world/staging/batch-24/manifest.json) obsahujú 16 presných referencií a 144 PNG. AR 1, DE 9, GB 1, US 5. Zaznamenaných je 30 neuzavretých kandidátov.
+- Pôvodné podklady, deväť variantov a kontrolné súčty sú uložené na pracovnej vetve. Všetky ZIPy boli opätovne stiahnuté a overené. Pri Lyca Radio 1458 sú použité dve pôvodné verzie vysielateľa pre správnu čitateľnosť na rôznych pozadiach. Ďalší pracovný krok je zlúčenie dávky 24 do krajinských kandidátov podľa presných referencií.
+
 ### 6. 11. 2026 – krajinské balíky dávky 23
 
 - [Radio PR #14](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/14) a [FullHDGlass PR #46](https://github.com/Evolution-by-Warder/FullHDGlass-Warder-Evolution/pull/46) boli zlúčené po výslovnom schválení. V `main` sú overené oba rádiové súbory a spoločný `AGENTS.md` s pôvodnými pokynmi a odkazom na rádiový register.
@@ -46,5 +58,5 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 1. Naviazať na dávku 23. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
-3. Pripraviť pracovnú integráciu ďalších krajín do downloadera. Aktuálne menu ponúka SK, CZ, AT, DE, HU a PL v 220×132. Overiť mapovanie balíkov, kompatibilitu existujúcich nastavení, opakovanie sťahovania a zachovanie používateľských piconov.
+3. Predložiť overenú integráciu krajín na schválenie. Po schválení postupovať v poradí PiconHub PR #64, overenie živých balíkov, Radio PR #15 a samostatné schválenie vydania.
 4. Overiť nové správanie na fyzickom prijímači a zapísať výsledok oddelene od CI a lokálnych testov.
