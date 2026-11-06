@@ -11,3 +11,7 @@ Pracovný kandidát nad stabilnou 0.1.9, bez publikovania do aktualizačných ka
 Automatické replaye používajú pripnuté natívne widgety OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next. Ide o automatické testy, fyzická skúška tejto opravy je ešte potrebná.
 
 Číslo 0.1.9.1-test1 sa v plugine aj opkg radí medzi 0.1.9 a 0.1.10. Stabilný Release 0.1.9, stable v2, testing v2 (migračná test3) a starý testing manifest zostávajú nezmenené.
+
+[Úspešné CI a testovacie artefakty](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/42240635603): 159 úspešných jednotkových testov, 4 preskočené migračné testy špecifické pre 0.1.9, po 85 natívnych testov na každom z troch základov. CI IPK a lokálne IPK sú bajtovo totožné.
+
+IPK: `enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test1_all.ipk`, 3 177 972 B. SHA-256: `519034d8bcbb78128531a46f50f0f630ef4d9011bb079881260105e531d0d4ba`.
