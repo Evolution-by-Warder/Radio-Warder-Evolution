@@ -39,6 +39,13 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – po vydaní pokračovanie piconovou dávkou 30
+
+- Na samostatnej [vetve dávky 30](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-world-batch30-20261106) pripravené **3 nové nemecké referencie / 27 PNG**: Amorsaal `4097:0:2:EF19:DC50:ED:0:0:0:0`, Bibel-Kanal `4097:0:2:E5C9:733F:ED:0:0:0:0`, EASTSIDE FM `4097:0:2:9F4:84A0:ED:0:0:0:0`. [Nemenný manifest a ZIPy](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/415069a6813c88206beb1bc8d5d12136431b2b4a/picons/radio-world/staging/batch-30) uchovávajú všetky SHA-256; lokálny a GitHub manifest sa zhodujú.
+- [GitHub zostavenie](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42237515019) prešlo vrátane dvoch rovnakých renderov, deviatich variantov, CRC/PNG/SHA-256 a staging downloadera cez pripnutý stabilný Radio `fe7fa65`. Pri každom pozadí 220×132 sa zachoval jeden vlastný picon, nainštalovali dva ďalšie a opakovanie nevyžiadalo ZIPy. Sedem nových originálov bolo vizuálne overených, staršie rozhodnutia sa neopakovali. Sedemnásť odložených kandidátov má dôvody v pláne.
+- Stav piconov je výhradne pracovný; PiconHub main `648c52b`, živý index 219/16/491 a všetky schválené balíky zostali nezmenené. Najbližší krok: začleniť presné bajty dávok 29/30 do krajinských kandidátov s kontrolou pôvodných SHA, pokračovať z deduplikovaného katalógu. Do satelitných piconov ani skinu sa nezasahovalo.
+
+
 ### 6. 11. 2026 – stabilná 0.1.9 publikovaná a overená
 
 - Po úspešných kontrolách zlúčený [PR #16](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/16) ako [`fe7fa65`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/fe7fa6523e08ac0de466bba4e7ca831c246c6054), finálny kandidát [`f627967`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/f6279672cae6fde0015ccf01dcf6c48f02901855). Používateľ výslovne schválil vydanie po fyzickej skúške test2.
