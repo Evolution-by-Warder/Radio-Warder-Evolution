@@ -151,5 +151,8 @@
   "Checking picon availability…": "Pikonite saadavuse kontrollimine…",
   "Picons not published: {country}": "Pikonid pole avaldatud: {country}",
   "Update available: {version}": "Uuendus on saadaval: {version}",
-  "No YouTube video could be found for the current song.": "Praeguse loo jaoks ei leitud YouTube’ist videot."
+  "No YouTube video could be found for the current song.": "Praeguse loo jaoks ei leitud YouTube’ist videot.",
+  "Yes": "Jah",
+  "No": "Ei",
+  "A new version is available. Do you want to install it?": "Uus versioon on saadaval. Kas soovite selle installida?"
 }

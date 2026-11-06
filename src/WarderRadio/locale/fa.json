@@ -151,5 +151,8 @@
   "Checking picon availability…": "بررسی دسترسی به پیکون‌ها…",
   "Picons not published: {country}": "پیکون‌ها منتشر نشده‌اند: {country}",
   "Update available: {version}": "به‌روزرسانی موجود است: {version}",
-  "No YouTube video could be found for the current song.": "برای آهنگ فعلی ویدیویی در یوتیوب پیدا نشد."
+  "No YouTube video could be found for the current song.": "برای آهنگ فعلی ویدیویی در یوتیوب پیدا نشد.",
+  "Yes": "بله",
+  "No": "خیر",
+  "A new version is available. Do you want to install it?": "نسخهٔ جدیدی در دسترس است. آیا می‌خواهید آن را نصب کنید؟"
 }

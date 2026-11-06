@@ -151,5 +151,8 @@
   "Checking picon availability…": "Se verifică disponibilitatea piconurilor…",
   "Picons not published: {country}": "Piconuri nepublicate: {country}",
   "Update available: {version}": "Actualizare disponibilă: {version}",
-  "No YouTube video could be found for the current song.": "Nu a fost găsit niciun videoclip pe YouTube pentru melodia curentă."
+  "No YouTube video could be found for the current song.": "Nu a fost găsit niciun videoclip pe YouTube pentru melodia curentă.",
+  "Yes": "Da",
+  "No": "Nu",
+  "A new version is available. Do you want to install it?": "Este disponibilă o versiune nouă. Doriți să o instalați?"
 }

@@ -17,8 +17,12 @@ SOURCE = ROOT / 'src/WarderRadio'
 parser = argparse.ArgumentParser()
 parser.add_argument('--legacy-bridge', action='store_true')
 parser.add_argument('--tester-bridge', action='store_true')
+parser.add_argument('--package-revision', type=int, default=1, help='IPK-only revision for private receiver UI tests')
 args = parser.parse_args()
 assert not (args.legacy_bridge and args.tester_bridge)
+assert 1 <= args.package_revision <= 1000
+assert args.package_revision == 1 or not (args.legacy_bridge or args.tester_bridge)
+PACKAGE_REVISION = args.package_revision
 TARGET_VERSION = (SOURCE / 'version.txt').read_text().strip()
 BRIDGE_VERSION = '0.1.9.1-test2' if TARGET_VERSION == '0.1.9.1' else '0.1.9-test3'
 VERSION = ('0.1.0-test11' if args.legacy_bridge else BRIDGE_VERSION if args.tester_bridge
@@ -44,7 +48,7 @@ FILES['usr/share/doc/warder-radio/README.md'] = ((ROOT / 'README.md').read_bytes
 FILES['usr/share/doc/warder-radio/COPYING'] = ((ROOT / 'COPYING').read_bytes(), 0o644)
 installed = sum(len(data) for data, _ in FILES.values())
 control = f'''Package: {PACKAGE}
-Version: {VERSION}-1
+Version: {VERSION}-{PACKAGE_REVISION}
 Architecture: all
 Maintainer: Warder
 Section: extra
@@ -104,13 +108,14 @@ def ar_member(name, content):
 
 
 out = ROOT / ('dist/legacy' if args.legacy_bridge else 'dist/tester-bridge' if args.tester_bridge else 'dist'); out.mkdir(parents=True, exist_ok=True)
-name = f'{PACKAGE}_{VERSION}_all.ipk'
+filename_version = VERSION + ('-' + str(PACKAGE_REVISION) if PACKAGE_REVISION != 1 else '')
+name = f'{PACKAGE}_{filename_version}_all.ipk'
 content = b'!<arch>\n' + ar_member('debian-binary', b'2.0\n') + ar_member('control.tar.gz', archive({
     'control': (control, 0o644), 'preinst': (preinst, 0o755), 'postinst': (postinst, 0o755)})) + ar_member('data.tar.gz', archive(FILES))
 (out / name).write_bytes(content)
 checksum = hashlib.sha256(content).hexdigest()
 (out / 'SHA256SUMS').write_text(checksum + '  ' + name + '\n')
-manifest = {'package': PACKAGE, 'version': VERSION + '-1', 'file': name,
+manifest = {'package': PACKAGE, 'version': VERSION + '-' + str(PACKAGE_REVISION), 'file': name,
             'sha256': checksum, 'bytes': len(content), 'files': len(FILES)}
 (out / 'build.json').write_text(json.dumps(manifest, indent=2) + '\n')
 print(json.dumps(manifest, indent=2))

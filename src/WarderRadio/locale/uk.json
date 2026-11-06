@@ -151,5 +151,8 @@
   "Checking picon availability…": "Перевірка доступності піконів…",
   "Picons not published: {country}": "Пікони не опубліковані: {country}",
   "Update available: {version}": "Доступне оновлення: {version}",
-  "No YouTube video could be found for the current song.": "Для поточної композиції не вдалося знайти відео на YouTube."
+  "No YouTube video could be found for the current song.": "Для поточної композиції не вдалося знайти відео на YouTube.",
+  "Yes": "Так",
+  "No": "Ні",
+  "A new version is available. Do you want to install it?": "Доступна нова версія. Бажаєте її встановити?"
 }

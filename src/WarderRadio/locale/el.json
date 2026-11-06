@@ -151,5 +151,8 @@
   "Checking picon availability…": "Έλεγχος διαθεσιμότητας εικονιδίων…",
   "Picons not published: {country}": "Δεν έχουν δημοσιευτεί εικονίδια: {country}",
   "Update available: {version}": "Διαθέσιμη ενημέρωση: {version}",
-  "No YouTube video could be found for the current song.": "Δεν βρέθηκε βίντεο στο YouTube για το τρέχον τραγούδι."
+  "No YouTube video could be found for the current song.": "Δεν βρέθηκε βίντεο στο YouTube για το τρέχον τραγούδι.",
+  "Yes": "Ναι",
+  "No": "Όχι",
+  "A new version is available. Do you want to install it?": "Υπάρχει νέα έκδοση. Θέλετε να την εγκαταστήσετε;"
 }

@@ -39,6 +39,20 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – pracovná skúška modrého potvrdenia aktualizácie
+
+- Po vydaní stabilnej 0.1.9.1 používateľ požiadal iba o nový vzhľad potvrdenia pred inštaláciou, s fyzickou skúškou pred stabilným povýšením. Samostatná vetva `work/radio-update-confirm-0.1.9.1-test1-r2-20261106` vychádza z main `5551691e75d397427bbea48c35547cea16b91c17`. Stabilné vydanie ani oba aktualizačné kanály sa nemenia.
+- Potvrdenie používa existujúci `UpdateResult`, rovnaký panel, rám, fonty a centrovanie. Zobrazuje cieľovú verziu, otázku, Áno/Nie; predvolené je Nie. Šípky menia iba voľbu, OK potvrdzuje vybranú odpoveď, EXIT/červené rušia. Potvrdenie v Settings aj pri automatickej kontrole odovzdáva rovnaký boolean pôvodnému `update_answered`; iba Áno otvorí nezmenený `UpdateProgress` a následný pôvodný worker. Ostatné potvrdenia v Settings sa nemenia.
+- Testovacie IPK má **runtime 0.1.9.1-test1, revíziu balíka 2** (`0.1.9.1-test1-2`), aby na prijímači nahradilo pôvodnú revíziu 1 a stále cez nedotknutý testing kanál našlo reálnu 0.1.9.1-test2. Nevkladá sa falošná aktualizácia ani preview do produkčného UI. Generický build podporuje IPK revíziu; updater a jeho presné overovanie verejných balíkov zostávajú nezmenené. Samotná fyzická voľba Áno nainštaluje skutočnú ponúkanú migračnú verziu.
+- Lokálne prešli unit testy a prvý 90-prípadový replay OpenPLi; ďalšie replaye a CI nasledujú. Nové prípady overujú predvolené Nie, všetky šípky, OK/EXIT, odmietnutie po zatvorení hosta, presný cieľový Release v pôvodnom install workeri, otvorenie progress pred I/O, zachovanie rádia/dát, spoločné atribúty dizajnu pri HD/FHD/QHD/UHD a pôvodné YouTube/aktualizačné výsledky. Fyzické overenie tejto zmeny ešte neprebehlo.
+
+### 6. 11. 2026 – dávka 31 pripravená na samostatnej piconovej vetve
+
+- [Vetva dávky 31](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-world-batch31-20261106), payload `f896d7ef022754c60fd9dee10a7382ffcc89d1b4`, pridáva **1 novú DE referenciu / 9 PNG**: laut.fm - Bravo Hit Revival Radio, `4097:0:2:A70:796D:ED:0:0:0:0`. Overený celý originálny wordmark a presná zhoda streamu s publisher API; pôvodné názvy, skupina a referencia sú zachované. [Manifest](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/f896d7ef022754c60fd9dee10a7382ffcc89d1b4/picons/radio-world/staging/batch-31/manifest.json) uchováva SHA-256 všetkých deviatich variantov.
+- Preverených 60 kandidátov, 50 predchádzajúcich rozhodnutí zachovaných, 10 nových unikátnych zdrojov vizuálne overených: 1 schválený, 9 odložených. Celkom 59 kandidátov má konkrétnu blokáciu, vrátane fotografií, orezaných log a nevyriešeného NFM/Exogaming brandingu. Zber druhej časti použil už zmrazené dôkazy prvých 20 kandidátov bez nových požiadaviek pre ne.
+- [CI 42245546118](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42245546118) prešlo: dva rovnaké rendery, 9 ZIPov/CRC/PNG/SHA-256, staging downloader pripnutý k stabilnému Radio `3ab96a5`, čistá inštalácia aj presný používateľský override pri každom pozadí 220×132, opakovanie bez ZIPov. Spätne stiahnuté ZIPy a manifest sú bajtovo totožné s lokálnymi. PiconHub main `648c52b` a živý index 219/16/491 sú nezmenené; dávka nie je publikovaná do produkcie. Nasleduje integrácia dávok 29–31 do krajinských kandidátov a ďalšie deduplikované zdroje. Do satelitných piconov ani skinu sa nezasahuje.
+
+
 ### 6. 11. 2026 – stabilná 0.1.9.1 publikovaná, overená a pokračovanie dávkou 31
 
 - Po schválení fyzicky overenej 0.1.9.1-test1 zlúčený [PR #17](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/17): kandidát `33c75ed8ac80d7c16b87ec33af7b456906f654a7`, merge `3ab96a529de859d445a8d03ed1c37f9a5f5d6170`. UI/YouTube súbory sú presne z otestovaného test1; rozdiel IPK je len version/control a presná migračná úprava updatera. Inštalačné skripty a vlastnené cesty sú rovnaké.
@@ -184,7 +198,7 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Zostávajúce úlohy
 
-1. Pokračovať od staging dávok 29/30 a obnoveného historického manifestu cez dávku 28. Začleniť ich presné nové bajty do samostatných AT, CO a DE krajinských kandidátov, deduplikovať servisné referencie a chrániť schválené PNG.
+1. Pokračovať od staging dávok 29/30/31 a obnoveného historického manifestu cez dávku 28. Začleniť ich presné nové bajty do samostatných AT, CO a DE krajinských kandidátov, deduplikovať servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
 3. Stabilná 0.1.9.1 je schválená, publikovaná a automaticky overená; používať aktuálne kanály a zdokumentovaný prechod test1 cez migračnú 0.1.9.1-test2.
 4. Fyzické overenie YouTube UI 0.1.9.1-test1 používateľom je zapísané. Prípadné následné fyzické overenie migrácie stabilného balíka evidovať oddelene od automatických opkg skúšok.

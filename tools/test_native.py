@@ -518,21 +518,24 @@ class NativeTests(unittest.TestCase):
         screen.exit();self.assertEqual(screen.settings_form.view,'menu')
         self.assertEqual(screen.store.custom,[]);self.assertEqual(session.dialogs,[])
 
-    def test_settings_update_choice_requires_green_and_back_drops_late_check(self):
+    def test_settings_update_result_green_opens_warder_confirmation_and_back_drops_late_check(self):
         screen,session,_=self.new();screen.options()
         screen.update_checked(NS(version='0.1.7'),None)
         result=screen.update_result
         self.assertIsInstance(result,radio.UpdateResult)
         self.assertIn('0.1.7',result['message'].getText())
         result['actions'].actions['green']()
-        self.assertEqual(screen.settings_form.view,'confirm')
-        self.assertIn('0.1.7',screen['settings_text'].getText())
-        screen.ok();self.assertFalse(screen.installing)
-        screen.exit();self.assertEqual(screen.settings_form.view,'menu')
+        confirm=session.current_dialog
+        self.assertEqual(confirm.state,'confirm')
+        self.assertIn('0.1.7',confirm['version'].getText())
+        self.assertEqual(screen.settings_form.view,'menu')
+        confirm['actions'].actions['ok']();self.assertFalse(screen.installing)
+        self.assertEqual(screen.settings_form.view,'menu')
         self.assertIsNone(screen.settings_form.confirm_callback)
         screen.update_checked(NS(version='0.1.7'),None)
         screen.update_result['actions'].actions['green']()
-        screen.green_pressed()
+        confirm=session.current_dialog
+        confirm['actions'].actions['left']();confirm['actions'].actions['ok']()
         self.assertTrue(screen.installing)
         self.assertIsInstance(screen.update_window,radio.UpdateProgress)
         screen.update_window.cleanup();screen.installing=False
@@ -641,6 +644,94 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen.installing)
         self.assertIsNone(screen.settings_form.confirm_callback)
         self.assertEqual(len(session.dialogs),before)
+
+    def test_update_confirmation_defaults_to_no_and_each_arrow_only_changes_selection(self):
+        screen,session,_=self.new();screen.play()
+        calls=list(session.nav.calls);playing=session.nav.current
+        state=Path(screen.store.path).read_bytes()
+        screen.confirm_update(NS(version='0.1.9.1-test2'))
+        window=session.current_dialog
+        self.assertIsInstance(window,radio.UpdateResult)
+        self.assertEqual(window.state,'confirm')
+        self.assertEqual(window['title'].getText(),radio.t('Update')+' · Radio Warder Evolution')
+        self.assertEqual(window['version'].getText(),radio.t('Version:')+' 0.1.9.1-test2')
+        self.assertEqual(window['message'].getText(),radio.t('A new version is available. Do you want to install it?'))
+        self.assertFalse(window.selected_yes);self.assertIn('▶',window['no'].getText())
+        self.assertIsNone(window.auto_timer)
+        for arrow in ('left','right','up','down'):
+            window['actions'].actions[arrow]()
+            self.assertTrue(window.selected_yes);self.assertIn('▶',window['yes'].getText())
+            self.assertFalse(screen.installing);self.assertIsNone(screen.update_window)
+            window['actions'].actions[arrow]()
+            self.assertFalse(window.selected_yes)
+        window['actions'].actions['ok']()
+        self.assertTrue(window.disposed);self.assertFalse(screen.installing)
+        self.assertEqual(Path(screen.store.path).read_bytes(),state)
+        self.assertIs(session.nav.current,playing);self.assertEqual(session.nav.calls,calls)
+
+    def test_update_confirmation_exit_cancels_selected_yes_without_install_or_restart(self):
+        for action in ('cancel','red'):
+            screen,session,_=self.new();screen.play();playing=session.nav.current
+            screen.confirm_update(NS(version='9.0.0'));window=session.current_dialog
+            window['actions'].actions['left']();self.assertTrue(window.selected_yes)
+            window['actions'].actions[action]()
+            self.assertTrue(window.disposed);self.assertFalse(screen.installing)
+            self.assertFalse(screen.update_restart_ready);self.assertIsNone(screen.update_window)
+            self.assertTrue(screen['actions'].enabled);self.assertIs(session.nav.current,playing)
+            screen.cleanup()
+
+    def test_update_confirmation_yes_opens_unchanged_progress_before_any_io_once(self):
+        screen,session,_=self.new();screen.play();playing=session.nav.current
+        screen.jobs.close();captured=[]
+        screen.jobs.submit=lambda key,work,callback:captured.append((key,work,callback)) or True
+        screen.update_manual=True
+        screen.update_checked(NS(version='9.0.0'),None)
+        screen.update_result['actions'].actions['green']()
+        window=session.current_dialog
+        self.assertEqual(window.state,'confirm');self.assertEqual(captured,[])
+        window['actions'].actions['left']();window['actions'].actions['ok']()
+        self.assertTrue(window.disposed);self.assertTrue(screen.installing)
+        progress=screen.update_window
+        self.assertIsInstance(progress,radio.UpdateProgress);self.assertEqual(captured,[])
+        window['actions'].actions['ok']();self.assertIs(screen.update_window,progress)
+        progress.tick();self.assertEqual(len(captured),1)
+        with patch.object(radio,'install_release',return_value='9.0.0') as installer:
+            self.assertEqual(captured[0][1](),'9.0.0')
+            self.assertEqual(installer.call_args.args[0].version,'9.0.0')
+            self.assertIn('progress',installer.call_args.kwargs)
+        self.assertIs(session.nav.current,playing)
+        screen.update_installed(None,'offline test failure');progress.close_failed()
+        self.assertFalse(screen.installing);self.assertIsNone(screen.update_window)
+
+    def test_update_confirmation_after_host_close_cannot_install(self):
+        screen,session,_=self.new()
+        screen.confirm_update(NS(version='9.0.0'));window=session.current_dialog
+        window['actions'].actions['left']();screen.cleanup();window['actions'].actions['ok']()
+        self.assertTrue(window.disposed);self.assertFalse(screen.installing)
+        self.assertIsNone(screen.update_window)
+
+    def test_update_confirmation_shares_panel_frames_fonts_and_centering_at_every_resolution(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:]=width,height;session=Session()
+            base=radio.UpdateResult(session,'current');confirm=radio.UpdateResult(session,'confirm','9.0.0')
+            a,b=mount(base),mount(confirm)
+            self.assertEqual(a.attrib,b.attrib)
+            self.assertEqual([ET.tostring(n) for n in a.findall('eLabel')],
+                             [ET.tostring(n) for n in b.findall('eLabel')])
+            for node in a.findall('widget'):
+                self.assertEqual(node.attrib,b.find("widget[@name='%s']"%node.get('name')).attrib)
+            for shown in list(confirm.onShown):shown()
+            self.assertEqual(confirm['no'].instance.foreground,0x00ceff)
+            self.assertEqual(confirm['yes'].instance.foreground,0xd9e6ef)
+            confirm.move_choice()
+            self.assertEqual(confirm['yes'].instance.foreground,0x00ceff)
+            self.assertEqual(confirm['no'].instance.foreground,0xd9e6ef)
+            w,h=map(int,b.get('size').split(','))
+            for name in ('yes','no'):
+                node=b.find("widget[@name='%s']"%name)
+                x,y=map(int,node.get('position').split(','));dw,dh=map(int,node.get('size').split(','))
+                self.assertLessEqual(x+dw,w);self.assertLessEqual(y+dh,h)
+            confirm.cleanup();base.cleanup()
 
     def test_update_result_layout_uses_warder_style_at_all_resolutions(self):
         for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
@@ -1718,7 +1809,7 @@ class NativeTests(unittest.TestCase):
         screen, session, _ = self.new()
         self.assertTrue(screen.update_pending)
         screen.update_checked(NS(version='0.1.1'), None)
-        self.assertIn('0.1.1', session.dialogs[-1][2][0])
+        self.assertIn('0.1.1', session.current_dialog['version'].getText())
         screen.update_answered(False)
         self.assertFalse(screen.installing)
         screen.jobs.close()
