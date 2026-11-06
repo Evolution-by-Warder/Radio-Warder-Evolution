@@ -29,6 +29,12 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – krajinské balíky cez dávku 25
+
+- [Pracovný commit `1eff65c`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/1eff65c3698280657fd7ac1b8db4cff40cb80089) pridáva 20 referencií z dávok 24 a 25 do krajinských kandidátov. Počty súborov na variant sú AR 2 → 3, DE 91 → 100, GB 2 → 3 a US 2 → 11. SE a UA zostávajú na balíkoch dávky 23.
+- [Zostavenie na GitHube](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42217409652) a spätné stiahnutie overili 36 ZIPov a štyri manifesty downloadera. V každom z deviatich variantov má všetkých 97 existujúcich PNG rovnaký SHA-256 a nové PNG sa zhodujú so svojimi dávkovými manifestmi. Obsah švédskeho a ukrajinského manifestu sa zhoduje s dávkou 23.
+- Stav je pracovný na vetve `work/warder-radio-country-packs-batch25-20261106`. Pôvodný PiconHub PR #64 zostáva kandidátom dávky 23. Rozšírený kandidát s dávkami 24 a 25 je vedený oddelene. Produkčný rozsah, zlúčenie a vydanie čakajú na výslovný súhlas.
+
 ### 6. 11. 2026 – univerzálna dostupnosť všetkých krajín (pracovná integrácia)
 
 - Výber piconov už obsahuje všetkých **219 krajín** katalógu. Samostatná skupina HDF sa nepovažuje za krajinu. Online manifest `picons/radio-world/catalog/countries.json` určuje dostupnosť, počet pokrytých referencií a nemenný manifest každého balíka. Krajina bez publikovaných piconov zostáva viditeľná a nedá sa novo vybrať; čiastočná krajina umožňuje stiahnuť existujúce picony.
@@ -70,7 +76,7 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Zostávajúce úlohy
 
-1. Naviazať na dávky 24 a 25 a pripraviť ich zlúčenie do pracovných krajinských balíkov. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
+1. Pokračovať od krajinských kandidátov dávky 25. Overiť aktuálny katalóg a obnoviť úplný inventár checkpointu 22, ak je dostupný. Pri zlúčení evidencie deduplikovať presné servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
 3. Predložiť overenú integráciu krajín na schválenie. Po schválení postupovať v poradí PiconHub PR #64, overenie živých balíkov, Radio PR #15 a samostatné schválenie vydania.
 4. Overiť nové správanie na fyzickom prijímači a zapísať výsledok oddelene od CI a lokálnych testov.
