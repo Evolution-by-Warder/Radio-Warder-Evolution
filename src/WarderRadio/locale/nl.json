@@ -150,5 +150,6 @@
   "Using saved picon availability": "Opgeslagen piconbeschikbaarheid wordt gebruikt",
   "Checking picon availability…": "Beschikbaarheid van picons controleren…",
   "Picons not published: {country}": "Picons niet gepubliceerd: {country}",
-  "Update available: {version}": "Update beschikbaar: {version}"
+  "Update available: {version}": "Update beschikbaar: {version}",
+  "No YouTube video could be found for the current song.": "Er is geen YouTube-video gevonden voor het huidige nummer."
 }

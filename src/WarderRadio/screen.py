@@ -140,6 +140,7 @@ class WarderRadio(Screen):
         self.cover_jobs = Jobs()
         self.video_jobs = Jobs()
         self.video_pending, self.video_active, self.video_dialog = False, False, None
+        self.youtube_info = None
         self.video_generation = 0
         self.cover_key, self.cover_generation = '', 0
         self.cover_pending, self.cover_attempts, self.cover_next = False, 0, 0.0
@@ -745,7 +746,7 @@ class WarderRadio(Screen):
             return
         artist, title = self['artist'].getText(), self['track'].getText()
         if not self.playback.owns() or not self.playback.current or 'url' not in self.playback.current or not song_query(artist,title):
-            self.notify(t('Current song information is unavailable'))
+            self.youtube_information()
             return
         self.video_generation += 1
         generation = self.video_generation
@@ -768,7 +769,9 @@ class WarderRadio(Screen):
                 artist,title) != (self['artist'].getText(),self['track'].getText()):
             return
         if error or not result:
-            self.notify(t('YouTube video unavailable') + ('\n' + clean_metadata(error)[:240] if error else ''),True)
+            message = (t('YouTube video unavailable') + '\n' + clean_metadata(error)[:240]
+                       if error and error not in ('YouTube video not found', 'Current song information is unavailable') else None)
+            self.youtube_information(message)
             return
         self.video_active = True
         try:
@@ -784,6 +787,17 @@ class WarderRadio(Screen):
             # A failed screen creation must leave/recover our existing radio.
             self.session.nav.playService(self.playback.reference)
             self.notify(t('YouTube video unavailable'),True)
+
+    def youtube_information(self, message=None):
+        if self.closed or self.youtube_info is not None:
+            return
+        self.youtube_info = self.session.openWithCallback(self.youtube_information_closed,
+            UpdateResult, 'information', title='YouTube – Warder Radio',
+            message=message if message is not None else t('No YouTube video could be found for the current song.'),
+            timeout=8)
+
+    def youtube_information_closed(self, _result=False):
+        self.youtube_info = None
 
     def youtube_returned(self, failed=False):
         self.video_active, self.video_dialog = False, None
@@ -1276,6 +1290,8 @@ class WarderRadio(Screen):
         if self.closed:
             return
         self.closed = True
+        if self.youtube_info is not None:
+            self.youtube_info.dismiss()
         self.video_generation += 1
         self.video_pending = False
         if self.video_dialog is not None:

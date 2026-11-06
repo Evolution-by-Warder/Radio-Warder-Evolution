@@ -150,5 +150,6 @@
   "Using saved picon availability": "Kaydedilmiş pikon kullanılabilirliği kullanılıyor",
   "Checking picon availability…": "Pikon kullanılabilirliği denetleniyor…",
   "Picons not published: {country}": "Pikonlar yayımlanmadı: {country}",
-  "Update available: {version}": "Güncelleme mevcut: {version}"
+  "Update available: {version}": "Güncelleme mevcut: {version}",
+  "No YouTube video could be found for the current song.": "Geçerli şarkı için YouTube’da video bulunamadı."
 }

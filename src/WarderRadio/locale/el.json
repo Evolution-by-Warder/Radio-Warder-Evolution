@@ -150,5 +150,6 @@
   "Using saved picon availability": "Χρήση αποθηκευμένης διαθεσιμότητας εικονιδίων",
   "Checking picon availability…": "Έλεγχος διαθεσιμότητας εικονιδίων…",
   "Picons not published: {country}": "Δεν έχουν δημοσιευτεί εικονίδια: {country}",
-  "Update available: {version}": "Διαθέσιμη ενημέρωση: {version}"
+  "Update available: {version}": "Διαθέσιμη ενημέρωση: {version}",
+  "No YouTube video could be found for the current song.": "Δεν βρέθηκε βίντεο στο YouTube για το τρέχον τραγούδι."
 }

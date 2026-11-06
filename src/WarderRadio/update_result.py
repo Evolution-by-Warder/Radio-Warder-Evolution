@@ -1,5 +1,5 @@
-"""Persistent Warder-styled update result; installation is a separate decision."""
-from enigma import getDesktop
+"""Shared Warder feedback; update results persist, other notices may time out."""
+from enigma import getDesktop, eTimer
 from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Screens.Screen import Screen
@@ -10,8 +10,8 @@ from .skin import geometry, PANEL_BACKGROUND
 
 
 class UpdateResult(Screen):
-    def __init__(self, session, state, version=''):
-        if state not in ('current', 'available', 'failed'):
+    def __init__(self, session, state, version='', *, title=None, message=None, timeout=0):
+        if state not in ('current', 'available', 'failed', 'information'):
             raise ValueError('Invalid update result')
         size = getDesktop(0).size()
         scale = geometry(size.width(), size.height())[0]
@@ -40,10 +40,11 @@ class UpdateResult(Screen):
                       + '</screen>')
         Screen.__init__(self, session)
         self.state, self.disposed = state, False
-        self['title'] = Label(t('Update') + ' · Radio Warder Evolution')
+        self['title'] = Label(title if title is not None else t('Update') + ' · Radio Warder Evolution')
         self['version'] = Label(t('Version:') + ' ' + VERSION)
-        message = (t('Update available: {version}').format(version=version) if state == 'available'
-                   else t('Update check failed') if state == 'failed' else t('No update available'))
+        if message is None:
+            message = (t('Update available: {version}').format(version=version) if state == 'available'
+                       else t('Update check failed') if state == 'failed' else t('No update available'))
         self['message'] = Label(message)
         self['install'] = Label('● ' + t('Install update {version}?').format(version=version)
                                 if state == 'available' else '')
@@ -53,6 +54,18 @@ class UpdateResult(Screen):
             'green': self.request_install,
         }, -2)
         self.onClose.append(self.cleanup)
+        self.auto_timer, self.auto_connection = None, None
+        if state == 'information' and timeout > 0:
+            self.auto_timer = eTimer()
+            if hasattr(self.auto_timer, 'callback'):
+                self.auto_timer.callback.append(self.dismiss)
+            else:
+                self.auto_connection = self.auto_timer.timeout.connect(self.dismiss)
+            self.onShown.append(lambda: self.start_timeout(timeout))
+
+    def start_timeout(self, seconds):
+        if not self.disposed and self.auto_timer is not None:
+            self.auto_timer.start(round(seconds * 1000), True)
 
     def dismiss(self):
         if not self.disposed:
@@ -63,4 +76,13 @@ class UpdateResult(Screen):
             self.close(True)
 
     def cleanup(self):
+        if self.disposed:
+            return
         self.disposed = True
+        if self.auto_timer is not None:
+            self.auto_timer.stop()
+            if self.auto_connection is not None:
+                self.auto_connection.disconnect()
+                self.auto_connection = None
+            elif hasattr(self.auto_timer, 'callback') and self.dismiss in self.auto_timer.callback:
+                self.auto_timer.callback.remove(self.dismiss)

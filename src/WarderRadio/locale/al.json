@@ -150,5 +150,6 @@
   "Using saved picon availability": "Po përdoret disponueshmëria e ruajtur e pikonave",
   "Checking picon availability…": "Po kontrollohet disponueshmëria e pikonave…",
   "Picons not published: {country}": "Pikonat nuk janë publikuar: {country}",
-  "Update available: {version}": "Përditësim i disponueshëm: {version}"
+  "Update available: {version}": "Përditësim i disponueshëm: {version}",
+  "No YouTube video could be found for the current song.": "Nuk u gjet video në YouTube për këngën aktuale."
 }

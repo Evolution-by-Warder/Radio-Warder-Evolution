@@ -1361,6 +1361,100 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen.video_active); self.assertTrue(screen.playback.owns())
         screen.cleanup(); self.assertEqual(session.nav.current,original)
 
+    def test_missing_song_metadata_uses_warder_youtube_notice_without_search_or_audio_change(self):
+        screen,session,_=self.new();screen.play()
+        playing=session.nav.current;calls=list(session.nav.calls)
+        screen['artist'].setText('');screen['track'].setText('')
+        with patch.object(screen.video_jobs,'submit') as submit:
+            screen.youtube_video();submit.assert_not_called()
+        window=screen.youtube_info
+        self.assertIsInstance(window,radio.UpdateResult)
+        self.assertEqual(window.state,'information')
+        self.assertEqual(window['title'].getText(),'YouTube – Warder Radio')
+        self.assertEqual(window['message'].getText(),radio.t('No YouTube video could be found for the current song.'))
+        self.assertEqual(window['footer'].getText(),'OK / EXIT · '+radio.t('Close'))
+        self.assertEqual(window.auto_timer.starts,[(8000,True)])
+        window['actions'].actions['green']()
+        self.assertIs(screen.youtube_info,window)
+        window['actions'].actions['ok']()
+        self.assertIsNone(screen.youtube_info)
+        self.assertIs(session.nav.current,playing);self.assertEqual(session.nav.calls,calls)
+        self.assertFalse(screen.installing);self.assertFalse(screen.closed)
+
+    def test_youtube_empty_search_and_not_found_error_keep_audio_and_close_on_ok_exit(self):
+        for error,action in ((None,'ok'),('YouTube video not found','cancel')):
+            screen,session,_=self.new();screen.play()
+            callbacks=[];screen.video_jobs.submit=lambda key,work,callback:callbacks.append(callback) or True
+            state=Path(screen.store.path).read_bytes()
+            playing=session.nav.current;calls=list(session.nav.calls)
+            screen.youtube_video();callbacks[0](None,error)
+            window=screen.youtube_info
+            self.assertEqual(window['message'].getText(),radio.t('No YouTube video could be found for the current song.'))
+            self.assertFalse(screen.video_pending);self.assertFalse(screen.video_active)
+            self.assertIsNone(screen.video_dialog)
+            timer=window.auto_timer
+            window['actions'].actions[action]()
+            self.assertTrue(window.disposed);self.assertFalse(timer.active)
+            self.assertEqual(timer.callback,[]);self.assertIsNone(screen.youtube_info)
+            self.assertIs(session.nav.current,playing);self.assertEqual(session.nav.calls,calls)
+            self.assertEqual(Path(screen.store.path).read_bytes(),state)
+            screen.cleanup()
+
+    def test_youtube_notice_timeout_closes_once_and_parent_close_disposes_timer(self):
+        screen,session,_=self.new();screen.play()
+        playing=session.nav.current
+        screen.youtube_information();window=screen.youtube_info
+        callback=window.auto_timer.callback[0];callback()
+        self.assertTrue(window.disposed);self.assertIsNone(screen.youtube_info)
+        self.assertIs(session.nav.current,playing)
+        callback();self.assertIsNone(screen.youtube_info)
+        screen.youtube_information();window=screen.youtube_info
+        screen.cleanup()
+        self.assertTrue(window.disposed);self.assertFalse(window.auto_timer.active)
+        self.assertEqual(window.auto_timer.callback,[])
+
+    def test_youtube_notice_supports_signal_timer_api_and_keeps_update_results_persistent(self):
+        class SignalTimer:
+            def __init__(self):self.timeout=Signal();self.starts=[];self.active=False
+            def start(self,*args):self.starts.append(args);self.active=True
+            def stop(self):self.active=False
+        screen,session,_=self.new()
+        with patch('WarderRadio.update_result.eTimer',SignalTimer):
+            screen.youtube_information();window=screen.youtube_info
+        timer=window.auto_timer
+        self.assertEqual(timer.starts,[(8000,True)])
+        callback=timer.timeout.callbacks[0];callback()
+        self.assertTrue(window.disposed);self.assertFalse(timer.active)
+        self.assertEqual(timer.timeout.callbacks,[])
+        for state in ('current','available','failed'):
+            update=radio.UpdateResult(session,state,'9.0.0',timeout=8)
+            self.assertIsNone(update.auto_timer)
+            self.assertFalse(update.disposed)
+
+    def test_youtube_notice_has_exact_update_result_style_at_every_resolution(self):
+        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
+            DESKTOP[:]=width,height
+            session=Session()
+            update=radio.UpdateResult(session,'current')
+            info=radio.UpdateResult(session,'information',title='YouTube – Warder Radio',
+                message=radio.t('No YouTube video could be found for the current song.'),timeout=8)
+            self.assertEqual(info.skin,update.skin)
+            mount(update)
+            root=mount(info)
+            self.assertEqual(root.get('backgroundColor'),PANEL_BACKGROUND)
+            for node in root.findall('widget'):
+                name=node.get('name')
+                self.assertEqual(info[name].skinAttributes,update[name].skinAttributes)
+            info.cleanup();update.cleanup()
+
+    def test_youtube_search_errors_use_same_warder_notice_and_preserve_diagnostic(self):
+        screen,session,_=self.new();screen.play()
+        callbacks=[];screen.video_jobs.submit=lambda key,work,callback:callbacks.append(callback) or True
+        screen.youtube_video();callbacks[0](None,'network offline')
+        self.assertEqual(screen.youtube_info['message'].getText(),radio.t('YouTube video unavailable')+'\nnetwork offline')
+        self.assertIsNone(screen.video_dialog);self.assertTrue(screen.playback.owns())
+        screen.youtube_info.dismiss()
+
     def test_video_search_stale_song_station_error_and_close_do_not_steal_navigation(self):
         screen, session, _=self.new(); screen.play()
         callbacks=[]; screen.video_jobs.submit=lambda key,work,callback:callbacks.append(callback) or True

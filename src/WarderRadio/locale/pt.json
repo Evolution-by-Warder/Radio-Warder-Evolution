@@ -150,5 +150,6 @@
   "Using saved picon availability": "A usar a disponibilidade guardada dos picons",
   "Checking picon availability…": "A verificar a disponibilidade dos picons…",
   "Picons not published: {country}": "Picons não publicados: {country}",
-  "Update available: {version}": "Atualização disponível: {version}"
+  "Update available: {version}": "Atualização disponível: {version}",
+  "No YouTube video could be found for the current song.": "Não foi encontrado nenhum vídeo no YouTube para a música atual."
 }

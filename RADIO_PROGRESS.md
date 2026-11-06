@@ -39,6 +39,14 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – YouTube hlásenie vo Warder dizajne, pracovný test
+
+- Samostatná vetva `work/radio-youtube-info-0.1.9.1-test1-20261106` vychádza z produkčného `cbe44708caf3b8a597c071f951f97f5f529058c4`. Na výslovnú žiadosť používateľa sa pripravuje iba testovacie IPK; main, stabilné vydanie 0.1.9 a oba aktualizačné kanály zostávajú nedotknuté.
+- Chýbajúce údaje o skladbe alebo prázdny výsledok YouTube používa existujúci komponent `UpdateResult` s titulkom „YouTube – Warder Radio“, slovenským textom „Pre aktuálnu skladbu sa nepodarilo nájsť video na YouTube.“ a pätičkou „OK / EXIT · Zavrieť“. Zachované automatické zatvorenie po 8 sekundách, ručné OK/EXIT, bezpečné zrušenie časovača a nezmenené perzistentné výsledky aktualizácie. Vyhľadávanie a prehrávač YouTube, dátový model, hlavný dizajn a downloader zostávajú bez zmien; ostatné chyby vyhľadávania zachovávajú diagnostický text v tom istom Warder okne.
+- Verzia testu `0.1.9.1-test1` využíva existujúcu podporu štvrtej číselnej zložky v updateri; build validátor ju teraz povoľuje. Plugin aj správca balíkov ju radia nad 0.1.9 a pod budúcu 0.1.10, aby návrat na ďalšiu stabilnú verziu nevyžadoval downgrade. Žiadne feedy ani updater sa nemenia.
+- Lokálne: 163 jednotkových testov, 159 úspešných a 4 existujúce migračné testy špecifické pre presnú 0.1.9 preskočené. 85 natívnych testov na každom základe OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next; nové prípady zahŕňajú OK/EXIT, timeout, obe API eTimer, zachovanie rádia a dát, chyby siete a identické XML/atribúty dizajnu v štyroch rozlíšeniach. Nasleduje CI a odovzdanie testovacieho IPK na fyzickú skúšku; fyzická kompatibilita tejto úpravy zatiaľ nie je potvrdená. Rádiové dávky 29/30 zostávajú na samostatných vetvách, satelitné picony ani skin sa nemenia.
+
+
 ### 6. 11. 2026 – po vydaní pokračovanie piconovou dávkou 30
 
 - Na samostatnej [vetve dávky 30](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-world-batch30-20261106) pripravené **3 nové nemecké referencie / 27 PNG**: Amorsaal `4097:0:2:EF19:DC50:ED:0:0:0:0`, Bibel-Kanal `4097:0:2:E5C9:733F:ED:0:0:0:0`, EASTSIDE FM `4097:0:2:9F4:84A0:ED:0:0:0:0`. [Nemenný manifest a ZIPy](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/415069a6813c88206beb1bc8d5d12136431b2b4a/picons/radio-world/staging/batch-30) uchovávajú všetky SHA-256; lokálny a GitHub manifest sa zhodujú.
