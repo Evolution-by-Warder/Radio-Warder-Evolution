@@ -1,0 +1,673 @@
+{
+  "version": "0.1.9.1",
+  "date": "2026-11-06",
+  "physical_test": {
+    "version": "0.1.9.1-test1",
+    "confirmed_by_owner": true,
+    "scope": "YouTube Warder dialog appearance and close behavior",
+    "receiver_model": "not supplied",
+    "image_version": "not supplied"
+  },
+  "tested_commit": "5c7436e56df820e1f2eb5147f81b32b2bfae8801",
+  "candidate_commit": "33c75ed8ac80d7c16b87ec33af7b456906f654a7",
+  "merge_commit": "3ab96a529de859d445a8d03ed1c37f9a5f5d6170",
+  "pull_request": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/17",
+  "ipk": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.9.1-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1_all.ipk",
+    "sha256": "99386f0db84588b60e3540e48ae5a0452bf144a517333836597c79494a4d95d3",
+    "bytes": 3178024,
+    "files": 116
+  },
+  "tester_migration": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.9.1-test2-1",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test2_all.ipk",
+    "sha256": "0e6e8c1d8f852f04aaea979c731ee69da92c0683b51591605ae70b96ad8a8ad5",
+    "bytes": 3178032,
+    "files": 116
+  },
+  "premerge_ci": [
+    42243419434,
+    42243413586,
+    42243413581
+  ],
+  "unit": {
+    "total": 167,
+    "passed": 163,
+    "skipped": 4,
+    "reason": "Historical exact-0.1.9 migration fixture; the 0.1.9.1 migration suite runs."
+  },
+  "native": {
+    "OpenPLi 9.2": 85,
+    "OpenATV 8.1 reviewed base": 85,
+    "OpenATV 8.0-next": 85
+  },
+  "payload_test1_comparison": {
+    "source_sha256": "519034d8bcbb78128531a46f50f0f630ef4d9011bb079881260105e531d0d4ba",
+    "same_owned_paths": true,
+    "changed": [
+      "control.tar.gz/./control",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/version.txt",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/warder_update.py"
+    ],
+    "ui_search_playback_model_install_scripts_identical": true
+  },
+  "offline_opkg": [
+    {
+      "file": "opkg-0191-upgrade-proof-opkg-version-0.6.1.json",
+      "paths": [
+        {
+          "initial": "0.1.8",
+          "steps": [
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": true,
+          "manual_gui_restart_after_first_step": true,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/stable018.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-mbptlhmb/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        },
+        {
+          "initial": "0.1.9",
+          "steps": [
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": false,
+          "manual_gui_restart_after_first_step": false,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/stable019.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-nr5vi0h9/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        },
+        {
+          "initial": "0.1.9-test2",
+          "steps": [
+            "0.1.9.1-test2",
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": true,
+          "manual_gui_restart_after_first_step": true,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/test2/enigma2-plugin-extensions-radio-warder-evolution_0.1.9-test2_all.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-ogwgz94c/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "--force-downgrade",
+              "install"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/testing.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        },
+        {
+          "initial": "0.1.9.1-test1",
+          "steps": [
+            "0.1.9.1-test2",
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": false,
+          "manual_gui_restart_after_first_step": false,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/test1/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test1_all.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-ni5iepn5/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "--force-downgrade",
+              "install"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/testing.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "opkg-0191-upgrade-proof-opkg-version-0.3.3.json",
+      "paths": [
+        {
+          "initial": "0.1.8",
+          "steps": [
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": true,
+          "manual_gui_restart_after_first_step": true,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/stable018.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-zbsrns42/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        },
+        {
+          "initial": "0.1.9",
+          "steps": [
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": false,
+          "manual_gui_restart_after_first_step": false,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/stable019.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-c8l44ad2/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        },
+        {
+          "initial": "0.1.9-test2",
+          "steps": [
+            "0.1.9.1-test2",
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": true,
+          "manual_gui_restart_after_first_step": true,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/test2/enigma2-plugin-extensions-radio-warder-evolution_0.1.9-test2_all.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-0ads9n5x/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "--force-downgrade",
+              "install"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/testing.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        },
+        {
+          "initial": "0.1.9.1-test1",
+          "steps": [
+            "0.1.9.1-test2",
+            "0.1.9.1"
+          ],
+          "final": "0.1.9.1",
+          "user_files_preserved": 5,
+          "legacy_verifier_false_failure": false,
+          "manual_gui_restart_after_first_step": false,
+          "commands": [
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-0191-baselines/test1/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test1_all.ipk"
+            ],
+            [
+              "opkg",
+              "install",
+              "/tmp/warder-radio-update-bhmrp3uv/update.ipk"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "--force-downgrade",
+              "install"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ],
+            [
+              "opkg",
+              "status",
+              "enigma2-plugin-extensions-radio-warder-evolution"
+            ]
+          ],
+          "feed_requests": [
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/testing.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json",
+            "https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/update/v2/stable.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "live_downloader": {
+    "version": "0.1.9.1",
+    "index_url": "https://raw.githubusercontent.com/Evolution-by-Warder/PiconHub-Warder-Evolution/main/picons/radio-world/catalog/countries.json",
+    "index_sha256": "4eeb574748362d215ae5ce71e945a2e768f4f7e0128e21a5bb6f8cdd3b8e5613",
+    "countries": 219,
+    "available_countries": [
+      "SK",
+      "CZ",
+      "AR",
+      "AT",
+      "CL",
+      "DE",
+      "GR",
+      "HU",
+      "LT",
+      "PL",
+      "RO",
+      "LK",
+      "SE",
+      "UA",
+      "GB",
+      "US"
+    ],
+    "covered_country_references": 491,
+    "styles": [
+      {
+        "style": "transparent",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "white",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "black",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      }
+    ],
+    "receiver_hardware_tested": false
+  },
+  "scope": "Radio plugin release only; no skin or satellite changes",
+  "piconhub_main": "648c52b5cc69038bd1b6a1d7ad5b5514c308458d",
+  "publication_status": "published stable; verified",
+  "publication_run": 42243737682,
+  "release": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.9.1",
+  "asset": {
+    "url": "https://api.github.com/repos/Evolution-by-Warder/Radio-Warder-Evolution/releases/assets/717610283",
+    "id": 717610283,
+    "node_id": "RA_kwDOVhQSjc4qxd0r",
+    "name": "enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1_all.ipk",
+    "label": "",
+    "uploader": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "content_type": "application/octet-stream",
+    "state": "uploaded",
+    "size": 3178024,
+    "digest": "sha256:99386f0db84588b60e3540e48ae5a0452bf144a517333836597c79494a4d95d3",
+    "download_count": 0,
+    "created_at": "2026-11-06T15:32:22Z",
+    "updated_at": "2026-11-06T15:32:22Z",
+    "browser_download_url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.1/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1_all.ipk"
+  },
+  "feed_commit": "c03bfbbb217d9f974e338e1db7eb485af868d875",
+  "channels": {
+    "stable": {
+      "schema": 1,
+      "product": "Warder Radio",
+      "channel": "stable",
+      "release": {
+        "version": "0.1.9.1",
+        "tag": "warder-radio-v0.1.9.1",
+        "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.1/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1_all.ipk",
+        "sha256": "99386f0db84588b60e3540e48ae5a0452bf144a517333836597c79494a4d95d3",
+        "bytes": 3178024,
+        "notes": "Warder Radio 0.1.9.1",
+        "notes_i18n": {}
+      }
+    },
+    "testing": {
+      "schema": 1,
+      "product": "Warder Radio",
+      "channel": "testing",
+      "release": {
+        "version": "0.1.9.1-test2",
+        "tag": "warder-radio-v0.1.9.1-test2",
+        "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.1-test2/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test2_all.ipk",
+        "sha256": "0e6e8c1d8f852f04aaea979c731ee69da92c0683b51591605ae70b96ad8a8ad5",
+        "bytes": 3178032,
+        "notes": "Compatibility step: after GUI restart use Update again to install stable 0.1.9.1.",
+        "notes_i18n": {},
+        "migration_target": "0.1.9.1"
+      }
+    }
+  },
+  "public_verification": {
+    "legacy_testing_unchanged": true,
+    "stable": {
+      "schema": 1,
+      "product": "Warder Radio",
+      "channel": "stable",
+      "release": {
+        "version": "0.1.9.1",
+        "tag": "warder-radio-v0.1.9.1",
+        "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.1/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1_all.ipk",
+        "sha256": "99386f0db84588b60e3540e48ae5a0452bf144a517333836597c79494a4d95d3",
+        "bytes": 3178024,
+        "notes": "Warder Radio 0.1.9.1",
+        "notes_i18n": {}
+      }
+    },
+    "testing": {
+      "schema": 1,
+      "product": "Warder Radio",
+      "channel": "testing",
+      "release": {
+        "version": "0.1.9.1-test2",
+        "tag": "warder-radio-v0.1.9.1-test2",
+        "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.1-test2/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test2_all.ipk",
+        "sha256": "0e6e8c1d8f852f04aaea979c731ee69da92c0683b51591605ae70b96ad8a8ad5",
+        "bytes": 3178032,
+        "notes": "Compatibility step: after GUI restart use Update again to install stable 0.1.9.1.",
+        "notes_i18n": {},
+        "migration_target": "0.1.9.1"
+      }
+    },
+    "upgrade_paths": [
+      {
+        "installed": "0.1.8",
+        "offered": [
+          "0.1.9.1"
+        ],
+        "public_bytes_verified": true
+      },
+      {
+        "installed": "0.1.9",
+        "offered": [
+          "0.1.9.1"
+        ],
+        "public_bytes_verified": true
+      },
+      {
+        "installed": "0.1.9-test2",
+        "offered": [
+          "0.1.9.1-test2",
+          "0.1.9.1"
+        ],
+        "public_bytes_verified": true
+      },
+      {
+        "installed": "0.1.9.1-test1",
+        "offered": [
+          "0.1.9.1-test2",
+          "0.1.9.1"
+        ],
+        "public_bytes_verified": true
+      },
+      {
+        "installed": "0.1.9-test3",
+        "offered": [
+          "0.1.9.1"
+        ],
+        "public_bytes_verified": true
+      }
+    ],
+    "current_stable_offers_no_update": true,
+    "future_stable_recognized": true,
+    "receiver_hardware_tested": false
+  },
+  "publication_result": "success"
+}
