@@ -157,8 +157,8 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Zostávajúce úlohy
 
-1. Pokračovať od staging dávky 29 a obnoveného historického manifestu cez dávku 28. Začleniť štyri nové referencie do samostatných AT, CO a DE krajinských kandidátov, deduplikovať presné servisné referencie a chrániť schválené PNG.
+1. Pokračovať od staging dávok 29/30 a obnoveného historického manifestu cez dávku 28. Začleniť ich presné nové bajty do samostatných AT, CO a DE krajinských kandidátov, deduplikovať servisné referencie a chrániť schválené PNG.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
-3. Fyzicky overiť pripravenú verziu 0.1.9-test1 podľa skúšobného postupu; stabilné vydanie zostáva pozastavené.
-4. Overiť nové správanie na fyzickom prijímači a zapísať výsledok oddelene od CI a lokálnych testov.
+3. Stabilná 0.1.9 je schválená, publikovaná a automaticky overená; používať overené aktualizačné kanály a zdokumentovaný prechod test2 cez test3.
+4. Fyzické overenie UI test2 používateľom je zapísané. Prípadné následné fyzické overenie migrácie stabilného balíka evidovať oddelene od automatických opkg skúšok.
 
