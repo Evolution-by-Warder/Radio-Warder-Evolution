@@ -5,3 +5,11 @@
 - Po každej významnej zmene a pred odovzdaním aktualizuj `RADIO_PROGRESS.md`. Zapíš dátum, repozitár a vetvu, SHA s odkazom, stav schválenia a publikácie, rozsah testov, blokácie a najbližší vykonateľný krok. Pri dávkach eviduj krajiny, servisné referencie, počet PNG, manifest a kontrolné súčty. Oddelene veď pripravené, publikované, úplne pokryté a blokované položky. Staršie výsledky zachovaj v denníku alebo odkazovaných checkpointoch.
 - Používaj katalóg pluginu a overenú identitu stanice. Pred renderovaním over existujúci schválený artwork a aliasy. Zachovaj schválenú geometriu, pôvodné logá, tri pozadia a rozmery 50×30, 220×132 a 400×240. Kontroluj PNG, ZIP, SHA-256, servisné referencie a kompatibilitu downloadera. Chýbajúce dôkazy eviduj a pokračuj overiteľnými položkami.
 - Ďalšie rádiové dávky majú vopred schválené spracovanie. Merge, publikovanie balíkov, vydanie IPK a zápis do produkcie vyžadujú výslovný súhlas. Odlišuj lokálne testy a CI od fyzického overenia.
+
+## Bezpečnosť prístupu a nahrávania na GitHub
+
+- Používaj existujúce, používateľom autorizované GitHub pripojenie a jeho podporované operácie. Nemeň svojvoľne spôsob autentifikácie, neprihlasuj sa cez nový webový formulár, nevytváraj tokeny ani nežiadaj heslá, 2FA kódy či iné prihlasovacie tajomstvá.
+- Ak existujúce pripojenie nestačí na nahratie veľkých binárnych súborov, zastav iba dotknutý prenos. Najprv zdokumentuj konkrétne obmedzenie, prípadnú chybu a bezpečné alternatívy; pred novou autentifikáciou alebo zmenou spôsobu prenosu vyžiadaj výslovný súhlas vlastníka.
+- Bez nového súhlasu neskúšaj ďalšie prihlasovacie cesty, opakované Base64 uploady ani nekonečné opakovania zlyhávajúcej operácie. Ak je podporovaná už autorizovaná dávková cesta, použi ju iba v rámci existujúcich oprávnení a schváleného rozsahu.
+- Pred zápisom over cieľovú vetvu, očakávaný obsah a SHA-256 existujúcich schválených súborov. Nečakaný rozdiel je blokácia, nie dôvod na prepísanie. Pracuj iba na oddelených pracovných vetvách; produkčný merge vyžaduje samostatné schválenie.
+- Po každej bezpečne dokončenej dávke ulož commit a aktualizuj `RADIO_PROGRESS.md` s presným SHA, počtami, stavom úspešných uploadov a nespracovanými lokálnymi výstupmi. Nikdy neoznač lokálne pripravené archívy za nahrané, kým neoveríš ich existenciu a kontrolné súčty na GitHube.
