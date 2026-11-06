@@ -41,6 +41,14 @@ Posledná tabuľka pred dávkou 33 je historický checkpoint cez dávku 27.
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – pracovná dávka 35, ďalších 200 referencií uložených a overených
+
+- [Dávka 35 `8e5a4e2`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/8e5a4e24fb3d7820647094868fa3818fa2384b4b) nadväzuje na pracovnú dávku 34 a pridáva **200 historických referencií / 1 800 PNG v 37 krajinách**. Presná zhoda názvu, URL a skupiny s katalógom bola podmienkou prijatia. Nezávislá kontrola potvrdila 1 566 jedinečných zdrojových PNG blobov vrátane SHA-256, integrity a rozmerov. [Dôkaz](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/8e5a4e24fb3d7820647094868fa3818fa2384b4b/picons/radio-world/staging/batch-35/source-proof.json).
+- [CI 42292288102](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42292288102) uložilo [333 ZIPov](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/df6eb551ad1f288a1adb3cb0d39fe8d69f9eecb3) a [37 pripnutých manifestov](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/6474c6aa79b6f4154d7eb06350566b5f5fd881dc). Všetky tri pozadia a všetky tri rozmery, **4 995 pôvodných PNG** je bajtovo zachovaných.
+- [Kandidátsky index](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/8e5a4e24fb3d7820647094868fa3818fa2384b4b/picons/radio-world/staging/batch-35/countries.proposed.json) má **219 krajín, 100 dostupných, 1 484 pokrytých z 35 560 krajinských referencií**. Lokálny test stabilného Radio 0.1.9.2 cez 111 verejných ZIPov nainštaloval 721 piconov a zachoval jeden vlastný pri každom z troch pozadí 220 × 132. Opakovanie bez ZIPov, nastavenia, obľúbené a história zachované. [Dôkaz downloadera](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/8e5a4e24fb3d7820647094868fa3818fa2384b4b/picons/radio-world/staging/batch-35/downloader-proof.json).
+- Dávky 34 a 35 sú pracovné. Produkčná dávka 33 zostáva na `8180aa0`. Neuzavreté krajinské pokrytie a oddelený register HDF ostávajú otvorené.
+
+
 ### 6. 11. 2026 – pracovná dávka 34, všetkých 200 referencií uložených a overených
 
 - [Pracovný kandidát `af3ba47`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/af3ba47c13c3bce9e1ed1a245163da2c5326c9d0) zahŕňa **200 ďalších historických referencií / 1 800 PNG v 68 krajinách**. Základom je produkčná dávka 33. Pri 55 krajinách so 157 referenciami sa použili uložené ZIPy. Pre 13 krajín so 43 referenciami [CI 42291360242](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42291360242) vytvorilo a uložilo 117 nových pracovných ZIPov so zachovaním pôvodných PNG a so všetkými deviatimi variantmi. [Nemenný snapshot ZIPov a manifestov](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/004573a01d90da9d14bff42c60195672083ff2a2).
