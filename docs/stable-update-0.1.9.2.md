@@ -9,3 +9,5 @@ Stabilné 0.1.9/0.1.9.1, pôvodný test1 a fyzicky overená revízia 2 aj migra�
 Historické 0.1.8 a 0.1.9-test2 môžu po úspešnej inštalácii nesprávne hlásiť neúplný stav kvôli platnému `install user installed`; v tomto presnom prípade jednorazovo reštartujte GUI. Ide o chybu pôvodného overovača, nie stratu balíka. Ručné stiahnutie ani kopírovanie IPK netreba.
 
 Nastavenia, obľúbené, história, vlastné stanice, používateľské picony a cache katalógu zostávajú zachované. Katalóg obsahuje 219 krajín, online manifest a počty piconov. Do skinu ani satelitných piconov sa nezasahuje.
+
+[Stabilné vydanie 0.1.9.2](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/tag/warder-radio-v0.1.9.2) je publikované. [Priame IPK](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.2/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.2_all.ipk), 3 179 378 B; SHA-256 `bd61c26ee9ad927a1ebdd998686afe8f5a1f6aa761af65c73038225f9d230bf6`. Oba v2 kanály a reálne verejné IPK boli po publikovaní overené v CI aj samostatne. Podrobnosti sú v [zázname vydania](releases/radio-0.1.9.2.json).
