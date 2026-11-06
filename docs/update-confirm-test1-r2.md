@@ -9,3 +9,5 @@ Testovacie IPK: runtime **0.1.9.1-test1**, revízia **2**, súbor `enigma2-plugi
 5. OK pri Áno (alebo zelené pri vybranom Áno) skutočne potvrdí inštaláciu existujúcej migračnej 0.1.9.1-test2 a otvorí pôvodný priebeh. Po úspechu a reštarte už beží ponúkaný pôvodný migračný balík, ktorý novú vizuálnu opravu ešte neobsahuje. Ďalšie Aktualizovať vedie na stabilnú 0.1.9.1. Nový vzhľad preto najprv overte cez Nie/EXIT a až potom prípadne dokončite reálnu inštaláciu.
 
 Automatické kontroly používajú pripnuté natívne widgety OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next. Nevydáva sa nová stabilná verzia; jej povýšenie čaká na fyzické potvrdenie používateľa.
+
+[CI 42246861476](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/42246861476) prešlo. Balík má 3 179 320 B a SHA-256 `9dcc80811adc75ab5f743bfd407ca242cb2351c0c05c0fdf26bed5d657e93f9c`. Lokálny a stiahnutý CI balík sú bajtovo totožné. Prešlo 159 unit testov, 8 historických migračných prípadov bolo preskočených; po 90 natívnych replayov na každom z troch základov.

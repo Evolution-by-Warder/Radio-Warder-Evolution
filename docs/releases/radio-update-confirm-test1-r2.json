@@ -1,0 +1,192 @@
+{
+  "date": "2026-11-06",
+  "status": "private test only; awaiting owner physical verification",
+  "base": "5551691e75d397427bbea48c35547cea16b91c17",
+  "candidate": "5e347d52033d11972d49327ad9863b1be9131d4e",
+  "branch": "work/radio-update-confirm-0.1.9.1-test1-r2-20261106",
+  "ci_run": 42246861476,
+  "ci_job": 127991230732,
+  "ci_result": "success",
+  "artifact_id": 13518071931,
+  "ipk": {
+    "package": "enigma2-plugin-extensions-radio-warder-evolution",
+    "version": "0.1.9.1-test1-2",
+    "file": "enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test1-2_all.ipk",
+    "sha256": "9dcc80811adc75ab5f743bfd407ca242cb2351c0c05c0fdf26bed5d657e93f9c",
+    "bytes": 3179320,
+    "files": 116
+  },
+  "ci_local_ipk_byte_identical": true,
+  "runtime": "0.1.9.1-test1",
+  "package_revision": 2,
+  "reason_for_revision": "A higher private opkg revision replaces test1 while retaining discovery of the existing real migration test2, without changing any production feed.",
+  "unit": {
+    "total": 167,
+    "passed": 159,
+    "skipped": 8,
+    "mode": "canonical public revision 1; private revision 2 separately built and checked",
+    "skipped_reason": "Historical exact stable 0.1.9 and 0.1.9.1 migration suites."
+  },
+  "native": {
+    "OpenPLi 9.2": 90,
+    "OpenATV 8.1 reviewed base": 90,
+    "OpenATV 8.0-next": 90
+  },
+  "confirmation_cases": [
+    "No default",
+    "all four arrows select only",
+    "OK returns selected boolean",
+    "EXIT cancels even when Yes selected",
+    "Yes opens existing progress before I/O",
+    "original install worker receives exact offered Release",
+    "closed host prevents installation",
+    "four resolutions; same panel/frame/fonts",
+    "radio and stored state preserved"
+  ],
+  "private_revision_checks": {
+    "runtime": "0.1.9.1-test1",
+    "package": "0.1.9.1-test1-2",
+    "offered": "0.1.9.1-test2",
+    "upgrades_original_test1": true,
+    "public_exact_revision_guard_preserved": true,
+    "production_feeds_modified": false,
+    "hardware_tested": false
+  },
+  "payload_comparison": {
+    "same_owned_paths": true,
+    "unchanged_updater_progress_youtube_playback_model_skin_and_install_scripts": true,
+    "changed": [
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/al.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/cs.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/de.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/el.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/en.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/es.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/et.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/fa.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/fr.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/hu.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/it.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/lt.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/nl.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/pl.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/pt.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/ro.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/ru.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/sk.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/tr.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/uk.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/locale/zh.json",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/screen.py",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/update_result.py",
+      "data.tar.gz/./usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/version.txt",
+      "data.tar.gz/./usr/share/doc/warder-radio/README.md",
+      "control.tar.gz/./control"
+    ]
+  },
+  "live_downloader": {
+    "version": "0.1.9.1-test1",
+    "index_url": "https://raw.githubusercontent.com/Evolution-by-Warder/PiconHub-Warder-Evolution/main/picons/radio-world/catalog/countries.json",
+    "index_sha256": "4eeb574748362d215ae5ce71e945a2e768f4f7e0128e21a5bb6f8cdd3b8e5613",
+    "countries": 219,
+    "available_countries": [
+      "SK",
+      "CZ",
+      "AR",
+      "AT",
+      "CL",
+      "DE",
+      "GR",
+      "HU",
+      "LT",
+      "PL",
+      "RO",
+      "LK",
+      "SE",
+      "UA",
+      "GB",
+      "US"
+    ],
+    "covered_country_references": 491,
+    "styles": [
+      {
+        "style": "transparent",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "white",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      },
+      {
+        "style": "black",
+        "first": {
+          "added": 490,
+          "updated": 0,
+          "unchanged": 0,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "repeat": {
+          "added": 0,
+          "updated": 0,
+          "unchanged": 490,
+          "preserved": 1,
+          "failed": 0,
+          "missing": 14429
+        },
+        "archives": 15,
+        "settings_unchanged": true,
+        "favourites_history_unchanged": true,
+        "custom_picon_preserved": true,
+        "repeat_zip_requests": 0
+      }
+    ],
+    "receiver_hardware_tested": false
+  },
+  "hardware_tested": false,
+  "production_changed": false,
+  "stable": "0.1.9.1",
+  "testing": "0.1.9.1-test2",
+  "user_test_guide": "docs/update-confirm-test1-r2.md"
+}
