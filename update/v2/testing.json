@@ -3,13 +3,13 @@
   "product": "Warder Radio",
   "channel": "testing",
   "release": {
-    "version": "0.1.9-test3",
-    "tag": "warder-radio-v0.1.9-test3",
-    "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9-test3/enigma2-plugin-extensions-radio-warder-evolution_0.1.9-test3_all.ipk",
-    "sha256": "bdb8c9143db5820c168d398f71766ee6c29cb16221d8da5d4d85d17e767ae200",
-    "bytes": 3176980,
-    "notes": "Compatibility step: after GUI restart use Update again to install stable 0.1.9.",
+    "version": "0.1.9.1-test2",
+    "tag": "warder-radio-v0.1.9.1-test2",
+    "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.1-test2/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.1-test2_all.ipk",
+    "sha256": "0e6e8c1d8f852f04aaea979c731ee69da92c0683b51591605ae70b96ad8a8ad5",
+    "bytes": 3178032,
+    "notes": "Compatibility step: after GUI restart use Update again to install stable 0.1.9.1.",
     "notes_i18n": {},
-    "migration_target": "0.1.9"
+    "migration_target": "0.1.9.1"
   }
 }
