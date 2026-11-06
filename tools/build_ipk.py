@@ -16,8 +16,11 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'src/WarderRadio'
 parser = argparse.ArgumentParser()
 parser.add_argument('--legacy-bridge', action='store_true')
+parser.add_argument('--tester-bridge', action='store_true')
 args = parser.parse_args()
-VERSION = '0.1.0-test11' if args.legacy_bridge else (SOURCE / 'version.txt').read_text().strip()
+assert not (args.legacy_bridge and args.tester_bridge)
+VERSION = ('0.1.0-test11' if args.legacy_bridge else '0.1.9-test3' if args.tester_bridge
+           else (SOURCE / 'version.txt').read_text().strip())
 assert re.fullmatch(r'\d+\.\d+\.\d+(?:-test\d+)?', VERSION), VERSION
 EPOCH = int(os.environ.get('SOURCE_DATE_EPOCH', '1793664000'))
 PACKAGE = ('enigma2-plugin-extensions-warderradio' if args.legacy_bridge
@@ -98,7 +101,7 @@ def ar_member(name, content):
     return header + content + (b'\n' if len(content) % 2 else b'')
 
 
-out = ROOT / ('dist/legacy' if args.legacy_bridge else 'dist'); out.mkdir(exist_ok=True)
+out = ROOT / ('dist/legacy' if args.legacy_bridge else 'dist/tester-bridge' if args.tester_bridge else 'dist'); out.mkdir(parents=True, exist_ok=True)
 name = f'{PACKAGE}_{VERSION}_all.ipk'
 content = b'!<arch>\n' + ar_member('debian-binary', b'2.0\n') + ar_member('control.tar.gz', archive({
     'control': (control, 0o644), 'preinst': (preinst, 0o755), 'postinst': (postinst, 0o755)})) + ar_member('data.tar.gz', archive(FILES))

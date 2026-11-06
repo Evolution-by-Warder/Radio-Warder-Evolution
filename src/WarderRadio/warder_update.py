@@ -19,6 +19,16 @@ DOWNLOAD_PREFIX = PACKAGE_ID
 # exact public release IPK has been downloaded and verified.
 FEED_BASE = "https://raw.githubusercontent.com/" + REPOSITORY + "/main/update/v2/"
 MAX_IPK_BYTES = 128 * 1024 * 1024
+# Installed test1/test2 validate an exact '<version>-1' package version. Their
+# opkg order puts 0.1.9-testN above 0.1.9. A discoverable test3 bridge first
+# updates that installer, then reads the stable feed after GUI restart.
+TESTER_BRIDGE_VERSION = '0.1.9-test3'
+
+
+def release_channel(current_version):
+    if current_version == TESTER_BRIDGE_VERSION:
+        return 'stable'
+    return 'testing' if '-test' in current_version else 'stable'
 
 
 class UpdateError(ValueError):
@@ -57,7 +67,7 @@ def parse_release(payload, current_version):
         raise UpdateError("Invalid release manifest") from exc
     if not isinstance(document, dict) or type(document.get("schema")) is not int or document["schema"] != 1:
         raise UpdateError("Unsupported release manifest")
-    if document.get("product") != "Warder Radio" or document.get("channel") != ("testing" if "-test" in current_version else "stable"):
+    if document.get("product") != "Warder Radio" or document.get("channel") != release_channel(current_version):
         raise UpdateError("Wrong update product or channel")
     if "release" not in document:
         raise UpdateError("Missing release entry")
@@ -100,7 +110,7 @@ def _open(url, timeout=6):
 
 
 def check_release(current_version, opener=_open):
-    feed_url = FEED_BASE + ("testing.json" if "-test" in current_version else "stable.json")
+    feed_url = FEED_BASE + release_channel(current_version) + '.json'
     with opener(feed_url) as response:
         payload = response.read(65537)
     if len(payload) > 65536:
@@ -223,7 +233,7 @@ def verify_installation(expected_version, runner=subprocess.run, runtime=None):
 
 
 def install_release(release, opener=_open, runner=subprocess.run, verifier=verify_installation, progress=None):
-    """Called only after the UI accepts installation; never force or reboot."""
+    """Install verified bytes after confirmation; handle one exact test migration."""
     with tempfile.TemporaryDirectory(prefix="warder-radio-update-") as temporary:
         path = download_release(release, pathlib.Path(temporary) / "update.ipk", opener, progress)
         if progress is not None:
@@ -231,7 +241,13 @@ def install_release(release, opener=_open, runner=subprocess.run, verifier=verif
         validate_ipk(path, release)
         if progress is not None:
             progress("install")
-        result = runner(["opkg", "install", str(path)], stdout=subprocess.PIPE,
+        command = ['opkg', 'install', str(path)]
+        if release.version == '0.1.9' and verify_payload() == TESTER_BRIDGE_VERSION:
+            # Only this known packaging-order transition may bypass the opkg
+            # downgrade guard. Identity, SHA-256, size, payload version and final
+            # installed state remain mandatory; all other installs are ordinary.
+            command = ['opkg', '--force-downgrade', 'install', str(path)]
+        result = runner(command, stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT, text=True, timeout=300)
         if result.returncode != 0:
             raise UpdateError("opkg failed (%s): %s" % (result.returncode, result.stdout[-2000:]))

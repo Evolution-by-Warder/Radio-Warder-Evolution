@@ -1,0 +1,37 @@
+name: Stable 0.1.9 real package migration check
+on:
+  push:
+    branches: [release/radio-0.1.9-20261106]
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'tests/**'
+      - '.github/workflows/radio-019-upgrade-check.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build stable and both compatibility packages
+        run: |
+          python3 tools/build_ipk.py
+          python3 tools/build_ipk.py --legacy-bridge
+          python3 tools/build_ipk.py --tester-bridge
+      - name: Test real opkg installs with the original installed updater
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh tools/run_019_opkg_checks.sh
+      - name: Verify live picon packages and user data
+        run: python3 tools/verify_receiver_candidate.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: radio-019-upgrade-proof
+          path: dist/

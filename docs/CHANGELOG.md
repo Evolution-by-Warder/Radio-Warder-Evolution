@@ -1,3 +1,20 @@
+# 0.1.9 (owner-verified universal countries and update results)
+
+- Promote the physically verified 0.1.9-test2 country navigation and Warder update
+  result dialog. Keep all 219 countries, online availability/counts, selected
+  countries, settings, favourites, listening history and user picons.
+- Country arrows up/down move one row; left/right page the visible list. Left
+  returns only at its first row. OK alone toggles a country.
+- Manual update checks show current/available/failed in a persistent Warder dialog.
+  OK/EXIT close it. Green on an available release opens the existing explicit
+  installation confirmation; verified installation and GUI restart remain intact.
+- Stable 0.1.8 updates directly from inside the plugin. Test1/test2 first receive
+  the 0.1.9-test3 migration prerelease; after restart, Update offers stable 0.1.9.
+  Only this exact migration permits opkg's packaging-order downgrade, after full
+  hash, size and package identity verification. Other updates use ordinary opkg.
+- Stable and tester-migration feeds are verified against public IPK bytes before
+  publication. The unrelated legacy package-name bridge stays immutable.
+
 # 0.1.8 (stop and resume the same radio)
 
 - Replace the Settings Stop action with Stop radio playback while a radio is

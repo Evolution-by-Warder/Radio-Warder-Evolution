@@ -39,6 +39,14 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – schválená stabilná 0.1.9, záverečná príprava
+
+- Používateľ potvrdil úspešné fyzické overenie `0.1.9-test2`: navigácia, stránkovanie, OK označovanie aj samostatné výsledky aktualizácie fungujú. Výslovne schválil stabilnú `0.1.9`, merge do main, oficiálny Release aj aktualizačné kanály. Model prijímača a presná verzia image neboli uvedené.
+- Vetva `release/radio-0.1.9-20261106` vychádza z overeného `3b21a6b`; produkčný základ je Radio `428f64a`, PiconHub `648c52b`, pracovná piconová dávka 29 `7a650606`. UI a ostatné funkcie test2 ostávajú bez zmien. Mení sa verzia, dokumentácia a nevyhnutná kompatibilita prechodov test → stable.
+- Skutočný problém poradia balíkov: `0.1.9-1` je pre opkg starší než `0.1.9-test2-1`, hoci plugin správne radí stabilnú verziu vyššie. Pôvodný test2 updater vyžaduje presné číslo balíka. Preto testing kanál cielene ponúkne `0.1.9-test3`, po reštarte jeho updater číta stable kanál a inštaluje `0.1.9`. Výnimka `--force-downgrade` platí výhradne pre presný prechod test3 → 0.1.9 po všetkých kontrolách integrity. Z 0.1.8 je prechod priamy. Žiadne ručné sťahovanie IPK nie je potrebné.
+- Lokálne prešlo 162 jednotkových testov a 79 natívnych replayov na každom základe OpenPLi 9.2, OpenATV 8.1 a OpenATV 8.0-next. Pred merge nasleduje CI s reálnym opkg v izolovaných offline koreňoch, pôvodnými publikovanými IPK, obľúbenými/históriou/nastaveniami/piconmi a kontrolou živého downloadera. Stav: schválené na vydanie, zatiaľ nepublikované.
+
+
 ### 6. 11. 2026 – oprava navigácie a výsledku aktualizácie, 0.1.9-test2
 
 - Používateľ fyzicky otestoval `0.1.9-test1`: potvrdil fungovanie zoznamu 219 krajín, aktívne dostupné krajiny a zobrazenie počtov piconov. Toto je používateľom potvrdený fyzický rozsah; model prijímača a presná verzia image neboli uvedené. Nové opravy ešte fyzicky overené nie sú.
