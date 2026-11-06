@@ -39,6 +39,15 @@ Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a j
 
 ## Denník významných zmien
 
+### 6. 11. 2026 – dávka 33, 586 historických referencií pripravených; binárny prenos čaká na prihlásenie
+
+- [Pracovná vetva 33](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/tree/work/radio-world-batch33-history-20261106), príprava `5959c5af8ce25589a632e4a0774490275232e32e`, [overený lokálny inventár `dba8a99`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/dba8a993297b8427704d23c38e1b0f06ac418934/picons/radio-world/staging/batch-33/local-preflight.json). Z 600 overených historických referencií je **586 / 5 274 PNG pripravených v 171 krajinských ZIPoch**. Všetkých 5 400 zdrojových PNG prešlo SHA-256/veľkosťou/dekódovaním proti konečnému checkpointu. Štrnásť identít (13 DE, 1 FR) je odložených kvôli rozdielu názvu oproti aktuálnemu katalógu; nič sa nenahrádzalo vymysleným logom.
+- Krajiny: CN 171, CO 52, CR 8, CU 5, CY 9, DE 127, DK 8, EC 3, EE 9, EG 1, ET 5, FI 3, FJ 4, FR 98, GE 1, GH 29, GR 41, HR 8, SV 4. V dotknutých predchádzajúcich balíkoch sa chráni ďalších **990 existujúcich PNG**. Grafika nebola prerenderovaná; balíky vznikli výhradne kopírovaním schválených bajtov. SHA-256 každého z 171 lokálnych ZIPov je uložené v preflight zázname.
+- **Dôležité rozlíšenie stavu:** GitHub už obsahuje kód, plán, kontrolné súčty a preflight; samotné veľké binárne zdroje dávky 33 zatiaľ nahrané NIE SÚ a jej GitHub integračné CI ešte nebežalo. Dávka 32 je naopak kompletne uložená a má úspešné reálne CI. Na prenos troch existujúcich pôvodných archívov (spolu 178 575 559 B) sa pripravuje súkromný pracovný draft `radio-history33-working-source-20261106`; draft nesmie byť publikovaný ako produkčné vydanie. Priamy binárny upload nahrádza Base64 cykly.
+- Prihlásenie vo webovom GitHube bolo odmietnuté správou `Incorrect username or password`. Žiadne heslo ani token neboli čítané, uložené v kóde alebo zverejnené. Pokračovanie vyžaduje úspešné prihlásenie používateľa v odovzdanom prehliadači. Následný postup: vytvoriť iba pracovný draft, nahrať 3 SHA-pinned pôvodné ZIPy, overiť ich zoznam a potom pridať malý `source-ready.json` na vetvu 33, čím sa spustí pripravené CI. To overí všetky vstupy, uloží country payload/manifests/index a preverí downloader proti stabilnému Radio bez zmien IPK. Produkčné schválenie sa žiada až pre konkrétne overené krajinské kandidáty.
+- Lokálne cesty na nadviazanie: `world32-history/` (3 pôvodné archívy, verified-manifest a verification), `world33-work/` (586 referencií v 171 ZIPoch), `world32-ci-output/` (uložené schválené country baseline). Na webe sa používa mapovanie týchto existujúcich súborov do zdieľaného priečinka; neprerábať PNG a nezačínať inventár znovu. Radio 0.1.9.2, PiconHub main a živé indexy zostávajú nedotknuté.
+
+
 ### 6. 11. 2026 – celosvetové picony, bezpečný checkpoint dávky 32
 
 - Na výslovnú požiadavku používateľa je 0.1.9.2 uzavretá; tento krok nemení runtime, dizajn, vydanie ani aktualizačné kanály. Prioritou sú pracovné rádiové balíky, produkčná publikácia vyžaduje ďalší súhlas.
