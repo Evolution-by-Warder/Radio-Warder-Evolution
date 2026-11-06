@@ -57,7 +57,11 @@ def run(opkg, baseline, initial, expected_hash):
         def runner(command, **kwargs):
             assert command[0] == 'opkg'
             commands.append(command[:3])
-            return subprocess.run([str(opkg), '-o', str(root), '-f', str(conf)] + command[1:], **kwargs)
+            # Offline opkg otherwise deliberately leaves packages unpacked.
+            # Execute package scripts with IPKG_INSTROOT set; their guard exits
+            # before touching the host. This option is test-harness-only.
+            options = ['--force-postinstall'] if 'install' in command else []
+            return subprocess.run([str(opkg), '-o', str(root), '-f', str(conf)] + options + command[1:], **kwargs)
         result = runner(['opkg', 'install', str(baseline)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         assert result.returncode == 0, result.stdout
         runtime = root / PREFIX
