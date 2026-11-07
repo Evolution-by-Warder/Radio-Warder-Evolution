@@ -41,6 +41,16 @@ Posledná tabuľka pred dávkou 33 je historický checkpoint cez dávku 27.
 
 ## Denník významných zmien
 
+### 7. 11. 2026 – dokončená vizuálna kontrola 700 zdrojov a overená dávka 37
+
+- [Nemenný register `fce1d00`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/fce1d00625b5508ed4dad05d61961c62bb338c9d) eviduje skutočnú kontrolu finálnych transparentných, bielych a čiernych výstupov 220×132 pri všetkých **700 kandidátoch: 396 prijatých, 304 odložených, 0 nepozretých**. Historické schválenie zdroja samo osebe nepotvrdzuje kontrast výsledných troch pozadí. Odložené grafiky sa nesmú dostať do nových balíkov.
+- Opravená dávka 37 obsahuje **200 referencií, 1 800 PNG a 25 krajín**. [CI 42367576444](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42367576444) prešlo. Výsledný [checkpoint `d58480c`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/d58480ce05e3536c92e2be47624d147e3a860e02) obsahuje index **219 krajín / 99 dostupných / 2 163 pokrytých referencií**, proof.json a downloader-proof.json. Vytvorených 144 potrebných nových ZIPov pre 16 zmenených krajín; ďalších deväť krajín prevzalo presne zhodné existujúce balíky bez opätovného vytvárania.
+- Stabilný downloader **0.1.9.2** overil 75 verejných ZIP URL pre 25 dotknutých krajín. V každom pozadí nainštaloval **1 177 presných PNG**, zachoval jeden používateľský picon aj nastavenia/obľúbené/históriu. Opakovanie: **0 ZIP požiadaviek**, 0 zlyhaní. Všetkých deväť archivovaných variantov prešlo kontrolou identity súborov, formátu PNG, rozmerov a SHA-256. Fyzický prijímač nebol testovaný.
+- Dávka 38 má **196 ďalších prijatých referencií zo 47 krajín**. [Zostavenie `fe6fc1a`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/fe6fc1a069b0e1c1e87aea7cf057391478f384c7) beží v [CI 42368261288](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42368261288); dokončenie balíkov/downloadera zatiaľ netvrdíme. Výber dávky 37 zostal pri tomto rozšírení nezmenený.
+- [PR #67](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/67) má opravy 34–35 na `967b35804bcae7a7534c86daf5cb59ff7cd46758`: **390 prijatých doplnení**, 10 odložených. Technický test všetkých 99 dostupných krajín prešiel (1 473 inštalovaných + 1 zachovaný vlastný picon/pozadie, opakovanie 0 ZIP). Finálna nezávislá kontrastná revízia zvyšných historických výstupov 34–35 zostáva otvorená, PR preto ostáva **draft**.
+- Technická oprava dávky 36 je dokončená na `c4d233cd708e56b0ca7299faf2d5482da4c0ac98`: 489 prijatých doplnení po 9 vyradeniach v tejto dávke, spolu 1 963 referencií. CI 42365476548 prešlo; 563 inštalovaných + 1 vlastný picon v každom pozadí pre 10 opravovaných krajín. Úplná nezávislá vizuálna revízia starších 489 výstupov zostáva samostatnou úlohou.
+- Produkčný PiconHub main ostáva **`8180aa0df6e185efad120338bc53ca04bc5e492a`** (dávka 33). Chránená historická vetva ostáva **`3bd8ea5659eb4d21c913ab4edb090d890d646a39`**. Nové produkčné zlúčenie ani IPK neboli vykonané.
+
 ### 7. 11. 2026 – oprava rozporov historických vizuálnych rozhodnutí
 
 - Nový cielený priechod historickými rozhodnutiami odhalil deväť presných zdrojových zhôd s vizuálnym zamietnutím v dávke 35. Dávka 34 má jednu referenciu bez dohľadateľného zdrojového rozhodnutia. [PR #67](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/67) je preto opäť draft a prebieha jeho bezpečná oprava. Predchádzajúci úspešný archívový/downloader test nevyriešil tento rozpor vo vizuálnych metadátach.
@@ -301,7 +311,7 @@ Posledná tabuľka pred dávkou 33 je historický checkpoint cez dávku 27.
 
 ## Zostávajúce úlohy
 
-1. Dávka 33 má obnovené tri pôvodné ZIPy a overené miestne balíky. Nadviazať ich schváleným binárnym prenosom a pracovným integračným CI.
+1. Produkčná dávka 33 je hotová. Dokončiť finálnu kontrastnú revíziu historických výstupov 34–36, uzavrieť testy dávky 38 a pripraviť bezpečnú nadväzujúcu integráciu bez produkčného merge.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
 3. Stabilná 0.1.9.2 je schválená, publikovaná a automaticky aj verejne overená; oba v2 kanály umožňujú priamu aktualizáciu aj z fyzicky testovanej revízie 2.
 4. Fyzické overenie YouTube UI aj oboch modrých aktualizačných okien používateľom je zapísané. Prípadné následné fyzické overenie migrácie stabilného balíka evidovať oddelene od automatických opkg skúšok.
