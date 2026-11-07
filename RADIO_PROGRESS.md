@@ -2,13 +2,18 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
-## Rozpracovaná integrácia 42 – zdroje nezávisle overené
+## Aktuálny overený kandidát 42 – Draft PR #68
 
 - Laut.fm: [finálny zdrojový checkpoint 520615b](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/520615b75a7dabab591600e8c7de42d733c15eef), [CI 42382322651](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42382322651) všetkých 5 častí SUCCESS. Nezávislý export Git objektov: 435 referencií, 3 915 PNG výskytov / 3 897 jedinečných PNG, 433 originálov. Pri 14 CDN transformovaných vstupoch boli použité iba pôvodné zmrazené bajty, všetky hashové brány zachované.
 - Singletony BT, CX, GW, MS, SM, KM: [pixel commit b90ef05](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/b90ef052dd81eaccf659b8dcca52b9a88cc18f93), pin head `f869a3c5ab15cf31312f7fb9bb46867f63c1f966`. [CI 42383059873](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42383059873) SUCCESS; nezávisle stiahnutých a overených 54 PNG + 8 originálov. Oprava plytkej Git cache má 6 skutočných Git regresných testov, všetky PASS. MS používa rovnaký oficiálny badge vo všetkých pozadiach; stará zmiešaná kompozícia je blokovaná. WF ostáva mimo balíkov; farebný artwork sa nepremaľuje.
-- Krajinská integrácia 441 referencií spustená z `bc46bf262ceb51cfa632c245dacfcff28f032fe9` na `work/radio-world-batch42-reviewed-history-20261107`. Očakávaných 2 870 referencií je zatiaľ predpoklad, nie hotový výsledok. Čaká sa na celý build, 15 regresných testov, všetkých deväť variantov, ochranu 10 332 PNG a stable downloader replay. Aktuálny schválený pracovný index v Draft PR #68 zostáva 2 429 referencií.
+- [CI 42383316414](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42383316414) SUCCESS. Finálny Draft [PR #68](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/68) head `b99fe072f36d03871cc9c0e7546a5fc9294846a0`, index SHA-256 `8dfc9b924bc2c144997c1333840364ae12a2c7497baa2bcf02a9e9c5ef633d70`. Presne prebraté testované Git objekty, všetky doplnkové súbory po zápise overené proti lokálnemu Git blob SHA.
+- Výsledok: 219 krajín, 119 dostupných = 12 úplných + 107 čiastočných; 100 nedostupných. Úplné SK, CZ, BT, TD, CX, GG, GW, KI, LR, MS, SM, KM. Pokrytých 2 870 / 35 560 referencií; zostáva 32 690. Celkom 26 406 PNG položiek vrátane aliasov = 10 332 pôvodných bez zmeny + 16 074 prijatých nových. Dávka 42 pridala 441 referencií / 3 969 PNG / 30 krajín / 270 nových ZIPov.
+- 15 regresných testov vizuálnej brány PASS. Nezávisle overených 30 nových manifestov a všetkých 3 969 nových PNG hashov proti prijatým plánom; ochrana všetkých 10 332 produkčných PNG potvrdená. 349 metadata holds nemá vymyslené PNG varianty a zostáva oddelených.
+- Downloader 0.1.9.2: všetkých 119 krajín, tri pozadia 220×132, 354 verejných ZIP URL; na pozadie 2 869 presných nainštalovaných PNG + 1 zachovaný vlastný picon, 0 zlyhaní. Opakovane 0 ZIP požiadaviek; obľúbené, história, nastavenia a vlastné picony zachované. Fyzický prijímač netestovaný. Evidovaných 1 062 ZIP URL všetkých deviatich variantov s SHA-256. Najväčší nový ZIP DE WHITE 400×240 má 59 190 697 B, pod 64 MiB.
 - Ďalší zdrojový checkpoint: primary25 `ecb6fe340b550fe43e7d3deabe586a10cbc639e1`, 25 vizuálne prijatých referencií / 225 PNG s kontrolou všetkých deviatich variantov, zatiaľ bez country integrácie. Zeno: 262 vizuálne posúdených zdrojov = 141 source_pass / 121 hold; 1 269 PNG zo 141 source_pass má technickú kontrolu, finálna deväťvariantová vizuálna QA ešte beží. Source_pass nie je finálne grafické prijatie.
 - PR #67 a #68 sú Draft. Produkčný main, historické ZIPy a snapshoty, používateľské dáta a stabilné IPK zostávajú bez zmeny.
+
+- Technické obmedzenie ďalšej source dávky: automatická kontrola odmietla nepriehľadný 26 MB archív HTML/QAsheets, preto sa jeho ďalší prenos zastavil. Bezpečnejší carrier používa iba osobitne overené verejné logá a čitateľné, skontrolované primary observations/úryvky s URL, hashmi a containment dôkazom; nepublikuje cookies, headers, autentifikačné údaje ani celé HTML. Primary25 safe checkpoint `6f4f738a70d40e545363b6ea8b1d3eca0fa70c3a` má 25 observations a 99 presných sanitizovaných úryvkov. Produkcia sa tým nemení.
 
 ## Aktuálny checkpoint – 7. 11. 2026, dávka 41 overená
 
@@ -366,7 +371,7 @@ Posledná tabuľka pred dávkou 33 je historický checkpoint cez dávku 27.
 
 ## Zostávajúce úlohy
 
-1. Produkčná dávka 33 je hotová. Revízia 34–36 a testovaná pracovná integrácia cez 41 sú uzavreté; pokračovať uložením a bezpečnou integráciou 435 laut.fm referencií a 6 singletonov, potom Zeno. PR #67 a #68 ponechať Draft bez produkčného merge.
+1. Produkčná dávka 33 je hotová. Revízia 34–36 a testovaná pracovná integrácia cez 42 sú uzavreté. Pokračovať samostatnou dávkou 43 (Zeno + primary25 + tri doložené kontrastné opravy); započítavať iba úspešne uložené a otestované integrácie. PR #67 a #68 ponechať Draft bez produkčného merge.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
 3. Stabilná 0.1.9.2 je schválená, publikovaná a automaticky aj verejne overená; oba v2 kanály umožňujú priamu aktualizáciu aj z fyzicky testovanej revízie 2.
 4. Fyzické overenie YouTube UI aj oboch modrých aktualizačných okien používateľom je zapísané. Prípadné následné fyzické overenie migrácie stabilného balíka evidovať oddelene od automatických opkg skúšok.
