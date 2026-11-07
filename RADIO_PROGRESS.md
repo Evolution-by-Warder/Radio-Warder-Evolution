@@ -2,6 +2,60 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Odovzdávací checkpoint – dokončené dávky 44–45, bez produkčnej zmeny
+
+**Posledný uložený PiconHub commit:** `9d5a3c4de8e5300dbcc485230ad11df588d7bdc8` na existujúcej `work/radio-world-batch38-contrast-pass1-history-20261107` (Draft PR68). Source checkpoint: `c80123f407e1581e64a4db4ec02cf03681551661` na existujúcej `work/radio-primary-pending183-source-20261107`. Toto sú skutočné uložené checkpointy; pri pokračovaní vždy znova overiť aktuálne SHA vetiev.
+
+### Potvrdený staged kandidát 45
+
+| Ukazovateľ | Overený výsledok |
+| --- | ---: |
+| Krajiny celkom / dostupné / úplné | 219 / 131 / 12 |
+| Čiastočné / nedostupné krajiny | 119 / 88 |
+| Pokryté / cieľové referencie | 3 111 / 35 560 |
+| Zostávajúce krajinské referencie | 32 449 |
+| PNG položky vrátane aliasov | 28 575 |
+| Referencie v konfiguračnom blokáčnom zozname | 908 |
+| Nové prijaté referencie v tomto behu | 101 |
+| Nové prijaté PNG varianty | 909 |
+| Nové verzie ZIPov dávok 44–45 | 315 |
+| Celkové bajty nových ZIPov | 677 627 278 |
+
+Index: `picons/radio-world/staging/batch-45-reviewed/countries.proposed.json`, SHA-256 `b921b0942816557ff7eed43348a0b17ebfcd5bcdedf580f3e50d4c34d05040c7`, Git blob `f01baa8f4776fe7984e6f50c3c47b4941afde12a`.
+
+Canonical index a release manifesty pracovného PR ostávajú pri dávke43: `2db89af`, 3 010 referencií, 27 666 PNG, 125 dostupných a 12 úplných krajín. Staged kandidáty44–45 sú úplne uložené a overené; canonical ani produkcia sa týmto behom neprepísali. PR67 aj PR68 zostávajú Draft.
+
+### Dávky a skutočne uložené súbory
+
+- **Dávka44:** 80 referencií / 720 PNG variantov / 207 ZIPov / 276 727 377 B / 23 krajín. Pixelové zdroje, accepted aj quarantine PNG, konfigurácia, ledger, manifesty, ZIPy a SHA256SUMS uložené. Payload `508e018e83e510c2c717c90480e4aaa4358c1609`; manifesty `2ebc036ce3455b56fbb0e09a3b83959d84ec964b`; finálny audit `0a11ad6a1c8044849949a382fe59aae64cfa27f6`. CI **42422602856 SUCCESS**. Nezávisle stiahnutých 207/207 ZIPov, SHA/bytes/CRC aj všetkých 7 695 členov PASS; 6 975 pôvodných členov zachovaných.
+- **Dávka45:** 21 referencií / 189 PNG variantov / 108 ZIPov / 400 899 901 B / 12 krajín. Payload `bee5c70633b78606ef695b64cabdcbe39436c860`; manifesty `ff990c7290cc10149dbdeeab84de90a28012d34f` na tej istej existujúcej payload vetve. CI trigger `e15fb5551120ec1b5fa5cf757add64a6ad9997ca`, výsledky `2849ee9a10d86edefaa286fede5ef937391356c5`, SHA256SUMS `08538315d995fa0cf46016e0e5cda7ba91e0ac2a`, finálny audit `9d5a3c4de8e5300dbcc485230ad11df588d7bdc8`. CI **42425600328 SUCCESS**.
+- Nezávislý audit45: **108/108 ZIPov**, všetkých **11 313 PNG členov** a všetkých **189 nových source tuple SHA/bytes/Gitblob PASS**. **11 124 pôvodných členov** dotknutých unionov zachovaných; zvyšných207 krajinských riadkov nezmenených. Source189 fyzický Git inventár overený, vrátane nezmenených zdedených81 prvého source chunku.
+- Report `batch-45-reviewed/results/independent-postwrite-audit.json`: 114 857 B, SHA-256 `b29a9aee14179d1040b2acb33a1d74ecbd4de90be89a8aba18ee07d04a23a63a`. Po uložení bol z immutable finálneho commitu znovu stiahnutý a jeho SHA-256 overený. Rovnaký readback pre index45 PASS. Canonical audit, súhrn, helper a report hashes sú uložené v rovnakom stage45.
+- SHA256SUMS oboch dávok obsahujú 207 a108 záznamov. Existujúce ZIPy33–43 ani už publikované ZIPy44–45 sa **nesmú znovu vyrábať alebo nahrávať**. Pri chybe obnovovať iba neúplné metadáta z uloženého payload-build-manifest.
+- Nové bezpečne sprístupnené krajiny44: Honduras, Mali, Senegal, Tunisko, Zambia, Zimbabwe. Dávka45 pridáva FR10 a po1 v BB, BE, CA, CH, DE, GB, GR, MX, PL, PT, RO; počet dostupných krajín ostáva131.
+
+### Výsledky ochrany a downloadera
+
+- Každý prijatý picon má všetkých9 variantov: 50×30, 220×132, 400×240 × TRANSPARENT/WHITE/BLACK. Existujúci renderer, nemenné MASTER podklady a schválená grafika zostali zachované.
+- **Všetkých 28 386 PNG kandidáta44 a všetkých 10 332 pôvodných produkčných PNG bez zmeny SHA vo všetkých9 variantoch.** Tým je chránených aj všetkých27 666 PNG checkpointu43 vrátane64 aliasov.
+- Stabilný downloader **0.1.9.2**, nemenný kód `b7384bfdb55621beaf183ca6d40e9dedacaecdb9`: **131 krajín / 390 verejných ZIP URL / 220×132 / všetky3 pozadia PASS**. V každom pozadí pri45:3 110 added,1 používateľský picon zachovaný,0 failed; opakovanie3 110 unchanged a **0 ZIP požiadaviek**. Nastavenia, obľúbené a história byte-identické. Fyzický prijímač netestovaný; ide o replay nezmeneného stabilného kódu.
+- 9 nových regresných testov recovery54 PASS; nová regresia agregácie source metadát PASS (21 approve /10 rendered hold /4 source exclusions, evidence a pending skupiny sa nestratia, selekcia nemôže obsahovať hold). Opravené bolo zahadzovanie source_holds/pending pri agregácii, nesprávny hardcoded binding_kind aj nesprávna permanentná klasifikácia odmietnutých obrázkov. PNG sa kvôli metadata opravám nemenili.
+- Pred každým ZIP buildom strict world country/name/URL/ref a filename-disjoint gate. Nových21 má0 historických sourceholdov a0 kolízií s baseline; žiadna nová výnimka z hold pravidiel. Negatívnych14 je bez prekryvu s predchádzajúcim schváleným artworkom.
+- Main PiconHub **8180aa0df6e185efad120338bc53ca04bc5e492a**, historická vetva **3bd8ea5659eb4d21c913ab4edb090d890d646a39**, PR67 head **0359575fa65c19c2b2172075ebe4e9c0e37bf0d5** a Draft stav oboch PR boli znovu overené. Žiadny produkčný merge, IPK, update kanál alebo zásah do používateľských dát.
+
+### Blokácie a presný ďalší krok
+
+- Z pôvodných54 rozpracovaných položiek: **51 dokončených /459 PNG**, **3 nové vizuálne holdy /27 karanténnych PNG**; neexistujúce staré hashové väzby sa nevymýšľali. Accepted51 má nový fyzicky overený recovery proof.
+- Z nových55: **29 prijatých /261 variantov**,7 renderholdov /63 PNG a19 sourceholdov.
+- Primary source35: **21 prijatých /189 PNG**,10 renderholdov /90 PNG,4 source exklúzie. Spolu zdrojový checkpoint obsahuje **279 reálnych PNG** (81+198), všetky samostatne remote overené; **34/35 native originálov**.
+- V tomto behu sa hodnotilo144 položiek;101 prijatých a **43 jedinečných položiek mimo country balíkov** (20 renderholdov +23 sourceholdov; bez prekryvu medzi44 a45). Konfiguračných908 blokovaných referencií je širší historický guard, nie počet všetkých nepokrytých krajinských položiek.
+- Existujúci primary rozsah183: **8 HDF +21 approved +10 rendered holds +4 source exclusions +4 credential-like technical +136 ďalších pending =183**. HDF aj sporné položky zostávajú mimo produkčných balíkov. Hotových35 source reviews neopakovať.
+- Metadata upload source182 bol automaticky odmietnutý pre token-like logo query `dpl`. Tento už vizuálne odmietnutý záznam bol materiálne bezpečne oddelený: žiadny pôvodný URL alebo tokenová hodnota v novom carrieri, iba doména+URL SHA a jeho9 reálnych quarantine PNG. Žiadny audio request s credential-like hodnotou, žiadna admission182.
+- **Jediný nezverejnený native originál: SVG132 El Adolfo Radio91.9FM (MX),3 753 552 B, SHA-256 `5c246cf26e1c25be164461389b57a52932afab0db2d8632e482900370b559d5e`.** Automatická kontrola zamietla veľký opaque base64 payload s dôvodom neoveriteľného obsahu/citlivosti a cieľa a nedostatočne explicitného schválenia konkrétneho payloadu. Žiadne opakovanie ani alternatívny obal; neúplné diely nie sú v reachable tree. Pôvodné SVG **nie je uložené**. Jeho nezmenený frozen raster (103 534 B,SHA `bccb4a87e15b969a745db783e2e562f2117a66d4c5d44f65398038388125d44e`) a všetkých9 schválených PNG sú úplné a overené, preto reprodukovateľné PNG45 neboli blokované. Presná evidencia: source checkpoint `chunks/chunk-002/native-source132-publication-deferred.json`.
+- Technický read limit GitHub fetch_file: payload-build-manifest45 má1 381 482 B a connector vrátil prázdny content. Úspešná read-only alternatíva bola immutable raw URL, overený Git blob **1b1e16bf2b8640c1e4b8799964693320d7036eb7**, potom SHA256SUMS108. Nejde o stratený ani neuložený manifest.
+- **Presný ďalší vykonateľný krok:** existujúci source queue `remaining-source-queue136.json`, index26 **BG Note FM**, ref `4097:0:2:6CAE:90EB:ED:0:0:0:0`. Stream/logo literal containment je už uložený; získať nezávislý broadcaster-owned verejný crosslink dokazujúci vlastníctvo `notefmbg.free.bg`. Bez neho ponechať pending a zobrať ďalší ešte neuzavretý záznam136; neopakovať hotových35 ani vyrábať ZIPy44–45.
+- Toto je konečný checkpoint aktuálneho aktívneho behu. Po koncovej odpovedi nepokračuje žiadna samostatná práca na pozadí. Všetky opísané country a source CI už skončili úspešne.
+
 ## Dávka 44 – dokončená a nezávisle spätne overená
 
 - Finálny commit existujúceho Draft PR68: `0a11ad6a1c8044849949a382fe59aae64cfa27f6`. [PR68](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/68) aktualizovaný; zostáva Draft bez merge. Žiadna nová vetva alebo register.
