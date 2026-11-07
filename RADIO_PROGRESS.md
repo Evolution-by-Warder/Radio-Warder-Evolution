@@ -41,6 +41,14 @@ Posledná tabuľka pred dávkou 33 je historický checkpoint cez dávku 27.
 
 ## Denník významných zmien
 
+### 7. 11. 2026 – oprava rozporov historických vizuálnych rozhodnutí
+
+- Nový cielený priechod historickými rozhodnutiami odhalil deväť presných zdrojových zhôd s vizuálnym zamietnutím v dávke 35. Dávka 34 má jednu referenciu bez dohľadateľného zdrojového rozhodnutia. [PR #67](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/67) je preto opäť draft a prebieha jeho bezpečná oprava. Predchádzajúci úspešný archívový/downloader test nevyriešil tento rozpor vo vizuálnych metadátach.
+- Oprava prvých ôsmich zamietnutých zdrojov dávky 36 je uložená v [`2131b56`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/2131b565621f76ef7054d8bacdaee08ab56f2ee9), vrátane úspešného testu troch pozadí. Ďalšia kontrola skutočných PNG vyradila RUIDOS FM `4097:0:2:86EC:DC55:ED:0:0:0:0`, kde pôvodný obrázok obsahuje darcovský panel. Radio Ancoa prešlo kontrolou pôvodného wordmarku. [Presné vizuálne rozhodnutia](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/d65e807162496cbc46d855dd9bd231d03b171b00/picons/radio-world/staging/batch-36-final/visual-decisions.json).
+- [Finálny opravný beh dávky 36](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/dd5e5c7073250b52d225e39af4de81efbf16403b) vyradí z nadväzujúceho kandidáta aj desať problémových položiek dávok 34 a 35. Očakávaný výsledok je 489 prijatých nových referencií dávky 36 a spolu 1 963 krajinských referencií. Ide o bežiacu opravu, finálne ZIPy a výsledky CI ešte treba overiť.
+- Ďalší zdrojový výber pre dávky 37 a 38 sa obnovuje výhradne z GitHubu, s presnou zhodou zdroja, renderov a historických rozhodnutí. Nové nepreverené grafiky sa do pracovných balíkov nevkladajú automaticky. Produkčný `main` zostáva `8180aa0`; legacy snapshot `3bd8ea5` je zachovaný.
+
+
 ### 7. 11. 2026 – nadviazanie dávkou 36 a príprava ďalších overených zdrojov
 
 - [Dávka 36 `45764be`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/45764be24b87d752f541545222674ba3fe118713) nadväzuje na potvrdenú dávku 35. Výber obsahuje 498 ďalších referencií zo 16 krajín, vždy s presnou zhodou názvu, streamu a skupiny v aktuálnom katalógu. [CI 42341767055](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42341767055) zostavuje nové krajinské kandidáty z pôvodných PNG, kontroluje všetkých deväť variantov a zachovanie predchádzajúcich PNG. Tento záznam označuje bežiace spracovanie, nie dokončenú dávku.
