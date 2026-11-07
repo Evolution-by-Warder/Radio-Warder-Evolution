@@ -2,6 +2,20 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dávka 44 – dokončená a nezávisle spätne overená
+
+- Finálny commit existujúceho Draft PR68: `0a11ad6a1c8044849949a382fe59aae64cfa27f6`. [PR68](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/68) aktualizovaný; zostáva Draft bez merge. Žiadna nová vetva alebo register.
+- **207/207 ZIPov, 276 727 377 bajtov** nezávisle stiahnutých z immutable commitu `508e018e83e510c2c717c90480e4aaa4358c1609`: SHA-256, veľkosti, CRC, presný zoznam a SHA každého z **7 695 PNG členov PASS**. Všetkých **6 975 predošlých členov** aktualizovaných unionov zachovaných.
+- Nových **80 referencií / 720 PNG variantov / 711 jedinečných PNG** presne zodpovedá zdrojovým SHA-256, veľkostiam a Git blobom. Pre všetkých 711 zdrojových obsahov bol nezávisle overený skutočný remote Git inventár.
+- Ostatných **196 krajinských záznamov bez zmeny**; 23 upravených manifestov obsahuje presne pôvodné PNG plus schválené prírastky, **0 nadbytočných alebo held PNG**.
+- `SHA256SUMS.txt` má presne 207 položiek, spätné načítanie z GitHubu byte-identické. Hlavný nezávislý report `independent-postwrite-zip-audit44.json.gz` (74 571 B) má SHA-256 `d6279d44e5f4624730298aa222d51e1cbfcdde02d473b4e41c449a12d7bc78f3`; po uložení z GitHubu znovu stiahnutý, overený a dekomprimovaný: **207 záznamov PASS**. Canonical, preservation a payload-diff reporty uložené v tom istom existujúcom stage44.
+- CI **42422602856 SUCCESS**, downloader **0.1.9.2 / 131 krajín / tri pozadia / 220×132 PASS**, všetky používateľské dáta zachované. **27 666 predošlých a 10 332 produkčných PNG bez zmeny** vo všetkých deviatich variantoch.
+- Potvrdený staged44 rozsah: **3 090 / 35 560 referencií, zostáva 32 470; 28 386 PNG; 131 dostupných / 12 úplných / 119 čiastočných / 88 nedostupných krajín**. Canonical index PR68 zostáva pri dávke43 (3 010 / 27 666 / 125 / 12); staged44 sa nepublikoval do produkcie.
+- Z 54 pôvodných rozpracovaných položiek je **51 bezpečne dokončených**, zvyšné **3 majú konkrétny vizuálny hold**. Chýbajúce hashové väzby pre prijatých51 sú fyzicky doložené; nič sa nevymýšľalo. Nových55 pridalo29 prijatých;7 vizuálnych a19 zdrojových blokácií zostalo mimo balíkov.
+- Ďalší source chunk má samostatne **9 Jazz referencií / 81 skutočne uložených PNG**, pixel commit `ba719f98f9d3f88a7ef67423139137e1ad0ed07f`, export `5b1869697415d8c66192798b4ddc6e56c1b9600d`, CI **42422592769 SUCCESS**. Remote81 SHA/bytes/Gitblob/RGBA/rozmery/integrita PASS; country/name/URL/ref exact guard PASS. Všetkých8 historických ledgerov pre týchto9 obsahuje0 holdov a existujúca vizuálna brána PASS bez výnimiek. Týchto9 sa zatiaľ **NEPOČÍTA** do country pokrytia44.
+- Z nasledujúcich26 zdrojov nezávislé source QA: **22 source approve / 4 hold** (BRF Nachrichten namiesto BRF1, promo fotografia, technicky blokované PartyFM SVG, Radio350 spinner). Skutočný render22 do198 variantov je spustený; final9 QA a remote uloženie ešte prebiehajú, preto nie sú započítané do hotových piconov.
+- Ďalší vykonateľný krok: dokončiť all9 QA22, uložiť accepted/quarantine PNG na existujúcej source vetve; potom pripraviť ďalšiu country dávku z preukázateľne ready source chunkov proti staged44 baseline. Existujúce ZIPy44 už nevyrábať znova; produkciu a Draft stav chrániť.
+
 ## Dávka 44 – country CI úspešné, nezávislý readback ešte prebieha
 
 - CI [42422602856](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42422602856): **SUCCESS**. Trigger `d04fa9ff968ad7091edd5fac84826d4da7d4c093`, uložený kandidát `fc6dc2a0b3c31847a02576f0e082c61043127f16`, výsledky testov `8ca34cb78314923f8c1012f59a2fb1084e012afb`.
