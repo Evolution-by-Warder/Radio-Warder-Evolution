@@ -2,6 +2,14 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Rozpracovaná integrácia 42 – zdroje nezávisle overené
+
+- Laut.fm: [finálny zdrojový checkpoint 520615b](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/520615b75a7dabab591600e8c7de42d733c15eef), [CI 42382322651](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42382322651) všetkých 5 častí SUCCESS. Nezávislý export Git objektov: 435 referencií, 3 915 PNG výskytov / 3 897 jedinečných PNG, 433 originálov. Pri 14 CDN transformovaných vstupoch boli použité iba pôvodné zmrazené bajty, všetky hashové brány zachované.
+- Singletony BT, CX, GW, MS, SM, KM: [pixel commit b90ef05](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/b90ef052dd81eaccf659b8dcca52b9a88cc18f93), pin head `f869a3c5ab15cf31312f7fb9bb46867f63c1f966`. [CI 42383059873](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42383059873) SUCCESS; nezávisle stiahnutých a overených 54 PNG + 8 originálov. Oprava plytkej Git cache má 6 skutočných Git regresných testov, všetky PASS. MS používa rovnaký oficiálny badge vo všetkých pozadiach; stará zmiešaná kompozícia je blokovaná. WF ostáva mimo balíkov; farebný artwork sa nepremaľuje.
+- Krajinská integrácia 441 referencií spustená z `bc46bf262ceb51cfa632c245dacfcff28f032fe9` na `work/radio-world-batch42-reviewed-history-20261107`. Očakávaných 2 870 referencií je zatiaľ predpoklad, nie hotový výsledok. Čaká sa na celý build, 15 regresných testov, všetkých deväť variantov, ochranu 10 332 PNG a stable downloader replay. Aktuálny schválený pracovný index v Draft PR #68 zostáva 2 429 referencií.
+- Ďalší zdrojový checkpoint: primary25 `ecb6fe340b550fe43e7d3deabe586a10cbc639e1`, 25 vizuálne prijatých referencií / 225 PNG s kontrolou všetkých deviatich variantov, zatiaľ bez country integrácie. Zeno: 262 vizuálne posúdených zdrojov = 141 source_pass / 121 hold; 1 269 PNG zo 141 source_pass má technickú kontrolu, finálna deväťvariantová vizuálna QA ešte beží. Source_pass nie je finálne grafické prijatie.
+- PR #67 a #68 sú Draft. Produkčný main, historické ZIPy a snapshoty, používateľské dáta a stabilné IPK zostávajú bez zmeny.
+
 ## Aktuálny checkpoint – 7. 11. 2026, dávka 41 overená
 
 - Draft [PiconHub PR #68](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/68), presný kandidát `4bcef661a7a139f27d2f987073b7a902582870cb` (index a manifesty zostali bitovo rovnaké; opravený len doplnkový inventár). [CI 42375761567](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42375761567) úspešný. Index SHA-256 `85f17a3022d770a31dd1cd2fcf53ba19a6681d4c7ec0a0133ebe56e59a14fd30`.
