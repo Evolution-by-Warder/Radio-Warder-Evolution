@@ -2,6 +2,18 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dávka 44 – country CI úspešné, nezávislý readback ešte prebieha
+
+- CI [42422602856](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42422602856): **SUCCESS**. Trigger `d04fa9ff968ad7091edd5fac84826d4da7d4c093`, uložený kandidát `fc6dc2a0b3c31847a02576f0e082c61043127f16`, výsledky testov `8ca34cb78314923f8c1012f59a2fb1084e012afb`.
+- **80 nových referencií / 720 PNG výskytov (711 jedinečných obsahov)** v 23 krajinách. Všetky 3 rozmery × 3 pozadia. **207 ZIPov / 276 727 377 B** uložených a pri zostavení overených. Immutable payload commit `508e018e83e510c2c717c90480e4aaa4358c1609`; manifest commit `2ebc036ce3455b56fbb0e09a3b83959d84ec964b` na existujúcej payload vetve. Recovery packages.json je uložený ešte v prvom payload commite.
+- Staged index `picons/radio-world/staging/batch-44-reviewed/countries.proposed.json`: SHA-256 `3b5d45b30e8137c05ce695be64ffd20721400ac950080b0f5586d257ef35eabd`; **3 090 / 35 560 referencií, zostáva 32 470; 28 386 PNG položiek vrátane aliasov; 131/219 dostupných, 12 úplných, 119 čiastočných, 88 nedostupných krajín**.
+- Stabilný downloader **0.1.9.2** na nemennom `b7384bfdb55621beaf183ca6d40e9dedacaecdb9`: všetkých 131 dostupných krajín, **390 verejných ZIP URL**, TRANSPARENT/WHITE/BLACK, 220×132 PASS. Každé pozadie: 3 089 nainštalovaných, 1 používateľský picon zachovaný, 0 chýb; opakovanie 3 089 unchanged, **0 ZIP požiadaviek**, 0 updated. Nastavenia, história a obľúbené ostali byte-identické. Ide o replay stabilného kódu, nie test na fyzickom prijímači.
+- Ochrana všetkých **27 666 predošlých schválených PNG** a **10 332 produkčných PNG** v deviatich variantoch PASS. V aktualizovaných country archívoch zachovaných 6 975 predchádzajúcich položiek. Všetkých 18 054 neprodukčných PNG výskytov zviazaných s presným schváleným artworkom PASS.
+- Canonical index a release manifesty PR68 ostávajú byte-identické s `2db89af`: **3 010 / 27 666 / 125 dostupných / 12 úplných**. Dávka44 je zámerne pripojený staged kandidát; nebola aplikovaná do canonical indexu ani produkcie.
+- Bezpečnostný rozsah: 10 nových vizuálnych holdov (3 recovery54 + 7 new55), 19 nových zdrojových holdov. Konfigurácia drží 894 zakázaných referencií; to nie je počet všetkých nepokrytých položiek ani počet iba nových holdov.
+- Zostáva dokončiť nezávislý re-fetch/hash všetkých 207 nových ZIPov a uložiť readback proof so SHA256SUMS v tom istom stage44. ZIPy sa už NESMÚ vyrábať znovu.
+- PR67/68 Draft; main `8180aa0df6e185efad120338bc53ca04bc5e492a`, legacy `3bd8ea5659eb4d21c913ab4edb090d890d646a39` nezmenené; bez merge, release, IPK alebo zásahu do používateľských dát.
+
 ## Dávka 44 – uložené zdroje a spustené country CI (bez produkčnej zmeny)
 
 - Existujúca vetva PR #68 pokračuje z `2db89af` commitom `d04fa9ff968ad7091edd5fac84826d4da7d4c093`; PR #67/#68 zostávajú Draft. Canonical index a schválené manifesty sa v tomto kroku nemenia.
