@@ -2,6 +2,14 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Nový aktívny beh – obnovené vstupy, pred novou country integráciou
+
+- Aktuálny GitHub stav načítaný znovu: PiconHub main `8180aa0df6e185efad120338bc53ca04bc5e492a`, Radio main `daf261c2a946cdf5dc4beed4dcea4d0143b16491`; PR #67 a #68 Draft/merged=false. Posledný overený country kandidát je stále 43 / `2db89afad0f414fe7c4b1a6a1a836382d47090d3`, 3 010 referencií / 27 666 PNG / 125 dostupných krajín / 12 úplných.
+- Lokálny runtime teraz funguje, ale pôvodné dočasné súbory chýbajú. Kód a dáta sa obnovujú z GitHubu; neobnovujú sa hotové dávky 34–43 ani ich ZIPy.
+- Source54 má nový checkpoint pred renderom: [56e266d](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/56e266d97b16bdaecbc59d810d970a5ebf9132b0), vetva `work/radio-zeno54-recovered-source-20261107`, prefix `picons/radio-world/staging/batch-44-zeno54-recovery`. Všetkých 54 pôvodných source/API SHA a krajinských referencií sa zhoduje s 2322 aj finálnym 890c snapshotom, 0 live Zeno požiadaviek, 0 HDF. Staré 54 PNG/hashové trojice na GitHube neexistujú; nová deterministická reprodukcia musí fyzicky vypočítať a vizuálne overiť všetkých 486 variantov. Zatiaľ sa nepočíta medzi hotové country balíky.
+- Nezávislý nový55 source pool je uložený [a59684c](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/a59684cb2737aa51c04e2d6353bb62b01aa4a46a), vetva `work/radio-zeno-new55-source-20261107`: 36 source_pass / 19 hold; nejde o finálne grafické prijatie. Vstupy sú len existujúce frozen GitHub dáta, všetky SHA/Gitblob overené. Finálna deväťvariantová QA beží oddelene.
+- Nová integrácia 44 musí ochrániť nielen pôvodných 10 332 PNG, ale aj celý aktuálny schválený country kandidát 27 666 PNG. Resolution starej technickej karantény sa smie viazať iba na overený nový fyzický recovery proof + pôvodný manual receipt + konkrétne 54 identity; ľubovoľný SHA či samotný flag nestačia. Žiadne produkčné zmeny ani nové IPK.
+
 ## Aktuálny overený kandidát 43 – 7. 11. 2026
 
 - Draft [PiconHub PR #68](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/68), head `2db89afad0f414fe7c4b1a6a1a836382d47090d3`. [CI 42389598820](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42389598820) SUCCESS; testované výsledky `8b5d2baf95392483ebb592ae413832dec5b7190a`. Kanonický index je presný existujúci Git blob `2af97081aefefca0c267b1db89e0e26aeddc082c`, SHA-256 `b2018e346e88cef556b27290ff241d850cb01135855fc643dfe1d92965185d0e`, 83 997 B. Žiadny produkčný merge.
