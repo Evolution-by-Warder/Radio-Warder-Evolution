@@ -2,6 +2,14 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Spresnenie krajinskej eligibility a dokončený source freeze
+
+- CI integrácie 43 správne zastavilo jedinú chybnú source položku: `4097:0:2:8FC5:8AD9:EF:0:0:0:0`, radio klassik Stephansdom. Má iba skupinu `HDF Radio zoznam`; diagnostika celého aktuálneho world katalógu našla jediný rovnaký ref aj jedinú zhodu presného názvu + URL, bez krajinského Austria/ED záznamu. Doména .at nevytvára krajinskú servisnú referenciu. Žiadny country PNG/ZIP v tejto neúspešnej integrácii nevznikol.
+- Všetkých 225 source PNG pôvodnej primary25 zostáva zachovaných v nemennom efba5e37…; ich grafická kontrola platí, ale krajinská eligibility má byť 24 a HDF-only prípad zostáva oddelený. Nové opravené consumer exporty majú zachovať starý historický 25-entry export. Nadväzujúca bezpečná dávka 43 má 113 Zeno + 24 primary + 3 contrast = 140 referencií; predpoklad 3 010 nie je výsledok, kým nedobehnú všetky testy. Striktný identity gate sa neuvoľňuje.
+- GitHub-only recovery source113 je uložené `fb93df38c90a3977e9de063e34a97ea473617f2f`, 141 skutočných deväťvariantových hlasovaní (113 approve / 28 hold), 121 publikovaných source holds a špecifikácia technickej karantény 102 ďalších položiek. Prvý bootstrap úspešne odvodil presných 364 − 262 = 102, bez vynechania chýbajúcich 31 záznamov a bez vymyslených PNG fingerprintov.
+- Kompletný Zeno1519 source freeze skončil SUCCESS: [CI 42386399512](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42386399512), final checkpoint `890c9edb644d676f5b33855268f39aefbad65be8`, final=true. Presne 1 519 = 419 logo-frozen + 1 096 metadata hold + 4 retrieval pending; 10 329 cache URL, 11 607 cache hit, globálne max. 4 spojenia. Zdrojové zmrazenie nie je grafické schválenie. Lokálna revízia ďalších 54 bez exportu/CI sa stále nezapočítava do country balíkov.
+- Pracovný runtime bol znovu ohlásený, ale read-only exec probe stále zlyhal okamžitým exec-server `No such file or directory`; práca pokračuje výlučne cez GitHub/CI, bez predstieraných lokálnych testov. PR #67/#68 zostávajú Draft, produkčný main a snapshoty bez zmeny.
+
 ## Obnova po výpadku pracovného prostredia – 7. 11. 2026
 
 - Lokálne pracovné prostredie sa stalo unavailable; žiadne ďalšie lokálne testy sa nepredstierajú. Aktuálny úspešne integrovaný a overený kandidát zostáva dávka 42 / Draft PR #68 `b99fe072f36d03871cc9c0e7546a5fc9294846a0`: 219 krajín, 119 dostupných, 12 úplných, 2 870 referencií, 26 406 PNG položiek, zostáva 32 690 referencií. Produkcia sa nemení.
