@@ -2,6 +2,18 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dávka 44 – uložené zdroje a spustené country CI (bez produkčnej zmeny)
+
+- Existujúca vetva PR #68 pokračuje z `2db89af` commitom `d04fa9ff968ad7091edd5fac84826d4da7d4c093`; PR #67/#68 zostávajú Draft. Canonical index a schválené manifesty sa v tomto kroku nemenia.
+- Pôvodných 54 rozpracovaných položiek: **51 prijatých / 459 PNG variantov**, **3 nové vizuálne blokácie / 27 PNG**. Všetkých 486 skutočných PNG a 54 originálov je uložených na existujúcej source vetve. Pixel commit `d586242a2d0894a841541629349029e7831d66c5`, finálny audit `597a7cfcc528116dce54c0625e10e43ce682ecfe`, CI **42420901761 SUCCESS**. Nový recovery proof SHA-256 `20cd5c11bec9cc340456ef7e97afda6554ff0dfc6fa607589a4e9107a3ae653e`; staré chýbajúce PNG/SHA neboli predstierané.
+- Nových 55 zdrojových položiek: **29 prijatých / 261 PNG výskytov**, **7 finálnych vizuálnych blokácií / 63 PNG**, **19 zdrojových blokácií**. Reálne uložených 315 jedinečných PNG (252 prijatých + 63 karanténa) a 35 originálov. Pixel commit `fc7e5c9df4a7759325eef2b322e4fbcf2713a619`, audit `3e86c870e49a55631e014b1d0505f0800ffab45e`, CI **42420814648 SUCCESS**.
+- Spoločná dávka 44 v existujúcej štruktúre `picons/radio-world/staging/batch-44-reviewed/`: **80 referencií / 720 PNG variantov**, 0 kolízií s baseline. **9 nových regresných testov PASS**; pôvodné analýzy 34–43 sa neopakovali. Výber SHA-256 `d9fe3e730704844908880ff9235280d0d76b624fa8e5046b993fc63b4cd695c4`, ledger `57f25efa74d341f414364000f6b8c9c9b67d43dc5d6b2f309f1acda551fb0d41`.
+- Country ZIPy dávky 44 a ich runtime testy sú v tejto chvíli **rozpracované, nie dokončené**. Používa sa existujúca payload vetva `work/radio-world-batch43-reviewed-payload-20261107`, bez novej vetvy. Staré immutable ZIP/manifest URL zostávajú zachované.
+- Potvrdený canonical checkpoint zostáva **3 010 referencií / 27 666 PNG / 125 dostupných / 12 úplných krajín**, zostáva **32 550 z 35 560 krajinských referencií**. Predpoklad 3 090 po dávke 44 zatiaľ nie je výsledkom country CI.
+- Nezávislý ďalší zdrojový rozsah 183: bezpečný checkpoint `fc9ede65a266b5b62d2108293401f316871b4f93` na existujúcej `work/radio-primary-pending183-source-20261107`; 175 country-gated, 8 HDF mimo krajín. Štyri URL s potenciálne poverovacími query parametrami sú z publikovania/admission vylúčené po automatickom zamietnutí pôvodného payloadu. Uložený checkpoint obsahuje iba sanitizované údaje a hash streamu. Deväť Jazz zdrojov má uložené originály; ich 81 PNG sa ešte nepočíta ako remote pixel výstup.
+- Produkcia `8180aa0df6e185efad120338bc53ca04bc5e492a`, stabilný downloader 0.1.9.2, používateľské dáta a legacy snapshot `3bd8ea5659eb4d21c913ab4edb090d890d646a39` ostávajú chránené. Žiadny merge ani IPK.
+- Ďalší krok: skontrolovať výsledok už spusteného country CI44; ak sú ZIPy publikované a neskorší test zlyhá, obnoviť iba metadáta z uloženého payload-build-manifest, ZIPy nevyrábať znova.
+
 ## Nový aktívny beh – obnovené vstupy, pred novou country integráciou
 
 - Aktuálny GitHub stav načítaný znovu: PiconHub main `8180aa0df6e185efad120338bc53ca04bc5e492a`, Radio main `daf261c2a946cdf5dc4beed4dcea4d0143b16491`; PR #67 a #68 Draft/merged=false. Posledný overený country kandidát je stále 43 / `2db89afad0f414fe7c4b1a6a1a836382d47090d3`, 3 010 referencií / 27 666 PNG / 125 dostupných krajín / 12 úplných.
