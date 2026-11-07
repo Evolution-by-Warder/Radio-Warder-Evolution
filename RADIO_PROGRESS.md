@@ -2,6 +2,15 @@
 
 Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Aktuálny checkpoint – 7. 11. 2026, dávka 41 overená
+
+- Draft [PiconHub PR #68](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/68), presný kandidát `673062395da2f49cf2c739a16c605eedc9553480`. [CI 42375761567](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42375761567) úspešný. Index SHA-256 `85f17a3022d770a31dd1cd2fcf53ba19a6681d4c7ec0a0133ebe56e59a14fd30`.
+- Katalóg 219 krajín: 109 dostupných, z nich 6 úplných (SK, CZ, TD, GG, KI, LR), 103 čiastočných a 110 nedostupných. Pokrytých 2 429 / 35 560 referencií; zostáva 33 131. Celkom 22 437 PNG položiek vrátane aliasov; 10 332 pôvodných presne zachovaných a 12 105 nových viazaných na prijaté deväťvariantové SHA-256.
+- Downloader 0.1.9.2 bez zmeny: všetkých 109 krajín v troch pozadiach 220×132, 324 verejných ZIP URL, 2 428 presných inštalovaných PNG + jeden zachovaný vlastný picon na pozadie, 0 zlyhaní, opakovanie 0 ZIP požiadaviek. Používateľské dáta zachované. Hardvérový test neprebehol. Inventár 972 ZIP URL vo všetkých deviatich variantoch uložený s SHA-256.
+- Vizuálna revízia 34–36 dokončená: 898 posúdených, 530 prijatých, 368 oddelených; manuálne všetky tri pozadia 220×132, technicky všetkých deväť variantov. REPLAY18 opravené doloženými jazykovými originálmi s kontrolou všetkých deviatich variantov. PR #67 ostáva Draft: 219 prijatých nových referencií, kandidát 1 303 referencií / 81 dostupných krajín.
+- Rozpracované mimo kandidátneho počtu: 435 prijatých laut.fm referencií (3 915 PNG inštancií) a 6 overených singletonov (54 PNG). Zdrojové CI laut.fm zastavené hashovou bránou pre nesúlad počtu bajtov vstupu; príčina sa zisťuje, brána sa neuvoľňuje. Opravená syntax publishera má samostatný bash -n check. Prenosný Zeno freezer má 1 519 nových referencií, offline obnovenie cache a integrita uložených zdrojov prešli; nejde o grafické schválenie.
+- Produkcia ostáva `8180aa0df6e185efad120338bc53ca04bc5e492a`; historický snapshot `work/radio-batch33-legacy-payload-20261106` / `3bd8ea5659eb4d21c913ab4edb090d890d646a39` sa zachováva. Žiadny produkčný merge, nové IPK ani zmena existujúcich produkčných PNG/ZIP ciest.
+
 ## Overené východiská
 
 | Oblasť | Vetva alebo vydanie | Posledný overený commit a stav |
@@ -346,7 +355,7 @@ Posledná tabuľka pred dávkou 33 je historický checkpoint cez dávku 27.
 
 ## Zostávajúce úlohy
 
-1. Produkčná dávka 33 je hotová. Dokončiť finálnu kontrastnú revíziu historických výstupov 34–36, uzavrieť testy dávky 38 a pripraviť bezpečnú nadväzujúcu integráciu bez produkčného merge.
+1. Produkčná dávka 33 je hotová. Revízia 34–36 a testovaná pracovná integrácia cez 41 sú uzavreté; pokračovať uložením a bezpečnou integráciou 435 laut.fm referencií a 6 singletonov, potom Zeno. PR #67 a #68 ponechať Draft bez produkčného merge.
 2. Pokračovať v dávkach zo zvyšného katalógu. Preverovať identitu podľa servisnej referencie, streamu a dôkazu vysielateľa. Blokované logá evidovať oddelene. Kossuth, Radio 88 Retro / REPLAY a regionálne ESKA 2 sledovať v [redakčnom registri](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/issues/41).
 3. Stabilná 0.1.9.2 je schválená, publikovaná a automaticky aj verejne overená; oba v2 kanály umožňujú priamu aktualizáciu aj z fyzicky testovanej revízie 2.
 4. Fyzické overenie YouTube UI aj oboch modrých aktualizačných okien používateľom je zapísané. Prípadné následné fyzické overenie migrácie stabilného balíka evidovať oddelene od automatických opkg skúšok.
