@@ -1,6 +1,6 @@
 # Warder Radio – register postupu
 
-Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
+Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
 ## Overené východiská
 
@@ -40,6 +40,13 @@ Posledná tabuľka pred dávkou 33 je historický checkpoint cez dávku 27.
 Úplný historický manifest cez dávku 28 bol obnovený: 22 751 pripravených referencií a register 18 307 skontrolovaných zdrojov. Ich PNG payloady nie sú všetky lokálne obnovené. Čísla tabuľky vyššie pochádzajú z produkčného indexu; historický checkpoint a nové pracovné dávky sú vedené oddelene.
 
 ## Denník významných zmien
+
+### 7. 11. 2026 – nadviazanie dávkou 36 a príprava ďalších overených zdrojov
+
+- [Dávka 36 `45764be`](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/45764be24b87d752f541545222674ba3fe118713) nadväzuje na potvrdenú dávku 35. Výber obsahuje 498 ďalších referencií zo 16 krajín, vždy s presnou zhodou názvu, streamu a skupiny v aktuálnom katalógu. [CI 42341767055](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42341767055) zostavuje nové krajinské kandidáty z pôvodných PNG, kontroluje všetkých deväť variantov a zachovanie predchádzajúcich PNG. Tento záznam označuje bežiace spracovanie, nie dokončenú dávku.
+- Samostatná integrácia dávok 34 a 35 preverila 219 krajinských mapovaní, všetkých deväť variantov a zachovanie produkčnej dávky 33. Finálny downloader test a čistý integračný PR sa ukladajú oddelene.
+- Ďalšie zdroje sa preverujú aj proti historickým vizuálnym zamietnutiam. Nájdené zamietnuté grafiky sa nevkladajú do nových balíkov. HDF a explicitné sporné identity zostávajú v pôvodnom registri. Produkčný main `8180aa0` a legacy snapshot `3bd8ea5` zostávajú zachované.
+
 
 ### 6. 11. 2026 – pracovná dávka 35, ďalších 200 referencií uložených a overených
 
