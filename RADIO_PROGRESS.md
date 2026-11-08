@@ -2,6 +2,14 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dokončená a spätne overená dávka 52 – 8. 11. 2026
+
+**PiconHub checkpoint `761d44f48369faa564f9222f2560c679b3c019cb`**, existujúci Draft PR #68. **11 nových GR referencií /99 PNG /9 ZIPov**, 1 rozšírená krajina; celkovo **3 244/35 560**, zostáva **32 316**, **29 772 PNG**, krajiny131/219 (12 úplných,119 čiastočných,88 nedostupných). Payload `bac4c1375e3ef06610b0fc4ebeebbc6f93b824cc`, manifest `163296f3b11275a20bf2a7c7a8a2fd164b7c7ccb`. [CI42518572084](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42518572084) **SUCCESS** vrátane stable downloader replay a ochrany všetkých predchádzajúcich PNG. Nezávislé actual readback9/9 ZIPov: SHA256/bytes/CRC/všetky členy/rozmery/RGBA PASS, **1 962 starších členov zachovaných**,99 nových bitovo zhodných so schválenými PNG. Po finálnom commite index, audit, SHA256SUMS a current-main-identity-proof znovu celé prečítané a byte-identicky porovnané. Dôkazy v `picons/radio-world/staging/batch-52-reviewed/`.
+
+Dôležité rozlíšenie: číslo35 560 je zachovaný cieľ checkpointu50. Automatická aktualizácia živého main `2b294878b14ca322fa277ba1e9781f83ec5649cf` už obsahuje36 217 krajinských staníc. Kandidátsky index sa svojvoľne nerebasoval. Všetkých16 RadioArt identít plánovaných pre51–53 je aj v novom main presne zachovaných (referencia/názov/URL/krajina), samostatný dôkaz uložený. Produkčné balíky sa týmto behom nemenia.
+
+Ďalší krok: dávka53,2 zvyšné streamové zhody. Greek Art Mood Up je doložený oficiálnou historickou stránkou a player slugom; Workout Rock & Indie je doložený kategóriouWorkout a suburlRock_and_indie. Príprava prešla lokálnou kontrolou17 historických ledgerov; ešte nezapočítaná. Konfiguračné holdy923 ostávajú,44 legacy HTTP400 bez opakovaných HEAD požiadaviek. Relácia pokračuje.
+
 ## Dokončená a spätne overená dávka 51 – 8. 11. 2026
 
 **Posledný overený PiconHub commit: `990a089fbca5d18da172c552ee6c7d24d56e34eb`.** Existujúci Draft PR #68, vetva `work/radio-world-batch38-contrast-pass1-history-20261107`. Bach (63), Chopin (60), Mozart (59): **3 nové GR referencie, 27 PNG položiek, 9 nových ZIPov**, 1 rozšírená krajina. Stav **3 233 / 35 560**, zostáva **32 327**; **29 673 PNG**, dostupné krajiny **131/219**, úplné12/čiastočné119/nedostupné88, konfiguračné holdy923.
