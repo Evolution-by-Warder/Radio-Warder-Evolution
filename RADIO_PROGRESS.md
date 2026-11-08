@@ -2,41 +2,44 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
-## Aktuálny checkpoint – dokončené dávky 46–48, dávka 49 rozpracovaná
+## Aktuálny checkpoint – dokončené dávky 46–49
 
-**PiconHub PR #68 zostáva Draft. Posledný dokončený commit: `43c9cc03e4d29eba31df32295baf8d96f1514081`.** Existujúca vetva `work/radio-world-batch38-contrast-pass1-history-20261107`; žiadna nová vetva ani register. Produkcia a canonical index/release manifesty zostávajú nezmenené.
+**PiconHub PR #68 zostáva Draft. Posledný dokončený commit: `1fe56ace3b405ae362f19834b4c8fa0431939c9c`.** Existujúca vetva `work/radio-world-batch38-contrast-pass1-history-20261107`; žiadna nová vetva ani register. Produkcia a canonical index/release manifesty zostávajú nezmenené.
 
-| Ukazovateľ | Potvrdené po dávke 48 |
+| Ukazovateľ | Potvrdené po dávke 49 |
 | --- | ---: |
-| Referencie pokryté / cieľ | 3 149 / 35 560 |
-| Zostáva referencií | 32 411 |
-| PNG vrátane aliasov | 28 917 |
+| Referencie pokryté / cieľ | 3 152 / 35 560 |
+| Zostáva referencií | 32 408 |
+| PNG vrátane aliasov | 28 944 |
 | Krajiny dostupné / celkom | 131 / 219 |
 | Úplné / čiastočné / nedostupné krajiny | 12 / 119 / 88 |
-| Konfiguračne blokované referencie | 920 |
-| Nové prijaté referencie / PNG v tomto behu | 38 / 342 |
-| Nové verzie ZIPov / celkové bajty | 27 / 118 860 505 |
+| Konfiguračne blokované referencie | 923 |
+| Nové prijaté referencie / PNG v tomto behu | 41 / 369 |
+| Nové verzie ZIPov / celkové bajty | 36 / 123 474 693 |
 
 ### Dokončené a spätne overené dávky
 
 - **46:** 21 RU referencií, 189 PNG, 9 ZIPov, 17 056 840 B. Source CI42454121927 a country CI42454909810 **SUCCESS**. Source pixel `e0f00872ee9f03e2e6726c6cf78be1cd1ac9a0cc`, export `8bf09bf09a2fe5347bb7804a9bedf56e8d2d1657`. Payload `eaeedef9f0e07ba6f04047f9c3d3464df0285171`, manifesty `76521bd96b13f76369ed8626ecd7b79e78106c2a`, finálny commit `37ad14f25193c344a07ba636b01d964a8897d842`. Audit9/9 ZIPov a648 PNG členov PASS;459 starších zachovaných. Source readback297 výstupných PNG +39 originálov PASS.
 - **47:** 8 US referencií,72 PNG,9 ZIPov,82 663 462 B. Source CI42456823758 a country CI42457132691 **SUCCESS**. Source pixel `54988db7567421df6dea2bd81823ac1238b6d61b`, export `d7c23dc002ea98a49f50b00f4fa516d2fd717db7`. Payload `6d8a15f085c0e35f09c941cc4a89b91c7ce6695f`, manifesty `4dba6b0da3bf88e0a1e4309a610e7350dc79b4a8`, finálny commit `c152fa03724aa5928ca71ba8874c90735282e22b`. Audit9/9 ZIPov a2124 PNG členov PASS;2052 starších zachovaných. Source readback81 PNG +9 native obrázkov PASS (7PNG +2JPEG zachované v pôvodných bytes; výstupy všetky RGBA PNG).
 - **48:** 9 RU referencií,81 PNG,9 ZIPov,19 140 203 B. Source CI42457650379 a country CI42458069664 **SUCCESS**. Source pixel `e17e4296d9fb34617f8ffb3f54dab6b37e6e335d`, export `c1315a7a87bf416382a57ac2fa44ad24ee0a9147`. Payload `fa81c34274d29ad236f2b03da75de65f21fc92f7`, manifesty `d0e04e0842ff9db7a9742a2db106512c7e406a99`, finálny commit `43c9cc03e4d29eba31df32295baf8d96f1514081`. Audit9/9 ZIPov a729 PNG členov PASS;648 starších zachovaných. Source readback81 PNG +18 native/derived obrázkov PASS.
+- **49:** 3 CH referencie, 27 PNG, 9 ZIPov, 4 614 188 B. Source CI **42458790329 SUCCESS**, country CI **42459081986 SUCCESS**. Source pixel `52cc05c113c0340f57f0812c5649cf5d84264839`, export `49426387e7bb2c6737f6f4c9fb4c3db41eb10849`. Payload `288cefdcb49ec40a168c16392b8d71157380c4bd`, manifesty `63c950e76e7a71166588d48dbaa9251f3ddc6fc1`, finálny commit `1fe56ace3b405ae362f19834b4c8fa0431939c9c`. Nezávislý audit9/9 ZIPov a135 členov PASS;108 starších zachovaných. Source readback27 PNG a3 native obrázkov PASS. Ochrana všetkých28 917 PNG kandidáta48 PASS.
+- **Aktuálny index49:** `picons/radio-world/staging/batch-49-reviewed/countries.proposed.json`, SHA-256 `e04ad76db2d8d4cf4e434222228a75f1d066916739781c4d7731f28f1dffb1b2`, Git blob `0fa05344607d5978f83ea8bdb344210b51500865`. Canonical index a release manifesty zostávajú pri43; toto je overený staged kandidát.
 - Index48 `picons/radio-world/staging/batch-48-reviewed/countries.proposed.json`: SHA-256 `47eb667239419693eba708fff1a45b776b73b0cd8a45f54308ce0d33353d0c7b`, Git blob `171c3e20ab9ae9c2a234b0a16a90b0521264a529`. Pri každej dávke uložené reálne PNG, union ZIPy, immutable manifesty, SHA256SUMS, source readback a nezávislý postwrite audit. Audity po uložení znovu načítané z immutable GitHub commitov.
 
 ### Ochrana dát a výsledky testov
 
 - Všetkých10 332 produkčných PNG a všetkých28 575 PNG kandidáta45 zostalo zachovaných vrátane64 aliasov. Dávka48 navyše overila zachovanie všetkých28 836 PNG kandidáta47. Žiadny schválený PNG sa neprepísal.
-- Stabilný downloader0.1.9.2, nemenný commit `b7384bfdb55621beaf183ca6d40e9dedacaecdb9`:131 krajín /390 verejných ZIP URL /220×132 /všetky3 pozadia PASS. Po48 v každom pozadí3148 added,1 používateľský picon zachovaný,0 failed. Opakovanie3148 unchanged,0 ZIP požiadaviek. Nastavenia, obľúbené a história byte-identické. Ide o replay stabilného kódu; fyzický prijímač netestovaný.
+- Stabilný downloader0.1.9.2, nemenný commit `b7384bfdb55621beaf183ca6d40e9dedacaecdb9`:131 krajín /390 verejných ZIP URL /220×132 /všetky3 pozadia PASS. Po49 v každom pozadí3151 added,1 používateľský picon zachovaný,0 failed. Opakovanie3151 unchanged,0 ZIP požiadaviek. Nastavenia, obľúbené a história byte-identické. Ide o replay stabilného kódu; fyzický prijímač netestovaný.
 - Každá prijatá referencia má všetkých9 variantov. Nové Record a SomaFM zdroje majú presnú canonical identitu a stream dôkaz. Pri48 boli WHITE-only companions odvodené z čisto bieleho originálu: identická alfa a tvar, iba viditeľné RGB255→0. Pri lokálnych10 skúškach60 TRANSPARENT/BLACK tuple byte-identických a30 WHITE zmenených; poQA prijatých9/81PNG, Minimal/Tech zostal hold. Zdroje pôvodné aj nové prijaté varianty sú uložené, staré zamietnuté varianty zostávajú v histórii.
 - Šesť nových regresných testov WHITE/hold agregácie PASS: ochrana T/B, schválenej grafiky, identity holdov, presného starého pixel commitu a explicitného odôvodnenia opravy. Produkčný renderer, MASTER ani plugin sa nemenili; pomocné rozšírenie ostáva iba na pracovnej source vetve.
 - Opravené dva neúspešné pred-build behy47:42456776996 odmietol celýPLS v poli pre presnú URL;42457079282 zachytil chybnú číselnú adaptáciu219-country guardu. Metadáta/helper opravené, opakované kontrolyPASS. Už vytvorené ZIPy sa kvôli týmto opravám nevyrábali znovu.
-- Z nových zdrojov46–48 zostáva12 odlíšených blokácií:6Record identity,3Record render detail,2SomaFM source a1SomaFM render. Staré3 vizuálne blokované z pôvodných54 ani NoteFM sa neotvárali. Pôvodná183 fronta/136pending a odloženéSVG132 zostali nezmenené.
+- Z nových zdrojov46–49 zostáva15 odlíšených blokácií:6Record identity,3Record render detail,2SomaFM source,1SomaFM render a3názvovo rozdielne 1.FM programy. Staré3 vizuálne blokované z pôvodných54 ani NoteFM sa neotvárali. Pôvodná183 fronta/136pending a odloženéSVG132 zostali nezmenené.
 
-### Práve uložená rozpracovaná dávka49
+### Zdrojová identita49 a ďalšia otvorená práca
 
-- Tri nové CH stanice1.FM (Beloved Ballads,Calming Piano,Classic Rock): oficiálny SSR katalóg, presný súčasný názov, rovnaký HTTPS host/mount a dve HEAD200 s identickým stanicovým icy-name. Oficiálny URL sa líši iba generickým verejným parametrom `aw_0_req.gdpr=true`; canonical URL/ref sa nemení. **27 variantov reálne renderovaných a vizuálne skontrolovaných; zatiaľ nie country checkpoint.**
-- Natívne originály,27 tuple, identity dôkazy a6 nových negatívnych regresných testov uložené v existujúcom source namespace `chunks/chunk-006`, input `95832c81e4be5922a36be9da2b1351b72dc38bad`. Tri ďalšie názvovo rozdielne programy zostávajú source hold. Source CI práve spustené; až po úspechu vytvoriť novéCH union balíky nad48 a vykonať readback.
+- Beloved Ballads, Calming Piano a Classic Rock: oficiálny1.FM katalóg, presný súčasný názov, rovnaký HTTPS host/mount a dve HEAD200 s identickým stanicovým icy-name. Oficiálny URL sa líši iba generickým verejným parametrom `aw_0_req.gdpr=true`; canonical URL/ref zostal nezmenený. Všetkých27 variantov uložených a spätne overených, tri názvovo rozdielne programy source hold.
+- Šesť nových regresných testov identity49 PASS: iný mount, nečakaný query parameter, rozdielne stanicové HEAD názvy, nedostatočný generický názov siete a odlišný oficiálny titul sú odmietnuté. Spolu so šiestimi WHITE regresiami48 prešlo12 nových testov v tomto behu; staršie uzavreté audity sa neopakovali.
+- **Rozpracovaný ďalší zdroj RadioArt:**152 nepokrytých referencií, verejná domovská stránka aj broadcaster AJAX katalóg170 programov dostupné;122 kandidátov má presnú názvovú zhodu. Zatiaľ nie sú prijaté ani započítané. Overuje sa väzba na konkrétne bezplatné stream polia a vlastný programme artwork. Žiadny raw HTML/JS archív alebo identifikátor verejného player klienta sa nepublikuje. Tento zdroj nie je dokončenou dávkou50.
 - Bounded primárne lookupy ďalších krajín: La1ère Guyane/Mayotte/Polynésie rádiodirect odkazy404; Tiare403; Radio1 PF homepage200 a pôvodné malé logo overené, ale jej vlastný publikovaný legacy player404, canonical stream väzba nedoložená. Nič z toho sa neprijalo do pokrytia. Bez opakovaných pokusov o obídenie chýb.
 
 Produkčný PiconHub main `8180aa0df6e185efad120338bc53ca04bc5e492a`, Radio main `daf261c2a946cdf5dc4beed4dcea4d0143b16491`, historická vetva `work/radio-batch33-legacy-payload-20261106` na `3bd8ea5659eb4d21c913ab4edb090d890d646a39` chránené. PR67 ajPR68 Draft. Žiadny merge, vydanieIPK ani zmena produkčných balíkov alebo aktualizačných kanálov.
