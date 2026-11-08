@@ -1,6 +1,20 @@
 # Warder Radio – register postupu
 
-Aktualizované 7. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
+Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
+
+## Aktívny beh 8. 11. 2026 – dávka46, nové Record zdroje
+
+- Overené aktuálne SHA pred pokračovaním: PR68 `9d5a3c4de8e5300dbcc485230ad11df588d7bdc8` (Draft), PiconHub main `8180aa0df6e185efad120338bc53ca04bc5e492a`, Radio main `daf261c2a946cdf5dc4beed4dcea4d0143b16491`, existujúci payload head `ff990c7290cc10149dbdeeab84de90a28012d34f`. Pravidlá AGENTS oboch repo prečítané.
+- Dokončené dávky34–45 ani pôvodných54 prípadov sa nespracúvajú znova. Note FM zostáva pending podľa nového pokynu používateľa; staré SVG132 sa neposiela znova.
+- Nový oficiálny zdroj: `https://www.radiorecord.ru/api/stations/`. **39 nových presných canonical stream-field zhôd**, všetkých39 mimo existujúcich filenames vo všetkých9 variantoch. Tri už pokryté iné programme identity boli ponechané bez zmeny; pre nových39 sa nenašiel správny existujúci artwork ani prefixový alias. Žiadny raw API/SVG/HTML archív alebo cache-query hodnota sa nenahráva; publikované sú bezpečné konkrétne fakty, pôvodné PNG a kontrolné súčty.
+- **6 source identity holdov**: názov v katalógu nezodpovedá súčasnému oficiálnemu programu a chýba jednoznačný rebrand/alias dôkaz. **33 staníc reálne renderovaných do297 PNG** nemenným rendererom a MASTER z `8180aa0`.
+- Skutočná vizuálna kontrola všetkých9 variantov: **21 approve /189 PNG**, **12 render holdov /108 karanténnych PNG** (WHITE kontrast alebo50×30 detail). Native grafiky sa nezmenili ani neprerábali. Všetky39 native PNG a presné tuple všetkých297 výstupov uložené.
+- Source input commit `e6dc63d00f86b6e7d2d39e80386987fbff5a1a71`; source CI trigger `c81c048271410d425d831b698fc567b9f0cc78a9`; **CI42454121927 SUCCESS**. Actual pixel commit `e0f00872ee9f03e2e6726c6cf78be1cd1ac9a0cc`, immutable export `8bf09bf09a2fe5347bb7804a9bedf56e8d2d1657`. Existujúca source vetva `work/radio-primary-pending183-source-20261107`, namespace `chunks/chunk-003/`. Žiadna nová vetva alebo register.
+- Výber source21 SHA-256 `aef032b85316f4b04f599c3f928be13f176c669c1800d467a00bdae28fd64c19`; ledger33+6sourcehold SHA-256 `1e849f87bf7631a4386268218de29681ecf250ae82eed6f10e3fae1c0d691df6`. CI fyzicky overilo všetkých297 SHA/bytes/Gitblob/RGBA/rozmerov a canonical identity. Dátový admission predcountrybuildom21PASS nad všetkými9 historickými ledgermi,0sourcehold výnimiek,0filename kolízií,0negative18 prekryvov so schválenými PNG.
+- **Country dávka46 je teraz rozpracovaná, nie dokončená.** Existujúca PR68 vetva má trigger `088cf1330d38189b956a762cf93cc79c226fa4dd`; použil sa rovnaký country workflow a rovnaká payload vetva. Pripravená selekcia je21 RU referencií; predpoklad po CI3 132 referencií /28 764 PNG. Potvrdený dokončený checkpoint zostáva45:3 111 /28 575 /131 dostupných /12 úplných,32 449 remaining.
+- Lokálny314241B pretty JSON carrier bol zastavený pred uploadom vlastným300000B limitom. Bez zmeny dát bol zvolený kompaktný JSON223808B cez tú istú autorizovanú GitHub blob operáciu; nešlo o nový transport, prihlasovanie ani opakovanie zamietnutého payloadu. Ojedinelé raw read503 bolo obídené podporovaným GitHub fetch_file čítaním, nie zmenou autentifikácie.
+- Pôvodný rozsah183/remaining136 ostáva nezmenený: novéRecord39 nemajú s remaining136 žiadny ref prekryv. Navyše bol vykonaný bounded lookup existujúcich schválených artworkov podľa presného URI a normalizovaného názvu, aj scheme-only variantov:0 nových bezpečných aliasov; nič sa nevymyslelo.
+- Ďalší vykonávaný krok: dokončiť už spustené countryCI46, overiť uložené ZIPy a výsledky downloadera; paralelne preverovať ďalšie doteraz nepokryté oficiálne sieťové položky. Produkcia, downloader0.1.9.2, PR Draft stav a všetkých10 332 produkčných PNG ostávajú chránené. Žiadny merge ani IPK.
 
 ## Odovzdávací checkpoint – dokončené dávky 44–45, bez produkčnej zmeny
 
