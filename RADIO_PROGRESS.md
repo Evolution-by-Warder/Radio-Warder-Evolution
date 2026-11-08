@@ -2,6 +2,12 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Rozpracovaná dávka 51 – 8. 11. 2026
+
+Príprava uložená na existujúcej vetve PR #68 v commite `62e8c1a8a0e22419456beceeb0192a97d4c5ef6d`. Tri kandidátske referencie RadioArt Bach (63), Chopin (60), Mozart (59): aktuálne oficiálne `suburl` presne zodpovedá krátkemu názvu, `streamf` presne zodpovedá katalógovému streamu. Deväť existujúcich schválených PNG sa nemení. História a konfiguračné holdy skontrolované. Country CI: https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42517697308 – spustené, výsledok ešte neoverený. **Dávka 51 zatiaľ nie je dokončená ani započítaná; potvrdený stav zostáva 3 230 / 35 560, zostáva 32 330.**
+
+Živý PiconHub main pri začiatku: `2b294878b14ca322fa277ba1e9781f83ec5649cf` (automatická aktualizácia katalógu). Radio main: `daf261c2a946cdf5dc4beed4dcea4d0143b16491`. Produkcia sa v tomto behu nemení. Lokálny Git push zlyhal `could not read Username`; autentifikácia sa nemenila. Príprava bola úspešne pripojená cez existujúci GitHub doplnok; binárne balíky spracúva existujúci Actions postup. Ďalší krok: overiť CI, skutočné ZIPy a nové staged metadáta, až potom započítať dávku a pokračovať ďalšími aliasmi.
+
 ## Odovzdávací checkpoint – dokončené dávky 46–50 (8. 11. 2026)
 
 **Posledný dokončený PiconHub commit: `f33049a0d8e6bf825dc7779ff0ba206aa0b91f1a`.** Existujúca vetva `work/radio-world-batch38-contrast-pass1-history-20261107`, **Draft PR #68**. Žiadna nová vetva ani register. Aktuálny overený index je staged kandidát50; canonical index a release manifesty pracovnej vetvy zostávajú pri43 a produkcia je nezmenená.
