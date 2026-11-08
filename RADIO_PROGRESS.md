@@ -2,6 +2,17 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dokončená dávka47 a uložené source opravy48 – priebežný checkpoint 8.11.2026
+
+- Dávka47 final PR68 commit `c152fa03724aa5928ca71ba8874c90735282e22b`, payload `6d8a15f085c0e35f09c941cc4a89b91c7ce6695f`, manifesty `4dba6b0da3bf88e0a1e4309a610e7350dc79b4a8`. Source pixel `54988db7567421df6dea2bd81823ac1238b6d61b`, export `d7c23dc002ea98a49f50b00f4fa516d2fd717db7`.
+- **8 nových US referencií /72PNG /9ZIP /82 663 462B.** Nezávislý actual ZIP audit9/9PASS,2124členov/2052starých zachovaných/72nových SHA-bytes-GitblobPASS. Source readback81výstupnýchPNG+9nativeobrázkovPASS (7PNG+2JPEG, uchované pôvodné bytes; výstupy vždyRGBA PNG). Súhrny, SHA256SUMS a canonical audit uložené v stage47.
+- CI source **42456823758 SUCCESS**, country **42457132691 SUCCESS**. Dva skoršie behy bezpečne zlyhali pred ZIP buildom:42456776996(strictURIexcerpt formát),42457079282(chybná numerická adaptácia219countryguard). Opravené metadáta/helper; opakované kontrolyPASS, žiadny starýZIP nevyrábanýznova.
+- Index47 SHA-256 `71e5ce8b91aa5063e43faf50f77a74c7a19c6032316a6c83410437ab515dd7b2`, blob `8e2d5b58362321c14c1d7afe7fdeec2620d62160`. **3140/35560refs;28836PNG;131available;12complete;119partial;88unavailable;32420remaining;929config-held.** Všetkých28764PGpredchádzajúceho kandidáta a10332productionPG zachovaných.
+- Downloader0.1.9.2 pinned `b7384bfdb55621beaf183ca6d40e9dedacaecdb9`:131krajín/390verejnýchZIPurl/3pozadia220x132PASS;vkaždom3139added,1userpiconpreserved,0failed;repeat3139unchanged,0ZIPrequests;nastavenia/história/obľúbenébyteidentické. Hardvér netestovaný.
+- Dávka48 SOURCE už uložená:9RecordWHITEcontrast opráv/81PG; CI **42457650379 SUCCESS**, pixel `e17e4296d9fb34617f8ffb3f54dab6b37e6e335d`, export `c1315a7a87bf416382a57ac2fa44ad24ee0a9147`. Nativeoriginálynezmenené,WHITEcompanion meníibaRGB255→0priidentickejalfe. Lokálnych10testov/90PG:60TRANSPARENT/BLACKtuplebyteidentických+30novýchWHITE;poQA9approve/81PG,Minimal/Techzostalhold. Do sourcechunk005len9accepted+18native/derivedimages;nevyriešenýtestnezaradený.
+- Šesť zmysluplných regresných testovPASS vrátaneodmietnutiazmenyT/B,prepisuschválenejgrafiky,zdrojovejidentityhold,nezdôvodnenéhoduplikátuachybnéhostaréhopixelcommit. Rozšírenieagregátora vyžadujeexplicitnýstarýholdtuples,uchováhistóriuasourceholds,nesmieprepísaťapprove. ExistujúciMASTER/produkčnýrendererkódnemení.
+- Country48 sa pripravuje nad finálnym47, zatiaľ NIEJE dokončená dávka. PR67/68Draft,mainkanályIPKstabilnýpluginbez zmeny. Pôvodné3visualhold54 aNoteFMsa neotvárali.
+
 ## Aktívny beh 8. 11. 2026 – dávka46, nové Record zdroje
 
 - Overené aktuálne SHA pred pokračovaním: PR68 `9d5a3c4de8e5300dbcc485230ad11df588d7bdc8` (Draft), PiconHub main `8180aa0df6e185efad120338bc53ca04bc5e492a`, Radio main `daf261c2a946cdf5dc4beed4dcea4d0143b16491`, existujúci payload head `ff990c7290cc10149dbdeeab84de90a28012d34f`. Pravidlá AGENTS oboch repo prečítané.
