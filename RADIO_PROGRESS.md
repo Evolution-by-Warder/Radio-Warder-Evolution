@@ -2,6 +2,14 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dokončená a spätne overená dávka 54 – 8. 11. 2026
+
+**Checkpoint `e735da9017b1b19030bfc61a95bb731573920e39`**, Draft PR #68. **43 nových GR referencií /387 PNG /9 ZIPov**; spolu **3 289/35 560**, zostáva **32 271**, **30 177 PNG**, krajiny131/219 (12/119/88). Payload `2a6302f294c31740029249c3658e468788b43a85`, manifest `c208cb98c7cd43ef7ee7b64a888168035a751694`. [CI42519538845](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42519538845) **SUCCESS** vrátane downloadera0.1.9.2 a ochrany10332 produkčných i29790 predchádzajúcich kandidátskych PNG. Nezávisle stiahnutých9/9 ZIPov (89046123B); SHA256/bytes/CRC/všetkyPNG/rozmery/RGBA PASS;2079 starších členov zachovaných,387 nových bitovo zhodných so schválenými variantmi. Finálny index, audit a SHA256SUMS opäť načítané z commitu a presne porovnané.
+
+43 legacy endpointov prijatých na základe novšieho immutable auditu main2b294878, HTTP200/audio a presnejICY identity + publisher programme path. **Žiadne nové HEAD/audio požiadavky, žiadny nový render.** Today’s Sopranos zostáva odložený pre chýbajúcuICY identitu. Nasleduje dávka55:12 ďalších presne doložených legacy aliasov (10GR,2US). Rebetika a Greek Art for Kids nemajú jedinečný aktuálny publisher programme path a ostávajú mimo prijatia. Konfiguračné holdy923 zachované.
+
+Počty sú naďalej voči pinned cieľu35560; novší živý katalóg36217 evidovaný oddelene. Produkcia/main/IPK/feed nezmenené. Relácia pokračuje dávkou55.
+
 ## Dokončená a spätne overená dávka 53 – 8. 11. 2026
 
 **Checkpoint `cc7e030064b52cae0885fe5311f9c79d6f020685`**, existujúci Draft PR #68. **2 nové GR referencie /18 PNG /9 ZIPov**; spolu **3 246/35 560**, zostáva **32 314**, **29 790 PNG**, krajiny131/219 (12/119/88). Payload `2847e61e4367f972548508b1c55c68ea0df9136a`, manifest `1f7f14219d0f3949f1fde5c031f75bca3a7d1c60`. [CI42519019926](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42519019926) **SUCCESS**. Nezávisle stiahnutých9/9 ZIPov, SHA256/bytes/CRC/všetkyPNG/rozmery/RGBA PASS;2 061 predchádzajúcich členov zachovaných,18 nových presne zhodných so schválenými PNG. Finálny index, audit a SHA256SUMS spätne načítané z commitu a byte-identicky overené. Všetkých16 pôvodne odložených presných streamových aliasov z dávky50 je týmto dokončených v51–53.
