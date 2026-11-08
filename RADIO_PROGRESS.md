@@ -2,6 +2,14 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dokončená a spätne overená dávka 53 – 8. 11. 2026
+
+**Checkpoint `cc7e030064b52cae0885fe5311f9c79d6f020685`**, existujúci Draft PR #68. **2 nové GR referencie /18 PNG /9 ZIPov**; spolu **3 246/35 560**, zostáva **32 314**, **29 790 PNG**, krajiny131/219 (12/119/88). Payload `2847e61e4367f972548508b1c55c68ea0df9136a`, manifest `1f7f14219d0f3949f1fde5c031f75bca3a7d1c60`. [CI42519019926](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42519019926) **SUCCESS**. Nezávisle stiahnutých9/9 ZIPov, SHA256/bytes/CRC/všetkyPNG/rozmery/RGBA PASS;2 061 predchádzajúcich členov zachovaných,18 nových presne zhodných so schválenými PNG. Finálny index, audit a SHA256SUMS spätne načítané z commitu a byte-identicky overené. Všetkých16 pôvodne odložených presných streamových aliasov z dávky50 je týmto dokončených v51–53.
+
+**Nový technický dôkaz pre ďalší postup:** novší produkčný audit `2b294878b14ca322fa277ba1e9781f83ec5649cf/picons/IPTV-SK-CZ/catalog/global/stream-audit.json.gz` obsahuje pre44 legacy URL neskoršie HTTP200/audio/mpeg záznamy.43 má aj presnúICY zhodu s oficiálnym názvom alebo suburl a presnú programme stream cestu; Today’s Sopranos nemá dostatočnúICY identitu. Príprava dávky54 sa opiera o tieto existujúce nemenné dôkazy, **bez nových HEAD či audio požiadaviek**. Konfiguračné holdy923 sa neobchádzajú. Novšie overenie streamov neruší staré neúspešné záznamy.
+
+Produkcia,main,IPK,feed nezmenené. Počty stále patria cieľu checkpointu35 560; novší živý katalóg36 217 evidovaný oddelene. Relácia pokračuje dávkou54.
+
 ## Dokončená a spätne overená dávka 52 – 8. 11. 2026
 
 **PiconHub checkpoint `761d44f48369faa564f9222f2560c679b3c019cb`**, existujúci Draft PR #68. **11 nových GR referencií /99 PNG /9 ZIPov**, 1 rozšírená krajina; celkovo **3 244/35 560**, zostáva **32 316**, **29 772 PNG**, krajiny131/219 (12 úplných,119 čiastočných,88 nedostupných). Payload `bac4c1375e3ef06610b0fc4ebeebbc6f93b824cc`, manifest `163296f3b11275a20bf2a7c7a8a2fd164b7c7ccb`. [CI42518572084](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42518572084) **SUCCESS** vrátane stable downloader replay a ochrany všetkých predchádzajúcich PNG. Nezávislé actual readback9/9 ZIPov: SHA256/bytes/CRC/všetky členy/rozmery/RGBA PASS, **1 962 starších členov zachovaných**,99 nových bitovo zhodných so schválenými PNG. Po finálnom commite index, audit, SHA256SUMS a current-main-identity-proof znovu celé prečítané a byte-identicky porovnané. Dôkazy v `picons/radio-world/staging/batch-52-reviewed/`.
