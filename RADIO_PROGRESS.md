@@ -2,6 +2,14 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## Dokončená a spätne overená dávka 55 – 8. 11. 2026
+
+**Checkpoint `190682b78b58625b64f844322699129b8af90aa9`**, Draft PR #68. **12 nových referencií (10GR,2US),108 PNG,18 ZIPov**; spolu **3301/35560**, zostáva **32259**, **30285 PNG**, krajiny131/219 (12/119/88). Payload `b062527eefd70f156a65e3d3cd224769611a07f8`, manifest `52544162bfa3f3b8374a493aa1d82579ea74aa04`. [CI42520039066](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42520039066) **SUCCESS**: downloader0.1.9.2, ochrana10332 produkčných a30177 predchádzajúcich kandidátskych PNG. Nezávislý readback18/18 ZIPov (175539697B) PASS: SHA256/bytes/CRC/všetkyPNG/rozmery/RGBA;4590 starších členov zachovaných,108 nových bitovo zhodných. Finálny index, audit, SHA256SUMS a next-source-observations.json.gz z commitu celé spätne prečítané a identické.
+
+Dávky51–55 vyriešili71 zo74 pôvodne odložených RadioArt prípadov:639 PNG,54 uložených a overených ZIP verzií. Zostávajú Today’s Sopranos (nedostatočnáICY identita), Rebetika a Greek Art for Kids (chýbajúca current publisher programme path), presné referencie sú v batch55/results/next-source-observations.json.gz. Holdy923 a historické source/render holdy zachované.
+
+**Pokračovanie56:** päť ďalších kandidátov so schválenou grafikou: Air Connect Radio, MAXI FRANCE, Balatonica, BANKER, LAKHANDA RADIO. Pri hľadaní názvových variantov sa zachováva Unicode; podobné názvy iných staníc sa neprijímajú. Prijatie vyžaduje explicitnú endpoint väzbu a doloženú audit identitu, nie iba názov. Dávka56 zatiaľ nezapočítaná. Produkcia/main/IPK/feed nezmenené. Cieľ35560 zostáva oddelený od novšieho katalógu36217. Relácia pokračuje.
+
 ## Dokončená a spätne overená dávka 54 – 8. 11. 2026
 
 **Checkpoint `e735da9017b1b19030bfc61a95bb731573920e39`**, Draft PR #68. **43 nových GR referencií /387 PNG /9 ZIPov**; spolu **3 289/35 560**, zostáva **32 271**, **30 177 PNG**, krajiny131/219 (12/119/88). Payload `2a6302f294c31740029249c3658e468788b43a85`, manifest `c208cb98c7cd43ef7ee7b64a888168035a751694`. [CI42519538845](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42519538845) **SUCCESS** vrátane downloadera0.1.9.2 a ochrany10332 produkčných i29790 predchádzajúcich kandidátskych PNG. Nezávisle stiahnutých9/9 ZIPov (89046123B); SHA256/bytes/CRC/všetkyPNG/rozmery/RGBA PASS;2079 starších členov zachovaných,387 nových bitovo zhodných so schválenými variantmi. Finálny index, audit a SHA256SUMS opäť načítané z commitu a presne porovnané.
