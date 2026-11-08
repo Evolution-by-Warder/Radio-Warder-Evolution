@@ -2,6 +2,46 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
+## WORK UKONČENÝ – overené dávky 51–56, 8. 11. 2026
+
+**Posledný potvrdený PiconHub HEAD: `545f6b48e0914a5cddf941f9736520ec8d21b338`. Posledná dokončená dávka:56.** Existujúca vetva `work/radio-world-batch38-contrast-pass1-history-20261107`, Draft PR#68. Relácia skončila; žiadna operácia tohto behu nepokračuje na pozadí. Nasledujúca dávka57 nie je spustená ani započítaná.
+
+**Výsledok behu:76 nových referencií,684 PNG položiek,90 nových immutable ZIP verzií v6 krajinách (GR,US,FR,HU,RS,LK).** Každá referencia má všetkých9 variantov50×30/220×132/400×240 × TRANSPARENT/WHITE/BLACK. Použité iba presné schválené PNG, bez nového renderu. Všetkých90 ZIPov (568587592B) bolo po commite fyzicky stiahnutých a overených:SHA256/bytes/CRC/všetky členskéSHA/rozmery/RGBA/novéGitblobs PASS. Starší obsah každého dotknutého archívu zachovaný; ostatné country descriptory identické.
+
+|Dávka|Nové ref.|PNG|ZIP|Rozšírené krajiny|Finálny checkpoint|CI|
+|---|---:|---:|---:|---|---|---|
+|51|3|27|9|GR|`990a089fbca5d18da172c552ee6c7d24d56e34eb`|[SUCCESS](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42518035421)|
+|52|11|99|9|GR|`761d44f48369faa564f9222f2560c679b3c019cb`|[SUCCESS](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42518572084)|
+|53|2|18|9|GR|`cc7e030064b52cae0885fe5311f9c79d6f020685`|[SUCCESS](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42519019926)|
+|54|43|387|9|GR|`e735da9017b1b19030bfc61a95bb731573920e39`|[SUCCESS](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42519538845)|
+|55|12|108|18|GR,US|`190682b78b58625b64f844322699129b8af90aa9`|[SUCCESS](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42520039066)|
+|56|5|45|36|FR,HU,RS,LK|`545f6b48e0914a5cddf941f9736520ec8d21b338`|[SUCCESS](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42520769264)|
+
+**Konečný overený kandidát:**3306/35560 referencií, zostáva32254;30330 PNG vrátane aliasov;131/219 dostupných krajín,12 úplných,119 čiastočných,88 nedostupných. Konfiguračné holdy923 zostávajú. Tieto počty patria pinned cieľu checkpointu50. Novší main `2b294878b14ca322fa277ba1e9781f83ec5649cf` obsahuje36217 krajinských staníc; cieľ sa svojvoľne nerebasoval. Radio main opäť overený `daf261c2a946cdf5dc4beed4dcea4d0143b16491`.
+
+**Dávka56:**5ref./45PNG/36ZIP,4 rozšírené krajiny. Actual ZIP payload `56ad7ff74adee0188e9f846bb668e77f87a7dacb`, posledný payload/manifest HEAD `4864afe77d108bd802e12593f82795e8114c7f2e` na existujúcej payload vetve. Nezávislý audit36/36 ZIP (82824567B),2277 starších členov zachovaných,45 nových presne zhodných;45 zdrojovýchPNG nezávisle načítaných vrátane alfy. Po finálnom commite8 súborov (index,actual audit,SHA256SUMS,source proof,source helper,2 primary observations,next-source observations) celé načítané a byte-identicky overené.
+
+Staging: `picons/radio-world/staging/batch-56-reviewed/`. Hashes:
+- `countries.proposed.json`: `162f9515af11dd222d20f006a0f92180c9e3e124a6601d01829689fbb3b08640`
+- `results/independent-postwrite-audit.json`: `d3bab6a8e755d3bd342f75976f20be357931a8034356ac4bf4ac602e566d557e`
+- `source-readback-proof.json`: `2011eea37fadf25083cbd728d084b0f0e4ad2e5a99528b0010fe425a8f5669cc`
+- `results/next-source-observations.json.gz`: `626d56068b7e1ff8ba8428c4e7e9055ac0194e262bb0c9a28b943c2417de0fca`
+
+**Ochrana a downloader:** CI56 SUCCESS. Všetkých10332 pôvodných produkčnýchPNG a30285 PNG kandidáta55 zachovaných. Downloader0.1.9.2 na immutable `b7384bfdb55621beaf183ca6d40e9dedacaecdb9`: replay131 krajín/390 publicZIP URL/3 pozadia220×132 PASS. Každé pozadie3305 added,1 používateľský piconpreserved,0 failed; opakovanie3305 unchanged a0 ZIP requestov. Nastavenia,obľúbené,história zachované. Fyzický prijímač netestovaný. Canonical pracovný index/manifests zostávajú pri43; novšie dávky sú staged kandidáty. Produkčné main/balíky/feed/IPK ani satelitný Work/FullHDGlass sa týmto behom nemenili.
+
+**Všetky odložené položky tejto fronty:**
+- RadioArt Today’s Sopranos `4097:0:2:D11:8E3A:ED:0:0:0:0`: audit potvrdzujeaudio200, aleICY iba„RadioArt -“, bez presného programme ID dôkazu prelegacyURL.
+- RadioArt Rebetika `4097:0:2:7315:C06C:ED:0:0:0:0` a Greek Art for Kids `4097:0:2:4E4D:BB6:ED:0:0:0:0`: chýba zhodnáaktuálna publisherprogramme path.
+- CLAZZ Radio: nejasnéCDNstreamID, genericICY; oficiálna homepage a2linkedskripty bez hľadanýchID.
+- Radio Espace/Espace FM a Fusion FM/RADIO FUSION: podobný názov nieje dôkaz totožného vysielateľa.
+- Mix Radio a Amore87.5: genericICY a chýbajúca publisherendpointväzba.
+- Divina FM a Radio Luce FM: rôznehosty a nedoložená publisheridentityväzba.
+- Radio Valentina: RVS RADIO VALENTINA versus Radio Valentina Italia; nespojovať.
+- Radyo Banko Fm: endpoint hlásiPARK FM; nespojovať.
+Presné stationtuple,porovnávanéURL/ICY a dôvody všetkých9 názvovýchkandidátov sú v `results/next-source-observations.json.gz`. Štyri ďalšieoficiálnehomepages skontrolovanébez novejstreamliteralzhody; pozri `pending-page-observations.json`.923 konfiguračnýchref. sú úplne vypísané v `configuration.json:held_references`; všetky historickésource/renderholdy ostávajú v mergedledgers,bez výnimky. Žiadna nová legacyHEAD/audio požiadavka.
+
+**Presný ďalší vykonateľný krok – dávka57:** overiť nové main/workingHEAD a načítať batch56/results/next-source-observations.json.gz. Pre CLAZZ preveriť verejné playerdata oficiálnej stránky pre `xsycwftnfm3vv` oproti schválenému `w18s9m7mfm3vv`; neopakovať už overenúhomepage a2skripty bez nového odkazu. Bez dôkazu ponechať mimo prijatia a pokračovať nezávislýmoficiálnymzdrojom. Novýartwork predložiť na schválenie,neobchádzaťholdy. Pred zmenou cieľového počtu samostatne zosúladiť novší36217katalóg.
+
 ## Dokončená a spätne overená dávka 55 – 8. 11. 2026
 
 **Checkpoint `190682b78b58625b64f844322699129b8af90aa9`**, Draft PR #68. **12 nových referencií (10GR,2US),108 PNG,18 ZIPov**; spolu **3301/35560**, zostáva **32259**, **30285 PNG**, krajiny131/219 (12/119/88). Payload `b062527eefd70f156a65e3d3cd224769611a07f8`, manifest `52544162bfa3f3b8374a493aa1d82579ea74aa04`. [CI42520039066](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42520039066) **SUCCESS**: downloader0.1.9.2, ochrana10332 produkčných a30177 predchádzajúcich kandidátskych PNG. Nezávislý readback18/18 ZIPov (175539697B) PASS: SHA256/bytes/CRC/všetkyPNG/rozmery/RGBA;4590 starších členov zachovaných,108 nových bitovo zhodných. Finálny index, audit, SHA256SUMS a next-source-observations.json.gz z commitu celé spätne prečítané a identické.
