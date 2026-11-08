@@ -2,7 +2,15 @@
 
 Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
-## Rozpracovaná dávka 51 – 8. 11. 2026
+## Dokončená a spätne overená dávka 51 – 8. 11. 2026
+
+**Posledný overený PiconHub commit: `990a089fbca5d18da172c552ee6c7d24d56e34eb`.** Existujúci Draft PR #68, vetva `work/radio-world-batch38-contrast-pass1-history-20261107`. Bach (63), Chopin (60), Mozart (59): **3 nové GR referencie, 27 PNG položiek, 9 nových ZIPov**, 1 rozšírená krajina. Stav **3 233 / 35 560**, zostáva **32 327**; **29 673 PNG**, dostupné krajiny **131/219**, úplné12/čiastočné119/nedostupné88, konfiguračné holdy923.
+
+Payload `71d235fb8ea3f8325c38695f948147acd8264b1a`, manifest `5ed1b333646e3d4d1b717fbac6a21905482c2211`. [CI 42518035421](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42518035421) **SUCCESS**: presné identity, historické holdy, zostavenie, stable downloader replay, ochrana produkcie a kandidáta50. Nezávislé spätné stiahnutie **9/9 ZIPov**, SHA256/bytes/CRC/rozmery/RGBA/všetky členské SHA PASS; zachovaných **1 935 starších členov** dotknutých ZIPov a pridaných27. Ostatných218 country descriptorov identických. Deväť schválených zdrojových PNG osobitne stiahnutých, SHA256/Gitblob/rozmery/alfa PASS. Štyri kľúčové súbory po finálnom commite znovu prečítané cez GitHub a byte-identicky porovnané: index, independent-postwrite-audit, SHA256SUMS, source-readback-proof. Všetko v `picons/radio-world/staging/batch-51-reviewed/`.
+
+Dva skoré CI neúspechy pred uložením ZIPov sú opravené: starý baseline SHA v admission helperi a chybný 51x30 v kontrole názvu (správne50x30). Finálny beh vyššie PASS. Produkcia, main, IPK a feed nezmenené. Ďalší krok: dávka52,11 presných RadioArt suburl/streamf aliasov; Greek Art Mood Up a Workout Rock & Indie vyžadujú osobitný menný dôkaz.44 neúspešných legacy endpointov sa neopakovali. Práca ďalej pokračuje v aktuálnej relácii.
+
+## Historický záznam prípravy dávky 51 – 8. 11. 2026
 
 Príprava uložená na existujúcej vetve PR #68 v commite `62e8c1a8a0e22419456beceeb0192a97d4c5ef6d`. Tri kandidátske referencie RadioArt Bach (63), Chopin (60), Mozart (59): aktuálne oficiálne `suburl` presne zodpovedá krátkemu názvu, `streamf` presne zodpovedá katalógovému streamu. Deväť existujúcich schválených PNG sa nemení. História a konfiguračné holdy skontrolované. Country CI: https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42517697308 – spustené, výsledok ešte neoverený. **Dávka 51 zatiaľ nie je dokončená ani započítaná; potvrdený stav zostáva 3 230 / 35 560, zostáva 32 330.**
 
