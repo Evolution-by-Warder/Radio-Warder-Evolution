@@ -1,6 +1,19 @@
 # Warder Radio – register postupu
 
-Aktualizované 8. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
+Aktualizované 9. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
+
+
+## DÁVKA 57 – DOKONČENÁ A OVERENÁ, 9. 11. 2026
+
+Checkpoint `075ab2f5eec3a53f60715c41ac1542d94b44cca5`, existujúci Draft PR #68. **8 nových referencií, 72 PNG, 18 ZIPov; GR (3), RO (5).** Celkovo **3 314 / 35 560**, zostáva **32 246**, **30 402 PNG**, krajiny **131/219** (12 úplných,119 čiastočných,88 nedostupných). [CI 42674030153](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42674030153) SUCCESS: downloader0.1.9.2, zachovanie10332 produkčných PNG a30330 PNG kandidáta56, exact visual/source hold gates.
+
+Payload `e89b2974d80fc19115cf2ef288d5870758400cab`, manifest `b2ffde6ea9e1f9c788c7b546bea02a6d14337506`. Nezávisle stiahnutých18/18 ZIPov, spolu104317302B: SHA256/bytes/CRC/všetky PNG rozmery aRGBA/nové Gitblob hashe PASS;2799 starších členov zachovaných.72 zdrojových PNG vrátane alfy overených. Finálny index, actual ZIP audit, SHA256SUMS a source proof spätne načítané z finálneho commitu a byte-identicky porovnané. Dôkazy v `picons/radio-world/staging/batch-57-reviewed/`.
+
+Prvý CI42673311261 skončil GitHub Internal server error ešte pred spustením jediného jobu; nič nepublikoval. Opravená aj jedna historická cesta obsahujúca dvakrát verified-assets; zdrojový commit, všetky9 PNG hashe a pôvodný ledger ostali nezmenené. Úspešný opakovaný CI uvedený vyššie. Produkcia/main/feed/IPK nezmenené.
+
+Aktuálny main PiconHub `481e9b9154a510c64c743de72c1a73ed808307bf`, Radio `527493e36246bd98c9640365ca6794f814fc4149`. Novší receiver katalóg má stále36217 krajinských staníc; menovateľ35560 sa nerebasoval. Každá nová prijatá referencia bola presne overená aj v novšom main.923 konfiguračných a všetky historické holdy zachované. CLAZZ a ostatné odložené prípady56 sa bez nového dôkazu neprijali.
+
+Relácia pokračuje dávkou58 (8 kandidátov CA/ID/JP/US,72 zdrojových PNG už overených), potom59. Nové grafiky nevznikajú; používajú sa bitovo schválené varianty. Nové streamové požiadavky sa nerobia; identita sa opiera o nemenný audit a explicitne posúdené endpoint páry.
 
 ## WORK UKONČENÝ – overené dávky 51–56, 8. 11. 2026
 
