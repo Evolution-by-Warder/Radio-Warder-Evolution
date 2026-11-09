@@ -3,6 +3,15 @@
 Aktualizované 9. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
 
+
+## DÁVKA 58 – DOKONČENÁ A OVERENÁ, 9. 11. 2026
+
+Checkpoint `16f6944792e2bf43f8d1faf67a7016439cceaa85`, Draft PR #68. **8 nových referencií,72 PNG,36 ZIPov; CA(1),ID(1),JP(2),US(4).** Celkovo **3322/35560**, zostáva **32238**, **30474 PNG**; krajiny131/219 (12/119/88). [CI 42675439399](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42675439399) SUCCESS: celý stable downloader replay, ochrana všetkých10332 produkčných a30402 predchádzajúcich kandidátskych PNG.
+
+Payload `e9928096dacff21a61bb8119ebe7f7d79b80abad`, manifest `dbf57a4280875a1d95fb96f2fd125fc49c48496d`. Actual readback36/36 ZIPov (106096390B): SHA256/bytes/CRC/všetky PNG/rozmery/RGBA/Gitblob PASS;2673 starších členov zachovaných.72 zdrojových PNG vrátane alfy PASS. Finálny index,actual audit,SHA256SUMS,source proof celé načítané z finálneho commitu a byte-identicky porovnané.
+
+Relácia pokračuje59: **16 doložených kandidátov v11 krajinách**,144 zdrojových PNG už overených; zatiaľ nezapočítané. Tri ďalšie identity majú presnú novú streamovú URL na oficiálnej stránke pôvodne schváleného vysielateľa (Gravity, Radio Effe Italia, Agnus). Downloader59 bude opakovaný iba pre dotknuté krajiny; plný replay131 krajín v58 je úspešný. Globálna ochrana pôvodných a schválených PNG ostáva povinná. Produkcia/main/feed/IPK nezmenené, holdy zachované, cieľ35560 sa nerebasuje.
+
 ## DÁVKA 57 – DOKONČENÁ A OVERENÁ, 9. 11. 2026
 
 Checkpoint `075ab2f5eec3a53f60715c41ac1542d94b44cca5`, existujúci Draft PR #68. **8 nových referencií, 72 PNG, 18 ZIPov; GR (3), RO (5).** Celkovo **3 314 / 35 560**, zostáva **32 246**, **30 402 PNG**, krajiny **131/219** (12 úplných,119 čiastočných,88 nedostupných). [CI 42674030153](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42674030153) SUCCESS: downloader0.1.9.2, zachovanie10332 produkčných PNG a30330 PNG kandidáta56, exact visual/source hold gates.
