@@ -4,6 +4,16 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 61 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [3e0b2c4167adb02f7c3fe4e49c59e49981bfde16](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/3e0b2c4167adb02f7c3fe4e49c59e49981bfde16). **8 nových referencií,72 PNG,72 ZIP verzií;8 krajín AU,BG,CL,FR,GR,LT,NL,US. Pokrytie3353/35560, zostáva32207; PNG30753.** Krajiny131/219 (12/119/88);923 konfiguračných holdov bez zmeny.
+
+[CI42765723229](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42765723229) SUCCESS. Jediný záverečný nezávislý ZIP audit72/72 PASS: 309421734 B,8352 predchádzajúcich členov zachovaných;SHA256/CRC/členské hashe/rozmery/RGBA/Gitblob PASS.72 zdrojových PNG vrátane alfy byte-identicky overených.211 nedotknutých krajinských descriptorov nezmenených;ochrana10332 produkčných a30681 predchádzajúcich kandidátskych PNG PASS. Downloader dotknutých krajín PASS;fyzický prijímač netestovaný. Finálny audit,index,source proof,payload proof,admission proof načítané z finálneho commitu.
+
+Payload dffc72c36b60b92c4d8676e7f256f8f2c6d9b13b;manifest89dd5b7770c79e1c1248642ed0bf16b5d1b8a454. Wild Horse FM:oficiálny player potvrdzuje hostiteľa,port46712 a stream1;Radio1Bulgaria:oficiálna konfigurácia pomenovaného streamu;RadioSol:oficiálny player a rovnaké číslo proxy/portu7389;YogaChill:DNS pôvodného publisher hosta smeruje na katalógovú IP,pomenovaný mount a identita sa zhodujú;Cosmos:presný nový stream na prepojenej oficiálnej stránke;RelaxFM:oficiálny publisher a jeho pomenovaný streamový subdoménový endpoint;Olympia:priamy DNS CNAME medzi hostiteľmi,rovnaký mount a identita;LoveRadio:oficiálny playerhost a konkrétna streamová identita. Všetkých9 variantov každej referencie je bitovo pôvodných,bez nového renderu.
+
+Dávky60–61 spolu15 referencií,135 PNG,126 ZIP verzií. Pokračovanie62 zatiaľ neprijaté:ďalšie kandidáty potrebujú presné publisher mapovanie;menová podobnosť ani všeobecné ICY označenie nestačí. Produkcia/main/feed/IPK nezmenené,PR68 Draft.
+
 ## DÁVKA 60 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [b546a3ffde2cbb22d0040fd7744813c51ac28d67](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/b546a3ffde2cbb22d0040fd7744813c51ac28d67). **7 nových referencií, 63 PNG, 54 ZIP verzií; 6 krajín AU, BE, CO, DE, FR, NL. Pokrytie 3345/35560, zostáva32215; PNG30681.** Krajiny131/219;923 konfiguračných holdov bez zmeny.
