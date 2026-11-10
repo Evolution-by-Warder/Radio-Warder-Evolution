@@ -904,23 +904,14 @@ class WarderRadio(Screen):
         elif action == 'stop':
             self.toggle_radio_playback()
         elif action == 'main-menu-toggle':
-            previous = self.store.show_main_menu
-            self.store.show_main_menu = not previous
-            try:
-                self.store.save()
-            except OSError:
-                self.store.show_main_menu = previous
-                self.settings_form.status(t('Could not save setting'))
-                return
-            self.settings_form.status(t('Main menu setting saved'))
+            self.settings_form.main_menu()
         elif action == 'about':
             if self.mode != 'settings':
                 self.open_settings()
             self.settings_form.about()
         if self.mode == 'settings' and self.settings_form.view == 'menu':
             self.settings_form.refresh()
-            if action != 'main-menu-toggle':
-                self.settings_form.status(self['status'].getText())
+            self.settings_form.status(self['status'].getText())
 
     def open_picons(self):
         if self.closed or self.installing:
