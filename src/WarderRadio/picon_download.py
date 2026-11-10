@@ -24,7 +24,9 @@ SIZE = '220x132'
 HEX = re.compile(r'[a-f0-9]{64}\Z')
 FILENAME = re.compile(r'(?:4097|5001|5002)_0_2_(?:[A-Fa-f0-9]+_){6}[A-Fa-f0-9]+\.png\Z')
 MAX_MANIFEST = 8 * 1024 * 1024
-MAX_PACKAGE = 64 * 1024 * 1024
+MAX_PACKAGE = 64 * 1024 * 1024  # Legacy single ZIPs remain valid.
+MAX_PART_PACKAGE = 32 * 1024 * 1024
+MAX_PARTS = 128
 MAX_PNG = 2 * 1024 * 1024
 MAX_FILES = 20000
 
@@ -224,17 +226,45 @@ def descriptor(manifest, collection, style):
     entry = variants.get(style) if isinstance(variants, dict) else None
     if not isinstance(entry, dict) or entry.get('resolution') != SIZE:
         raise ValueError('Missing picon variant')
-    expected = BASE + commit + '/picons/' + collection + '/packages/' + collection.lower() + '-' + style + '-' + SIZE + '.zip'
-    if entry.get('url') != expected:
-        raise ValueError('Invalid picon package URL')
-    if type(entry.get('bytes')) is not int or not 1 <= entry['bytes'] <= MAX_PACKAGE or not isinstance(entry.get('sha256'), str) or not HEX.fullmatch(entry['sha256']):
-        raise ValueError('Invalid picon package size or digest')
+    prefix = BASE + commit + '/picons/' + collection + '/packages/' + collection.lower() + '-' + style + '-' + SIZE
     files = entry.get('files')
     if not isinstance(files, dict) or not 1 <= len(files) <= MAX_FILES:
         raise ValueError('Invalid picon inventory')
     for name, digest in files.items():
         if not isinstance(name, str) or not FILENAME.fullmatch(name) or not isinstance(digest, str) or not HEX.fullmatch(digest):
             raise ValueError('Invalid radio picon identity')
+
+    parts = entry.get('parts')
+    if parts is None:
+        # Keep the already published, one-ZIP contract byte-for-byte compatible.
+        if entry.get('url') != prefix + '.zip':
+            raise ValueError('Invalid picon package URL')
+        if (type(entry.get('bytes')) is not int or not 1 <= entry['bytes'] <= MAX_PACKAGE
+                or not isinstance(entry.get('sha256'), str) or not HEX.fullmatch(entry['sha256'])):
+            raise ValueError('Invalid picon package size or digest')
+    else:
+        # An immutable manifest pins every part; no filename/host fallback.
+        if (not isinstance(parts, list) or not 2 <= len(parts) <= MAX_PARTS
+                or any(key in entry for key in ('url', 'bytes', 'sha256'))):
+            raise ValueError('Invalid multipart picon descriptor')
+        combined = {}
+        for number, part in enumerate(parts, 1):
+            expected = prefix + '-part%02d.zip' % number
+            if (not isinstance(part, dict) or part.get('url') != expected
+                    or type(part.get('bytes')) is not int
+                    or not 1 <= part['bytes'] <= MAX_PART_PACKAGE
+                    or not isinstance(part.get('sha256'), str)
+                    or not HEX.fullmatch(part['sha256'])):
+                raise ValueError('Invalid picon part URL, size or digest')
+            members = part.get('files')
+            if not isinstance(members, dict) or not members:
+                raise ValueError('Empty picon part inventory')
+            for name, digest in members.items():
+                if name not in files or files[name] != digest or name in combined:
+                    raise ValueError('Duplicate or unexpected picon part identity')
+                combined[name] = digest
+        if combined != files:
+            raise ValueError('Incomplete multipart picon inventory')
     return entry
 
 
@@ -416,46 +446,58 @@ def install(directory, settings, task, opener=None, reference_loader=references)
             if not changes:
                 task.log('Picons already current: {country}', country=label)
                 continue
-            disk = os.statvfs(library.directory)
-            if disk.f_bavail * disk.f_frsize < entry['bytes'] * 3 + 5 * 1024 * 1024:
-                raise OSError('Not enough free space')
-            task.log('Downloading picons: {country}', country=label)
-            body = fetch(entry['url'], entry['bytes'], task, opener, entry['bytes'])
-            if len(body) != entry['bytes'] or hashlib.sha256(body).hexdigest() != entry['sha256']:
-                raise ValueError('Invalid picon package checksum')
-            task.log('Verifying picons: {country}', country=label)
-            task.report('verify', label)
-            with zipfile.ZipFile(io.BytesIO(body)) as archive:
-                infos = archive.infolist()
-                if len(infos) != len(entry['files']) or len({i.filename for i in infos}) != len(infos) or {i.filename for i in infos} != set(entry['files']):
-                    raise ValueError('Invalid picon archive inventory')
-                if sum(info.file_size for info in infos) > 128 * 1024 * 1024:
-                    raise ValueError('Picon archive too large')
-                # No extractall: reject links, paths, ZIP bombs and invalid PNGs.
-                for info in infos:
-                    task.check()
-                    if not 57 <= info.file_size <= MAX_PNG or info.flag_bits & 1 or stat.S_IFMT(info.external_attr >> 16) not in (0, stat.S_IFREG):
-                        raise ValueError('Invalid picon archive member')
-                    data = archive.read(info)
-                    if hashlib.sha256(data).hexdigest() != entry['files'][info.filename]:
-                        raise ValueError('Invalid picon image checksum')
-                    validate_png(data)
-                for number, (name, digest, old) in enumerate(changes, 1):
-                    task.check()
-                    validate_location(settings.location)
-                    target = os.path.join(library.directory, digest + '.png')
-                    if os.path.lexists(target) and (os.path.islink(target) or digest_file(target) != digest):
-                        summary['preserved'] += 1
-                        task.log('Kept custom picon: {name}', name=wanted.get(name, name))
-                        continue
-                    if not os.path.isfile(target):
-                        atomic_bytes(target, archive.read(name))
-                    task.check()
-                    library.files[name] = digest
-                    atomic_json(index, library.files)
-                    summary['updated' if old else 'added'] += 1
-                    task.report('install', label, number, len(changes))
-                    task.log('Saved picon: {name}', name=wanted.get(name, name))
+            parts = entry.get('parts') or [entry]
+            completed = 0
+            for part in parts:
+                task.check()
+                # Skip complete parts when none of their images needs changing.
+                part_changes = [change for change in changes if change[0] in part['files']]
+                if not part_changes:
+                    continue
+                disk = os.statvfs(library.directory)
+                if disk.f_bavail * disk.f_frsize < part['bytes'] * 3 + 5 * 1024 * 1024:
+                    raise OSError('Not enough free space')
+                task.log('Downloading picons: {country}', country=label)
+                body = fetch(part['url'], part['bytes'], task, opener, part['bytes'])
+                if len(body) != part['bytes'] or hashlib.sha256(body).hexdigest() != part['sha256']:
+                    raise ValueError('Invalid picon package checksum')
+                task.log('Verifying picons: {country}', country=label)
+                task.report('verify', label)
+                with zipfile.ZipFile(io.BytesIO(body)) as archive:
+                    infos = archive.infolist()
+                    part_files = part['files']
+                    if (len(infos) != len(part_files) or len({i.filename for i in infos}) != len(infos)
+                            or {i.filename for i in infos} != set(part_files)):
+                        raise ValueError('Invalid picon archive inventory')
+                    if sum(info.file_size for info in infos) > 128 * 1024 * 1024:
+                        raise ValueError('Picon archive too large')
+                    # Verify all members in the part BEFORE any image is published.
+                    for info in infos:
+                        task.check()
+                        if (not 57 <= info.file_size <= MAX_PNG or info.flag_bits & 1
+                                or stat.S_IFMT(info.external_attr >> 16) not in (0, stat.S_IFREG)):
+                            raise ValueError('Invalid picon archive member')
+                        data = archive.read(info)
+                        if hashlib.sha256(data).hexdigest() != part_files[info.filename]:
+                            raise ValueError('Invalid picon image checksum')
+                        validate_png(data)
+                    for name, digest, old in part_changes:
+                        task.check()
+                        validate_location(settings.location)
+                        target = os.path.join(library.directory, digest + '.png')
+                        if os.path.lexists(target) and (os.path.islink(target) or digest_file(target) != digest):
+                            summary['preserved'] += 1
+                            task.log('Kept custom picon: {name}', name=wanted.get(name, name))
+                            continue
+                        if not os.path.isfile(target):
+                            atomic_bytes(target, archive.read(name))
+                        task.check()
+                        library.files[name] = digest
+                        atomic_json(index, library.files)
+                        summary['updated' if old else 'added'] += 1
+                        completed += 1
+                        task.report('install', label, completed, len(changes))
+                        task.log('Saved picon: {name}', name=wanted.get(name, name))
             task.log('Picons finished: {country}', country=label)
         except Cancelled:
             raise
