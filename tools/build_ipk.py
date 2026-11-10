@@ -63,21 +63,62 @@ Description: Warder Radio - World of Radio Stations
 preinst = b'''#!/bin/sh
 set -eu
 [ -n "${IPKG_INSTROOT:-}" ] && exit 0
+echo "********************************************************"
+echo "*                Radio by Warder                     *"
+echo "********************************************************"
+case "${1:-}" in
+    upgrade) echo "Preparing Radio by Warder upgrade or reinstall..." ;;
+    *) echo "Preparing Radio by Warder installation or reinstall..." ;;
+esac
 python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' || {
-    echo "Warder Radio requires Python 3.9 or newer." >&2
+    echo "ERROR: Radio by Warder requires Python 3.9 or newer." >&2
     exit 1
 }
+echo "Python compatibility: OK"
 exit 0
 '''
 postinst = b'''#!/bin/sh
 set -eu
 [ -n "${IPKG_INSTROOT:-}" ] && exit 0
-# This package owns only this plugin's bytecode. Deterministic source mtimes
-# must not let a same-length source edit reuse a previous .pyc after restart.
+# Only invalidate package-owned bytecode; never touch user settings or picons.
 plugin_root=/usr/lib/enigma2/python/Plugins/Extensions/WarderRadio
-rm -f "$plugin_root"/__pycache__/*.pyc "$plugin_root"/__pycache__/*.pyo \
+rm -f "$plugin_root"/__pycache__/*.pyc "$plugin_root"/__pycache__/*.pyo \\
       "$plugin_root"/*.pyc "$plugin_root"/*.pyo
-echo "Radio Warder Evolution installed. Restart the GUI to refresh the plugin list."
+echo "********************************************************"
+echo "Radio by Warder - installation / upgrade / reinstall finished."
+echo "Existing favourites, history, custom radios and picons were preserved."
+echo "Please restart the Enigma2 GUI to activate changes."
+echo "********************************************************"
+exit 0
+'''
+prerm = b'''#!/bin/sh
+set -eu
+[ -n "${IPKG_INSTROOT:-}" ] && exit 0
+# Upgrade / reinstall transactions are never announced as uninstallations.
+case "${1:-}" in
+    remove|deconfigure)
+        echo "********************************************************"
+        echo "*                Radio by Warder                     *"
+        echo "********************************************************"
+        echo "Removing Radio by Warder plugin files..."
+        ;;
+esac
+exit 0
+'''
+postrm = b'''#!/bin/sh
+set -eu
+[ -n "${IPKG_INSTROOT:-}" ] && exit 0
+# Keep /etc/enigma2/warder-radio and user-selected picon storage intact.
+# Never clean up on upgrade or failed-upgrade.
+case "${1:-}" in
+    remove|purge)
+        echo "********************************************************"
+        echo "Radio by Warder removal finished."
+        echo "Saved favourites, history, custom radios and picons were preserved."
+        echo "Please restart the Enigma2 GUI to refresh the plugin list."
+        echo "********************************************************"
+        ;;
+esac
 exit 0
 '''
 
@@ -111,7 +152,9 @@ out = ROOT / ('dist/legacy' if args.legacy_bridge else 'dist/tester-bridge' if a
 filename_version = VERSION + ('-' + str(PACKAGE_REVISION) if PACKAGE_REVISION != 1 else '')
 name = f'{PACKAGE}_{filename_version}_all.ipk'
 content = b'!<arch>\n' + ar_member('debian-binary', b'2.0\n') + ar_member('control.tar.gz', archive({
-    'control': (control, 0o644), 'preinst': (preinst, 0o755), 'postinst': (postinst, 0o755)})) + ar_member('data.tar.gz', archive(FILES))
+    'control': (control, 0o644), 'preinst': (preinst, 0o755),
+    'postinst': (postinst, 0o755), 'prerm': (prerm, 0o755),
+    'postrm': (postrm, 0o755)})) + ar_member('data.tar.gz', archive(FILES))
 (out / name).write_bytes(content)
 checksum = hashlib.sha256(content).hexdigest()
 (out / 'SHA256SUMS').write_text(checksum + '  ' + name + '\n')
