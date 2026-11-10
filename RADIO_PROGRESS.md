@@ -1,8 +1,16 @@
 # Warder Radio – register postupu
 
-Aktualizované 9. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
+Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
 
 
+
+## DÁVKA 59 – DOKONČENÁ A OVERENÁ; pokračovanie 60, 10. 11. 2026
+
+Doplnenie odovzdania dokončeného 9. 11. 2026: checkpoint [8d6612a00149c27c62a040dba41e86cff3c9d4e2](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/8d6612a00149c27c62a040dba41e86cff3c9d4e2). Dávka59 pridala16 referencií,144 PNG a99 immutable ZIP verzií v11 krajinách (AR,DE,HR,IT,NL,PL,PY,RO,RS,RU,UG). Nezávislý audit99/99 PASS:328761502 B,9243 predchádzajúcich členských položiek zachovaných. [CI42678083707](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42678083707) SUCCESS. Payload6852eac4174afa9528d2bef97552a37f7ef13957, manifestf90ebd98631610385246ce66cae2cd6f82035982.
+
+Potvrdené pokrytie **3338/35560**, zostáva **32222**, PNG **30618**; krajiny131/219 (12úplných,119čiastočných,88nedostupných). Všetkých923 konfiguračných a historické source/render holdy zostávajú. Dávky57–59 spolu32 referencií,288 PNG,153 ZIP verzií. Produkcia/main/feed/IPK nezmenené; PR68 Draft.
+
+Dávka60 je rozpracovaná, zatiaľ nezapočítaná:7 presne doložených aliasov, všetkých9 pôvodných schválených variantov. Existujúci Actions beh [42765064875](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42765064875) nad prípravou960572292bbdb2999365fa27f7f81d9d83299101. Prvý prebuild zastavil porovnanie meniacich sa CDN doručovacích parametrov; ZIPy v ňom nevznikli. Oprava povoľuje iba enumerované parametre a zachováva presné streamové cesty. Staršie dávky sa znovu nespracúvajú. Ďalší krok: dokončiť nové ZIPy60 a jeden nezávislý spätný audit, potom pokračovať61.
 
 ## DÁVKA 58 – DOKONČENÁ A OVERENÁ, 9. 11. 2026
 
