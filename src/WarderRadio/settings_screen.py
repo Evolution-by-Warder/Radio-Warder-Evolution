@@ -92,12 +92,12 @@ class SettingsForm:
                      else 'Add station to favourites')
         choices = [(t('Choose country'), 'group'), (t('Update radio catalogue'), 'update'),
                    (t(favourite), 'favourite'), (t('Add station'), 'add'),
-                   (t('Show in Enigma2 main menu') + ': ' +
-                    t('Yes' if host.store.show_main_menu else 'No'), 'main-menu-toggle'),
                    (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if host.recording.running() else 'Start recording'), 'record'),
                    (t('Stop radio playback' if host.radio_running() else 'Start radio playback'), 'stop'),
-                   (t('About'), 'about')]
+                   (t('About'), 'about'),
+                   (t('Show in Enigma2 main menu') + ': ' +
+                    t('Yes' if host.store.show_main_menu else 'No'), 'main-menu-toggle')]
         if host.settings_return[0] == 'recordings':
             choices.insert(0, (t('Delete'), 'delete-recording'))
         return choices
