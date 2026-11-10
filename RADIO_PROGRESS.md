@@ -4,6 +4,14 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 65 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [0c935ab37639703f872485cbc2b499b7281e6987](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/0c935ab37639703f872485cbc2b499b7281e6987). **20 referencií,180 PNG,27 ZIP verzií; CO,DE,GB. Pokrytie3385/35560,zostáva32175,PNG31041,krajiny131/219.** CI42774322484 SUCCESS, jediný záverečný nezávislý audit27/27 PASS. Presné publisher/CDN programové cesty0nlineradio,ChartHits,Breakz; presný stream RadioIpuc aNTS1; štyri nové301 mapovania Schwany (Herzklang,Blaess,Souvenir1/2). Všeobecné ICY nebolo použité ako dôkaz identity. Všetkých180 PNG je byte-identických s pôvodnými schválenými produkčnými artworkmi.
+
+Payload aeca8dbd359ce3c53413f9777ff8077240a5c034,manifest3951cc6d21f84775031b6ea925cc51cfaafd9c28. Finálny index,audit,source proof,payload proof spätne načítané. Staršie PNG,923 konfiguračných a všetky source/render holdy zachované; produkcia nezmenená; PR68 Draft.
+
+Pokračovanie66:3 ďalší kandidáti s novými primary dôkazmi (Javeriana account API/port8001/DNS,Horeb MP3 explicitný CNAME a oficiálna konfigurácia,Souvenir2 oficiálny player). Horeb AAC legacyport8100 zatiaľ bez explicitného mappingu;Uninorte server vracia audio aj na status ceste,nepotvrdil mapping. Nezapočítané.
+
 ## DÁVKA 64 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [a7ef3ad33843f28727a1d4d500fb7f08590ddbae](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/a7ef3ad33843f28727a1d4d500fb7f08590ddbae). **9 referencií,81 PNG,45 ZIP verzií; EE,FR,DE,GR,GB. Pokrytie3365/35560,zostáva32195,PNG30861,krajiny131/219.** Pôvodné publikované artworky skopírované bitovo z immutable produkčných manifestov,9 variantov každej identity. Žiadne nové rendery. Payload5d5bbb6279aa353d8afcb10e46e4349ab0a9d281,manifest80b208c38c83661d1de1697740dbe69586c3d111.
