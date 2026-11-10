@@ -4,6 +4,16 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 68 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [c57063bb2e973fede6d67f7c2f24adceec9d4538](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/c57063bb2e973fede6d67f7c2f24adceec9d4538), existujúci Draft PR68. **3 nové referencie / 27 PNG / 9 ZIP verzií, GR. Pokrytie 3408/35560, zostáva 32152, celkovo 31248 PNG; 131/219 krajín.** Ant1 Patra, Best Radio92.6 a Metropolis95.5: nové Live24 player konfigurácie explicitne určujú pomenovaný mount; DNS CNAME priamo spája porovnávané hosty s netradio.live24.gr. Nejde o priradenie podľa spoločnej IP alebo generických ICY.
+
+[CI42787430798](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42787430798) SUCCESS. Jeden nezávislý záverečný audit9/9 reálne stiahnutých ZIPov PASS: SHA256,CRC,PNG rozmery,RGBA,Gitblob a pôvodné bajty vrátane alfy. Všetkých27 zdrojových PNG spätne overených; nový render0. Zachované všetky10332 produkčné a31221 predchádzajúce kandidátske PNG;923 konfiguračných aj historické source/render holdy bez výnimky. Stable downloader GR PASS, fyzický prijímač netestovaný. Finálny audit a payload/protection proofs načítané z GitHubu.
+
+Payload8db9b5b26beb2e51219a4b560458cfc2284e2413, manifest45b6836c1204ed0df570e2ce54b84e1fd6dc39d5. Index `picons/radio-world/staging/batch-68-reviewed/countries.proposed.json`. Dávky57–67 sa neobnovovali ani opakovane neauditovali. Produkcia/main/feed/IPK nezmenené; žiadny merge.
+
+**Pokračovanie69 aktívne:** rozšírené porovnanie presných streamových ciest proti schválenému kandidátovi; nové porovnania sa ešte nezapočítavajú. Zostávajúcich36 porovnaní z frontier67 a zdedené staršie holdy zostávajú blokované bez nového dôkazu.
+
 ## WORK UKONČENÝ – overené dávky62–67, 10. 11. 2026
 
 Posledný potvrdený pracovný HEAD [9a21778a34386f1da8199148a3c55befbe7f862f](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/9a21778a34386f1da8199148a3c55befbe7f862f), existujúca vetva `work/radio-world-batch38-contrast-pass1-history-20261107`, Draft PR68. Posledná dokončená dávka **67**, jej nezávisle auditovaný checkpoint **6ee0437e762fbd261db525f8d2a43006d4030bad**. Payload **f8366ac6d0e48319bea935871901545a56ef2739**, manifest HEAD **bc9cd4c70d4dbef2130bbbcc0b25a9390208161c**. Index `picons/radio-world/staging/batch-67-reviewed/countries.proposed.json`.
