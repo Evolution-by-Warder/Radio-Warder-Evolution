@@ -4,6 +4,20 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 71 A FINÁLNE ODOVZDANIE 68–71 – 10. 11. 2026
+
+Posledný pracovný HEAD [4285f89879819b3195a18fe94c69581d4091a38f](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/4285f89879819b3195a18fe94c69581d4091a38f); auditný checkpoint71 [b80b30129ad573ded8e65e57382e14324d411159](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/b80b30129ad573ded8e65e57382e14324d411159). Existujúca vetva `work/radio-world-batch38-contrast-pass1-history-20261107`,PR68 zostáva Draft.
+
+**3417/35560 referencií;zostáva32143;31329PNG;131/219 krajín (12úplných,119čiastočných,88nedostupných).** Dávka71:5referencií,45PNG,27ZIP vGH,GR,ZA. Tento Work68–71 spolu12referencií,108PNG,72immutable ZIP verzií v6krajinách. Každá dávka má jeden úspešný nezávislý záverečný audit;71 [CI42789977608](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42789977608) SUCCESS,27/27ZIP PASS. SHA256/CRC/členské hashe/rozmery/RGBA/Gitblob a pôvodné bajty vrátane alfy overené.0nových renderov;10332produkčných a všetky staršie kandidátske PNG zachované;923konfiguračných a historické holdy zachované. Fyzický prijímač netestovaný.
+
+Payload71 f43e772dfdda7129ca17ece5b44a081c84c054a9,manifest ae5d198690d2fa671d0c613c8194eace24ca2977. Index `picons/radio-world/staging/batch-71-reviewed/countries.proposed.json`. Finálny index,audit,source/payload a ochranné proofs načítané zGitHubu. Kompletné odovzdanie a tabuľka checkpointov: [HANDOFF.md](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/blob/4285f89879819b3195a18fe94c69581d4091a38f/picons/radio-world/staging/batch-71-reviewed/HANDOFF.md).
+
+71 vyriešila Nhyira,GrootFM,Voice102.5 a2referencie Stokokkino. Bezpečné uložené metadáta nemajú query hodnoty; presná pôvodná katalógová URL je viazaná SHA256 a referenciou, overená len v pamäti. Prvé zostavenie71 zastavila doslovná URL kontrola pred vznikomZIPov; dávkový importer upravený na rovnako presnú hash väzbu. Pokračovalo sa z uložených overených45PNG,bez obnovy zdrojov. Nezávislý finálny ZIP audit prebehol raz aPASS.
+
+**Ďalšia dávka72:** frontier `batch-71-reviewed/results/next-source-observations.json` má58neprijatých porovnaní/54jedinečných referencií znového scan70 a odkaz na36starších porovnaní. Obsah bol po commite celý načítaný a presne porovnaný. Zoznamy sa prekrývajú; nejde o úplný zoznam32143chýbajúcich. V preskúmanom výbere nezostal ďalší bezpečne doložený alias. Nové publisher/account dôkazy treba pre Restauracion bitrate mounty,Ble porty,Horeb8100 alebo ďalšiu nezávislú skupinu. Qingting20500112/5009 vracia nesúvisiaci album1498;blokované. Bez nových dôkazov neopakovať negatívne požiadavky.
+
+Dávky57–71 uzavreté,nespracúvať znova. Produkcia/main/stable downloader/feedy/IPK/SAT/skin bez zmeny;žiadny merge. Všetky hotové PNG/ZIPy a dôkazy uložené. **Relácia po tomto odovzdaní končí;žiadna jej operácia nebeží na pozadí.**
+
 ## DÁVKA 70 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [59380d8ad18b6d97aac79ce4a52892611a95a57e](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/59380d8ad18b6d97aac79ce4a52892611a95a57e). **2 referencie,18PNG,18ZIP;MX aUS. Pokrytie3412/35560,zostáva32148,PNG31284;131/219 krajín.** Crystal93.3/XHEDT aKZPS/LoneStar92.5 majú nové úspešné audio presmerovania oboch presných URL na rovnaké programové cesty; oficiálna stránka KZPS potvrdzuje stream3379. Query tokeny presmerovaní sa neukladajú. Pôvodné schválené varianty bez renderu.
