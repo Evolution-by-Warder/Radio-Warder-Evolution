@@ -813,7 +813,7 @@ class NativeTests(unittest.TestCase):
                 cx,cy,cw,ch=box(name)
                 self.assertGreaterEqual(cx,x);self.assertGreaterEqual(cy,y)
                 self.assertLessEqual(cx+cw,x+w);self.assertLessEqual(cy+ch,y+h)
-            self.assertEqual(box('settings_options')[3],screen['settings_options'].l.height*8)
+            self.assertEqual(box('settings_options')[3],screen['settings_options'].l.height*10)
             self.assertEqual(box('settings_keys')[3],screen['settings_keys'].l.height*7)
             screen.cleanup()
 
