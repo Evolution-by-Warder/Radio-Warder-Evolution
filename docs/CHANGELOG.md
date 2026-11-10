@@ -1,3 +1,18 @@
+# 0.1.9.3 (Radio shortcut and settings polish)
+
+- Add an optional Radio by Warder shortcut to the Enigma2 main menu (default
+  off). Existing Plugins and Extensions entries remain unchanged, and switching
+  the setting never edits system menu files.
+- Show a dedicated Yes/No selector, saved only with the green confirmation key;
+  EXIT cancels. Move the option above About, display ten settings rows at once,
+  and explain that a GUI restart is needed, in all 21 languages.
+- Add clearly framed terminal messages for package installation, upgrade,
+  reinstall and removal without deleting user configuration, favourites,
+  history, custom stations or picons.
+- Keep the existing radio player, online catalogue, artwork and all previously
+  approved behaviours. Normal stable 0.1.9.2 and private 0.1.9.2-2 tester
+  installations can upgrade to 0.1.9.3 without a forced reinstall.
+
 # 0.1.9.2 (owner-verified blue update confirmation)
 
 - Promote the physically verified 0.1.9.1-test1 revision 2 confirmation unchanged:
