@@ -135,12 +135,12 @@ def translations(code):
     if code not in _CACHE:
         with open(os.path.join(ROOT, 'locale', code + '.json'), encoding='utf-8') as handle:
             _CACHE[code] = json.load(handle)
+        _CACHE[code].update(_MAIN_MENU_TEXT[code])
     return _CACHE[code]
 
 
 def t(text):
-    lang = language_code()
-    return _MAIN_MENU_TEXT.get(lang, {}).get(text, translations(lang).get(text, text))
+    return translations(language_code()).get(text, text)
 
 
 def rtl():
