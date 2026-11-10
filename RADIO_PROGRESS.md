@@ -4,6 +4,14 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 70 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [59380d8ad18b6d97aac79ce4a52892611a95a57e](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/59380d8ad18b6d97aac79ce4a52892611a95a57e). **2 referencie,18PNG,18ZIP;MX aUS. Pokrytie3412/35560,zostáva32148,PNG31284;131/219 krajín.** Crystal93.3/XHEDT aKZPS/LoneStar92.5 majú nové úspešné audio presmerovania oboch presných URL na rovnaké programové cesty; oficiálna stránka KZPS potvrdzuje stream3379. Query tokeny presmerovaní sa neukladajú. Pôvodné schválené varianty bez renderu.
+
+[CI42789099579](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42789099579) SUCCESS, jeden nezávislý záverečný audit18/18 ZIP PASS. Zdrojové18PNG a ich alfa byte-identické;SHA256/CRC/rozmery/RGBA/Gitblob aj zachovanie produkčných a starších kandidátskych PNG PASS;923 konfiguračných a všetky historické holdy zachované. Payload762613106211222a8319727a846935c4afec9dcd,manifest7a4987db13f9593faaa810709c69d4c27fd4159e. Finálny index,audit,payload proof načítané. PR68 Draft,produkcia nezmenená.
+
+Pokračovanie71: päť aliasov Nhyira,GrootFM,Voice102.5 a dve referencie Stokokkino. Nové metaúdaje sú bez query hodnôt; presný pôvodný katalóg sa overuje referenciou a SHA256 URL iba v pamäti. Nové oficiálne prehrávače Voice aLive24 potvrdzujú konkrétne Radiojar mounty. Zatiaľ nezapočítané. Čínske20500112/5009 blokované: provider stránky vracajú neočakávaný iný album/res_id1498; audio samotné nestačí.
+
 ## DÁVKA 69 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [41d157b34358747286c09860e8cc29e9d37262a3](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/41d157b34358747286c09860e8cc29e9d37262a3). **2 referencie,18 PNG,18 ZIP verzií; DE a US. Pokrytie3410/35560,zostáva32150,PNG31266;131/219 krajín.** 90s90s Hessen je presná rovnaká cesta vysielateľa s koncovým lomítkom; aNONradio má explicitný oficiálny zoznam oboch portov8000/8443. Pôvodné schválené PNG byte-identické.
