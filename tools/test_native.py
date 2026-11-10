@@ -450,12 +450,12 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['art'].instance.isVisible())
         self.assertEqual(screen['hint'].getText(),'')
         self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-        self.assertEqual(len(screen['settings_options'].list),8)
+        self.assertEqual(len(screen['settings_options'].list),9)
         screen.ok()
         screen['settings_options'].moveToIndex(1);screen.ok()
         self.assertEqual(screen.active_group,'Slovensko')
         screen.exit();self.assertEqual(screen.settings_form.view,'menu')
-        screen['settings_options'].moveToIndex(7);screen.ok()
+        screen['settings_options'].moveToIndex(8);screen.ok()
         self.assertEqual(screen.settings_form.view,'about')
         self.assertIn('Warder Radio',screen['settings_text'].getText())
         screen.green_pressed();self.assertEqual(screen.settings_form.view,'menu')
@@ -468,6 +468,36 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['settings_panel'].instance.isVisible())
         self.assertIs(session.nav.current,playing)
         self.assertEqual(session.dialogs,[])
+
+    def test_main_menu_setting_requires_green_and_back_discards_choice(self):
+        screen, _, _ = self.new()
+        screen.options()
+        self.assertFalse(screen.store.show_main_menu)
+        self.assertEqual(screen['settings_options'].list[7][1], 'main-menu-toggle')
+        self.assertEqual(screen['settings_options'].list[8][1], 'about')
+        screen['settings_options'].moveToIndex(7)
+        screen.ok()
+        self.assertEqual(screen.settings_form.view, 'main-menu')
+        self.assertEqual(len(screen['settings_options'].list), 2)
+        self.assertEqual(screen['settings_options'].list[0][0], radio.t('Yes'))
+        self.assertEqual(screen['settings_options'].list[1][0], radio.t('No'))
+        screen['settings_options'].moveToIndex(0)
+        screen.ok()
+        self.assertFalse(screen.store.show_main_menu)
+        screen.exit()
+        self.assertEqual(screen.settings_form.view, 'menu')
+        self.assertFalse(screen.store.show_main_menu)
+        screen.ok()
+        self.assertEqual(screen.settings_form.view, 'main-menu')
+        screen['settings_options'].moveToIndex(0)
+        screen.green_pressed()
+        self.assertTrue(screen.store.show_main_menu)
+        self.assertEqual(screen.settings_form.view, 'menu')
+        self.assertEqual(screen['settings_status'].getText(), radio.t('Main menu setting saved'))
+        screen.ok()
+        screen['settings_options'].moveToIndex(1)
+        screen.green_pressed()
+        self.assertFalse(screen.store.show_main_menu)
 
     def type_inside_settings(self,screen,text):
         keys=screen['settings_keys']
@@ -783,7 +813,7 @@ class NativeTests(unittest.TestCase):
                 cx,cy,cw,ch=box(name)
                 self.assertGreaterEqual(cx,x);self.assertGreaterEqual(cy,y)
                 self.assertLessEqual(cx+cw,x+w);self.assertLessEqual(cy+ch,y+h)
-            self.assertEqual(box('settings_options')[3],screen['settings_options'].l.height*8)
+            self.assertEqual(box('settings_options')[3],screen['settings_options'].l.height*10)
             self.assertEqual(box('settings_keys')[3],screen['settings_keys'].l.height*7)
             screen.cleanup()
 
@@ -1327,13 +1357,14 @@ class NativeTests(unittest.TestCase):
 
     def test_native_plugin_descriptor_has_approved_icon_and_lazy_main(self):
         descriptors = plugin.Plugins()
-        self.assertEqual(len(descriptors), 2)
+        self.assertEqual(len(descriptors), 3)
         descriptor = descriptors[0]
         self.assertEqual(descriptor.where, [PluginDescriptor.WHERE_PLUGINMENU])
         icon = getattr(descriptor, 'iconstr', None) or getattr(descriptor, 'iconString', None)
         self.assertEqual(icon, 'plugin.png')
         self.assertTrue(Path(ROOT, 'src/WarderRadio', icon).is_file())
-        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors))
+        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors[:2]))
+        self.assertEqual(descriptors[2].where, [PluginDescriptor.WHERE_MENU])
 
     def test_remote_context_is_private_and_each_action_is_bound(self):
         screen, _, _ = self.new()

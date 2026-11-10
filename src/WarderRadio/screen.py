@@ -903,6 +903,8 @@ class WarderRadio(Screen):
             self.toggle_recording()
         elif action == 'stop':
             self.toggle_radio_playback()
+        elif action == 'main-menu-toggle':
+            self.settings_form.main_menu()
         elif action == 'about':
             if self.mode != 'settings':
                 self.open_settings()
