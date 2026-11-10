@@ -61,6 +61,7 @@ class SettingsForm:
     def __init__(self, host, scale):
         self.host, self.visible, self.view = host, False, 'menu'
         self.menu_index, self.pending_country = 0, None
+        self.pending_main_menu = False
         self.text, self.cursor, self.station_name = '', 0, ''
         self.message_text, self.confirm_callback = '', None
         self.country_from_menu = True
@@ -95,9 +96,9 @@ class SettingsForm:
                    (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if host.recording.running() else 'Start recording'), 'record'),
                    (t('Stop radio playback' if host.radio_running() else 'Start radio playback'), 'stop'),
-                   (t('About'), 'about'),
                    (t('Show in Enigma2 main menu') + ': ' +
-                    t('Yes' if host.store.show_main_menu else 'No'), 'main-menu-toggle')]
+                    t('Yes' if host.store.show_main_menu else 'No'), 'main-menu-toggle'),
+                   (t('About'), 'about')]
         if host.settings_return[0] == 'recordings':
             choices.insert(0, (t('Delete'), 'delete-recording'))
         return choices
@@ -120,11 +121,15 @@ class SettingsForm:
                     or name == 'settings_text' and self.view in ('about', 'confirm'))
             (host[name].show if show else host[name].hide)()
         title = {'menu': 'Settings', 'countries': 'Choose country', 'name': 'Station name',
-                 'url': 'Stream URL', 'about': 'About', 'confirm': 'Information'}[self.view]
+                 'url': 'Stream URL', 'about': 'About', 'confirm': 'Information',
+                 'main-menu': 'Show in Enigma2 main menu'}[self.view]
         host['settings_title'].setText(t(title))
         options = host['settings_options']; index = options.getSelectionIndex()
         if self.view == 'menu':
             rows = [(text, key, None) for text, key in self.choices()]
+        elif self.view == 'main-menu':
+            rows = [(t('Yes'), True, self.pending_main_menu),
+                    (t('No'), False, not self.pending_main_menu)]
         elif self.view == 'countries':
             rows = [(group_label(group), group, group == self.pending_country)
                     for group in host.catalogue.groups()]
@@ -168,6 +173,11 @@ class SettingsForm:
                 self.host.option_done(row)
         elif self.view == 'countries':
             self.cursor_changed()
+        elif self.view == 'main-menu':
+            row = self.host['settings_options'].getCurrent()
+            if row:
+                self.pending_main_menu = row[1]
+                self.refresh()
         elif self.view in ('name', 'url'):
             key = self.host['settings_keys'].key()
             if key == '⌫': self.erase()
@@ -184,11 +194,24 @@ class SettingsForm:
         elif self.view == 'about':
             self.back()
 
+    def main_menu(self):
+        self.view = 'main-menu'
+        self.pending_main_menu = self.host.store.show_main_menu
+        self.host['settings_status'].setText('')
+        self.refresh()
+        self.host['settings_options'].moveToIndex(0 if self.pending_main_menu else 1)
+        self.host.set_focus(self.focus_name)
+
     def cursor_changed(self):
         if self.view == 'countries':
             row = self.host['settings_options'].getCurrent()
             if row:
                 self.pending_country = row[1]; self.refresh()
+        elif self.view == 'main-menu':
+            row = self.host['settings_options'].getCurrent()
+            if row:
+                self.pending_main_menu = row[1]
+                self.refresh()
 
     def green(self):
         if self.host.closed or self.host.installing:
@@ -197,6 +220,20 @@ class SettingsForm:
             row = self.host['settings_options'].getCurrent()
             if row:
                 self.host.group_done(row)
+        elif self.view == 'main-menu':
+            row = self.host['settings_options'].getCurrent()
+            if not row:
+                return
+            previous = self.host.store.show_main_menu
+            self.host.store.show_main_menu = row[1]
+            try:
+                self.host.store.save()
+            except OSError:
+                self.host.store.show_main_menu = previous
+                self.status(t('Could not save setting'))
+                return
+            self.menu()
+            self.status(t('Main menu setting saved'))
         elif self.view == 'name':
             if self.text.strip():
                 self.station_name = self.text.strip()[:240]
