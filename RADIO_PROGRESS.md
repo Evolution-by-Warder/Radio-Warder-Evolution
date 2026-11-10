@@ -4,6 +4,14 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 62 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [69e5ff8b5a3c168a568c4aac16db54303bf6eeb7](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/69e5ff8b5a3c168a568c4aac16db54303bf6eeb7). **2 nové referencie, 18 PNG, 18 ZIP verzií, krajiny CH a GB. Pokrytie 3355/35560, zostáva 32205, PNG30771.** Krajiny131/219 a923 konfiguračných holdov bez zmeny. [CI42771470037](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42771470037) SUCCESS; jediný záverečný nezávislý audit18/18 ZIPov PASS, SHA256/CRC/členské hashe/rozmery/RGBA/Gitblob a ochrana starších PNG. Zdrojové PNG bitovo zachované; downloader dotknutých krajín PASS. Finálny audit,index,source proof a payload proof načítané z GitHubu.
+
+Nové dôkazy vyriešili dve odložené identity: oficiálne Digris API explicitne priraďuje Open Broadcast k UUID092210ed-4eb4-483b-814f-21df6ecb1352 a jeho streamovej ceste; stav Icecast servera Centreforce na legacy hoste explicitne uvádza mount/320, schválenú publisher doménu a názov stanice. Spoločná IP nebola použitá ako jediný dôkaz. Payload e5fef9e9f502a2e52b46f300a240710cdfda55b7; manifest84e7c8e20c4326faa004171ce376964e490b61cf.
+
+Pokračovanie63: aktuálne preverovanie oficiálnej CLAZZ konfigurácie apidata a jej quality-specific player presmerovaní. Zatiaľ neprijaté. Digris API96 programov: ďalší nový schválený artwork nebol nájdený; Stadtfilter má potvrdenú identitu, ale nemá schválený artwork v použitom registri; staré GOAT UUID sa v API nenachádza. Dávky57–61 sa neobnovovali ani znovu neaudi­tovali. Produkcia nezmenená; PR68 Draft.
+
 ## WORK UKONČENÝ – dávky60–61 a checkpoint62, 10. 11. 2026
 
 Posledný potvrdený pracovný HEAD PiconHub: [29743441d41c9d6a71850fe38cba36be8fc1d407](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/29743441d41c9d6a71850fe38cba36be8fc1d407), vetva `work/radio-world-batch38-contrast-pass1-history-20261107`, Draft PR68. Posledná dokončená dávka **61**, jej balíkový/auditný checkpoint **3e0b2c4167adb02f7c3fe4e49c59e49981bfde16**. Finálny payload/manifest HEAD **89dd5b7770c79e1c1248642ed0bf16b5d1b8a454** na existujúcej payload vetve. Index `picons/radio-world/staging/batch-61-reviewed/countries.proposed.json`.
