@@ -83,6 +83,12 @@ class MainMenuTests(unittest.TestCase):
                 with patch.object(i18n, "language_code", return_value=lang):
                     for key in ("Show in Enigma2 main menu", "Main menu setting saved", "Could not save setting"):
                         self.assertTrue(i18n.t(key).strip())
+        self.assertEqual(
+            i18n.translations('sk')['Main menu setting saved'],
+            'Nastavenie hlavného menu bolo uložené. Reštartujte GUI.')
+        self.assertEqual(
+            i18n.translations('en')['Main menu setting saved'],
+            'Main menu setting saved. Please restart the GUI.')
 
 
 if __name__ == "__main__":
