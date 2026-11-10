@@ -1,5 +1,5 @@
 """Optional main-menu shortcut regression tests with no Enigma2 runtime."""
-import importlib
+import importlib.util
 import json
 import os
 import sys
@@ -8,6 +8,7 @@ import types
 import unittest
 from unittest.mock import patch
 
+from WarderRadio import ROOT
 from WarderRadio.model import Store
 from WarderRadio import i18n
 
@@ -30,8 +31,11 @@ class MainMenuTests(unittest.TestCase):
         child = types.ModuleType("Plugins.Plugin")
         child.PluginDescriptor = Descriptor
         with patch.dict(sys.modules, {"Plugins": parent, "Plugins.Plugin": child}):
-            from WarderRadio import plugin
-            self.plugin = importlib.reload(plugin)
+            spec = importlib.util.spec_from_file_location(
+                "WarderRadio._test_main_menu", os.path.join(ROOT, "plugin.py"))
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            self.plugin = module
 
     def test_disabled_by_default_and_existing_plugins_unchanged(self):
         store = Store(self.dir.name)
