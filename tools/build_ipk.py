@@ -63,9 +63,9 @@ Description: Warder Radio - World of Radio Stations
 preinst = b'''#!/bin/sh
 set -eu
 [ -n "${IPKG_INSTROOT:-}" ] && exit 0
-echo "********************************************************"
-echo "*                Radio by Warder                     *"
-echo "********************************************************"
+echo "******************************************************************"
+echo "*                 Radio by Warder                                *"
+echo "******************************************************************"
 case "${1:-}" in
     upgrade) echo "Preparing Radio by Warder upgrade or reinstall..." ;;
     *) echo "Preparing Radio by Warder installation or reinstall..." ;;
@@ -84,11 +84,11 @@ set -eu
 plugin_root=/usr/lib/enigma2/python/Plugins/Extensions/WarderRadio
 rm -f "$plugin_root"/__pycache__/*.pyc "$plugin_root"/__pycache__/*.pyo \\
       "$plugin_root"/*.pyc "$plugin_root"/*.pyo
-echo "********************************************************"
-echo "Radio by Warder - installation / upgrade / reinstall finished."
-echo "Existing favourites, history, custom radios and picons were preserved."
-echo "Please restart the Enigma2 GUI to activate changes."
-echo "********************************************************"
+echo "******************************************************************"
+echo "Install/upgrade/reinstall finished: Radio by Warder"
+echo "Existing radio settings, favourites, history and picons were preserved."
+echo "Please restart GUI to activate changes."
+echo "******************************************************************"
 exit 0
 '''
 prerm = b'''#!/bin/sh
@@ -97,9 +97,9 @@ set -eu
 # Upgrade / reinstall transactions are never announced as uninstallations.
 case "${1:-}" in
     remove|deconfigure)
-        echo "********************************************************"
-        echo "*                Radio by Warder                     *"
-        echo "********************************************************"
+        echo "******************************************************************"
+        echo "*                 Radio by Warder                                *"
+        echo "******************************************************************"
         echo "Removing Radio by Warder plugin files..."
         ;;
 esac
@@ -112,11 +112,11 @@ set -eu
 # Never clean up on upgrade or failed-upgrade.
 case "${1:-}" in
     remove|purge)
-        echo "********************************************************"
+        echo "******************************************************************"
         echo "Radio by Warder removal finished."
-        echo "Saved favourites, history, custom radios and picons were preserved."
-        echo "Please restart the Enigma2 GUI to refresh the plugin list."
-        echo "********************************************************"
+        echo "Saved Enigma2 settings, favourites, history and picons were left intact."
+        echo "Please restart GUI to activate changes."
+        echo "******************************************************************"
         ;;
 esac
 exit 0
