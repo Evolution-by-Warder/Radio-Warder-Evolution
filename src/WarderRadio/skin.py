@@ -122,7 +122,9 @@ def make_skin(width, height):
             ('input', (534,310,1300,80), 28, '#ffffff', True),
             ('status', (534,926,1300,44), 25, '#00ceff', False)]:
         parts.append(label('settings_' + key, *box, font, color, wrap=wrap).replace('zPosition="2"', 'zPosition="6"'))
-    for name, y, rows in [('options', 310, 8), ('keys', 410, 7)]:
+    # Ten 60px settings rows fit between the title and status (310..910),
+    # so all nine main settings are visible without scrolling.
+    for name, y, rows in [('options', 310, 10), ('keys', 410, 7)]:
         parts.append('<widget name="settings_%s" zPosition="6" position="%d,%d" size="%d,%d" '
                      'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                      'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
