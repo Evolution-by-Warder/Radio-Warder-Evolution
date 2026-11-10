@@ -4,6 +4,16 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 60 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [b546a3ffde2cbb22d0040fd7744813c51ac28d67](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/b546a3ffde2cbb22d0040fd7744813c51ac28d67). **7 nových referencií, 63 PNG, 54 ZIP verzií; 6 krajín AU, BE, CO, DE, FR, NL. Pokrytie 3345/35560, zostáva32215; PNG30681.** Krajiny131/219;923 konfiguračných holdov bez zmeny.
+
+[CI42765064875](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42765064875) SUCCESS, vrátane samostatného runnera:54/54 skutočných ZIPov spätne stiahnutých,346720032 B, SHA256/CRC/členské hashe/rozmery/RGBA/nové Gitblob hashe PASS.63 pôvodných zdrojových PNG vrátane alfy byte-identicky overených. Zachované pôvodné a predchádzajúce kandidátske PNG;213 nedotknutých krajinských descriptorov nezmenených. Stable downloader replay dotknutých krajín PASS. Finálny audit,index,source proof,payload proof a admission proof načítané z finálneho commitu.
+
+Payload e439c40d802dba7d88a4817c75cd42a7358ad49c; manifest b3803fefbd281939e5daa099aec7f3292ca05e2c. Identita:917TheWave,Galaxie Radio,Radio21 Leer majú rovnaké doložené konečné streamové cesty;FG rovnaké Revma ID;La X Cali rovnakú pomenovanú serverovú cestu;Electro-Choc rovnakú identitu,hostiteľa a audio odtlačok;NPO Radio5 pomenovaný AAC variant vysielateľa. Žiadne nové rendery ani obídenie holdov. PR68 zostáva Draft, produkcia nezmenená.
+
+Pokračovanie61:8 ďalších aliasov s oficiálnymi player/DNS dôkazmi pripravených, ešte nezapočítaných. Staršie dávky sa neobnovujú.
+
 ## DÁVKA 59 – DOKONČENÁ A OVERENÁ; pokračovanie 60, 10. 11. 2026
 
 Doplnenie odovzdania dokončeného 9. 11. 2026: checkpoint [8d6612a00149c27c62a040dba41e86cff3c9d4e2](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/8d6612a00149c27c62a040dba41e86cff3c9d4e2). Dávka59 pridala16 referencií,144 PNG a99 immutable ZIP verzií v11 krajinách (AR,DE,HR,IT,NL,PL,PY,RO,RS,RU,UG). Nezávislý audit99/99 PASS:328761502 B,9243 predchádzajúcich členských položiek zachovaných. [CI42678083707](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42678083707) SUCCESS. Payload6852eac4174afa9528d2bef97552a37f7ef13957, manifestf90ebd98631610385246ce66cae2cd6f82035982.
