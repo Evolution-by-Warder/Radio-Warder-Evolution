@@ -4,6 +4,29 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## WORK UKONČENÝ – overené dávky62–67, 10. 11. 2026
+
+Posledný potvrdený pracovný HEAD [9a21778a34386f1da8199148a3c55befbe7f862f](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/9a21778a34386f1da8199148a3c55befbe7f862f), existujúca vetva `work/radio-world-batch38-contrast-pass1-history-20261107`, Draft PR68. Posledná dokončená dávka **67**, jej nezávisle auditovaný checkpoint **6ee0437e762fbd261db525f8d2a43006d4030bad**. Payload **f8366ac6d0e48319bea935871901545a56ef2739**, manifest HEAD **bc9cd4c70d4dbef2130bbbcc0b25a9390208161c**. Index `picons/radio-world/staging/batch-67-reviewed/countries.proposed.json`.
+
+**3405/35560 pokrytých,32155 zostávajúcich,31221 PNG;131/219 krajín (12úplných,119čiastočných,88nedostupných).** Tento beh pridal **52 referencií,468 PNG,126 ZIP verzií,1227714197 B** v7 krajinách CH,CO,DE,EE,FR,GB,GR. Všetkých9 variantov každej referencie zachovaných bitovo zo schváleného artworku. Nové grafiky sa nevytvárali.
+
+| Dávka | Referencie | PNG | ZIP verzie | Krajiny | Overený commit |
+| --- | ---: | ---: | ---: | --- | --- |
+| 62 | 2 | 18 | 18 | CH, GB | `69e5ff8b5a3c168a568c4aac16db54303bf6eeb7` |
+| 63 | 1 | 9 | 9 | FR | `bb97160244632bf41cfdaa3abdf2d895ab742031` |
+| 64 | 9 | 81 | 45 | EE, FR, DE, GR, GB | `a7ef3ad33843f28727a1d4d500fb7f08590ddbae` |
+| 65 | 20 | 180 | 27 | CO, DE, GB | `0c935ab37639703f872485cbc2b499b7281e6987` |
+| 66 | 3 | 27 | 18 | CO, DE | `2ca661b9a8902b6670acb92974cf9e8f2eda99c2` |
+| 67 | 17 | 153 | 9 | DE | `6ee0437e762fbd261db525f8d2a43006d4030bad` |
+
+Dávka67:CI42775476916 SUCCESS, jediný záverečný nezávislý audit9/9 PASS. Všetkých126 ZIP verzií tohto behu prešlo skutočným spätným downloadom,SHA256/bytes/CRC/členskými hashmi/rozmermi/RGBA/Gitblob kontrolou. Zdrojové PNG vrátane alfy byte-identicky overené. Zachovaných10332 produkčných PNG a všetky predchádzajúce schválené kandidátske položky. Downloader dotknutých krajín PASS;fyzický prijímač netestovaný. Pri64 sa opravilo chybné súhrnné počítadlo45ZIP/81PNG a zopakoval iba neúspešný finálny audit,bez rebuildov; finálny výsledok PASS. Historické dávky57–61 sa neobnovovali ani znovu neaudi­tovali.
+
+**Blokácie:**923 konfiguračných referencií aj všetky historické source/render holdy zostávajú. Súhrnný frontier `batch-67-reviewed/results/next-source-observations.json.gz` obsahuje **39 konkrétnych neprijatých porovnaní**, ich presné identity a dôvody; dedí aj starší frontier59 s nevyriešenými RadioArt/ďalšími prípadmi. Dôvody:odlišný región/program alebo značka,chýbajúci publisher mapping,nepreukázané legacy porty. Horeb AAC8100 ostáva blokovaný;Uninorte vracal audio aj na status ceste a mapping nepotvrdil. Predbežné brand holdy17 Epic/Technolovers boli vyriešené v67 kontrolou pôvodnej schválenej typografickej programovej grafiky a presného publisher/CDN endpointu. Generické ICY nebolo dôvodom prijatia.
+
+**Ďalší vykonateľný krok68:** nový publisher mapping pre Ant1Patra/BestRadio/Metropolis na pomenovaných Live24 mountoch alebo pre Horeb AAC8100; ak chýba,ďalšia nezávislá skupina presných endpointov zo schváleného inventára.39porovnaní nie je kompletný zoznam32155 chýbajúcich referencií. Zaznamenané negatívne endpointy neopakovať bez nového dôkazu.
+
+Finálny frontier bol po commite celý spätne načítaný a bajtovo porovnaný; index,audity,source/payload dôkazy všetkých6 dávok sú uložené a načítané z GitHubu. Polia no_new_endpoint_requests v runner proofs označujú daný runner krok; samostatné nové primaryHTTP/DNS pozorovania sú uložené v specs. Produkcia,main,stable downloader0.1.9.2,feed,IPK,satelitný Work aFullHDGlass nezmenené;žiadny merge. **Relácia skončila;žiadna jej operácia nebeží na pozadí.**
+
 ## DÁVKA 66 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [2ca661b9a8902b6670acb92974cf9e8f2eda99c2](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/2ca661b9a8902b6670acb92974cf9e8f2eda99c2). **3 referencie,27 PNG,18 ZIP verzií; CO,DE. Pokrytie3388/35560,zostáva32172,PNG31068,krajiny131/219.** CI42774957795 SUCCESS, jediný záverečný nezávislý audit18/18 PASS. Nové primary dôkazy:Javeriana oficiálny proxy player+account API port8001+DNS;Horeb MP3 oficiálny stream a explicitný DNS CNAME;Souvenir2 oficiálny publisher/player presný stream a zhodný programme mapping. Horeb AAC port8100 ostáva blokovaný.
