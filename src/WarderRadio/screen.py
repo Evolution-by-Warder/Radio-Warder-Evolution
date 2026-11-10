@@ -903,6 +903,16 @@ class WarderRadio(Screen):
             self.toggle_recording()
         elif action == 'stop':
             self.toggle_radio_playback()
+        elif action == 'main-menu-toggle':
+            previous = self.store.show_main_menu
+            self.store.show_main_menu = not previous
+            try:
+                self.store.save()
+            except OSError:
+                self.store.show_main_menu = previous
+                self.settings_form.status(t('Could not save setting'))
+                return
+            self.settings_form.status(t('Main menu setting saved'))
         elif action == 'about':
             if self.mode != 'settings':
                 self.open_settings()
