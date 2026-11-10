@@ -450,7 +450,7 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['art'].instance.isVisible())
         self.assertEqual(screen['hint'].getText(),'')
         self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-        self.assertEqual(len(screen['settings_options'].list),8)
+        self.assertEqual(len(screen['settings_options'].list),9)
         screen.ok()
         screen['settings_options'].moveToIndex(1);screen.ok()
         self.assertEqual(screen.active_group,'Slovensko')
@@ -1327,13 +1327,14 @@ class NativeTests(unittest.TestCase):
 
     def test_native_plugin_descriptor_has_approved_icon_and_lazy_main(self):
         descriptors = plugin.Plugins()
-        self.assertEqual(len(descriptors), 2)
+        self.assertEqual(len(descriptors), 3)
         descriptor = descriptors[0]
         self.assertEqual(descriptor.where, [PluginDescriptor.WHERE_PLUGINMENU])
         icon = getattr(descriptor, 'iconstr', None) or getattr(descriptor, 'iconString', None)
         self.assertEqual(icon, 'plugin.png')
         self.assertTrue(Path(ROOT, 'src/WarderRadio', icon).is_file())
-        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors))
+        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors[:2]))
+        self.assertEqual(descriptors[2].where, [PluginDescriptor.WHERE_MENU])
 
     def test_remote_context_is_private_and_each_action_is_bound(self):
         screen, _, _ = self.new()
