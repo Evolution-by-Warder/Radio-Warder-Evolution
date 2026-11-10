@@ -128,6 +128,7 @@ class Store:
         self.history = self._items(data.get('history'), 100)
         self.custom = self._items(data.get('custom'), 1000)
         self.group = clean(data.get('group', 'Slovensko'))
+        self.show_main_menu = data.get('show_main_menu') is True
         self.recording_dir = '/media/hdd/WarderRadio'
 
     @staticmethod
@@ -146,7 +147,8 @@ class Store:
 
     def save(self):
         atomic_json(self.path, {'schema': 1, 'favourites': self.favourites,
-                    'history': self.history, 'custom': self.custom, 'group': self.group})
+                    'history': self.history, 'custom': self.custom, 'group': self.group,
+                    'show_main_menu': self.show_main_menu})
 
     def is_favourite(self, item):
         return any(row['id'] == item['id'] for row in self.favourites)
