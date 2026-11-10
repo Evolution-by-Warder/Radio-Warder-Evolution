@@ -4,6 +4,14 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 63 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [bb97160244632bf41cfdaa3abdf2d895ab742031](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/bb97160244632bf41cfdaa3abdf2d895ab742031). **1 nová referencia CLAZZ Radio (FR), 9 PNG, 9 ZIP verzií. Pokrytie 3356/35560, zostáva 32204, PNG 30780; krajiny 131/219.** CI42772457408 SUCCESS, jediný nezávislý záverečný audit9/9 ZIPov PASS. Finálny index, source proof, payload proof a audit načítané z GitHubu. Payload02760913cba591951bbbdaf22421687a7cf9e16f, manifest5cba06fde97ddd894ed03223aafe41bfa10b6bd2.
+
+Nový dôkaz: oficiálna konfigurácia clazz.ouest-france.fr, programme ID RbB9pLSq9t, explicitné SD/HD player presmerovania HTTP302 na Revma w18s9m7mfm3vv a xsycwftnfm3vv pri normálnom publisher Referer/Origin. Identitu potvrdzuje mapovanie prehrávača; nenahlasujeme nový úspešný audio test (nasledovanie audia skončilo timeoutom). Podpísané player URL tokeny sa nearchivujú. Všetkých9 PNG je bitovo schválených, bez renderu. Holdy923 aj produkcia nezmenené; PR68 Draft.
+
+Pokračovanie64: nový prieskum pôvodného produkčného inventára našiel39 porovnaní, z nich10 predbežne vhodných na kontrolu zdrojovej proveniencie. Zatiaľ nie sú prijaté ani započítané.
+
 ## DÁVKA 62 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [69e5ff8b5a3c168a568c4aac16db54303bf6eeb7](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/69e5ff8b5a3c168a568c4aac16db54303bf6eeb7). **2 nové referencie, 18 PNG, 18 ZIP verzií, krajiny CH a GB. Pokrytie 3355/35560, zostáva 32205, PNG30771.** Krajiny131/219 a923 konfiguračných holdov bez zmeny. [CI42771470037](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42771470037) SUCCESS; jediný záverečný nezávislý audit18/18 ZIPov PASS, SHA256/CRC/členské hashe/rozmery/RGBA/Gitblob a ochrana starších PNG. Zdrojové PNG bitovo zachované; downloader dotknutých krajín PASS. Finálny audit,index,source proof a payload proof načítané z GitHubu.
