@@ -4,6 +4,14 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 69 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [41d157b34358747286c09860e8cc29e9d37262a3](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/41d157b34358747286c09860e8cc29e9d37262a3). **2 referencie,18 PNG,18 ZIP verzií; DE a US. Pokrytie3410/35560,zostáva32150,PNG31266;131/219 krajín.** 90s90s Hessen je presná rovnaká cesta vysielateľa s koncovým lomítkom; aNONradio má explicitný oficiálny zoznam oboch portov8000/8443. Pôvodné schválené PNG byte-identické.
+
+[CI42788450468](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/actions/runs/42788450468) SUCCESS; jeden nezávislý záverečný audit18/18 ZIPov PASS (SHA256,CRC,členské hashe,rozmery,RGBA,Gitblob). Zachovanie10332 produkčných a31248 predchádzajúcich kandidátskych PNG a923 holdov PASS. Zdrojové18PNG spätne overené. Payload e83ea8d0603cb007d95c29ee7c41133e50900331,manifest8a46a81ebcf191622465a7f8fa25d5df035ce90f. Finálny index,audit,payload proof načítané zGitHubu. Produkcia bez zmeny;PR68 Draft.
+
+Automatická bezpečnostná kontrola odmietla pôvodný návrh podkladov obsahujúci katalógové streamové kľúče/reklamný token. Bez obchádzania kontroly odstránené dotknuté páry Nhyira/GrootFM aj vložená kópia starého frontier; pôvodný frontier zostáva cez odkaz zachovaný. Tieto2 referencie NIE sú prijaté. Dávka70 pokračuje Crystal93.3 aKZPS/LoneStar92.5 s novými audio/redirect dôkazmi bez ukladaných presmerovacích tokenov.
+
 ## DÁVKA 68 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [c57063bb2e973fede6d67f7c2f24adceec9d4538](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/c57063bb2e973fede6d67f7c2f24adceec9d4538), existujúci Draft PR68. **3 nové referencie / 27 PNG / 9 ZIP verzií, GR. Pokrytie 3408/35560, zostáva 32152, celkovo 31248 PNG; 131/219 krajín.** Ant1 Patra, Best Radio92.6 a Metropolis95.5: nové Live24 player konfigurácie explicitne určujú pomenovaný mount; DNS CNAME priamo spája porovnávané hosty s netradio.live24.gr. Nejde o priradenie podľa spoločnej IP alebo generických ICY.
