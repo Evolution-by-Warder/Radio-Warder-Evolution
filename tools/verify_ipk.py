@@ -64,11 +64,29 @@ with tempfile.TemporaryDirectory() as tmp:
         dependencies = next(line for line in control.splitlines() if line.startswith('Depends: '))
         assert 'streamripper' in [value.strip() for value in dependencies[9:].split(',')]
         assert 'Suggests: streamripper' not in control
-        for script in ('preinst', 'postinst'):
+        for script in ('preinst', 'postinst', 'prerm', 'postrm'):
             body = tar.extractfile('./' + script).read()
             file = Path(tmp, script); file.write_bytes(body)
             subprocess.run(['sh', '-n', str(file)], check=True)
             subprocess.run(['sh', str(file)], check=True,
                            env={'IPKG_INSTROOT': tmp, 'PATH': '/usr/bin:/bin'})
+        scripts = {name: tar.extractfile('./' + name).read().decode()
+                   for name in ('preinst', 'postinst', 'prerm', 'postrm')}
+        for name in ('preinst', 'postinst', 'prerm', 'postrm'):
+            assert 'Radio by Warder' in scripts[name], name
+        assert 'remove|purge' in scripts['postrm']
+        assert '/etc/enigma2/warder-radio' in scripts['postrm']
+        for name, event, expected in (
+                ('preinst', 'install', 'Preparing Radio by Warder installation'),
+                ('preinst', 'upgrade', 'Preparing Radio by Warder upgrade'),
+                ('prerm', 'remove', 'Removing Radio by Warder'),
+                ('postrm', 'remove', 'Radio by Warder removal finished')):
+            result = subprocess.run(['sh', str(Path(tmp, name)), event],
+                                    check=True, capture_output=True, text=True)
+            assert expected in result.stdout, (name, event, result.stdout)
+        for name in ('prerm', 'postrm'):
+            result = subprocess.run(['sh', str(Path(tmp, name)), 'upgrade'],
+                                    check=True, capture_output=True, text=True)
+            assert 'remov' not in result.stdout.lower(), (name, result.stdout)
 print('IPK payload, Python 3.9 grammar, owned paths, version, picon and offline scripts: PASS')
 print(manifest['file'], manifest['sha256'])
