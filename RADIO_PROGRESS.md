@@ -4,6 +4,14 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## DÁVKA 64 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
+
+Checkpoint [a7ef3ad33843f28727a1d4d500fb7f08590ddbae](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/a7ef3ad33843f28727a1d4d500fb7f08590ddbae). **9 referencií,81 PNG,45 ZIP verzií; EE,FR,DE,GR,GB. Pokrytie3365/35560,zostáva32195,PNG30861,krajiny131/219.** Pôvodné publikované artworky skopírované bitovo z immutable produkčných manifestov,9 variantov každej identity. Žiadne nové rendery. Payload5d5bbb6279aa353d8afcb10e46e4349ab0a9d281,manifest80b208c38c83661d1de1697740dbe69586c3d111.
+
+Build42773472290 SUCCESS. Prvý záverečný audit overil všetkých45 ZIPov, ale zlyhal na chybe súhrnného počítadla (45 ZIPov sa chybne porovnávalo s81 PNG). Opravené na9×počet krajín a9×počet referencií; iba neúspešný finálny audit bol znovu spustený, bez obnovy balíkov. CI42774037382 SUCCESS, nezávislý audit45/45 PASS. Finálny index,audit,source proof,payload proof načítané z GitHubu. Produkčné10332 a všetky staršie kandidátske PNG zachované;923 holdov bez zmeny.
+
+Pokračovanie65:20 predbežne overených aliasov CO,DE,GB, vrátane12 programov0nlineradio a4 nových presných301 mapovaní Schwany. Zatiaľ nezapočítané. Uninorte ostáva blokované pre chýbajúci explicitný mapping;Epic/Technolovers pre nevyjasnenú grafickú značku.
+
 ## DÁVKA 63 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [bb97160244632bf41cfdaa3abdf2d895ab742031](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/bb97160244632bf41cfdaa3abdf2d895ab742031). **1 nová referencia CLAZZ Radio (FR), 9 PNG, 9 ZIP verzií. Pokrytie 3356/35560, zostáva 32204, PNG 30780; krajiny 131/219.** CI42772457408 SUCCESS, jediný nezávislý záverečný audit9/9 ZIPov PASS. Finálny index, source proof, payload proof a audit načítané z GitHubu. Payload02760913cba591951bbbdaf22421687a7cf9e16f, manifest5cba06fde97ddd894ed03223aafe41bfa10b6bd2.
