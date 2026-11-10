@@ -919,7 +919,8 @@ class WarderRadio(Screen):
             self.settings_form.about()
         if self.mode == 'settings' and self.settings_form.view == 'menu':
             self.settings_form.refresh()
-            self.settings_form.status(self['status'].getText())
+            if action != 'main-menu-toggle':
+                self.settings_form.status(self['status'].getText())
 
     def open_picons(self):
         if self.closed or self.installing:
