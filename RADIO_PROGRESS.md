@@ -4,6 +4,20 @@ Aktualizované 10. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a 
 
 
 
+## WORK UKONČENÝ – dávky60–61 a checkpoint62, 10. 11. 2026
+
+Posledný potvrdený pracovný HEAD PiconHub: [29743441d41c9d6a71850fe38cba36be8fc1d407](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/29743441d41c9d6a71850fe38cba36be8fc1d407), vetva `work/radio-world-batch38-contrast-pass1-history-20261107`, Draft PR68. Posledná dokončená dávka **61**, jej balíkový/auditný checkpoint **3e0b2c4167adb02f7c3fe4e49c59e49981bfde16**. Finálny payload/manifest HEAD **89dd5b7770c79e1c1248642ed0bf16b5d1b8a454** na existujúcej payload vetve. Index `picons/radio-world/staging/batch-61-reviewed/countries.proposed.json`.
+
+**3353/35560 pokrytých,32207 zostávajúcich,30753 PNG vrátane aliasov;131/219 krajín,12úplných,119čiastočných,88nedostupných.** Dávky60–61 pridali **15 referencií,135 PNG,126 ZIP verzií,656141766 B** v11 krajinách AU,BE,BG,CL,CO,DE,FR,GR,LT,NL,US. Každá dávka mala jeden úspešný nezávislý záverečný audit nových ZIPov. Historické dávky57–59 sa neobnovovali ani znovu neaudi­tovali. Jedna oprava prebuild kontroly60 nastala pred vznikom jej ZIPov; oba finálne CI behy SUCCESS.
+
+Checkpoint62 obsahuje20 konkrétnych neprijatých porovnaní s dôvodmi,6 výsledkov publisher stránok a3 doplnkové kontroly. Súbory `batch-61-reviewed/results/next-source-observations.json.gz` a `pending-primary-observations.json` boli po commite celé spätne načítané a bitovo porovnané. Presná cross-country URL kontrola nenašla ďalšie voľné referencie.157 názvových porovnaní nie je schválením; regionálne/frekvenčné rozdiely a programové konflikty sa neprijali.
+
+**Blokácie:** všetkých923 konfiguračných referencií ostáva v `configuration.json:held_references`; všetky staršie source/render holdy zachované. Zdedené RadioArt3 a9 starších menových kandidátov vrátaneCLAZZ ostávajú vo frontiere59. Nových20 neprijatých porovnaní má jednotlivo uložené dôvody:chýbajúca publisher väzba,odlišný región/program alebo konflikt so schválenou identitou. V aktuálne preverenej skupine nie je ďalší doložený alias pripravený na prijatie; neznamená to vyčerpanie celého katalógu.
+
+**Ďalší vykonateľný krok62:** načítať živý HEAD a frontier61; získať nový oficiálny mapping pre niektorý odložený endpoint (napríklad OpenBroadcast/digris UUID,Centreforce legacy host aleboCLAZZ), prípadne ďalší nezávislý presne identifikovaný program so schválenou grafikou. Zaznamenané negatívne stránky a konflikty bez nového dôkazu neopakovať. Nové artworky držať mimo prijatých balíkov do schválenia.
+
+Produkcia,main,stable downloader0.1.9.2,feed,IPK,satelitný Work aFullHDGlass nezmenené. Žiadny merge. Všetky vytvorené PNG/ZIP výsledky sú uložené;nezostali lokálne neodovzdané balíky. **Táto relácia je ukončená;žiadne jej spracovanie nebeží na pozadí.**
+
 ## DÁVKA 61 – DOKONČENÁ A OVERENÁ, 10. 11. 2026
 
 Checkpoint [3e0b2c4167adb02f7c3fe4e49c59e49981bfde16](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/3e0b2c4167adb02f7c3fe4e49c59e49981bfde16). **8 nových referencií,72 PNG,72 ZIP verzií;8 krajín AU,BG,CL,FR,GR,LT,NL,US. Pokrytie3353/35560, zostáva32207; PNG30753.** Krajiny131/219 (12/119/88);923 konfiguračných holdov bez zmeny.
