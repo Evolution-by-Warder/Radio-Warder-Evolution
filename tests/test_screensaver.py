@@ -31,6 +31,7 @@ class Widget:
     def __init__(self):
         self.instance = self
         self.text = ''
+        self.set_count = 0
         self.visible = False
         self.moves = []
         self.picon_library = None
@@ -44,6 +45,7 @@ class Widget:
         return self.text
     def setText(self, text):
         self.text = text
+        self.set_count += 1
     def setEnabled(self, enabled):
         self.enabled = enabled
 
@@ -150,6 +152,7 @@ class SaverTests(unittest.TestCase):
         obj.saver_active = False
         obj.saver_offset, obj.saver_direction = (0, 0), (1, 1)
         obj.saver_picon_id = None
+        obj.saver_text_cache = {}
         obj.playing = True
         obj.closed = obj.video_active = obj.video_pending = False
         obj.installing = obj.updating = False
@@ -175,7 +178,7 @@ class SaverTests(unittest.TestCase):
                    path_for=lambda station, library: '/tmp/picon.png',
                    ePoint=lambda x,y:(x,y))
         for name in ('_arm_saver', '_saver_start', '_saver_refresh',
-                     '_saver_move', '_saver_exit'):
+                     '_saver_set_text', '_saver_move', '_saver_exit'):
             setattr(Fake, name, function(name, env))
         obj._arm_saver()
         self.assertEqual(obj.saver_timer.started[-1], (10000, True))
@@ -186,6 +189,20 @@ class SaverTests(unittest.TestCase):
         self.assertEqual(fields['saver_artist'].getText(), 'Linkin Park')
         self.assertEqual(fields['saver_track'].getText(), 'The Emptiness Machine')
         self.assertEqual(fields['saver_time'].getText(), '20:17:21')
+        before_refresh = {name: fields[name].set_count
+                          for name in ('saver_artist', 'saver_track',
+                                       'saver_station', 'saver_time')}
+        obj._saver_refresh()
+        self.assertEqual(before_refresh, {name: fields[name].set_count
+                          for name in before_refresh},
+                         'Unchanged metadata must not trigger native redraw')
+        fields['track'].setText('New song title')
+        obj._saver_refresh()
+        self.assertEqual(fields['saver_track'].getText(), 'New song title')
+        self.assertEqual(fields['saver_track'].set_count,
+                         before_refresh['saver_track'] + 1)
+        self.assertEqual(fields['saver_artist'].set_count,
+                         before_refresh['saver_artist'])
         obj._saver_move()
         self.assertTrue(fields['saver_artist'].moves)
         self.assertTrue(fields['saver_black'].visible)
