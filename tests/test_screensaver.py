@@ -153,6 +153,8 @@ class SaverTests(unittest.TestCase):
         obj.playing = True
         obj.closed = obj.video_active = obj.video_pending = False
         obj.installing = obj.updating = False
+        obj.update_window = None
+        obj.shown = True
         obj.mode = 'radio'
         obj.ui_scale = scale
         obj.store = SimpleNamespace(screensaver_delay=10)
