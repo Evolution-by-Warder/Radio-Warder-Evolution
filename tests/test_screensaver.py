@@ -118,7 +118,7 @@ class SaverTests(unittest.TestCase):
         self.assertTrue(clock[0] < positions['saver_time'][0])
         self.assertNotIn('saver_brand', positions)
         self.assertEqual(bounded_motion((0, 0), (1, 1)),
-                         ((6, 4), (1, 1)))
+                         ((7, 5), (1, 1)))
 
     def test_bounce_never_crosses_limits_and_changes_direction(self):
         offset, direction = (0, 0), (1, 1)
@@ -140,6 +140,63 @@ class SaverTests(unittest.TestCase):
                 store.screensaver_delay = delay
                 store.save()
                 self.assertEqual(Store(directory).screensaver_delay, delay)
+
+    def test_saved_delay_auto_rearms_after_autoplay_and_temporary_dialog(self):
+        # Simulate two separate plugin openings against the same saved state.
+        with tempfile.TemporaryDirectory() as directory:
+            first = Store(directory)
+            first.screensaver_delay = 10
+            first.save()
+            reopened = Store(directory)
+            self.assertEqual(reopened.screensaver_delay, 10)
+            class Fake:
+                pass
+            obj = Fake()
+            obj.saver_timer = Timer()
+            obj.saver_active = obj.saver_timer_armed = False
+            obj.starting = True
+            obj.closed = False
+            obj.shown = True
+            obj.mode = 'radio'
+            obj.video_active = obj.video_pending = False
+            obj.installing = obj.updating = False
+            obj.update_pending = False
+            obj.update_window = obj.update_result = None
+            obj.store = reopened
+            obj.playback = SimpleNamespace(owns=lambda: True)
+            obj.playing = False
+            obj.radio_running = lambda: obj.playing
+            obj._saver_modal_open = lambda: False
+            env = dict(allow_auto_saver=allow_auto_saver)
+            for name in ('_arm_saver', '_saver_auto_restore'):
+                setattr(Fake, name, function(name, env))
+            obj._saver_auto_restore()
+            self.assertEqual(obj.saver_timer.started, [])
+            obj.starting = False
+            obj._saver_auto_restore()
+            self.assertEqual(obj.saver_timer.started, [],
+                             'No countdown before saved radio starts playing')
+            obj.playing = True
+            obj._saver_auto_restore()
+            self.assertEqual(obj.saver_timer.started, [(10000, True)])
+            obj._saver_auto_restore()
+            obj._saver_auto_restore()
+            self.assertEqual(len(obj.saver_timer.started), 1,
+                             'Clock polling must not continuously restart the delay')
+            # A dialog/update can temporarily suppress activation. Once
+            # dismissed, restart exactly once with the saved setting.
+            obj.saver_timer_armed = False
+            obj.update_pending = True
+            obj._saver_auto_restore()
+            self.assertEqual(len(obj.saver_timer.started), 1)
+            obj.update_pending = False
+            obj._saver_auto_restore()
+            self.assertEqual(len(obj.saver_timer.started), 2)
+            obj.store.screensaver_delay = 0
+            obj._arm_saver()
+            obj._saver_auto_restore()
+            self.assertEqual(len(obj.saver_timer.started), 2,
+                             'Disabled setting must never auto-start')
 
     def test_enables_only_valid_radio_playback(self):
         can = lambda **kw: allow_auto_saver(**dict(
@@ -194,6 +251,8 @@ class SaverTests(unittest.TestCase):
         obj = Fake()
         obj.saver_positions = positions
         obj.saver_active = False
+        obj.saver_timer_armed = False
+        obj.starting = False
         obj.saver_offset, obj.saver_direction = (0, 0), (1, 1)
         obj.saver_picon_id = None
         obj.saver_text_cache = {}
@@ -224,7 +283,7 @@ class SaverTests(unittest.TestCase):
                    t=lambda text:text, group_label=lambda name:name,
                    path_for=lambda station, library: '/tmp/picon.png',
                    ePoint=lambda x,y:(x,y))
-        for name in ('_arm_saver', '_saver_start', '_saver_refresh',
+        for name in ('_arm_saver', '_saver_auto_restore', '_saver_start', '_saver_refresh',
                      '_saver_set_text', '_saver_modal_open', '_saver_move',
                      '_saver_exit', '_saver_window_shown', '_saver_window_hidden'):
             setattr(Fake, name, function(name, env))
