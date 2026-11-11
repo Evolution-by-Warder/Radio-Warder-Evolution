@@ -181,6 +181,9 @@ class WarderRadio(Screen):
         _, self.saver_positions = make_saver_widgets(
             self.ui_scale, round(1920 * self.ui_scale), round(1080 * self.ui_scale))
         self.saver_active = False
+        # One-shot inactivity countdown is restored when last-station autoplay
+        # begins, including slow IPTV streams and startup update checks.
+        self.saver_timer_armed = False
         self.saver_offset = (0, 0)
         self.saver_direction = (1, 1)
         self.saver_picon_id = None
@@ -679,6 +682,7 @@ class WarderRadio(Screen):
     def _saver_window_hidden(self):
         # Do not animate the hidden radio window behind external dialogs.
         self.saver_timer.timer.stop()
+        self.saver_timer_armed = False
         self.saver_motion_timer.timer.stop()
         self.spectrum.pause()
         self.saver_spectrum.pause()
@@ -693,6 +697,7 @@ class WarderRadio(Screen):
 
     def _arm_saver(self):
         self.saver_timer.timer.stop()
+        self.saver_timer_armed = False
         delay = self.store.screensaver_delay
         if (not self.saver_active and getattr(self, 'shown', True) and
                 not self._saver_modal_open() and
@@ -703,8 +708,21 @@ class WarderRadio(Screen):
                     self.installing or self.updating or self.update_window is not None,
                     self.closed)):
             self.saver_timer.start(delay * 1000, True)
+            self.saver_timer_armed = True
+
+    def _saver_auto_restore(self):
+        """Recover the saved countdown after last-station autoplay/UI startup.
+
+        An update check or an early onShow can suppress the first arm. Poll
+        only until a timer is armed, never reset an existing countdown.
+        """
+        if (not self.saver_active and not self.saver_timer_armed
+                and not self.starting and not self.closed
+                and self.store.screensaver_delay in (10, 20, 30, 60)):
+            self._arm_saver()
 
     def _saver_start(self):
+        self.saver_timer_armed = False
         if (self.saver_active or not getattr(self, 'shown', True) or
                 self._saver_modal_open() or
                 self.update_pending or self.update_result is not None or
@@ -1352,6 +1370,8 @@ class WarderRadio(Screen):
             if self.cover_key:
                 self.reset_artwork()
         self.settings_form.refresh_playback()
+        if not self.saver_active:
+            self._saver_auto_restore()
         if self.saver_active:
             if not self.radio_running():
                 # Another image screen or service took over the tuner.
