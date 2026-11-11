@@ -677,10 +677,17 @@ class WarderRadio(Screen):
         self.spectrum.pause()
         self.saver_spectrum.pause()
 
+    def _saver_modal_open(self):
+        # Some image builds leave the parent Screen marked as shown while a
+        # modal dialog is in front. Never overlay a foreign active dialog.
+        current = getattr(getattr(self, 'session', None), 'current_dialog', None)
+        return current is not None and current is not self
+
     def _arm_saver(self):
         self.saver_timer.timer.stop()
         delay = self.store.screensaver_delay
         if (not self.saver_active and getattr(self, 'shown', True) and
+                not self._saver_modal_open() and
                 not self.update_pending and self.update_result is None and
                 allow_auto_saver(
                     delay, self.radio_running(), self.playback.owns(), self.mode,
@@ -691,6 +698,7 @@ class WarderRadio(Screen):
 
     def _saver_start(self):
         if (self.saver_active or not getattr(self, 'shown', True) or
+                self._saver_modal_open() or
                 self.update_pending or self.update_result is not None or
                 not allow_auto_saver(
                     self.store.screensaver_delay, self.radio_running(),
@@ -743,7 +751,8 @@ class WarderRadio(Screen):
         self.saver_cover.show(self.cover_display.path)
 
     def _saver_move(self):
-        if not self.saver_active or self.closed or not getattr(self, 'shown', True):
+        if (not self.saver_active or self.closed or
+                not getattr(self, 'shown', True) or self._saver_modal_open()):
             return
         self.saver_offset, self.saver_direction = bounded_motion(
             self.saver_offset, self.saver_direction)
