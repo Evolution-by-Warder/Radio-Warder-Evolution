@@ -37,7 +37,7 @@ jobs:
         with:
           name: warder-radio-oled-screensaver-test-ipk
           path: |
-            dist/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.2-3_all.ipk
+            dist/*.ipk
             dist/SHA256SUMS
             dist/build.json
           if-no-files-found: error
