@@ -154,6 +154,8 @@ class SaverTests(unittest.TestCase):
         obj.closed = obj.video_active = obj.video_pending = False
         obj.installing = obj.updating = False
         obj.update_window = None
+        obj.update_pending = False
+        obj.update_result = None
         obj.shown = True
         obj.mode = 'radio'
         obj.ui_scale = scale
