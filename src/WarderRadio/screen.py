@@ -185,6 +185,7 @@ class WarderRadio(Screen):
         self.saver_direction = (1, 1)
         self.saver_picon_id = None
         self.saver_text_cache = {}
+        self.saver_modal_suspended = False
         for name in self.saver_positions:
             self[name] = Pixmap() if name in ('saver_cover', 'saver_picon', 'saver_spectrum') else Label('')
             self[name].hide()
@@ -660,10 +661,15 @@ class WarderRadio(Screen):
 
     def _saver_window_shown(self):
         # A dialog may briefly hide the radio screen while its saver is active.
-        # Resume only the one spectrum that is actually visible.
+        # Some image builds fire onShow before removing the foreground modal.
         if self.saver_active:
             self.spectrum.pause()
-            self.saver_spectrum.resume()
+            if self._saver_modal_open():
+                self.saver_modal_suspended = True
+                self.saver_spectrum.pause()
+            else:
+                self.saver_modal_suspended = False
+                self.saver_spectrum.resume()
             self.saver_motion_timer.start(2000, True)
         else:
             self.saver_spectrum.pause()
@@ -676,6 +682,8 @@ class WarderRadio(Screen):
         self.saver_motion_timer.timer.stop()
         self.spectrum.pause()
         self.saver_spectrum.pause()
+        if self.saver_active:
+            self.saver_modal_suspended = True
 
     def _saver_modal_open(self):
         # Some image builds leave the parent Screen marked as shown while a
@@ -708,6 +716,7 @@ class WarderRadio(Screen):
                     self.closed)):
             return
         self.saver_active = True
+        self.saver_modal_suspended = False
         self.saver_offset, self.saver_direction = (0, 0), (1, 1)
         self.saver_picon_id = None
         self.saver_text_cache.clear()
@@ -730,6 +739,17 @@ class WarderRadio(Screen):
     def _saver_refresh(self):
         if not self.saver_active:
             return
+        # On some Enigma2 images a foreground modal does not trigger onHide.
+        # Suspend spectrum painting immediately and restart it only once the
+        # foreground dialog has gone; avoid repainting hidden metadata too.
+        if not getattr(self, 'shown', True) or self._saver_modal_open():
+            if not self.saver_modal_suspended:
+                self.saver_modal_suspended = True
+                self.saver_spectrum.pause()
+            return
+        if self.saver_modal_suspended:
+            self.saver_modal_suspended = False
+            self.saver_spectrum.resume()
         day, date, hours, seconds = clock_text()
         self._saver_set_text('saver_date', day + ' ' + date)
         self._saver_set_text('saver_time', hours + ':' + seconds)
@@ -775,6 +795,7 @@ class WarderRadio(Screen):
         if not self.saver_active:
             return
         self.saver_active = False
+        self.saver_modal_suspended = False
         self.saver_motion_timer.timer.stop()
         self['saver_actions'].setEnabled(False)
         self.saver_spectrum.pause()
