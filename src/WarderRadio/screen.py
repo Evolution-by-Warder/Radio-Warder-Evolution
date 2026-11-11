@@ -239,8 +239,8 @@ class WarderRadio(Screen):
             Timer, LoadPixmap)
         self.spectrum = Spectrum(self['activity'], lambda: self.playing and self.playback.owns(),
                                  Timer, LoadPixmap)
-        self.onShow.append(self.spectrum.resume)
-        self.onHide.append(self.spectrum.pause)
+        self.onShow.append(self._saver_window_shown)
+        self.onHide.append(self._saver_window_hidden)
         self.onLayoutFinish.append(self.ready)
         self.onClose.append(self.cleanup)
 
@@ -633,20 +633,38 @@ class WarderRadio(Screen):
             self.settings_form.refresh_playback()
             self._arm_saver()
 
+    def _saver_window_shown(self):
+        # A dialog may briefly hide the radio screen while its saver is active.
+        # Resume only the one spectrum that is actually visible.
+        if self.saver_active:
+            self.spectrum.pause()
+            self.saver_spectrum.resume()
+        else:
+            self.saver_spectrum.pause()
+            self.spectrum.resume()
+
+    def _saver_window_hidden(self):
+        self.spectrum.pause()
+        self.saver_spectrum.pause()
+
     def _arm_saver(self):
         self.saver_timer.timer.stop()
         delay = self.store.screensaver_delay
         if allow_auto_saver(
-                delay, self.playing, self.playback.owns(), self.mode,
+                delay, self.radio_running(), self.playback.owns(), self.mode,
                 self.video_active or self.video_pending,
-                self.installing or self.updating, self.closed):
+                self.installing or self.updating or self.update_window is not None,
+                self.closed):
             self.saver_timer.start(delay * 1000, True)
 
     def _saver_start(self):
-        if self.saver_active or not allow_auto_saver(
-                self.store.screensaver_delay, self.playing, self.playback.owns(),
-                self.mode, self.video_active or self.video_pending,
-                self.installing or self.updating, self.closed):
+        if (self.saver_active or not getattr(self, 'shown', True) or
+                not allow_auto_saver(
+                    self.store.screensaver_delay, self.radio_running(),
+                    self.playback.owns(), self.mode,
+                    self.video_active or self.video_pending,
+                    self.installing or self.updating or self.update_window is not None,
+                    self.closed)):
             return
         self.saver_active = True
         self.saver_offset, self.saver_direction = (0, 0), (1, 1)
@@ -712,7 +730,7 @@ class WarderRadio(Screen):
             loader.token += 1
             loader.disconnect()
             loader.path = ''
-        self.spectrum.resume()
+        self.sync_spectrum()
 
     def sync_spectrum(self):
         # Some image/session combinations resume the parent without an onShow
