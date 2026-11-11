@@ -2,6 +2,7 @@
 from xml.sax.saxutils import escape
 from . import ROOT
 from .i18n import rtl
+from .screensaver import make_saver_widgets
 
 # The same subtle translucent navy fill used by PiconHub panels. Enigma2
 # encodes transparency in the leading byte (00 opaque, ff transparent).
@@ -134,5 +135,8 @@ def make_skin(width, height):
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
         parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))
         parts.append('<eLabel zPosition="1" %s backgroundColor="%s" />' % (rect(x, 1051, 430, 4), color))
+    # Hidden until Radio playback activates the optional OLED saver.
+    saver_markup, _ = make_saver_widgets(scale, canvas_w, canvas_h)
+    parts.append(saver_markup)
     parts.append('</screen>')
     return ''.join(parts)
