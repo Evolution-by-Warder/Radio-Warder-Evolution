@@ -129,6 +129,8 @@ class Store:
         self.custom = self._items(data.get('custom'), 1000)
         self.group = clean(data.get('group', 'Slovensko'))
         self.show_main_menu = data.get('show_main_menu') is True
+        setting = data.get('screensaver_delay', 0)
+        self.screensaver_delay = setting if type(setting) is int and setting in (0, 10, 20, 30, 60) else 0
         self.recording_dir = '/media/hdd/WarderRadio'
 
     @staticmethod
@@ -148,7 +150,8 @@ class Store:
     def save(self):
         atomic_json(self.path, {'schema': 1, 'favourites': self.favourites,
                     'history': self.history, 'custom': self.custom, 'group': self.group,
-                    'show_main_menu': self.show_main_menu})
+                    'show_main_menu': self.show_main_menu,
+                    'screensaver_delay': self.screensaver_delay})
 
     def is_favourite(self, item):
         return any(row['id'] == item['id'] for row in self.favourites)
