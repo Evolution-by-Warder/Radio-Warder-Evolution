@@ -621,6 +621,9 @@ class WarderRadio(Screen):
             self.settings_form.refresh_playback()
             return
         self.metadata()
+        # Some images omit evStart for IPTV: arm after a successful station
+        # selection too. The native start callback may refresh the timer.
+        self._arm_saver()
 
     def started(self):
         if self.video_active:
@@ -639,14 +642,16 @@ class WarderRadio(Screen):
         if self.saver_active:
             self.spectrum.pause()
             self.saver_spectrum.resume()
+            self.saver_motion_timer.start(2000, True)
         else:
             self.saver_spectrum.pause()
             self.spectrum.resume()
             self._arm_saver()
 
     def _saver_window_hidden(self):
-        # Never trigger a saver over an external modal dialog.
+        # Do not animate the hidden radio window behind external dialogs.
         self.saver_timer.timer.stop()
+        self.saver_motion_timer.timer.stop()
         self.spectrum.pause()
         self.saver_spectrum.pause()
 
@@ -705,7 +710,7 @@ class WarderRadio(Screen):
         self.saver_cover.show(self.cover_display.path)
 
     def _saver_move(self):
-        if not self.saver_active or self.closed:
+        if not self.saver_active or self.closed or not getattr(self, 'shown', True):
             return
         self.saver_offset, self.saver_direction = bounded_motion(
             self.saver_offset, self.saver_direction)
@@ -1281,7 +1286,12 @@ class WarderRadio(Screen):
                 self.reset_artwork()
         self.settings_form.refresh_playback()
         if self.saver_active:
-            self._saver_refresh()
+            if not self.radio_running():
+                # Another image screen or service took over the tuner.
+                # Never leave an obsolete radio overlay visible.
+                self._saver_exit()
+            else:
+                self._saver_refresh()
         if self.recording_was_running:
             if self.recording.running():
                 self['details'].setText('● REC  ' + time.strftime('%H:%M:%S', time.gmtime(time.monotonic() - self.recording.started)))
