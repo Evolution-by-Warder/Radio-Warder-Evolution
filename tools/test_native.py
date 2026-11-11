@@ -459,6 +459,12 @@ class NativeTests(unittest.TestCase):
         playing = session.nav.current
         self.assertTrue(screen.playback.owns())
         self.assertIn((10000, True), screen.saver_timer.timer.starts)
+        # A modal may remain on top without toggling the parent "shown" flag.
+        # Verify native active-dialog guard before the saver becomes visible.
+        session.current_dialog = object()
+        screen._saver_start()
+        self.assertFalse(screen.saver_active)
+        session.current_dialog = screen
         screen._saver_start()
         self.assertTrue(screen.saver_active)
         self.assertTrue(screen['saver_black'].instance.isVisible())
@@ -469,6 +475,13 @@ class NativeTests(unittest.TestCase):
         screen._saver_move()
         after = screen['saver_station'].instance.attributes['position']
         self.assertNotEqual(before, after)
+        # No movement while another modal is in front; recover afterwards.
+        session.current_dialog = object()
+        screen._saver_move()
+        self.assertEqual(screen['saver_station'].instance.attributes['position'], after)
+        session.current_dialog = screen
+        screen._saver_move()
+        self.assertNotEqual(screen['saver_station'].instance.attributes['position'], after)
         self.assertIs(session.nav.current, playing)
         self.assertTrue(screen.playback.owns())
         # Hidden/modal screen pauses the saver motion rather than continuing
