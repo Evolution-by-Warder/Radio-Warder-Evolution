@@ -1571,10 +1571,10 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['yellow'].getText(),radio.t('Search'))
         # Remote handlers are intentionally wrapped to renew saver inactivity,
         # but must still delegate to the same yellow/blue actions.
-        for key, original in [('yellow', screen.search), ('blue', screen.blue_pressed)]:
+        for key, handler in [('yellow', screen.search), ('blue', screen.blue_pressed)]:
             wrapped = screen['actions'].actions[key]
             self.assertTrue(callable(wrapped))
-            self.assertIn(original, [cell.cell_contents for cell in wrapped.__closure__])
+            self.assertIn(handler, [cell.cell_contents for cell in wrapped.__closure__])
         screen.youtube_video(); self.assertEqual(len(callbacks),1)
         screen.options()
         self.assertIn((radio.t('Add station to favourites'),'favourite'),screen.settings_form.choices())
