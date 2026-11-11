@@ -438,6 +438,33 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.spectrum.running)
         screen.hide();screen.tick();self.assertFalse(screen.spectrum.running)
 
+    def test_black_saver_full_native_mount_keeps_radio_playing(self):
+        screen, session, _ = self.new()
+        screen.show()
+        screen.store.screensaver_delay = 10
+        screen.play()
+        screen.started()
+        playing = session.nav.current
+        self.assertTrue(screen.playback.owns())
+        self.assertIn((10000, True), screen.saver_timer.timer.starts)
+        screen._saver_start()
+        self.assertTrue(screen.saver_active)
+        self.assertTrue(screen['saver_black'].instance.isVisible())
+        self.assertTrue(screen['saver_cover'].instance.isVisible())
+        self.assertTrue(screen.saver_spectrum.running)
+        self.assertFalse(screen.spectrum.running)
+        before = screen['saver_station'].instance.attributes['position']
+        screen._saver_move()
+        after = screen['saver_station'].instance.attributes['position']
+        self.assertNotEqual(before, after)
+        self.assertIs(session.nav.current, playing)
+        self.assertTrue(screen.playback.owns())
+        screen._saver_exit()
+        self.assertFalse(screen.saver_active)
+        self.assertFalse(screen['saver_black'].instance.isVisible())
+        self.assertTrue(screen.spectrum.running)
+        self.assertIs(session.nav.current, playing)
+
     def test_settings_menu_and_nested_choices_stay_in_radio_with_green_confirmation(self):
         screen,session,_=self.new();screen.show();screen.play()
         screen['stations'].moveToIndex(4)
