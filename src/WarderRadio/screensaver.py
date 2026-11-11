@@ -9,8 +9,8 @@ from xml.sax.saxutils import escape
 # room for +-90px horizontal / +-60px vertical motion.
 _FIELDS = {}
 _PANELS = (
-    ('clockbox', (1060, 153, 425, 65)),
-    ('playingbox', (476, 236, 330, 48)),
+    ('clockbox', (488, 748, 835, 68)),
+    ('playingbox', (488, 236, 330, 48)),
     ('stationbox', (488, 304, 835, 109)),
     ('artbox', (488, 438, 280, 280)),
     ('songbox', (788, 438, 535, 179)),
@@ -63,9 +63,9 @@ def make_saver_widgets(scale, width, height):
             widget('saver_' + name + '_' + edge_name, box, bg=_CYAN, z=82)
 
     # Clock, small status, station/picon, current cover and track information.
-    widget('saver_date', (1080, 162, 230, 46), font=19, z=83, align='center')
-    widget('saver_time', (1310, 160, 165, 48), font=30, z=83, align='center')
-    widget('saver_head', (505, 243, 290, 32), font=22, z=83, text_color='#49e7ff')
+    widget('saver_date', (505, 759, 440, 46), font=19, z=83)
+    widget('saver_time', (955, 757, 190, 48), font=30, z=83)
+    widget('saver_head', (517, 243, 290, 32), font=22, z=83, text_color='#49e7ff')
     widget('saver_picon', (511, 316, 128, 84), kind='pixmap', z=84)
     widget('saver_station', (659, 320, 640, 44), font=29, z=83)
     widget('saver_group', (659, 368, 640, 34), font=21, z=83, text_color='#9fd3e8')
@@ -77,12 +77,10 @@ def make_saver_widgets(scale, width, height):
            z=83, text_color='#52deef')
     widget('saver_track', (812, 562, 492, 44), font=26, z=83)
     widget('saver_spectrum', (802, 649, 506, 61), kind='pixmap', z=84)
-    widget('saver_brand', (1050, 775, 345, 42), font=26, z=83,
-           text_color='#d7f5fc', align='right')
     return ''.join(snippets), positions
 
 
-def bounded_motion(offset, direction, step=(5, 3), limit=(90, 60)):
+def bounded_motion(offset, direction, step=(6, 4), limit=(90, 60)):
     """Bounded, reversible motion so all fields stay inside the TV raster."""
     new_offset, new_direction = [], []
     for coordinate, velocity, stride, bound in zip(offset, direction, step, limit):
