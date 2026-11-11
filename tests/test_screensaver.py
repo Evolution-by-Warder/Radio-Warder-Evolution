@@ -220,7 +220,7 @@ class SaverTests(unittest.TestCase):
         env = dict(allow_auto_saver=allow_auto_saver,
                    make_saver_widgets=make_saver_widgets,
                    bounded_motion=bounded_motion,
-                   clock_text=lambda: ('Streda', '11.11.2026', '20:17', '21'),
+                   clock_text=lambda: ('Streda', '11.11.2026', '20:17', ':21'),
                    t=lambda text:text, group_label=lambda name:name,
                    path_for=lambda station, library: '/tmp/picon.png',
                    ePoint=lambda x,y:(x,y))
