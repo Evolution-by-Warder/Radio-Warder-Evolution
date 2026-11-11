@@ -62,6 +62,7 @@ class SettingsForm:
         self.host, self.visible, self.view = host, False, 'menu'
         self.menu_index, self.pending_country = 0, None
         self.pending_main_menu = False
+        self.pending_saver_delay = 0
         self.text, self.cursor, self.station_name = '', 0, ''
         self.message_text, self.confirm_callback = '', None
         self.country_from_menu = True
@@ -98,6 +99,8 @@ class SettingsForm:
                    (t('Stop radio playback' if host.radio_running() else 'Start radio playback'), 'stop'),
                    (t('Show in Enigma2 main menu') + ': ' +
                     t('Yes' if host.store.show_main_menu else 'No'), 'main-menu-toggle'),
+                   (t('Screensaver after') + ': ' +
+                    (t('Off') if host.store.screensaver_delay == 0 else str(host.store.screensaver_delay) + ' s'), 'saver-delay'),
                    (t('About'), 'about')]
         if host.settings_return[0] == 'recordings':
             choices.insert(0, (t('Delete'), 'delete-recording'))
@@ -122,7 +125,8 @@ class SettingsForm:
             (host[name].show if show else host[name].hide)()
         title = {'menu': 'Settings', 'countries': 'Choose country', 'name': 'Station name',
                  'url': 'Stream URL', 'about': 'About', 'confirm': 'Information',
-                 'main-menu': 'Show in Enigma2 main menu'}[self.view]
+                 'main-menu': 'Show in Enigma2 main menu',
+                 'saver-delay': 'Screensaver after'}[self.view]
         host['settings_title'].setText(t(title))
         options = host['settings_options']; index = options.getSelectionIndex()
         if self.view == 'menu':
@@ -130,6 +134,10 @@ class SettingsForm:
         elif self.view == 'main-menu':
             rows = [(t('Yes'), True, self.pending_main_menu),
                     (t('No'), False, not self.pending_main_menu)]
+        elif self.view == 'saver-delay':
+            rows = [(t('Off') if seconds == 0 else str(seconds) + ' s', seconds,
+                     seconds == self.pending_saver_delay)
+                    for seconds in (0, 10, 20, 30, 60)]
         elif self.view == 'countries':
             rows = [(group_label(group), group, group == self.pending_country)
                     for group in host.catalogue.groups()]
@@ -178,6 +186,11 @@ class SettingsForm:
             if row:
                 self.pending_main_menu = row[1]
                 self.refresh()
+        elif self.view == 'saver-delay':
+            row = self.host['settings_options'].getCurrent()
+            if row:
+                self.pending_saver_delay = row[1]
+                self.refresh()
         elif self.view in ('name', 'url'):
             key = self.host['settings_keys'].key()
             if key == '⌫': self.erase()
@@ -193,6 +206,15 @@ class SettingsForm:
             self.refresh()
         elif self.view == 'about':
             self.back()
+
+    def saver_delay(self):
+        self.view = 'saver-delay'
+        self.pending_saver_delay = self.host.store.screensaver_delay
+        self.host['settings_status'].setText('')
+        self.refresh()
+        self.host['settings_options'].moveToIndex(
+            (0, 10, 20, 30, 60).index(self.pending_saver_delay))
+        self.host.set_focus(self.focus_name)
 
     def main_menu(self):
         self.view = 'main-menu'
@@ -212,6 +234,11 @@ class SettingsForm:
             if row:
                 self.pending_main_menu = row[1]
                 self.refresh()
+        elif self.view == 'saver-delay':
+            row = self.host['settings_options'].getCurrent()
+            if row:
+                self.pending_saver_delay = row[1]
+                self.refresh()
 
     def green(self):
         if self.host.closed or self.host.installing:
@@ -220,6 +247,21 @@ class SettingsForm:
             row = self.host['settings_options'].getCurrent()
             if row:
                 self.host.group_done(row)
+        elif self.view == 'saver-delay':
+            row = self.host['settings_options'].getCurrent()
+            if row is None:
+                return
+            previous = self.host.store.screensaver_delay
+            self.host.store.screensaver_delay = row[1]
+            try:
+                self.host.store.save()
+            except OSError:
+                self.host.store.screensaver_delay = previous
+                self.status(t('Could not save setting'))
+                return
+            self.host.saver_timer.timer.stop()
+            self.menu()
+            self.status(t('Screensaver setting saved'))
         elif self.view == 'main-menu':
             row = self.host['settings_options'].getCurrent()
             if not row:

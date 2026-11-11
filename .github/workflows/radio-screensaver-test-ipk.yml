@@ -1,0 +1,43 @@
+name: Radio OLED screensaver test IPK (no release)
+on:
+  push:
+    branches: [feature/now-playing-screensaver-20261111]
+    paths:
+      - 'src/**'
+      - 'tools/build_ipk.py'
+      - 'tools/verify_ipk.py'
+      - 'tests/test_screensaver.py'
+      - '.github/workflows/radio-screensaver-test-ipk.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build private opt-in radio screensaver receiver IPK
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 tools/build_ipk.py --package-revision 5
+          python3 tools/verify_ipk.py
+      - name: Verify optional black screensaver
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 -m unittest discover -s tests -p test_screensaver.py -v
+      - name: Upload private test IPK (no release or update feed)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warder-radio-oled-screensaver-test-ipk
+          path: |
+            dist/*.ipk
+            dist/SHA256SUMS
+            dist/build.json
+          if-no-files-found: error

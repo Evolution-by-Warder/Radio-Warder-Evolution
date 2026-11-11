@@ -30,6 +30,7 @@ from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .header_clock import clock_text
 from .spectrum import Spectrum
+from .screensaver import make_saver_widgets, bounded_motion, allow_auto_saver
 from .covers import lookup_cover
 from .youtube import find_video, song_query
 from .video_player import VideoPlayer, dash_available
@@ -176,6 +177,23 @@ class WarderRadio(Screen):
         self.cover_display = CoverDisplay(self['art'], ePicLoad, os.path.join(ROOT, 'plugin.png'),
                                           lambda: self['nowlabel'].setText(''))
         self['activity'] = Pixmap()
+        # OLED saver is a native overlay, not another player or modal screen.
+        _, self.saver_positions = make_saver_widgets(
+            self.ui_scale, round(1920 * self.ui_scale), round(1080 * self.ui_scale))
+        self.saver_active = False
+        # One-shot inactivity countdown is restored when last-station autoplay
+        # begins, including slow IPTV streams and startup update checks.
+        self.saver_timer_armed = False
+        self.saver_offset = (0, 0)
+        self.saver_direction = (1, 1)
+        self.saver_picon_id = None
+        self.saver_text_cache = {}
+        self.saver_modal_suspended = False
+        for name in self.saver_positions:
+            self[name] = Pixmap() if name in ('saver_cover', 'saver_picon', 'saver_spectrum') else Label('')
+            self[name].hide()
+        self.saver_cover = CoverDisplay(self['saver_cover'], ePicLoad, os.path.join(ROOT, 'plugin.png'))
+        self.saver_picon = CoverDisplay(self['saver_picon'], ePicLoad, os.path.join(ROOT, 'plugin.png'))
         self.picon_form = PiconForm(self, self.store.directory, self.ui_scale)
         self.settings_return = ('radio', '', 0, 'stations')
         self.settings_form = SettingsForm(self, self.ui_scale)
@@ -190,14 +208,30 @@ class WarderRadio(Screen):
         self['green'].setText(t('Play'))
         self['yellow'].setText(t('Search'))
         self['blue'].setText(t('YouTube video'))
-        self['actions'] = ActionMap(['WarderRadioActions'], {
+        self['saver_actions'] = ActionMap(['WarderRadioActions', 'OkCancelActions'], {
+            'ok': self._saver_wake, 'cancel': self._saver_wake,
+            'red': self._saver_wake, 'green': self._saver_wake,
+            'yellow': self._saver_wake, 'blue': self._saver_wake,
+            'left': self._saver_wake, 'right': self._saver_wake,
+            'up': self._saver_wake, 'down': self._saver_wake,
+            'menu': self._saver_wake, 'pageUp': self._saver_wake,
+            'pageDown': self._saver_wake, 'country': self._saver_wake,
+            'stop': self._saver_wake, 'instantRecord': self._saver_wake,
+            'update': self._saver_wake,
+        }, -4)
+        self['saver_actions'].setEnabled(False)
+        # User activity restarts the idle delay. Normal navigation must never
+        # be interrupted by a saver armed at station selection time.
+        radio_actions = {
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
             'country': self.focus_country,
             'green': self.green_pressed, 'yellow': self.search, 'blue': self.blue_pressed,
             'menu': self.options, 'pageDown': self.page_down, 'pageUp': self.page_up,
             'instantRecord': self.toggle_recording, 'stop': self.stop, 'update': self.manual_update,
-        }, -2)
+        }
+        self['actions'] = ActionMap(['WarderRadioActions'],
+            {key: self._saver_user_action(action) for key, action in radio_actions.items()}, -2)
         events = {}
         for event, callback in [('evUpdatedInfo', self.metadata), ('evStart', self.started),
                                 ('evEOF', self.ended), ('evTuneFailed', self.failed)]:
@@ -207,10 +241,15 @@ class WarderRadio(Screen):
         self.poll_timer = Timer(self.poll)
         self.clock_timer = Timer(self.tick)
         self.startup_timer = Timer(self.finish_startup)
+        self.saver_timer = Timer(self._saver_start)
+        self.saver_motion_timer = Timer(self._saver_move)
+        self.saver_spectrum = Spectrum(
+            self['saver_spectrum'], lambda: self.saver_active and self.radio_running(),
+            Timer, LoadPixmap)
         self.spectrum = Spectrum(self['activity'], lambda: self.playing and self.playback.owns(),
                                  Timer, LoadPixmap)
-        self.onShow.append(self.spectrum.resume)
-        self.onHide.append(self.spectrum.pause)
+        self.onShow.append(self._saver_window_shown)
+        self.onHide.append(self._saver_window_hidden)
         self.onLayoutFinish.append(self.ready)
         self.onClose.append(self.cleanup)
 
@@ -561,6 +600,9 @@ class WarderRadio(Screen):
     def play_item(self, item, remember=True):
         if item is None:
             return
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         self.video_generation += 1
         self.video_pending = False
         self.playing = False
@@ -588,6 +630,9 @@ class WarderRadio(Screen):
             self.settings_form.refresh_playback()
             return
         self.metadata()
+        # Some images omit evStart for IPTV: arm after a successful station
+        # selection too. The native start callback may refresh the timer.
+        self._arm_saver()
 
     def started(self):
         if self.video_active:
@@ -598,12 +643,194 @@ class WarderRadio(Screen):
             self.spectrum.resume()
             self.sync_spectrum()
             self.settings_form.refresh_playback()
+            self._arm_saver()
+
+    def _saver_user_action(self, action):
+        """Wrap normal radio remote keys with inexpensive idle timer restart."""
+        def call():
+            self.saver_timer.timer.stop()
+            try:
+                return action()
+            finally:
+                if not self.closed and not self.saver_active:
+                    self._arm_saver()
+        return call
+
+    def _saver_wake(self):
+        """First remote press only wakes the normal radio menu, audio untouched."""
+        if self.saver_active:
+            self._saver_exit()
+            self._arm_saver()
+
+    def _saver_window_shown(self):
+        # A dialog may briefly hide the radio screen while its saver is active.
+        # Some image builds fire onShow before removing the foreground modal.
+        if self.saver_active:
+            self.spectrum.pause()
+            if self._saver_modal_open():
+                self.saver_modal_suspended = True
+                self.saver_spectrum.pause()
+            else:
+                self.saver_modal_suspended = False
+                self.saver_spectrum.resume()
+            self.saver_motion_timer.start(2000, True)
+        else:
+            self.saver_spectrum.pause()
+            self.spectrum.resume()
+            self._arm_saver()
+
+    def _saver_window_hidden(self):
+        # Do not animate the hidden radio window behind external dialogs.
+        self.saver_timer.timer.stop()
+        self.saver_timer_armed = False
+        self.saver_motion_timer.timer.stop()
+        self.spectrum.pause()
+        self.saver_spectrum.pause()
+        if self.saver_active:
+            self.saver_modal_suspended = True
+
+    def _saver_modal_open(self):
+        # Some image builds leave the parent Screen marked as shown while a
+        # modal dialog is in front. Never overlay a foreign active dialog.
+        current = getattr(getattr(self, 'session', None), 'current_dialog', None)
+        return current is not None and current is not self
+
+    def _arm_saver(self):
+        self.saver_timer.timer.stop()
+        self.saver_timer_armed = False
+        delay = self.store.screensaver_delay
+        if (not self.saver_active and getattr(self, 'shown', True) and
+                not self._saver_modal_open() and
+                not self.update_pending and self.update_result is None and
+                allow_auto_saver(
+                    delay, self.radio_running(), self.playback.owns(), self.mode,
+                    self.video_active or self.video_pending,
+                    self.installing or self.updating or self.update_window is not None,
+                    self.closed)):
+            self.saver_timer.start(delay * 1000, True)
+            self.saver_timer_armed = True
+
+    def _saver_auto_restore(self):
+        """Recover the saved countdown after last-station autoplay/UI startup.
+
+        An update check or an early onShow can suppress the first arm. Poll
+        only until a timer is armed, never reset an existing countdown.
+        """
+        if (not self.saver_active and not self.saver_timer_armed
+                and not self.starting and not self.closed
+                and self.store.screensaver_delay in (10, 20, 30, 60)):
+            self._arm_saver()
+
+    def _saver_start(self):
+        self.saver_timer_armed = False
+        if (self.saver_active or not getattr(self, 'shown', True) or
+                self._saver_modal_open() or
+                self.update_pending or self.update_result is not None or
+                not allow_auto_saver(
+                    self.store.screensaver_delay, self.radio_running(),
+                    self.playback.owns(), self.mode,
+                    self.video_active or self.video_pending,
+                    self.installing or self.updating or self.update_window is not None,
+                    self.closed)):
+            return
+        self.saver_active = True
+        self.saver_modal_suspended = False
+        self.saver_offset, self.saver_direction = (0, 0), (1, 1)
+        self.saver_picon_id = None
+        self.saver_text_cache.clear()
+        for name in self.saver_positions:
+            self[name].show()
+        self['saver_actions'].setEnabled(True)
+        self.spectrum.pause()
+        self._saver_refresh()
+        self.saver_spectrum.resume()
+        self.saver_motion_timer.start(2000, True)
+
+    def _saver_set_text(self, name, value):
+        # The clock updates every second; metadata/station labels are only
+        # touched when their actual value changes. This avoids needless
+        # Enigma2 paint/skin work on lower-powered receivers.
+        if self.saver_text_cache.get(name) != value:
+            self.saver_text_cache[name] = value
+            self[name].setText(value)
+
+    def _saver_refresh(self):
+        if not self.saver_active:
+            return
+        # On some Enigma2 images a foreground modal does not trigger onHide.
+        # Suspend spectrum painting immediately and restart it only once the
+        # foreground dialog has gone; avoid repainting hidden metadata too.
+        if not getattr(self, 'shown', True) or self._saver_modal_open():
+            if not self.saver_modal_suspended:
+                self.saver_modal_suspended = True
+                self.saver_spectrum.pause()
+            return
+        if self.saver_modal_suspended:
+            self.saver_modal_suspended = False
+            self.saver_spectrum.resume()
+        day, date, hours, seconds = clock_text()
+        self._saver_set_text('saver_date', day + ' ' + date)
+        self._saver_set_text('saver_time', hours + seconds)
+        self._saver_set_text('saver_head', t('Now playing radio'))
+        self._saver_set_text('saver_artist_caption', t('Artist'))
+        self._saver_set_text('saver_track_caption', t('Song'))
+        station = self.playback.current or {}
+        self._saver_set_text('saver_station', station.get('name', '')[:90])
+        self._saver_set_text('saver_group', group_label(station.get('group', ''))[:100])
+        self._saver_set_text('saver_artist', (self['artist'].getText() or t('Waiting for song information'))[:100])
+        self._saver_set_text('saver_track', (self['track'].getText() or t('Waiting for song information'))[:120])
+        station_id = station.get('id', '')
+        if station_id != self.saver_picon_id:
+            self.saver_picon_id = station_id
+            self.saver_picon.show(path_for(station, self['stations'].picon_library))
+        # Parent cover worker already performs all network/cache lookups.
+        # Reuse its successful decoded path; no second cover request.
+        self.saver_cover.show(self.cover_display.path)
+
+    def _saver_move(self):
+        if not self.saver_active or self.closed or not getattr(self, 'shown', True):
+            return
+        if self._saver_modal_open():
+            # The parent may remain technically "shown" under a transparent
+            # modal. Suspend movement; the existing slow timer resumes after
+            # that modal closes, without any new GUI thread or painter.
+            self.saver_motion_timer.start(2000, True)
+            return
+        self.saver_offset, self.saver_direction = bounded_motion(
+            self.saver_offset, self.saver_direction)
+        dx, dy = (round(v * self.ui_scale) for v in self.saver_offset)
+        for name, (x, y, width, height) in self.saver_positions.items():
+            if name == 'saver_black':
+                continue
+            widget = self[name]
+            if widget.instance is not None:
+                widget.instance.move(ePoint(x + dx, y + dy))
+        # Throttle to one coordinated move every 2 seconds on slower boxes.
+        self.saver_motion_timer.start(2000, True)
+
+    def _saver_exit(self):
+        if not self.saver_active:
+            return
+        self.saver_active = False
+        self.saver_modal_suspended = False
+        self.saver_motion_timer.timer.stop()
+        self['saver_actions'].setEnabled(False)
+        self.saver_spectrum.pause()
+        for name, (x, y, width, height) in self.saver_positions.items():
+            self[name].hide()
+            if name != 'saver_black' and self[name].instance is not None:
+                self[name].instance.move(ePoint(x, y))
+        for loader in (self.saver_cover, self.saver_picon):
+            loader.token += 1
+            loader.disconnect()
+            loader.path = ''
+        self.sync_spectrum()
 
     def sync_spectrum(self):
         # Some image/session combinations resume the parent without an onShow
         # callback after closing a modal dialog. The normal clock is a bounded
         # watchdog for the existing animation timer, never a second painter.
-        if self.closed or self.video_active or not getattr(self, 'shown', True):
+        if self.closed or self.video_active or self.saver_active or not getattr(self, 'shown', True):
             self.spectrum.pause()
         else:
             self.spectrum.start()
@@ -649,6 +876,9 @@ class WarderRadio(Screen):
         self.settings_form.refresh_playback()
 
     def ended(self):
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         if self.video_active:
             return
         self.reset_artwork()
@@ -660,6 +890,9 @@ class WarderRadio(Screen):
         self.settings_form.refresh_playback()
 
     def failed(self):
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         if self.video_active:
             return
         self.reset_artwork()
@@ -688,6 +921,9 @@ class WarderRadio(Screen):
             self.settings_form.refresh_playback()
 
     def stop(self):
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         self.startup_autoplay = False
         self.video_generation += 1
         self.video_pending = False
@@ -878,6 +1114,9 @@ class WarderRadio(Screen):
         self.settings_form.confirm_callback = None
         self.refresh_rows(); self['stations'].moveToIndex(index)
         self.set_focus(focus); self.sync_spectrum()
+        # Setting a delay during existing playback takes effect when the
+        # settings panel closes, not while the user is still configuring it.
+        self._arm_saver()
 
     def option_done(self, choice):
         if not choice or self.closed:
@@ -905,6 +1144,8 @@ class WarderRadio(Screen):
             self.toggle_radio_playback()
         elif action == 'main-menu-toggle':
             self.settings_form.main_menu()
+        elif action == 'saver-delay':
+            self.settings_form.saver_delay()
         elif action == 'about':
             if self.mode != 'settings':
                 self.open_settings()
@@ -1129,6 +1370,15 @@ class WarderRadio(Screen):
             if self.cover_key:
                 self.reset_artwork()
         self.settings_form.refresh_playback()
+        if not self.saver_active:
+            self._saver_auto_restore()
+        if self.saver_active:
+            if not self.radio_running():
+                # Another image screen or service took over the tuner.
+                # Never leave an obsolete radio overlay visible.
+                self._saver_exit()
+            else:
+                self._saver_refresh()
         if self.recording_was_running:
             if self.recording.running():
                 self['details'].setText('● REC  ' + time.strftime('%H:%M:%S', time.gmtime(time.monotonic() - self.recording.started)))
@@ -1302,6 +1552,11 @@ class WarderRadio(Screen):
             self.update_window.cleanup()
         self.poll_timer.close()
         self.clock_timer.close()
+        self.saver_timer.close()
+        self.saver_motion_timer.close()
+        self.saver_spectrum.close()
+        self.saver_cover.close()
+        self.saver_picon.close()
         self.startup_timer.close()
         self.spectrum.close()
         self.cover_display.close()

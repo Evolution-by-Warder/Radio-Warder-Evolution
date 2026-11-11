@@ -438,6 +438,81 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.spectrum.running)
         screen.hide();screen.tick();self.assertFalse(screen.spectrum.running)
 
+    def test_black_saver_full_native_mount_keeps_radio_playing(self):
+        screen, session, _ = self.new()
+        screen.show()
+        # An opt-in saver must remain entirely hidden on ordinary radio entry.
+        self.assertFalse(screen['saver_black'].instance.isVisible())
+        self.assertFalse(screen['saver_cover'].instance.isVisible())
+        screen.store.screensaver_delay = 10
+        screen.play()
+        # A background startup update check may defer first activation.
+        # The saved timer should arm when that check finishes, even if no
+        # IPTV evStart is delivered and the user touches no keys.
+        screen.update_pending = False
+        screen._saver_auto_restore()
+        self.assertIn((10000, True), screen.saver_timer.timer.starts)
+        before_activity = len(screen.saver_timer.timer.starts)
+        # Ordinary navigation must renew the idle countdown rather than
+        # allowing the saver to interrupt a listener browsing stations.
+        screen['actions'].actions['down']()
+        self.assertGreater(len(screen.saver_timer.timer.starts), before_activity)
+        self.assertFalse(screen.saver_active)
+        screen.started()
+        playing = session.nav.current
+        self.assertTrue(screen.playback.owns())
+        self.assertIn((10000, True), screen.saver_timer.timer.starts)
+        # A modal may remain on top without toggling the parent "shown" flag.
+        # Verify native active-dialog guard before the saver becomes visible.
+        session.current_dialog = object()
+        screen._saver_start()
+        self.assertFalse(screen.saver_active)
+        session.current_dialog = screen
+        screen._saver_start()
+        self.assertTrue(screen.saver_active)
+        self.assertTrue(screen['saver_black'].instance.isVisible())
+        self.assertTrue(screen['saver_cover'].instance.isVisible())
+        self.assertTrue(screen.saver_spectrum.running)
+        self.assertFalse(screen.spectrum.running)
+        before = screen['saver_station'].instance.attributes['position']
+        screen._saver_move()
+        after = screen['saver_station'].instance.attributes['position']
+        self.assertNotEqual(before, after)
+        # No movement while another modal is in front; recover afterwards.
+        session.current_dialog = object()
+        screen._saver_move()
+        self.assertEqual(screen['saver_station'].instance.attributes['position'], after)
+        session.current_dialog = screen
+        screen._saver_move()
+        self.assertNotEqual(screen['saver_station'].instance.attributes['position'], after)
+        self.assertIs(session.nav.current, playing)
+        self.assertTrue(screen.playback.owns())
+        # Hidden/modal screen pauses the saver motion rather than continuing
+        # to repaint off-screen, then resumes the same saver on return.
+        screen.hide()
+        self.assertFalse(screen.saver_spectrum.running)
+        self.assertFalse(screen.saver_motion_timer.timer.active)
+        screen.show()
+        self.assertTrue(screen.saver_spectrum.running)
+        self.assertTrue(screen.saver_motion_timer.timer.active)
+        # A regular OK must only wake the menu; never stop or retune radio.
+        self.assertTrue(screen['saver_actions'].enabled)
+        before_wake = len(screen.saver_timer.timer.starts)
+        screen['saver_actions'].actions['ok']()
+        self.assertGreater(len(screen.saver_timer.timer.starts), before_wake)
+        self.assertFalse(screen.saver_active)
+        self.assertFalse(screen['saver_black'].instance.isVisible())
+        self.assertTrue(screen.spectrum.running)
+        self.assertIs(session.nav.current, playing)
+        # External service takeover automatically dismisses the saver.
+        screen._saver_start()
+        self.assertTrue(screen.saver_active)
+        unrelated = Reference('external TV')
+        session.nav.current = unrelated
+        screen.tick()
+        self.assertFalse(screen.saver_active)
+        self.assertIs(session.nav.current, unrelated)
+
     def test_settings_menu_and_nested_choices_stay_in_radio_with_green_confirmation(self):
         screen,session,_=self.new();screen.show();screen.play()
         screen['stations'].moveToIndex(4)
@@ -450,12 +525,12 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['art'].instance.isVisible())
         self.assertEqual(screen['hint'].getText(),'')
         self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-        self.assertEqual(len(screen['settings_options'].list),9)
+        self.assertEqual(len(screen['settings_options'].list),10)
         screen.ok()
         screen['settings_options'].moveToIndex(1);screen.ok()
         self.assertEqual(screen.active_group,'Slovensko')
         screen.exit();self.assertEqual(screen.settings_form.view,'menu')
-        screen['settings_options'].moveToIndex(8);screen.ok()
+        screen['settings_options'].moveToIndex(9);screen.ok()
         self.assertEqual(screen.settings_form.view,'about')
         self.assertIn('Warder Radio',screen['settings_text'].getText())
         screen.green_pressed();self.assertEqual(screen.settings_form.view,'menu')
@@ -474,7 +549,8 @@ class NativeTests(unittest.TestCase):
         screen.options()
         self.assertFalse(screen.store.show_main_menu)
         self.assertEqual(screen['settings_options'].list[7][1], 'main-menu-toggle')
-        self.assertEqual(screen['settings_options'].list[8][1], 'about')
+        self.assertEqual(screen['settings_options'].list[8][1], 'saver-delay')
+        self.assertEqual(screen['settings_options'].list[9][1], 'about')
         screen['settings_options'].moveToIndex(7)
         screen.ok()
         self.assertEqual(screen.settings_form.view, 'main-menu')
@@ -498,6 +574,36 @@ class NativeTests(unittest.TestCase):
         screen['settings_options'].moveToIndex(1)
         screen.green_pressed()
         self.assertFalse(screen.store.show_main_menu)
+
+    def test_screensaver_delay_requires_green_and_back_discards_choice(self):
+        screen, _, _ = self.new()
+        screen.options()
+        self.assertEqual(screen.store.screensaver_delay, 0)
+        self.assertEqual(screen['settings_options'].list[8][1], 'saver-delay')
+        screen['settings_options'].moveToIndex(8)
+        screen.ok()
+        self.assertEqual(screen.settings_form.view, 'saver-delay')
+        self.assertEqual([r[1] for r in screen['settings_options'].list],
+                         [0, 10, 20, 30, 60])
+        screen['settings_options'].moveToIndex(1)
+        screen.ok()
+        self.assertEqual(screen.store.screensaver_delay, 0)
+        screen.exit()
+        self.assertEqual(screen.settings_form.view, 'menu')
+        self.assertEqual(screen.store.screensaver_delay, 0)
+        screen.ok()
+        self.assertEqual(screen.settings_form.view, 'saver-delay')
+        screen['settings_options'].moveToIndex(1)
+        screen.green_pressed()
+        self.assertEqual(screen.store.screensaver_delay, 10)
+        self.assertEqual(screen.settings_form.view, 'menu')
+        self.assertEqual(screen['settings_status'].getText(),
+                         radio.t('Screensaver setting saved'))
+        self.assertIn('10 s', screen['settings_options'].list[8][0])
+        screen.ok()
+        screen['settings_options'].moveToIndex(0)
+        screen.green_pressed()
+        self.assertEqual(screen.store.screensaver_delay, 0)
 
     def type_inside_settings(self,screen,text):
         keys=screen['settings_keys']
@@ -1463,8 +1569,12 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.video_pending); self.assertTrue(screen.playback.owns())
         self.assertEqual(screen['blue'].getText(),radio.t('YouTube video'))
         self.assertEqual(screen['yellow'].getText(),radio.t('Search'))
-        self.assertEqual(screen['actions'].actions['yellow'],screen.search)
-        self.assertEqual(screen['actions'].actions['blue'],screen.blue_pressed)
+        # Remote handlers are intentionally wrapped to renew saver inactivity,
+        # but must still delegate to the same yellow/blue actions.
+        for key, handler in [('yellow', screen.search), ('blue', screen.blue_pressed)]:
+            wrapped = screen['actions'].actions[key]
+            self.assertTrue(callable(wrapped))
+            self.assertIn(handler, [cell.cell_contents for cell in wrapped.__closure__])
         screen.youtube_video(); self.assertEqual(len(callbacks),1)
         screen.options()
         self.assertIn((radio.t('Add station to favourites'),'favourite'),screen.settings_form.choices())

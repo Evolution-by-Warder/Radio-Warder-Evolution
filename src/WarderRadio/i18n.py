@@ -118,6 +118,199 @@ _MAIN_MENU_TEXT = {
 
 
 
+_SAVER_TEXT = {
+    "al": {
+        "Screensaver after": "Kursyesi i ekranit pas",
+        "Off": "Fikur",
+        "Now playing radio": "Radioja po luan",
+        "Artist": "Artisti",
+        "Song": "Kënga",
+        "Waiting for song information": "Në pritje të të dhënave të këngës",
+        "Screensaver setting saved": "Cilësimi i kursyesit u ruajt"
+    },
+    "cs": {
+        "Screensaver after": "Spořič obrazovky po",
+        "Off": "Vypnuto",
+        "Now playing radio": "Právě hraje rádio",
+        "Artist": "Interpret",
+        "Song": "Skladba",
+        "Waiting for song information": "Čekám na údaje o skladbě",
+        "Screensaver setting saved": "Nastavení spořiče uloženo"
+    },
+    "de": {
+        "Screensaver after": "Bildschirmschoner nach",
+        "Off": "Aus",
+        "Now playing radio": "Radio läuft",
+        "Artist": "Interpret",
+        "Song": "Titel",
+        "Waiting for song information": "Warte auf Titelinformationen",
+        "Screensaver setting saved": "Bildschirmschoner gespeichert"
+    },
+    "el": {
+        "Screensaver after": "Προφύλαξη οθόνης μετά",
+        "Off": "Ανενεργό",
+        "Now playing radio": "Παίζει ραδιόφωνο",
+        "Artist": "Καλλιτέχνης",
+        "Song": "Τραγούδι",
+        "Waiting for song information": "Αναμονή στοιχείων τραγουδιού",
+        "Screensaver setting saved": "Η ρύθμιση προφύλαξης αποθηκεύτηκε"
+    },
+    "en": {
+        "Screensaver after": "Screensaver after",
+        "Off": "Off",
+        "Now playing radio": "Now playing radio",
+        "Artist": "Artist",
+        "Song": "Song",
+        "Waiting for song information": "Waiting for song information",
+        "Screensaver setting saved": "Screensaver setting saved"
+    },
+    "es": {
+        "Screensaver after": "Salvapantallas después de",
+        "Off": "Desactivado",
+        "Now playing radio": "Radio en reproducción",
+        "Artist": "Artista",
+        "Song": "Canción",
+        "Waiting for song information": "Esperando datos de la canción",
+        "Screensaver setting saved": "Ajuste del salvapantallas guardado"
+    },
+    "et": {
+        "Screensaver after": "Ekraanisäästja pärast",
+        "Off": "Väljas",
+        "Now playing radio": "Raadio mängib",
+        "Artist": "Esitaja",
+        "Song": "Lugu",
+        "Waiting for song information": "Ootan loo teavet",
+        "Screensaver setting saved": "Ekraanisäästja seadistus salvestatud"
+    },
+    "fa": {
+        "Screensaver after": "محافظ صفحه پس از",
+        "Off": "خاموش",
+        "Now playing radio": "رادیو در حال پخش",
+        "Artist": "هنرمند",
+        "Song": "آهنگ",
+        "Waiting for song information": "در انتظار اطلاعات آهنگ",
+        "Screensaver setting saved": "تنظیم محافظ صفحه ذخیره شد"
+    },
+    "fr": {
+        "Screensaver after": "Économiseur après",
+        "Off": "Désactivé",
+        "Now playing radio": "Radio en lecture",
+        "Artist": "Artiste",
+        "Song": "Titre",
+        "Waiting for song information": "En attente des informations du titre",
+        "Screensaver setting saved": "Économiseur enregistré"
+    },
+    "hu": {
+        "Screensaver after": "Képernyővédő ennyi idő után",
+        "Off": "Ki",
+        "Now playing radio": "Rádió lejátszás",
+        "Artist": "Előadó",
+        "Song": "Dal",
+        "Waiting for song information": "Várakozás a dal adataira",
+        "Screensaver setting saved": "Képernyővédő beállítása mentve"
+    },
+    "it": {
+        "Screensaver after": "Salvaschermo dopo",
+        "Off": "Disattivato",
+        "Now playing radio": "Radio in riproduzione",
+        "Artist": "Artista",
+        "Song": "Brano",
+        "Waiting for song information": "In attesa dei dati del brano",
+        "Screensaver setting saved": "Impostazione salvaschermo salvata"
+    },
+    "lt": {
+        "Screensaver after": "Ekrano užsklanda po",
+        "Off": "Išjungta",
+        "Now playing radio": "Grojamas radijas",
+        "Artist": "Atlikėjas",
+        "Song": "Daina",
+        "Waiting for song information": "Laukiama dainos duomenų",
+        "Screensaver setting saved": "Užsklandos nustatymas išsaugotas"
+    },
+    "nl": {
+        "Screensaver after": "Schermbeveiliging na",
+        "Off": "Uit",
+        "Now playing radio": "Radio speelt",
+        "Artist": "Artiest",
+        "Song": "Nummer",
+        "Waiting for song information": "Wachten op nummerinformatie",
+        "Screensaver setting saved": "Schermbeveiliging opgeslagen"
+    },
+    "pl": {
+        "Screensaver after": "Wygaszacz ekranu po",
+        "Off": "Wyłączony",
+        "Now playing radio": "Radio odtwarza",
+        "Artist": "Wykonawca",
+        "Song": "Utwór",
+        "Waiting for song information": "Oczekiwanie na informacje o utworze",
+        "Screensaver setting saved": "Ustawienie wygaszacza zapisane"
+    },
+    "pt": {
+        "Screensaver after": "Proteção de ecrã após",
+        "Off": "Desligado",
+        "Now playing radio": "Rádio em reprodução",
+        "Artist": "Artista",
+        "Song": "Música",
+        "Waiting for song information": "A aguardar dados da música",
+        "Screensaver setting saved": "Definição da proteção guardada"
+    },
+    "ro": {
+        "Screensaver after": "Economizor de ecran după",
+        "Off": "Dezactivat",
+        "Now playing radio": "Radio în redare",
+        "Artist": "Artist",
+        "Song": "Melodie",
+        "Waiting for song information": "Se așteaptă informații despre melodie",
+        "Screensaver setting saved": "Setarea economizorului salvată"
+    },
+    "ru": {
+        "Screensaver after": "Хранитель экрана через",
+        "Off": "Выкл.",
+        "Now playing radio": "Сейчас играет радио",
+        "Artist": "Исполнитель",
+        "Song": "Песня",
+        "Waiting for song information": "Ожидание информации о песне",
+        "Screensaver setting saved": "Настройка заставки сохранена"
+    },
+    "sk": {
+        "Screensaver after": "Šetrič obrazovky po",
+        "Off": "Vypnutý",
+        "Now playing radio": "Práve hrá rádio",
+        "Artist": "Interpret",
+        "Song": "Skladba",
+        "Waiting for song information": "Čakám na údaje o skladbe",
+        "Screensaver setting saved": "Nastavenie šetriča uložené"
+    },
+    "tr": {
+        "Screensaver after": "Ekran koruyucu süresi",
+        "Off": "Kapalı",
+        "Now playing radio": "Radyo çalıyor",
+        "Artist": "Sanatçı",
+        "Song": "Şarkı",
+        "Waiting for song information": "Şarkı bilgisi bekleniyor",
+        "Screensaver setting saved": "Ekran koruyucu ayarı kaydedildi"
+    },
+    "uk": {
+        "Screensaver after": "Заставка через",
+        "Off": "Вимкнено",
+        "Now playing radio": "Зараз грає радіо",
+        "Artist": "Виконавець",
+        "Song": "Пісня",
+        "Waiting for song information": "Очікування даних про пісню",
+        "Screensaver setting saved": "Налаштування заставки збережено"
+    },
+    "zh": {
+        "Screensaver after": "屏幕保护启动延时",
+        "Off": "关闭",
+        "Now playing radio": "电台正在播放",
+        "Artist": "歌手",
+        "Song": "歌曲",
+        "Waiting for song information": "等待歌曲信息",
+        "Screensaver setting saved": "屏幕保护设置已保存"
+    }
+}
+
+
 def language_code(value=None):
     if value is None:
         try:
@@ -136,6 +329,7 @@ def translations(code):
         with open(os.path.join(ROOT, 'locale', code + '.json'), encoding='utf-8') as handle:
             _CACHE[code] = json.load(handle)
         _CACHE[code].update(_MAIN_MENU_TEXT[code])
+        _CACHE[code].update(_SAVER_TEXT.get(code, {}))
     return _CACHE[code]
 
 
