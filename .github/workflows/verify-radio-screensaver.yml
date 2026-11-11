@@ -1,8 +1,5 @@
 name: Verify Radio OLED screensaver (no publishing)
 on:
-  push:
-    branches:
-      - feature/now-playing-screensaver-20261111
   pull_request:
     paths:
       - 'src/WarderRadio/screen.py'
@@ -15,6 +12,9 @@ on:
       - '.github/workflows/verify-radio-screensaver.yml'
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   saver:
     runs-on: ubuntu-latest
