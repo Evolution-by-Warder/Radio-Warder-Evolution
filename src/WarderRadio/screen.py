@@ -683,7 +683,7 @@ class WarderRadio(Screen):
                 not self.update_pending and self.update_result is None and
                 allow_auto_saver(
                     delay, self.radio_running(), self.playback.owns(), self.mode,
-                self.video_active or self.video_pending,
+                    self.video_active or self.video_pending,
                     self.installing or self.updating or self.update_window is not None,
                     self.closed)):
             self.saver_timer.start(delay * 1000, True)
