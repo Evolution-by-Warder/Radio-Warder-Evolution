@@ -752,7 +752,7 @@ class WarderRadio(Screen):
             self.saver_spectrum.resume()
         day, date, hours, seconds = clock_text()
         self._saver_set_text('saver_date', day + ' ' + date)
-        self._saver_set_text('saver_time', hours + ':' + seconds)
+        self._saver_set_text('saver_time', hours + seconds)
         self._saver_set_text('saver_head', t('Now playing radio'))
         self._saver_set_text('saver_artist_caption', t('Artist'))
         self._saver_set_text('saver_track_caption', t('Song'))
