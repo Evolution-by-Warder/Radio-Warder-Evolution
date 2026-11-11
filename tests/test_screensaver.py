@@ -175,6 +175,7 @@ class SaverTests(unittest.TestCase):
         obj.spectrum, obj.saver_spectrum = normal_spectrum, saver_spectrum
         obj.saver_picon, obj.saver_cover, obj.cover_display = picon, cover, parent_cover
         obj.radio_running = lambda: True
+        obj.sync_spectrum = lambda: None  # Bound on real Screen; stub for GUI-free fixture
         env = dict(allow_auto_saver=allow_auto_saver,
                    make_saver_widgets=make_saver_widgets,
                    bounded_motion=bounded_motion,
