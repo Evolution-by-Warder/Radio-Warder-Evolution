@@ -751,8 +751,13 @@ class WarderRadio(Screen):
         self.saver_cover.show(self.cover_display.path)
 
     def _saver_move(self):
-        if (not self.saver_active or self.closed or
-                not getattr(self, 'shown', True) or self._saver_modal_open()):
+        if not self.saver_active or self.closed or not getattr(self, 'shown', True):
+            return
+        if self._saver_modal_open():
+            # The parent may remain technically "shown" under a transparent
+            # modal. Suspend movement; the existing slow timer resumes after
+            # that modal closes, without any new GUI thread or painter.
+            self.saver_motion_timer.start(2000, True)
             return
         self.saver_offset, self.saver_direction = bounded_motion(
             self.saver_offset, self.saver_direction)
