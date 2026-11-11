@@ -204,25 +204,29 @@ class WarderRadio(Screen):
         self['yellow'].setText(t('Search'))
         self['blue'].setText(t('YouTube video'))
         self['saver_actions'] = ActionMap(['WarderRadioActions', 'OkCancelActions'], {
-            'ok': self._saver_exit, 'cancel': self._saver_exit,
-            'red': self._saver_exit, 'green': self._saver_exit,
-            'yellow': self._saver_exit, 'blue': self._saver_exit,
-            'left': self._saver_exit, 'right': self._saver_exit,
-            'up': self._saver_exit, 'down': self._saver_exit,
-            'menu': self._saver_exit, 'pageUp': self._saver_exit,
-            'pageDown': self._saver_exit, 'country': self._saver_exit,
-            'stop': self._saver_exit, 'instantRecord': self._saver_exit,
-            'update': self._saver_exit,
+            'ok': self._saver_wake, 'cancel': self._saver_wake,
+            'red': self._saver_wake, 'green': self._saver_wake,
+            'yellow': self._saver_wake, 'blue': self._saver_wake,
+            'left': self._saver_wake, 'right': self._saver_wake,
+            'up': self._saver_wake, 'down': self._saver_wake,
+            'menu': self._saver_wake, 'pageUp': self._saver_wake,
+            'pageDown': self._saver_wake, 'country': self._saver_wake,
+            'stop': self._saver_wake, 'instantRecord': self._saver_wake,
+            'update': self._saver_wake,
         }, -4)
         self['saver_actions'].setEnabled(False)
-        self['actions'] = ActionMap(['WarderRadioActions'], {
+        # User activity restarts the idle delay. Normal navigation must never
+        # be interrupted by a saver armed at station selection time.
+        radio_actions = {
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
             'country': self.focus_country,
             'green': self.green_pressed, 'yellow': self.search, 'blue': self.blue_pressed,
             'menu': self.options, 'pageDown': self.page_down, 'pageUp': self.page_up,
             'instantRecord': self.toggle_recording, 'stop': self.stop, 'update': self.manual_update,
-        }, -2)
+        }
+        self['actions'] = ActionMap(['WarderRadioActions'],
+            {key: self._saver_user_action(action) for key, action in radio_actions.items()}, -2)
         events = {}
         for event, callback in [('evUpdatedInfo', self.metadata), ('evStart', self.started),
                                 ('evEOF', self.ended), ('evTuneFailed', self.failed)]:
@@ -636,6 +640,23 @@ class WarderRadio(Screen):
             self.settings_form.refresh_playback()
             self._arm_saver()
 
+    def _saver_user_action(self, action):
+        """Wrap normal radio remote keys with inexpensive idle timer restart."""
+        def call():
+            self.saver_timer.timer.stop()
+            try:
+                return action()
+            finally:
+                if not self.closed and not self.saver_active:
+                    self._arm_saver()
+        return call
+
+    def _saver_wake(self):
+        """First remote press only wakes the normal radio menu, audio untouched."""
+        if self.saver_active:
+            self._saver_exit()
+            self._arm_saver()
+
     def _saver_window_shown(self):
         # A dialog may briefly hide the radio screen while its saver is active.
         # Resume only the one spectrum that is actually visible.
@@ -658,11 +679,13 @@ class WarderRadio(Screen):
     def _arm_saver(self):
         self.saver_timer.timer.stop()
         delay = self.store.screensaver_delay
-        if allow_auto_saver(
-                delay, self.radio_running(), self.playback.owns(), self.mode,
+        if (not self.saver_active and getattr(self, 'shown', True) and
+                not self.update_pending and self.update_result is None and
+                allow_auto_saver(
+                    delay, self.radio_running(), self.playback.owns(), self.mode,
                 self.video_active or self.video_pending,
-                self.installing or self.updating or self.update_window is not None,
-                self.closed):
+                    self.installing or self.updating or self.update_window is not None,
+                    self.closed)):
             self.saver_timer.start(delay * 1000, True)
 
     def _saver_start(self):
