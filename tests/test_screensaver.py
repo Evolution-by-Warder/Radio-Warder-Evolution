@@ -1,5 +1,7 @@
 """Offline geometry, saver state, playback wiring and migration regression."""
 import ast
+from datetime import datetime
+from unittest.mock import patch
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,6 +12,8 @@ from WarderRadio.model import Store
 from WarderRadio.skin import make_skin
 from WarderRadio.screensaver import make_saver_widgets, bounded_motion, allow_auto_saver
 from WarderRadio.i18n import SUPPORTED, translations
+from WarderRadio import i18n
+from WarderRadio.header_clock import clock_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -149,6 +153,23 @@ class SaverTests(unittest.TestCase):
         self.assertFalse(allow_auto_saver(10, True, False, 'radio', False, False, False))
         self.assertFalse(allow_auto_saver(10, True, True, 'radio', True, False, False))
         self.assertFalse(allow_auto_saver(10, True, True, 'radio', False, True, False))
+
+    def test_saver_labels_and_date_follow_enigma2_language(self):
+        now = datetime(2026, 11, 11, 22, 21, 3)
+        for code in SUPPORTED:
+            with self.subTest(language=code):
+                with patch.object(i18n, 'language_code', return_value=code):
+                    for key in ('Now playing radio', 'Artist', 'Song',
+                                'Waiting for song information'):
+                        self.assertEqual(i18n.t(key), translations(code)[key])
+                day, date, hours, seconds = clock_text(now, language=code)
+                self.assertTrue(day.strip() and date.strip())
+                self.assertIn('2026', date)
+                self.assertEqual((hours, seconds), ('22:21', ':03'))
+        self.assertNotEqual(clock_text(now, language='sk')[:2],
+                            clock_text(now, language='de')[:2])
+        self.assertNotEqual(translations('sk')['Now playing radio'],
+                            translations('en')['Now playing radio'])
 
     def test_live_data_and_saver_lifecycle_without_native_gui(self):
         scale = 1.0
