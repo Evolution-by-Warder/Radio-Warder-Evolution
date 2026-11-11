@@ -449,6 +449,12 @@ class NativeTests(unittest.TestCase):
         # Playback event may be missing for IPTV on some images; station
         # selection must arm the 10-second timer even without evStart.
         self.assertIn((10000, True), screen.saver_timer.timer.starts)
+        before_activity = len(screen.saver_timer.timer.starts)
+        # Ordinary navigation must renew the idle countdown rather than
+        # allowing the saver to interrupt a listener browsing stations.
+        screen['actions'].actions['down']()
+        self.assertGreater(len(screen.saver_timer.timer.starts), before_activity)
+        self.assertFalse(screen.saver_active)
         screen.started()
         playing = session.nav.current
         self.assertTrue(screen.playback.owns())
@@ -475,7 +481,9 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.saver_motion_timer.timer.active)
         # A regular OK must only wake the menu; never stop or retune radio.
         self.assertTrue(screen['saver_actions'].enabled)
+        before_wake = len(screen.saver_timer.timer.starts)
         screen['saver_actions'].actions['ok']()
+        self.assertGreater(len(screen.saver_timer.timer.starts), before_wake)
         self.assertFalse(screen.saver_active)
         self.assertFalse(screen['saver_black'].instance.isVisible())
         self.assertTrue(screen.spectrum.running)
