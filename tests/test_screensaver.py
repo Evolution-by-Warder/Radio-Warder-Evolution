@@ -237,7 +237,13 @@ class SaverTests(unittest.TestCase):
         obj._saver_refresh()
         self.assertTrue(obj.saver_modal_suspended)
         obj.shown = True
+        obj.session.current_dialog = object()
         obj._saver_window_shown()
+        self.assertTrue(obj.saver_modal_suspended,
+                        'onShow must not resume spectrum behind a modal')
+        self.assertEqual(saver_events[-1], 'pause')
+        obj.session.current_dialog = None
+        obj._saver_refresh()
         self.assertFalse(obj.saver_modal_suspended)
         self.assertEqual(saver_events[-1], 'resume')
         obj._saver_exit()
