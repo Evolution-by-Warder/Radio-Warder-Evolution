@@ -96,6 +96,26 @@ class SaverTests(unittest.TestCase):
                 next(n.get('backgroundColor') for n in full.findall('widget')
                      if n.get('name') == 'saver_black'), '#000000')
 
+    def test_approved_compact_layout_and_gentle_motion(self):
+        _, positions = make_saver_widgets(1, 1920, 1080)
+        head = positions['saver_playingbox_fill']
+        station = positions['saver_stationbox_fill']
+        artwork = positions['saver_artbox_fill']
+        spectrum = positions['saver_spectrumbox_fill']
+        clock = positions['saver_clockbox_fill']
+        self.assertEqual(head[0], station[0],
+                         'Now-playing header aligns with the station box')
+        self.assertEqual(clock[0], artwork[0],
+                         'Clock box aligns with the artwork left edge')
+        self.assertGreaterEqual(clock[1], max(
+            artwork[1] + artwork[3], spectrum[1] + spectrum[3]) + 20,
+            'Clock is underneath artwork and spectrum, not above the station')
+        self.assertTrue(clock[0] < positions['saver_date'][0])
+        self.assertTrue(clock[0] < positions['saver_time'][0])
+        self.assertNotIn('saver_brand', positions)
+        self.assertEqual(bounded_motion((0, 0), (1, 1)),
+                         ((6, 4), (1, 1)))
+
     def test_bounce_never_crosses_limits_and_changes_direction(self):
         offset, direction = (0, 0), (1, 1)
         visited = []
