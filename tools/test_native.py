@@ -446,8 +446,11 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['saver_cover'].instance.isVisible())
         screen.store.screensaver_delay = 10
         screen.play()
-        # Playback event may be missing for IPTV on some images; station
-        # selection must arm the 10-second timer even without evStart.
+        # A background startup update check may defer first activation.
+        # The saved timer should arm when that check finishes, even if no
+        # IPTV evStart is delivered and the user touches no keys.
+        screen.update_pending = False
+        screen._saver_auto_restore()
         self.assertIn((10000, True), screen.saver_timer.timer.starts)
         before_activity = len(screen.saver_timer.timer.starts)
         # Ordinary navigation must renew the idle countdown rather than
@@ -1566,8 +1569,12 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.video_pending); self.assertTrue(screen.playback.owns())
         self.assertEqual(screen['blue'].getText(),radio.t('YouTube video'))
         self.assertEqual(screen['yellow'].getText(),radio.t('Search'))
-        self.assertEqual(screen['actions'].actions['yellow'],screen.search)
-        self.assertEqual(screen['actions'].actions['blue'],screen.blue_pressed)
+        # Remote handlers are intentionally wrapped to renew saver inactivity,
+        # but must still delegate to the same yellow/blue actions.
+        for key, original in [('yellow', screen.search), ('blue', screen.blue_pressed)]:
+            wrapped = screen['actions'].actions[key]
+            self.assertTrue(callable(wrapped))
+            self.assertIn(original, [cell.cell_contents for cell in wrapped.__closure__])
         screen.youtube_video(); self.assertEqual(len(callbacks),1)
         screen.options()
         self.assertIn((radio.t('Add station to favourites'),'favourite'),screen.settings_form.choices())
