@@ -441,6 +441,9 @@ class NativeTests(unittest.TestCase):
     def test_black_saver_full_native_mount_keeps_radio_playing(self):
         screen, session, _ = self.new()
         screen.show()
+        # An opt-in saver must remain entirely hidden on ordinary radio entry.
+        self.assertFalse(screen['saver_black'].instance.isVisible())
+        self.assertFalse(screen['saver_cover'].instance.isVisible())
         screen.store.screensaver_delay = 10
         screen.play()
         screen.started()
