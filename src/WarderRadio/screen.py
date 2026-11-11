@@ -756,7 +756,6 @@ class WarderRadio(Screen):
         self._saver_set_text('saver_head', t('Now playing radio'))
         self._saver_set_text('saver_artist_caption', t('Artist'))
         self._saver_set_text('saver_track_caption', t('Song'))
-        self._saver_set_text('saver_brand', 'Radio by Warder')
         station = self.playback.current or {}
         self._saver_set_text('saver_station', station.get('name', '')[:90])
         self._saver_set_text('saver_group', group_label(station.get('group', ''))[:100])
