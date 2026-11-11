@@ -1,3 +1,25 @@
+# 0.1.9.4 (Radio OLED screensaver — owner-tested)
+
+- Add the optional native black Radio screensaver, confirmed working by the
+  project owner on a receiver. It shows live station/picon, artist, song,
+  cover, spectrum, and localized date/time.
+- Keep the approved compact, cyan-bordered panels together during bounded
+  slow movement; omit the lower brand caption, align the Now Playing header
+  with the station panel and put date/time below artwork and spectrum.
+- Remember the selected idle delay (Off / 10 / 20 / 30 / 60 seconds) after
+  closing and reopening the plugin. On last-station autoplay, rearm the delay
+  automatically; user interaction resets it, and the first remote key wakes
+  the normal radio menu without interrupting audio.
+- Make the movement a little quicker (7×5 reference pixels every 2 seconds)
+  without increasing the paint interval. Reuse the normal player, cover
+  lookup/cache and spectrum frames; prevent overlay while modal windows or
+  video/updates are in the foreground.
+- Use the active Enigma2 system language, including the localized calendar,
+  for all 21 supported Radio languages. Keep the clock punctuation correct.
+- Preserve normal Radio UI and the existing stored favourites, history,
+  picons, recordings and other settings. The screensaver remains disabled
+  by default on fresh installations.
+
 # 0.1.9.3 (Radio shortcut and settings polish)
 
 - Add an optional Radio by Warder shortcut to the Enigma2 main menu (default
