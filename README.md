@@ -16,7 +16,16 @@ rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históri
 piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
 aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
 
-Current release: **0.1.9.2**, with a Settings action that switches between Stop
+Current release: **0.1.9.4**. The optional black Radio OLED screensaver
+shows the live station, picon, song/artist, existing album art, native spectrum,
+and localized clock in compact, gently moving panels. Choose **Settings →
+Screensaver after**: Off / 10 / 20 / 30 / 60 seconds. The saved delay persists
+across plugin restarts: when the last radio station autoplays, the saver starts
+after the selected idle time without additional action. Any remote key wakes the
+radio menu without stopping playback. The default remains Off. All 21 Radio
+languages follow the active Enigma2 language.
+
+Previous radio functionality includes a Settings action that switches between Stop
 radio playback and Start radio playback. Starting restores the stopped radio
 even after a different station is highlighted, without adding duplicate history.
 Picon download progress, ordered log and final
