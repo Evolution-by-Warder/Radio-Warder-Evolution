@@ -642,8 +642,11 @@ class WarderRadio(Screen):
         else:
             self.saver_spectrum.pause()
             self.spectrum.resume()
+            self._arm_saver()
 
     def _saver_window_hidden(self):
+        # Never trigger a saver over an external modal dialog.
+        self.saver_timer.timer.stop()
         self.spectrum.pause()
         self.saver_spectrum.pause()
 
@@ -659,6 +662,7 @@ class WarderRadio(Screen):
 
     def _saver_start(self):
         if (self.saver_active or not getattr(self, 'shown', True) or
+                self.update_pending or self.update_result is not None or
                 not allow_auto_saver(
                     self.store.screensaver_delay, self.radio_running(),
                     self.playback.owns(), self.mode,
@@ -1020,6 +1024,9 @@ class WarderRadio(Screen):
         self.settings_form.confirm_callback = None
         self.refresh_rows(); self['stations'].moveToIndex(index)
         self.set_focus(focus); self.sync_spectrum()
+        # Setting a delay during existing playback takes effect when the
+        # settings panel closes, not while the user is still configuring it.
+        self._arm_saver()
 
     def option_done(self, choice):
         if not choice or self.closed:
