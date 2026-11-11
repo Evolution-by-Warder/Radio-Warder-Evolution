@@ -446,6 +446,9 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['saver_cover'].instance.isVisible())
         screen.store.screensaver_delay = 10
         screen.play()
+        # Playback event may be missing for IPTV on some images; station
+        # selection must arm the 10-second timer even without evStart.
+        self.assertIn((10000, True), screen.saver_timer.timer.starts)
         screen.started()
         playing = session.nav.current
         self.assertTrue(screen.playback.owns())
@@ -462,11 +465,29 @@ class NativeTests(unittest.TestCase):
         self.assertNotEqual(before, after)
         self.assertIs(session.nav.current, playing)
         self.assertTrue(screen.playback.owns())
-        screen._saver_exit()
+        # Hidden/modal screen pauses the saver motion rather than continuing
+        # to repaint off-screen, then resumes the same saver on return.
+        screen.hide()
+        self.assertFalse(screen.saver_spectrum.running)
+        self.assertFalse(screen.saver_motion_timer.timer.active)
+        screen.show()
+        self.assertTrue(screen.saver_spectrum.running)
+        self.assertTrue(screen.saver_motion_timer.timer.active)
+        # A regular OK must only wake the menu; never stop or retune radio.
+        self.assertTrue(screen['saver_actions'].enabled)
+        screen['saver_actions'].actions['ok']()
         self.assertFalse(screen.saver_active)
         self.assertFalse(screen['saver_black'].instance.isVisible())
         self.assertTrue(screen.spectrum.running)
         self.assertIs(session.nav.current, playing)
+        # External service takeover automatically dismisses the saver.
+        screen._saver_start()
+        self.assertTrue(screen.saver_active)
+        unrelated = Reference('external TV')
+        session.nav.current = unrelated
+        screen.tick()
+        self.assertFalse(screen.saver_active)
+        self.assertIs(session.nav.current, unrelated)
 
     def test_settings_menu_and_nested_choices_stay_in_radio_with_green_confirmation(self):
         screen,session,_=self.new();screen.show();screen.play()
