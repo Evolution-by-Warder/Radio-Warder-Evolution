@@ -143,7 +143,10 @@ class SaverTests(unittest.TestCase):
         parent_cover = Image()
         parent_cover.path = '/tmp/song-cover.jpg'
         normal_spectrum = SimpleNamespace(pause=lambda:None, resume=lambda:None)
-        saver_spectrum = SimpleNamespace(pause=lambda:None, resume=lambda:None)
+        saver_events = []
+        saver_spectrum = SimpleNamespace(
+            pause=lambda: saver_events.append('pause'),
+            resume=lambda: saver_events.append('resume'))
         class Fake:
             def __getitem__(self, name):
                 return fields[name]
@@ -153,6 +156,7 @@ class SaverTests(unittest.TestCase):
         obj.saver_offset, obj.saver_direction = (0, 0), (1, 1)
         obj.saver_picon_id = None
         obj.saver_text_cache = {}
+        obj.saver_modal_suspended = False
         obj.playing = True
         obj.closed = obj.video_active = obj.video_pending = False
         obj.installing = obj.updating = False
@@ -179,7 +183,8 @@ class SaverTests(unittest.TestCase):
                    path_for=lambda station, library: '/tmp/picon.png',
                    ePoint=lambda x,y:(x,y))
         for name in ('_arm_saver', '_saver_start', '_saver_refresh',
-                     '_saver_set_text', '_saver_modal_open', '_saver_move', '_saver_exit'):
+                     '_saver_set_text', '_saver_modal_open', '_saver_move',
+                     '_saver_exit', '_saver_window_shown', '_saver_window_hidden'):
             setattr(Fake, name, function(name, env))
         obj._arm_saver()
         self.assertEqual(obj.saver_timer.started[-1], (10000, True))
@@ -211,10 +216,30 @@ class SaverTests(unittest.TestCase):
         obj._saver_move()
         self.assertEqual(len(fields['saver_artist'].moves), saved_moves,
                          'Do not move fields behind a foreground modal')
+        obj._saver_refresh()
+        self.assertTrue(obj.saver_modal_suspended)
+        self.assertEqual(saver_events[-1], 'pause')
+        paused_events = len(saver_events)
+        obj._saver_refresh()
+        self.assertEqual(len(saver_events), paused_events,
+                         'Do not repeatedly stop an already paused spectrum')
         obj.session.current_dialog = None
+        obj._saver_refresh()
+        self.assertFalse(obj.saver_modal_suspended)
+        self.assertEqual(saver_events[-1], 'resume')
         obj._saver_move()
         self.assertGreater(len(fields['saver_artist'].moves), saved_moves)
         self.assertTrue(fields['saver_black'].visible)
+        obj.shown = False
+        obj._saver_window_hidden()
+        self.assertTrue(obj.saver_modal_suspended)
+        self.assertEqual(saver_events[-1], 'pause')
+        obj._saver_refresh()
+        self.assertTrue(obj.saver_modal_suspended)
+        obj.shown = True
+        obj._saver_window_shown()
+        self.assertFalse(obj.saver_modal_suspended)
+        self.assertEqual(saver_events[-1], 'resume')
         obj._saver_exit()
         self.assertFalse(obj.saver_active)
         self.assertFalse(fields['saver_black'].visible)
