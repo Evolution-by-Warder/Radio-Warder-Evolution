@@ -196,6 +196,24 @@ class SaverTests(unittest.TestCase):
         self.assertGreater(cover.disconnected, 0)
         obj._arm_saver()
         self.assertEqual(len(obj.saver_timer.started), 2)
+        # Playback of a local file must not start the radio-only saver.
+        obj.radio_running = lambda: False
+        obj._arm_saver()
+        self.assertEqual(len(obj.saver_timer.started), 2)
+        obj.radio_running = lambda: True
+        # A native modal update dialog must also prevent auto-activation.
+        obj.update_result = object()
+        obj._saver_start()
+        self.assertFalse(obj.saver_active)
+        obj.update_result = None
+        obj.update_pending = True
+        obj._saver_start()
+        self.assertFalse(obj.saver_active)
+        obj.update_pending = False
+        obj.shown = False
+        obj._saver_start()
+        self.assertFalse(obj.saver_active)
+        obj.shown = True
         obj.store.screensaver_delay = 0
         obj._arm_saver()
         self.assertEqual(len(obj.saver_timer.started), 2)
