@@ -184,6 +184,7 @@ class WarderRadio(Screen):
         self.saver_offset = (0, 0)
         self.saver_direction = (1, 1)
         self.saver_picon_id = None
+        self.saver_text_cache = {}
         for name in self.saver_positions:
             self[name] = Pixmap() if name in ('saver_cover', 'saver_picon', 'saver_spectrum') else Label('')
             self[name].hide()
@@ -701,6 +702,7 @@ class WarderRadio(Screen):
         self.saver_active = True
         self.saver_offset, self.saver_direction = (0, 0), (1, 1)
         self.saver_picon_id = None
+        self.saver_text_cache.clear()
         for name in self.saver_positions:
             self[name].show()
         self['saver_actions'].setEnabled(True)
@@ -709,21 +711,29 @@ class WarderRadio(Screen):
         self.saver_spectrum.resume()
         self.saver_motion_timer.start(2000, True)
 
+    def _saver_set_text(self, name, value):
+        # The clock updates every second; metadata/station labels are only
+        # touched when their actual value changes. This avoids needless
+        # Enigma2 paint/skin work on lower-powered receivers.
+        if self.saver_text_cache.get(name) != value:
+            self.saver_text_cache[name] = value
+            self[name].setText(value)
+
     def _saver_refresh(self):
         if not self.saver_active:
             return
         day, date, hours, seconds = clock_text()
-        self['saver_date'].setText(day + ' ' + date)
-        self['saver_time'].setText(hours + ':' + seconds)
-        self['saver_head'].setText(t('Now playing radio'))
-        self['saver_artist_caption'].setText(t('Artist'))
-        self['saver_track_caption'].setText(t('Song'))
-        self['saver_brand'].setText('Radio by Warder')
+        self._saver_set_text('saver_date', day + ' ' + date)
+        self._saver_set_text('saver_time', hours + ':' + seconds)
+        self._saver_set_text('saver_head', t('Now playing radio'))
+        self._saver_set_text('saver_artist_caption', t('Artist'))
+        self._saver_set_text('saver_track_caption', t('Song'))
+        self._saver_set_text('saver_brand', 'Radio by Warder')
         station = self.playback.current or {}
-        self['saver_station'].setText(station.get('name', '')[:90])
-        self['saver_group'].setText(group_label(station.get('group', ''))[:100])
-        self['saver_artist'].setText((self['artist'].getText() or t('Waiting for song information'))[:100])
-        self['saver_track'].setText((self['track'].getText() or t('Waiting for song information'))[:120])
+        self._saver_set_text('saver_station', station.get('name', '')[:90])
+        self._saver_set_text('saver_group', group_label(station.get('group', ''))[:100])
+        self._saver_set_text('saver_artist', (self['artist'].getText() or t('Waiting for song information'))[:100])
+        self._saver_set_text('saver_track', (self['track'].getText() or t('Waiting for song information'))[:120])
         station_id = station.get('id', '')
         if station_id != self.saver_picon_id:
             self.saver_picon_id = station_id
