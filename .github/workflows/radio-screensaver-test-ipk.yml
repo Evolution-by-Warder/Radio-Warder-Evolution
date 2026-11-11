@@ -23,7 +23,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
-          python3 tools/build_ipk.py --package-revision 4
+          python3 tools/build_ipk.py --package-revision 5
           python3 tools/verify_ipk.py
       - name: Verify optional black screensaver
         env:
