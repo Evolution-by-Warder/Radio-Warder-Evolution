@@ -80,7 +80,7 @@ def make_saver_widgets(scale, width, height):
     return ''.join(snippets), positions
 
 
-def bounded_motion(offset, direction, step=(6, 4), limit=(90, 60)):
+def bounded_motion(offset, direction, step=(7, 5), limit=(90, 60)):
     """Bounded, reversible motion so all fields stay inside the TV raster."""
     new_offset, new_direction = [], []
     for coordinate, velocity, stride, bound in zip(offset, direction, step, limit):
