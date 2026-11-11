@@ -159,6 +159,7 @@ class SaverTests(unittest.TestCase):
         obj.update_window = None
         obj.update_pending = False
         obj.update_result = None
+        obj.session = SimpleNamespace(current_dialog=None)
         obj.shown = True
         obj.mode = 'radio'
         obj.ui_scale = scale
@@ -178,7 +179,7 @@ class SaverTests(unittest.TestCase):
                    path_for=lambda station, library: '/tmp/picon.png',
                    ePoint=lambda x,y:(x,y))
         for name in ('_arm_saver', '_saver_start', '_saver_refresh',
-                     '_saver_set_text', '_saver_move', '_saver_exit'):
+                     '_saver_set_text', '_saver_modal_open', '_saver_move', '_saver_exit'):
             setattr(Fake, name, function(name, env))
         obj._arm_saver()
         self.assertEqual(obj.saver_timer.started[-1], (10000, True))
@@ -205,12 +206,26 @@ class SaverTests(unittest.TestCase):
                          before_refresh['saver_artist'])
         obj._saver_move()
         self.assertTrue(fields['saver_artist'].moves)
+        saved_moves = len(fields['saver_artist'].moves)
+        obj.session.current_dialog = object()
+        obj._saver_move()
+        self.assertEqual(len(fields['saver_artist'].moves), saved_moves,
+                         'Do not move fields behind a foreground modal')
+        obj.session.current_dialog = None
+        obj._saver_move()
+        self.assertGreater(len(fields['saver_artist'].moves), saved_moves)
         self.assertTrue(fields['saver_black'].visible)
         obj._saver_exit()
         self.assertFalse(obj.saver_active)
         self.assertFalse(fields['saver_black'].visible)
         self.assertFalse(fields['saver_actions'].enabled)
         self.assertGreater(cover.disconnected, 0)
+        obj.session.current_dialog = object()
+        obj._arm_saver()
+        self.assertEqual(len(obj.saver_timer.started), 1)
+        obj._saver_start()
+        self.assertFalse(obj.saver_active)
+        obj.session.current_dialog = None
         obj._arm_saver()
         self.assertEqual(len(obj.saver_timer.started), 2)
         # Playback of a local file must not start the radio-only saver.
