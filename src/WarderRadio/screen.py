@@ -30,6 +30,7 @@ from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
 from .header_clock import clock_text
 from .spectrum import Spectrum
+from .screensaver import make_saver_widgets, bounded_motion, allow_auto_saver
 from .covers import lookup_cover
 from .youtube import find_video, song_query
 from .video_player import VideoPlayer, dash_available
@@ -176,6 +177,18 @@ class WarderRadio(Screen):
         self.cover_display = CoverDisplay(self['art'], ePicLoad, os.path.join(ROOT, 'plugin.png'),
                                           lambda: self['nowlabel'].setText(''))
         self['activity'] = Pixmap()
+        # OLED saver is a native overlay, not another player or modal screen.
+        _, self.saver_positions = make_saver_widgets(
+            self.ui_scale, round(1920 * self.ui_scale), round(1080 * self.ui_scale))
+        self.saver_active = False
+        self.saver_offset = (0, 0)
+        self.saver_direction = (1, 1)
+        self.saver_picon_id = None
+        for name in self.saver_positions:
+            self[name] = Pixmap() if name in ('saver_cover', 'saver_picon', 'saver_spectrum') else Label('')
+            self[name].hide()
+        self.saver_cover = CoverDisplay(self['saver_cover'], ePicLoad, os.path.join(ROOT, 'plugin.png'))
+        self.saver_picon = CoverDisplay(self['saver_picon'], ePicLoad, os.path.join(ROOT, 'plugin.png'))
         self.picon_form = PiconForm(self, self.store.directory, self.ui_scale)
         self.settings_return = ('radio', '', 0, 'stations')
         self.settings_form = SettingsForm(self, self.ui_scale)
@@ -190,6 +203,18 @@ class WarderRadio(Screen):
         self['green'].setText(t('Play'))
         self['yellow'].setText(t('Search'))
         self['blue'].setText(t('YouTube video'))
+        self['saver_actions'] = ActionMap(['WarderRadioActions', 'OkCancelActions'], {
+            'ok': self._saver_exit, 'cancel': self._saver_exit,
+            'red': self._saver_exit, 'green': self._saver_exit,
+            'yellow': self._saver_exit, 'blue': self._saver_exit,
+            'left': self._saver_exit, 'right': self._saver_exit,
+            'up': self._saver_exit, 'down': self._saver_exit,
+            'menu': self._saver_exit, 'pageUp': self._saver_exit,
+            'pageDown': self._saver_exit, 'country': self._saver_exit,
+            'stop': self._saver_exit, 'instantRecord': self._saver_exit,
+            'update': self._saver_exit,
+        }, -4)
+        self['saver_actions'].setEnabled(False)
         self['actions'] = ActionMap(['WarderRadioActions'], {
             'ok': self.ok, 'cancel': self.exit, 'red': self.exit,
             'up': self.up, 'down': self.down, 'left': self.left, 'right': self.right,
@@ -207,6 +232,11 @@ class WarderRadio(Screen):
         self.poll_timer = Timer(self.poll)
         self.clock_timer = Timer(self.tick)
         self.startup_timer = Timer(self.finish_startup)
+        self.saver_timer = Timer(self._saver_start)
+        self.saver_motion_timer = Timer(self._saver_move)
+        self.saver_spectrum = Spectrum(
+            self['saver_spectrum'], lambda: self.saver_active and self.radio_running(),
+            Timer, LoadPixmap)
         self.spectrum = Spectrum(self['activity'], lambda: self.playing and self.playback.owns(),
                                  Timer, LoadPixmap)
         self.onShow.append(self.spectrum.resume)
@@ -561,6 +591,9 @@ class WarderRadio(Screen):
     def play_item(self, item, remember=True):
         if item is None:
             return
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         self.video_generation += 1
         self.video_pending = False
         self.playing = False
@@ -598,12 +631,94 @@ class WarderRadio(Screen):
             self.spectrum.resume()
             self.sync_spectrum()
             self.settings_form.refresh_playback()
+            self._arm_saver()
+
+    def _arm_saver(self):
+        self.saver_timer.timer.stop()
+        delay = self.store.screensaver_delay
+        if allow_auto_saver(
+                delay, self.playing, self.playback.owns(), self.mode,
+                self.video_active or self.video_pending,
+                self.installing or self.updating, self.closed):
+            self.saver_timer.start(delay * 1000, True)
+
+    def _saver_start(self):
+        if self.saver_active or not allow_auto_saver(
+                self.store.screensaver_delay, self.playing, self.playback.owns(),
+                self.mode, self.video_active or self.video_pending,
+                self.installing or self.updating, self.closed):
+            return
+        self.saver_active = True
+        self.saver_offset, self.saver_direction = (0, 0), (1, 1)
+        self.saver_picon_id = None
+        for name in self.saver_positions:
+            self[name].show()
+        self['saver_actions'].setEnabled(True)
+        self.spectrum.pause()
+        self._saver_refresh()
+        self.saver_spectrum.resume()
+        self.saver_motion_timer.start(2000, True)
+
+    def _saver_refresh(self):
+        if not self.saver_active:
+            return
+        day, date, hours, seconds = clock_text()
+        self['saver_date'].setText(day + ' ' + date)
+        self['saver_time'].setText(hours + ':' + seconds)
+        self['saver_head'].setText(t('Now playing radio'))
+        self['saver_artist_caption'].setText(t('Artist'))
+        self['saver_track_caption'].setText(t('Song'))
+        self['saver_brand'].setText('Radio by Warder')
+        station = self.playback.current or {}
+        self['saver_station'].setText(station.get('name', '')[:90])
+        self['saver_group'].setText(group_label(station.get('group', ''))[:100])
+        self['saver_artist'].setText((self['artist'].getText() or t('Waiting for song information'))[:100])
+        self['saver_track'].setText((self['track'].getText() or t('Waiting for song information'))[:120])
+        station_id = station.get('id', '')
+        if station_id != self.saver_picon_id:
+            self.saver_picon_id = station_id
+            self.saver_picon.show(path_for(station, self['stations'].picon_library))
+        # Parent cover worker already performs all network/cache lookups.
+        # Reuse its successful decoded path; no second cover request.
+        self.saver_cover.show(self.cover_display.path)
+
+    def _saver_move(self):
+        if not self.saver_active or self.closed:
+            return
+        self.saver_offset, self.saver_direction = bounded_motion(
+            self.saver_offset, self.saver_direction)
+        dx, dy = (round(v * self.ui_scale) for v in self.saver_offset)
+        for name, (x, y, width, height) in self.saver_positions.items():
+            if name == 'saver_black':
+                continue
+            widget = self[name]
+            if widget.instance is not None:
+                widget.instance.move(ePoint(x + dx, y + dy))
+        # Throttle to one coordinated move every 2 seconds on slower boxes.
+        self.saver_motion_timer.start(2000, True)
+
+    def _saver_exit(self):
+        if not self.saver_active:
+            return
+        self.saver_active = False
+        self.saver_motion_timer.timer.stop()
+        self['saver_actions'].setEnabled(False)
+        self.saver_spectrum.pause()
+        for name, (x, y, width, height) in self.saver_positions.items():
+            self[name].hide()
+            if name != 'saver_black' and self[name].instance is not None:
+                self[name].instance.move(ePoint(x, y))
+        for loader in (self.saver_cover, self.saver_picon):
+            loader.token += 1
+            loader.disconnect()
+            loader.path = ''
+        self.spectrum.resume()
 
     def sync_spectrum(self):
         # Some image/session combinations resume the parent without an onShow
         # callback after closing a modal dialog. The normal clock is a bounded
         # watchdog for the existing animation timer, never a second painter.
-        if self.closed or self.video_active or not getattr(self, 'shown', True):
+        if self.closed or self.video_active or self.saver_active or not getattr(self, 'shown', True):
             self.spectrum.pause()
         else:
             self.spectrum.start()
@@ -649,6 +764,9 @@ class WarderRadio(Screen):
         self.settings_form.refresh_playback()
 
     def ended(self):
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         if self.video_active:
             return
         self.reset_artwork()
@@ -660,6 +778,9 @@ class WarderRadio(Screen):
         self.settings_form.refresh_playback()
 
     def failed(self):
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         if self.video_active:
             return
         self.reset_artwork()
@@ -688,6 +809,9 @@ class WarderRadio(Screen):
             self.settings_form.refresh_playback()
 
     def stop(self):
+        self.saver_timer.timer.stop()
+        if self.saver_active:
+            self._saver_exit()
         self.startup_autoplay = False
         self.video_generation += 1
         self.video_pending = False
@@ -905,6 +1029,8 @@ class WarderRadio(Screen):
             self.toggle_radio_playback()
         elif action == 'main-menu-toggle':
             self.settings_form.main_menu()
+        elif action == 'saver-delay':
+            self.settings_form.saver_delay()
         elif action == 'about':
             if self.mode != 'settings':
                 self.open_settings()
@@ -1129,6 +1255,8 @@ class WarderRadio(Screen):
             if self.cover_key:
                 self.reset_artwork()
         self.settings_form.refresh_playback()
+        if self.saver_active:
+            self._saver_refresh()
         if self.recording_was_running:
             if self.recording.running():
                 self['details'].setText('● REC  ' + time.strftime('%H:%M:%S', time.gmtime(time.monotonic() - self.recording.started)))
@@ -1302,6 +1430,11 @@ class WarderRadio(Screen):
             self.update_window.cleanup()
         self.poll_timer.close()
         self.clock_timer.close()
+        self.saver_timer.close()
+        self.saver_motion_timer.close()
+        self.saver_spectrum.close()
+        self.saver_cover.close()
+        self.saver_picon.close()
         self.startup_timer.close()
         self.spectrum.close()
         self.cover_display.close()
