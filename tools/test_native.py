@@ -428,6 +428,8 @@ class NativeTests(unittest.TestCase):
         hidden = screen.rows[26]
         self.assertTrue(screen.row_logo(hidden).endswith('plugin.png'))
         screen.logo_jobs.submit = lambda key, work, callback: (work(), True)[1]
+        for worker in screen.logo_extra_jobs:
+            worker.submit = lambda key, work, callback: False
         with patch.object(screen.logo_cache, 'get', return_value=None) as fetch:
             screen.poll_logos()
             fetch.assert_called_once_with(screen.rows[8])
@@ -460,16 +462,25 @@ class NativeTests(unittest.TestCase):
             screen.poll_logos()
             self.assertTrue(entered.wait(1))
             self.assertNotEqual(requests[0][1], caller)
+            self.assertLessEqual(len(screen.logo_slots), 3)
             screen['stations'].moveToIndex(16)
             self.assertEqual(screen.current(), viewport[0])
-            screen.poll_logos()
-            self.assertEqual(len(requests), 1)
-            release.set()
             deadline = time.monotonic() + 2
-            while len(requests) < 2 and time.monotonic() < deadline:
+            while not any(item == viewport[0] for item, _ in requests) and time.monotonic() < deadline:
                 screen.poll_logos()
-                time.sleep(0.001)
-            self.assertEqual(requests[1][0], viewport[0])
+                time.sleep(0.002)
+            self.assertTrue(any(item == viewport[0] for item, _ in requests),
+                            'A slow old logo must not block the newly visible viewport')
+            self.assertTrue(all(thread != caller for _, thread in requests))
+            release.set()
+
+    def test_stream_quality_is_shown_only_when_radio_browser_supplies_it(self):
+        screen, _, _ = self.new()
+        first = dict(screen.rows[0], codec='MP3', bitrate=128)
+        entries = screen['stations'].l.build(first)
+        self.assertIn('MP3 · 128 kbps', str(entries))
+        plain = screen['stations'].l.build(screen.rows[0])
+        self.assertNotIn('128 kbps', str(plain))
 
     def test_failed_stream_keeps_station_list_and_allows_next_station(self):
         screen, _, _ = self.new()
