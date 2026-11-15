@@ -31,7 +31,7 @@ def playlist_links(text, base):
         line = line.strip()
         if not line or line.startswith(('#', '[', ';')):
             continue
-        match = re.match(r'(?i)^File\\d+\\s*=\\s*(.+)$', line)
+        match = re.match(r'(?i)^File\d+\s*=\s*(.+)$', line)
         candidate = match.group(1).strip() if match else line
         if '=' in candidate and not match:
             continue
@@ -45,11 +45,10 @@ def playlist_links(text, base):
 
 def page_links(document, base):
     found = []
-    # src in an HTML audio or source element; optionally a direct playlist URL.
-    for match in re.finditer(r'(?is)<(?:audio|source)\\b[^>]*\\bsrc\\s*=\\s*["\\\']([^"\\\']+)', document):
+    for match in re.finditer(r'''(?is)<(?:audio|source)\b[^>]*\bsrc\s*=\s*["']([^"']+)''', document):
         found.append(urljoin(base, html.unescape(match.group(1).strip())))
     for match in re.finditer(
-            r'(?i)https?://[^\\s"\\\'<>]+?(?:\\.mp3|\\.aac|\\.ogg|\\.m3u8|\\.m3u|\\.pls)(?:\\?[^\\s"\\\'<>]*)?',
+            r'''(?i)https?://[^\s"'<>]+?(?:\.mp3|\.aac|\.ogg|\.m3u8|\.m3u|\.pls)(?:\?[^\s"'<>]*)?''',
             document):
         found.append(html.unescape(match.group(0).rstrip('.,;')))
     result = []
