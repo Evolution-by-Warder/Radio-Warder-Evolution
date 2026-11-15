@@ -19,8 +19,8 @@ from .radio_browser import USER_AGENT
 MAX_INPUT = 512 * 1024
 MAX_PIXELS = 1024 * 1024
 SIZE = (224, 224)
-PATTERN = r'[a-f0-9]{64}\\.png'
-MISS_PATTERN = r'[a-f0-9]{64}\\.miss'
+PATTERN = r'[a-f0-9]{64}\.png'
+MISS_PATTERN = r'[a-f0-9]{64}\.miss'
 MISS_TTL = 12 * 3600
 LOGO_TTL = 7 * 24 * 3600
 LOOKUP_BUDGET = 12
