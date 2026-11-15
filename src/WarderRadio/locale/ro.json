@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Nu a fost găsit niciun videoclip pe YouTube pentru melodia curentă.",
   "Yes": "Da",
   "No": "Nu",
-  "A new version is available. Do you want to install it?": "Este disponibilă o versiune nouă. Doriți să o instalați?"
+  "A new version is available. Do you want to install it?": "Este disponibilă o versiune nouă. Doriți să o instalați?",
+  "Home": "Acasă",
+  "Subscriptions": "Abonamente",
+  "Choose category": "Alege categoria",
+  "Follow category": "Urmărește categoria",
+  "Unfollow category": "Nu mai urmări categoria",
+  "All categories": "Toate categoriile",
+  "No subscriptions": "Niciun abonament",
+  "Page": "Pagina",
+  "Offline catalogue": "Catalog offline",
+  "Clear logo cache": "Șterge memoria cache a siglelor",
+  "Clear cached station logos?": "Ștergi siglele stațiilor salvate?",
+  "Logo cache cleared": "Memoria cache a siglelor a fost ștearsă",
+  "Cannot clear logo cache": "Memoria cache a siglelor nu a putut fi ștearsă",
+  "Lyrics": "Versuri",
+  "Artist information": "Informații despre artist",
+  "Song information unavailable": "Informațiile despre melodie nu sunt disponibile"
 }

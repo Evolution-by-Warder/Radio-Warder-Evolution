@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Praeguse loo jaoks ei leitud YouTube’ist videot.",
   "Yes": "Jah",
   "No": "Ei",
-  "A new version is available. Do you want to install it?": "Uus versioon on saadaval. Kas soovite selle installida?"
+  "A new version is available. Do you want to install it?": "Uus versioon on saadaval. Kas soovite selle installida?",
+  "Home": "Avaleht",
+  "Subscriptions": "Tellimused",
+  "Choose category": "Vali kategooria",
+  "Follow category": "Jälgi kategooriat",
+  "Unfollow category": "Lõpeta kategooria jälgimine",
+  "All categories": "Kõik kategooriad",
+  "No subscriptions": "Tellimusi pole",
+  "Page": "Lehekülg",
+  "Offline catalogue": "Võrguühenduseta kataloog",
+  "Clear logo cache": "Tühjenda logode vahemälu",
+  "Clear cached station logos?": "Kas kustutada jaamade salvestatud logod?",
+  "Logo cache cleared": "Logode vahemälu tühjendatud",
+  "Cannot clear logo cache": "Logode vahemälu ei õnnestunud tühjendada",
+  "Lyrics": "Laulusõnad",
+  "Artist information": "Artisti teave",
+  "Song information unavailable": "Loo teave pole saadaval"
 }

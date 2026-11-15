@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Pre aktuálnu skladbu sa nepodarilo nájsť video na YouTube.",
   "Yes": "Áno",
   "No": "Nie",
-  "A new version is available. Do you want to install it?": "Je dostupná nová verzia. Chcete ju nainštalovať?"
+  "A new version is available. Do you want to install it?": "Je dostupná nová verzia. Chcete ju nainštalovať?",
+  "Home": "Domov",
+  "Subscriptions": "Odbery",
+  "Choose category": "Vybrať kategóriu",
+  "Follow category": "Odoberať kategóriu",
+  "Unfollow category": "Zrušiť odber kategórie",
+  "All categories": "Všetky kategórie",
+  "No subscriptions": "Žiadne odbery",
+  "Page": "Strana",
+  "Offline catalogue": "Offline katalóg",
+  "Clear logo cache": "Vymazať cache log",
+  "Clear cached station logos?": "Vymazať uložené logá staníc?",
+  "Logo cache cleared": "Cache log je vymazaná",
+  "Cannot clear logo cache": "Cache log sa nepodarilo vymazať",
+  "Lyrics": "Text skladby",
+  "Artist information": "Informácie o interpretovi",
+  "Song information unavailable": "Informácie o skladbe nie sú dostupné"
 }

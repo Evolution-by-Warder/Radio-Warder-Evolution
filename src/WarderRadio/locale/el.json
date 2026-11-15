@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Δεν βρέθηκε βίντεο στο YouTube για το τρέχον τραγούδι.",
   "Yes": "Ναι",
   "No": "Όχι",
-  "A new version is available. Do you want to install it?": "Υπάρχει νέα έκδοση. Θέλετε να την εγκαταστήσετε;"
+  "A new version is available. Do you want to install it?": "Υπάρχει νέα έκδοση. Θέλετε να την εγκαταστήσετε;",
+  "Home": "Αρχική",
+  "Subscriptions": "Συνδρομές",
+  "Choose category": "Επιλογή κατηγορίας",
+  "Follow category": "Ακολουθήστε την κατηγορία",
+  "Unfollow category": "Κατάργηση παρακολούθησης κατηγορίας",
+  "All categories": "Όλες οι κατηγορίες",
+  "No subscriptions": "Καμία συνδρομή",
+  "Page": "Σελίδα",
+  "Offline catalogue": "Κατάλογος εκτός σύνδεσης",
+  "Clear logo cache": "Εκκαθάριση λογότυπων",
+  "Clear cached station logos?": "Διαγραφή αποθηκευμένων λογότυπων σταθμών;",
+  "Logo cache cleared": "Τα αποθηκευμένα λογότυπα διαγράφηκαν",
+  "Cannot clear logo cache": "Αδυναμία διαγραφής λογότυπων",
+  "Lyrics": "Στίχοι",
+  "Artist information": "Πληροφορίες καλλιτέχνη",
+  "Song information unavailable": "Οι πληροφορίες τραγουδιού δεν είναι διαθέσιμες"
 }

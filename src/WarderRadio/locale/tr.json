@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Geçerli şarkı için YouTube’da video bulunamadı.",
   "Yes": "Evet",
   "No": "Hayır",
-  "A new version is available. Do you want to install it?": "Yeni bir sürüm mevcut. Yüklemek istiyor musunuz?"
+  "A new version is available. Do you want to install it?": "Yeni bir sürüm mevcut. Yüklemek istiyor musunuz?",
+  "Home": "Ana sayfa",
+  "Subscriptions": "Abonelikler",
+  "Choose category": "Kategori seç",
+  "Follow category": "Kategoriyi takip et",
+  "Unfollow category": "Kategoriyi takipten çık",
+  "All categories": "Tüm kategoriler",
+  "No subscriptions": "Abonelik yok",
+  "Page": "Sayfa",
+  "Offline catalogue": "Çevrimdışı katalog",
+  "Clear logo cache": "Logo önbelleğini temizle",
+  "Clear cached station logos?": "Kaydedilmiş istasyon logoları silinsin mi?",
+  "Logo cache cleared": "Logo önbelleği temizlendi",
+  "Cannot clear logo cache": "Logo önbelleği temizlenemedi",
+  "Lyrics": "Şarkı sözleri",
+  "Artist information": "Sanatçı bilgisi",
+  "Song information unavailable": "Şarkı bilgisi yok"
 }

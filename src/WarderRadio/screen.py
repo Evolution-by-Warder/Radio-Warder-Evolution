@@ -1,6 +1,8 @@
 """Native Enigma2 screen; workers never access widgets or session navigation."""
 import os
 import time
+from collections import OrderedDict
+from threading import Event
 
 import enigma
 from enigma import ePicLoad, ePoint, eSize, eTimer, eServiceReference, eListboxPythonMultiContent, gFont, getDesktop
@@ -19,12 +21,11 @@ from Screens.VirtualKeyBoard import VirtualKeyBoard
 from . import ROOT, VERSION
 from .i18n import t, rtl, group_label
 from .jobs import Jobs
-from .model import Store, Playback
-from .country_catalogue import CountryCatalogue as Catalogue, CatalogueTask
+from .model import Store, Playback, same_station, search_key
+from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country
 from .recording import Recording
-from .picons import path_for
-from .picon_download import PiconSettings, PiconLibrary
-from .picon_screen import PiconForm
+from .station_logos import StationLogos
+from .song_details import lyrics, artist_information
 from .settings_screen import SettingsForm
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
@@ -65,17 +66,21 @@ class Timer:
         self.callback = None
 
 
+FALLBACK_LOGO = os.path.join(ROOT, 'plugin.png')
+BROWSE_MODES = ('radio', 'subscriptions')
+VISIBLE_ROWS = 8
+
+
 class RadioList(MenuList):
     def __init__(self, rows, scale, functions=False):
         self.ui_scale, self.functions = scale, functions
         MenuList.__init__(self, rows, True, eListboxPythonMultiContent)
-        self.l.setItemHeight(round((64 if functions else 94) * scale))
+        self.l.setItemHeight(round((64 if functions else 88) * scale))
         self.l.setFont(0, gFont('Regular', round((30 if functions else 29) * scale)))
         self.l.setFont(1, gFont('Regular', round(21 * scale)))
         self.l.setFont(2, gFont('Regular', round(24 * scale)))
         self.l.setBuildFunc(self.build)
-        self.picons = {}
-        self.picon_library = None
+        self.logo = None
 
     def build(self, item, key=None):
         def n(value):
@@ -99,18 +104,14 @@ class RadioList(MenuList):
             return [None, MultiContentEntryText(pos=(n(16), n(6)),
                                                size=(n(350), n(52)),
                                                font=0, flags=flags, text=item)]
-        path = path_for(item, self.picon_library)
-        if path not in self.picons:
-            if len(self.picons) >= 128:
-                self.picons.clear()
-            self.picons[path] = LoadPixmap(path, cached=True)
+        pixmap = self.logo(item.get('favicon')) if self.logo else None
         return [None,
-                MultiContentEntryPixmapAlphaBlend(pos=(n(8), n(18)), size=(n(106), n(54)),
-                    png=self.picons[path], flags=(enigma.BT_SCALE | enigma.BT_KEEP_ASPECT_RATIO
+                MultiContentEntryPixmapAlphaBlend(pos=(n(8), n(17)), size=(n(106), n(54)),
+                    png=pixmap, flags=(enigma.BT_SCALE | enigma.BT_KEEP_ASPECT_RATIO
                     | enigma.BT_HALIGN_CENTER | enigma.BT_VALIGN_CENTER)),
                 MultiContentEntryText(pos=(n(126), n(7)), size=(n(460), n(44)), font=0,
                                       flags=flags, text=item['name']),
-                MultiContentEntryText(pos=(n(126), n(54)), size=(n(460), n(30)), font=1,
+                MultiContentEntryText(pos=(n(126), n(50)), size=(n(460), n(30)), font=1,
                                       flags=flags, text=group_label(item.get('group', '')),
                                       color=0x89acc4, color_sel=0xb8e8f8)]
 
@@ -123,21 +124,28 @@ class WarderRadio(Screen):
         Screen.__init__(self, session)
         self.setTitle('Warder Radio')
         self.store = Store()
-        # Build the window before reading/validating thousands of station rows.
-        self.catalogue = Catalogue(self.store.directory, load=False)
+        self.browser = RadioBrowser(self.store.directory)
+        self.countries, self.categories = list(PINNED), []
+        self.catalogue_page = None
+        self.page_offset = 0
+        self.browse_key = None
+        self.home_category, self.subscription_category = '', next(iter(self.store.subscriptions), '')
+        self.logo_cache = StationLogos(self.store.directory)
+        self.logo_jobs = Jobs()
+        self.logo_results = OrderedDict()
+        self.logo_fallback = None
+        self.logo_busy = self.logo_paused = False
         self.playback = Playback(session.nav, eServiceReference)
         self.last_radio_station = dict(self.store.history[0]) if self.store.history else None
         self.starting, self.startup_autoplay = True, True
-        self.startup_submitted = False
         self.startup_navigation = self.playback.key(session.nav.getCurrentlyPlayingServiceReference())
-        self.startup_country = None
         self.ready_done = False
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
         self.catalogue_jobs = Jobs()
         self.catalogue_task = None
-        self.catalogue_operation = None
-        self.search_rows, self.search_total = [], 0
+        self.facet_jobs = Jobs()
+        self.song_jobs = Jobs()
         self.cover_jobs = Jobs()
         self.video_jobs = Jobs()
         self.video_pending, self.video_active, self.video_dialog = False, False, None
@@ -159,16 +167,13 @@ class WarderRadio(Screen):
         self.mode = 'radio'
         self.query = ''
         self.focus = 'stations'
-        self.active_group = self.store.group
+        self.active_group = saved_country(self.store.online_country)
         self.playing = False
         self.rows = []
         self.recording_was_running = False
-        self['functions'] = RadioList([(t('Choose country'), 'group'), (t('Radio stations'), 'radio'),
-                                      (t('Picon downloads'), 'picons'), (t('Favourites'), 'favourites'),
-                                      (t('History'), 'history'), (t('Recordings'), 'recordings'),
-                                      (t('Settings'), 'settings'), (t('Update'), 'plugin-update')], self.ui_scale, True)
+        self['functions'] = RadioList([], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
-        self.reload_picons()
+        self['stations'].logo = self.row_logo
         for name in ('day', 'date', 'clock', 'seconds', 'version_caption', 'version', 'navtitle', 'section', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
@@ -186,7 +191,6 @@ class WarderRadio(Screen):
         self.saver_timer_armed = False
         self.saver_offset = (0, 0)
         self.saver_direction = (1, 1)
-        self.saver_picon_id = None
         self.saver_text_cache = {}
         self.saver_modal_suspended = False
         for name in self.saver_positions:
@@ -194,7 +198,6 @@ class WarderRadio(Screen):
             self[name].hide()
         self.saver_cover = CoverDisplay(self['saver_cover'], ePicLoad, os.path.join(ROOT, 'plugin.png'))
         self.saver_picon = CoverDisplay(self['saver_picon'], ePicLoad, os.path.join(ROOT, 'plugin.png'))
-        self.picon_form = PiconForm(self, self.store.directory, self.ui_scale)
         self.settings_return = ('radio', '', 0, 'stations')
         self.settings_form = SettingsForm(self, self.ui_scale)
         self['version_caption'].setText(t('Version:'))
@@ -269,49 +272,29 @@ class WarderRadio(Screen):
 
     def finish_startup(self):
         self.startup_timer.timer.stop()
-        if self.closed:
-            return
-        if self.starting:
-            if self.startup_submitted:
-                return
-            directory = self.store.directory
-            group = self.store.history[0]['group'] if self.startup_autoplay and self.store.history else self.active_group
-            task = self.catalogue_task = CatalogueTask()
-            self.startup_submitted = self.catalogue_jobs.submit('catalogue',
-                lambda: Catalogue(directory, group=group, task=task), self.startup_loaded)
-            if not self.startup_submitted:
-                self.startup_loaded(None, 'Startup queue unavailable')
-            return
-        # Resume only after the populated window has had a chance to paint.
-        current = self.playback.key(self.session.nav.getCurrentlyPlayingServiceReference())
-        if self.startup_autoplay and current == self.startup_navigation and not self.playback.current:
-            self.resume_last_station()
-        if self.startup_autoplay and self.startup_country and self.startup_country in self.catalogue.groups():
-            catalogue, group = self.catalogue, self.startup_country
-            self.queue_catalogue(lambda task: catalogue.prepare_country(group, task), 'country')
-        self.startup_country = None
-        self.startup_autoplay = False
-        self.check_updates(manual=self.update_manual)
-
-    def startup_loaded(self, catalogue, error):
         if self.closed or not self.starting:
             return
         self.starting = False
-        self.catalogue_task = None
-        self.poll_timer.start(150)
-        if error or catalogue is None:
-            self['status'].setText(t('Cannot update catalogue'))
-            self.update_count()
-            return
-        self.catalogue = catalogue
-        if catalogue.requested_group and catalogue.requested_group != catalogue.group:
-            self.startup_country = catalogue.requested_group
-        groups = self.catalogue.groups()
-        if self.active_group != 'Custom':
-            self.active_group = catalogue.group
-        self['status'].setText(t('Cannot update catalogue') if catalogue.warning else '')
-        self.refresh_rows()
-        self.startup_timer.start(1, True)
+        current = self.playback.key(self.session.nav.getCurrentlyPlayingServiceReference())
+        if self.startup_autoplay and current == self.startup_navigation and not self.playback.current:
+            self.resume_last_station()
+        self.startup_autoplay = False
+        self.load_facets()
+        self.load_page()
+        self.poll_timer.start(100)
+        self.check_updates(manual=self.update_manual)
+
+    def load_facets(self, force=False):
+        self.facet_jobs.replace('facets', lambda: self.browser.facets(force, self.facet_jobs.closed.is_set),
+                                self.facets_loaded)
+
+    def facets_loaded(self, facets, error):
+        if not error and facets:
+            self.countries, self.categories = facets.countries, facets.categories
+        if self.mode == 'settings' and self.settings_form.view in ('countries', 'categories'):
+            self.settings_form.refresh()
+        elif self.mode == 'settings' and not self.updating and self.settings_return[0] not in BROWSE_MODES:
+            self.settings_form.status(t('Offline catalogue' if error or facets.offline else 'Catalogue updated'))
 
     def notify(self, message, error=False):
         if not self.closed:
@@ -324,26 +307,13 @@ class WarderRadio(Screen):
     def set_focus(self, focus):
         if self.mode == 'settings' and focus != 'functions':
             focus = self.settings_form.focus_name
-        if self.mode == 'picons' and focus in ('stations','picon_form','picon_options','picon_log'):
-            focus = self.picon_form.focus_name
         self.focus = focus
-        self['functions'].selectionEnabled(focus == 'functions')
-        self['stations'].selectionEnabled(focus == 'stations')
-        self['picon_form'].selectionEnabled(focus == 'picon_form')
-        self['picon_options'].selectionEnabled(focus == 'picon_options')
-        self['picon_log'].selectionEnabled(focus == 'picon_log')
-        self['settings_options'].selectionEnabled(focus == 'settings_options')
-        self['settings_keys'].selectionEnabled(focus == 'settings_keys')
+        for widget in ('functions', 'stations', 'settings_options', 'settings_keys'):
+            self[widget].selectionEnabled(focus == widget)
         self.update_country_caption()
-        if focus in ('picon_form','picon_options','picon_log'):
-            hint = ''
-        elif focus == 'stations':
-            hint = t('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options')
-        else:
-            hint = t('Use left/right to switch panels · MENU: options')
-        if self.mode in ('picons', 'settings'):
-            hint=''
-        self['hint'].setText(hint)
+        hint = ('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options'
+                if focus == 'stations' else 'Use left/right to switch panels · MENU: options')
+        self['hint'].setText('' if self.mode == 'settings' else t(hint))
 
     def left(self):
         self.startup_autoplay = False
@@ -354,14 +324,8 @@ class WarderRadio(Screen):
                 else:
                     self.settings_form.back()
             return
-        if self.focus in ('picon_form','picon_options','picon_log'):
-            if self.focus == 'picon_options' and self.picon_form.view == 'countries' and self['picon_options'].getSelectionIndex() > 0:
-                self.page_up()
-                return
-            if not self.picon_form.back():
-                self.set_focus('functions')
-            return
-        if self.focus == 'stations' and self['stations'].list and self['stations'].getSelectionIndex() > 0:
+        if self.focus == 'stations' and (self['stations'].getSelectionIndex() > 0 or
+                (self.mode in BROWSE_MODES and self.page_offset > 0)):
             self.page_up()
         else:
             self.set_focus('functions')
@@ -371,12 +335,6 @@ class WarderRadio(Screen):
         if self.focus in ('settings_options', 'settings_keys'):
             if not self.settings_form.horizontal(1):
                 self.settings_form.choose()
-            return
-        if self.focus in ('picon_form','picon_options','picon_log'):
-            if self.focus == 'picon_options' and self.picon_form.view == 'countries':
-                self.page_down()
-                return
-            self.picon_form.choose()
             return
         if self.focus == 'stations':
             self.page_down()
@@ -390,21 +348,34 @@ class WarderRadio(Screen):
 
     def up(self):
         self.startup_autoplay = False
+        self.logo_paused = self.logo_busy and self.logo_paused
         self[self.focus].up()
         self.update_count()
 
     def down(self):
         self.startup_autoplay = False
+        self.logo_paused = self.logo_busy and self.logo_paused
         self[self.focus].down()
         self.update_count()
 
     def page_up(self):
         self.startup_autoplay = False
+        self.logo_paused = self.logo_busy and self.logo_paused
+        if self.focus == 'stations' and self.mode in BROWSE_MODES and self.page_offset and self['stations'].getSelectionIndex() == 0:
+            if not self.updating:
+                self.load_page(self.page_offset - PAGE_SIZE, last=True)
+            return
         self[self.focus].pageUp()
         self.update_count()
 
     def page_down(self):
         self.startup_autoplay = False
+        self.logo_paused = self.logo_busy and self.logo_paused
+        if (self.focus == 'stations' and self.mode in BROWSE_MODES and self.catalogue_page and
+                self.catalogue_page.more and self['stations'].getSelectionIndex() >= max(0, len(self.rows) - VISIBLE_ROWS)):
+            if not self.updating:
+                self.load_page(self.page_offset + PAGE_SIZE)
+            return
         self[self.focus].pageDown()
         self.update_count()
 
@@ -412,9 +383,6 @@ class WarderRadio(Screen):
         self.startup_autoplay = False
         if self.focus in ('settings_options', 'settings_keys'):
             self.settings_form.choose()
-            return
-        if self.focus in ('picon_form','picon_options','picon_log'):
-            self.picon_form.choose()
             return
         if self.focus == 'stations':
             self.play()
@@ -432,35 +400,42 @@ class WarderRadio(Screen):
         if mode == 'plugin-update':
             self.manual_update()
             return
-        if mode == 'picons':
-            self.open_picons()
-            return
+        self.select_mode(mode)
+
+    def select_mode(self, mode):
         self.mode, self.query = mode, ''
+        self.logo_paused = self.logo_busy and self.logo_paused
+        self.cancel_catalogue()
+        self.catalogue_page, self.page_offset = None, 0
+        if mode in BROWSE_MODES:
+            self.load_page()
         self.refresh_rows()
         self.set_focus('stations')
 
     def refresh_rows(self):
-        changed = self.settings_form.set_visible(False) if self.mode != 'settings' else False
-        changed = self.picon_form.set_visible(self.mode == 'picons') or changed
+        changed = self.settings_form.set_visible(self.mode == 'settings')
         if self.mode == 'settings':
-            self.settings_form.set_visible(True)
             self.update_country_caption()
             return
         self['red'].setText(t('Close'))
-        self['green'].setText(t('Download') if self.mode == 'picons' else t('Play'))
-        self['yellow'].setText('' if self.mode == 'picons' else t('Search'))
-        if self.mode == 'picons':
-            self['blue'].setText('')
-            self.picon_form.refresh()
-            self.update_country_caption()
-            return
+        self['green'].setText(t('Play'))
+        self['yellow'].setText(t('Search'))
         if changed:
             self.reset_artwork()
             self.metadata()
-        if self.mode == 'radio':
-            self.rows = self.search_rows if self.query else self.catalogue.search(
-                group=self.active_group or None, custom=self.store.custom)
-            heading = (t('Search results') + ': ' + self.query) if self.query else (self.active_group or t('All groups'))
+        if self.mode in BROWSE_MODES:
+            category = self.current_category()
+            heading = t('Home' if self.mode == 'radio' else 'Subscriptions')
+            if category:
+                heading += '  ›  ' + category
+            if self.query:
+                heading += '  ·  ' + self.query
+            if self.mode == 'radio' and self.active_group == 'Custom':
+                heading += '  ›  ' + t('Custom')
+                key = search_key(self.query)
+                self.rows = [row for row in self.store.custom if key in search_key(row['name'])]
+            else:
+                self.rows = list(self.catalogue_page.rows) if self.catalogue_page else []
         elif self.mode == 'favourites':
             self.rows, heading = list(self.store.favourites), t('Favourites')
         elif self.mode == 'history':
@@ -469,7 +444,7 @@ class WarderRadio(Screen):
             self.rows, heading = [], t('Recordings')
             if not self.jobs.submit('recordings', self.recording.files, self.files_loaded):
                 self['status'].setText(t('No recordings'))
-        self['section'].setText(heading if self.mode != 'radio' or self.query else '')
+        self['section'].setText(heading)
         self.update_country_caption()
         self['stations'].setList([(item,) for item in self.rows])
         self['stations'].moveToIndex(0)
@@ -489,22 +464,24 @@ class WarderRadio(Screen):
         if self.mode == 'settings':
             self.settings_form.cursor_changed()
             return
-        if self.mode == 'picons':
-            self.picon_form.cursor_changed()
-            return
         index = self['stations'].getSelectionIndex() if self.rows else -1
-        self['count'].setText('%d / %d' % (max(0, index + 1), len(self.rows)))
-        if not self.rows:
-            self['count'].setText(t('Please wait…') if (self.starting or self.updating) and self.mode == 'radio' else
-                                  t('No recordings' if self.mode == 'recordings' else 'No stations'))
+        count = '%d / %d' % (max(0, index + 1), len(self.rows))
+        if self.mode in BROWSE_MODES and self.catalogue_page:
+            count = '%s %d  ·  %s' % (t('Page'), self.page_offset // PAGE_SIZE + 1, count)
+            if self.catalogue_page.more:
+                count += '  ›'
+        if not self.rows and not (self.mode in BROWSE_MODES and self.catalogue_page and self.catalogue_page.more):
+            count = (t('Please wait…') if (self.starting or self.updating) and self.mode in BROWSE_MODES else
+                     t('No recordings' if self.mode == 'recordings' else 'No stations'))
+        if self.mode == 'subscriptions' and not self.subscription_category:
+            count = t('No subscriptions')
+        self['count'].setText(count)
         self['blue'].setText(t('Delete') if self.mode == 'recordings' else t('YouTube video'))
 
     def blue_pressed(self):
         if self.mode == 'settings':
             if self.settings_form.view in ('name', 'url'):
                 self.settings_form.shift()
-            return
-        if self.mode == 'picons':
             return
         if self.mode == 'recordings':
             self.delete_recording()
@@ -566,34 +543,21 @@ class WarderRadio(Screen):
         if not self.store.history:
             return
         previous = self.store.history[0]
-        item = next((row for row in self.catalogue.items + self.store.custom
-                     if row['id'] == previous['id']), previous)
-        if not any(row['id'] == item['id'] for row in self.rows):
-            self.active_group = item['group']
+        self.active_group = saved_country(previous['group'])
+        if self.active_group == 'Custom':
             self.refresh_rows()
-        index = next((i for i, row in enumerate(self.rows) if row['id'] == item['id']), None)
-        if index is None:
-            # A saved station owns its URL; it remains playable when its country
-            # cannot be downloaded. Never load the old whole-world cache here.
-            self.rows = [item]
-            self['stations'].setList([(item,)])
-            index = 0
-        if index is not None:
-            self['stations'].moveToIndex(index)
-            self.update_count()
+        item = next((row for row in self.rows if same_station(row, previous)), previous)
         self.play_item(item, remember=False)
 
     def play(self):
         self.startup_autoplay = False
-        if self.mode in ('picons', 'settings'):
+        if self.mode == 'settings':
             return
         self.play_item(self.current())
 
     def green_pressed(self):
         if self.mode == 'settings':
             self.settings_form.green()
-        elif self.mode == 'picons':
-            self.picon_form.green()
         else:
             self.play()
 
@@ -705,7 +669,7 @@ class WarderRadio(Screen):
                 allow_auto_saver(
                     delay, self.radio_running(), self.playback.owns(), self.mode,
                     self.video_active or self.video_pending,
-                    self.installing or self.updating or self.update_window is not None,
+                    self.installing or self.update_window is not None,
                     self.closed)):
             self.saver_timer.start(delay * 1000, True)
             self.saver_timer_armed = True
@@ -730,13 +694,12 @@ class WarderRadio(Screen):
                     self.store.screensaver_delay, self.radio_running(),
                     self.playback.owns(), self.mode,
                     self.video_active or self.video_pending,
-                    self.installing or self.updating or self.update_window is not None,
+                    self.installing or self.update_window is not None,
                     self.closed)):
             return
         self.saver_active = True
         self.saver_modal_suspended = False
         self.saver_offset, self.saver_direction = (0, 0), (1, 1)
-        self.saver_picon_id = None
         self.saver_text_cache.clear()
         for name in self.saver_positions:
             self[name].show()
@@ -779,10 +742,7 @@ class WarderRadio(Screen):
         self._saver_set_text('saver_group', group_label(station.get('group', ''))[:100])
         self._saver_set_text('saver_artist', (self['artist'].getText() or t('Waiting for song information'))[:100])
         self._saver_set_text('saver_track', (self['track'].getText() or t('Waiting for song information'))[:120])
-        station_id = station.get('id', '')
-        if station_id != self.saver_picon_id:
-            self.saver_picon_id = station_id
-            self.saver_picon.show(path_for(station, self['stations'].picon_library))
+        self.show_saver_logo(station.get('favicon'))
         # Parent cover worker already performs all network/cache lookups.
         # Reuse its successful decoded path; no second cover request.
         self.saver_cover.show(self.cover_display.path)
@@ -944,11 +904,11 @@ class WarderRadio(Screen):
         self.cover_generation += 1
         self.cover_key, self.cover_attempts, self.cover_next = '', 0, 0.0
         self['nowlabel'].setText('')
-        if self.mode not in ('picons', 'settings'):
+        if self.mode != 'settings':
             self.cover_display.show(None)
 
     def update_artwork(self, artist, title):
-        if self.closed or self.mode in ('picons', 'settings'):
+        if self.closed or self.mode == 'settings':
             return
         station = (self.playback.current or {}).get('id', '')
         key = (station, artist.casefold(), title.casefold()) if artist else ''
@@ -965,7 +925,7 @@ class WarderRadio(Screen):
 
     def cover_loaded(self, generation, result, error):
         self.cover_pending = False
-        if self.closed or self.mode in ('picons', 'settings') or generation != self.cover_generation:
+        if self.closed or self.mode == 'settings' or generation != self.cover_generation:
             return
         path, source = result if not error and result else ('', '')
         if path and os.path.isfile(path):
@@ -1063,22 +1023,18 @@ class WarderRadio(Screen):
             if self.settings_form.view in ('name', 'url'):
                 self.settings_form.erase()
             return
-        if self.mode == 'picons':
-            return
+        if self.mode not in BROWSE_MODES:
+            self.select_mode('radio')
         self.startup_autoplay = False
         self.session.openWithCallback(self.search_done, VirtualKeyBoard,
-                                      title=t('Search all stations'), text=self.query)
+                                      title=t('Search'), text=self.query)
 
     def search_done(self, text):
         if text is None or self.closed:
             return
-        self.query, self.mode = text.strip()[:100], 'radio'
-        self.search_rows, self.search_total = [], 0
-        if self.query:
-            catalogue, query, custom = self.catalogue, self.query, list(self.store.custom)
-            self.queue_catalogue(lambda task: catalogue.prepare_search(query, task, custom), 'search')
-        else:
-            self.cancel_catalogue()
+        self.query = text.strip()[:100]
+        self.catalogue_page, self.page_offset = None, 0
+        self.load_page()
         self.refresh_rows()
         self.set_focus('stations')
 
@@ -1090,11 +1046,7 @@ class WarderRadio(Screen):
         if self.closed or self.installing:
             return
         if self.mode != 'settings':
-            if self.mode == 'picons':
-                mode, query, index = getattr(self, 'picon_return', ('radio', '', 0))
-                self.settings_return = (mode, query, index, 'stations')
-            else:
-                self.settings_return = (self.mode, self.query, self['stations'].getSelectionIndex(), self.focus)
+            self.settings_return = (self.mode, self.query, self['stations'].getSelectionIndex(), self.focus)
         self.mode, self.startup_autoplay = 'settings', False
         self.video_generation += 1; self.video_pending = False
         self.cover_generation += 1; self.cover_pending = False
@@ -1130,8 +1082,14 @@ class WarderRadio(Screen):
             self.favourite()
         elif action == 'update':
             self.update_catalogue()
-        elif action == 'picons':
-            self.open_picons()
+        elif action == 'category':
+            self.settings_form.choose_category()
+        elif action == 'subscription':
+            self.toggle_subscription()
+        elif action in ('lyrics', 'artist-information'):
+            self.open_song_details(action)
+        elif action == 'clear-logos':
+            self.settings_form.confirm(t('Clear cached station logos?'), self.clear_logos)
         elif action == 'plugin-update':
             self.check_updates(manual=True)
         elif action == 'add':
@@ -1154,51 +1112,32 @@ class WarderRadio(Screen):
             self.settings_form.refresh()
             self.settings_form.status(self['status'].getText())
 
-    def open_picons(self):
-        if self.closed or self.installing:
+    def open_song_details(self, action):
+        artist, track = self['artist'].getText(), self['track'].getText()
+        title = 'Lyrics' if action == 'lyrics' else 'Artist information'
+        self.settings_form.song(title, [])
+        if not self.radio_running() or not artist or not track or track == t('No track information'):
+            self.settings_form.song(title, [t('Current song information is unavailable')])
             return
-        if self.mode != 'picons':
-            self.picon_return = (self.settings_return[:3] if self.mode == 'settings' else
-                                 (self.mode, self.query, self['stations'].getSelectionIndex()))
-        self.mode = 'picons'
-        self.startup_autoplay = False
-        self.video_generation += 1
-        self.video_pending = False
-        self.cover_generation += 1
-        self.cover_pending = False
-        self.cover_display.token += 1
-        self.cover_display.disconnect()
-        self.cover_display.path = ''
-        self.refresh_rows()
-        self['functions'].moveToIndex(2)
-        self.set_focus('picon_form')
-        self.sync_spectrum()
+        lookup = lyrics if action == 'lyrics' else artist_information
+        identity = (self.playback.current['id'], artist, track)
+        self.settings_form.status(t('Please wait…'))
+        self.song_jobs.replace('song-info', lambda: lookup(artist, track),
+            lambda lines, error: self.song_details_loaded(title, identity, lines, error))
 
-    def close_picons(self):
-        self.mode, self.query, index = getattr(self, 'picon_return', ('radio', '', 0))
-        self.refresh_rows()
-        self['stations'].moveToIndex(index)
-        menu = self['functions'].list
-        self['functions'].moveToIndex(next((i for i, row in enumerate(menu) if row[1] == self.mode), 1))
-        self.set_focus('stations')
-        self.sync_spectrum()
-
-    def reload_picons(self, _result=None):
-        if getattr(self, 'closed', False):
+    def song_details_loaded(self, title, identity, lines, error):
+        if self.closed or self.mode != 'settings' or self.settings_form.view != 'song':
             return
-        settings = PiconSettings(self.store.directory)
-        self['stations'].picon_library = PiconLibrary(settings.location,settings.style,settings.legacy_location)
-        self['stations'].picons.clear()
-        if hasattr(self, 'rows') and self.rows:
-            index = self['stations'].getSelectionIndex()
-            self['stations'].setList([(item,) for item in self.rows])
-            self['stations'].moveToIndex(index)
+        current = ((self.playback.current or {}).get('id'), self['artist'].getText(), self['track'].getText())
+        if current != identity:
+            return
+        self.settings_form.song(title, lines or [t('Song information unavailable')])
 
     def update_country_caption(self):
-        country = group_label(self.active_group) if self.active_group else t('All groups')
+        country = group_label(country_name(self.active_group)) if self.active_group != 'ALL' else t('All groups')
         current = self['functions'].getSelectionIndex()
         entries = [(t('Choose country') + ' – ' + country + ' ▾', 'group'),
-                   (t('Radio stations'), 'radio'), (t('Picon downloads'), 'picons'),
+                   (t('Home'), 'radio'), (t('Subscriptions'), 'subscriptions'),
                    (t('Favourites'), 'favourites'),
                    (t('History'), 'history'), (t('Recordings'), 'recordings'),
                    (t('Settings'), 'settings'), (t('Update'), 'plugin-update')]
@@ -1208,7 +1147,7 @@ class WarderRadio(Screen):
             self['functions'].moveToIndex(max(0, min(current, len(entries) - 1)))
 
     def choose_group(self):
-        if self.closed or self.installing or self.starting:
+        if self.closed or self.installing:
             return
         if self.mode == 'settings':
             self.settings_form.countries()
@@ -1216,31 +1155,64 @@ class WarderRadio(Screen):
             self.open_settings(countries=True)
 
     def country_done(self, choice):
-        if self.closed:
-            return
-        if not choice:
-            if self.mode == 'settings':
-                self.settings_form.back()
-            return
-        self.group_done(choice)
+        if not choice and self.mode == 'settings':
+            self.settings_form.back()
+        elif choice:
+            self.group_done(choice)
 
     def group_done(self, choice):
         if not choice or self.closed:
             return
-        group = choice[1] or self.catalogue.groups()[0]
-        self.mode, self.query = 'radio', ''
-        if group == 'Custom':
-            self.cancel_catalogue()
-            self.active_group, self.store.group = group, group
-            try:
-                self.store.save()
-            except OSError:
-                self.notify(t('Cannot save settings'), True)
+        previous = self.store.online_country
+        self.active_group = self.store.online_country = saved_country(choice[1])
+        try:
+            self.store.save()
+        except OSError:
+            self.store.online_country = previous
+            self.notify(t('Cannot save settings'), True)
+        mode = self.settings_return[0] if self.mode == 'settings' else self.mode
+        self.select_mode('subscriptions' if mode == 'subscriptions' and self.active_group != 'Custom' else 'radio')
+
+    def current_category(self, mode=None):
+        return self.subscription_category if (mode or self.mode) == 'subscriptions' else self.home_category
+
+    def category_done(self, category):
+        mode = self.settings_return[0]
+        if mode == 'subscriptions':
+            self.subscription_category = category
         else:
-            catalogue = self.catalogue
-            self.queue_catalogue(lambda task: catalogue.prepare_country(group, task), 'country')
+            self.home_category = category
+        self.close_settings()
+        self.catalogue_page, self.page_offset = None, 0
+        self.load_page()
         self.refresh_rows()
         self.set_focus('stations')
+
+    def toggle_subscription(self):
+        mode = self.settings_return[0]
+        category = self.current_category(mode)
+        if not category:
+            return
+        previous = list(self.store.subscriptions)
+        if category in self.store.subscriptions:
+            self.store.subscriptions.remove(category)
+        elif len(previous) < 80:
+            self.store.subscriptions.append(category)
+        else:
+            self.settings_form.status(t('Cannot save settings'))
+            return
+        try:
+            self.store.save()
+        except OSError:
+            self.store.subscriptions = previous
+            self.settings_form.status(t('Cannot save settings'))
+            return
+        if self.subscription_category not in self.store.subscriptions:
+            self.subscription_category = next(iter(self.store.subscriptions), '')
+            if mode == 'subscriptions':
+                self.catalogue_page, self.page_offset = None, 0
+                self.load_page()
+        self.settings_form.status(t('Saved'))
 
     def add_name_done(self, name):
         if name and name.strip() and not self.closed:
@@ -1261,78 +1233,133 @@ class WarderRadio(Screen):
         except OSError:
             self.notify(t('Cannot add station'), True)
             return
-        self.cancel_catalogue()
-        self.active_group, self.mode, self.query = 'Custom', 'radio', ''
-        self.refresh_rows()
+        self.active_group = 'Custom'
+        self.select_mode('radio')
         self['status'].setText(t('Saved'))
         self.set_focus('stations')
 
     def update_catalogue(self):
-        if self.starting:
-            return
-        catalogue = self.catalogue
-        self.queue_catalogue(lambda task: catalogue.prepare_update(task), 'update')
+        self.load_facets(force=True)
+        self.load_page(self.page_offset, force=True)
 
     def cancel_catalogue(self):
         if self.catalogue_task is not None:
-            self.catalogue_task.cancel()
+            self.catalogue_task.set()
         self.catalogue_task = None
-        self.catalogue_operation = None
         self.updating = False
 
-    def queue_catalogue(self, worker, operation):
-        if self.closed or self.installing:
-            return
+    def load_page(self, offset=0, force=False, last=False):
         self.cancel_catalogue()
-        task = self.catalogue_task = CatalogueTask()
-        self.catalogue_operation = operation
-        self.updating = self.catalogue_jobs.replace('catalogue', lambda: worker(task),
-            lambda result, error: self.catalogue_loaded(result, error, task, operation))
-        if not self.updating:
-            self.catalogue_task = None
-            self['status'].setText(t('Cannot update catalogue'))
+        mode = self.settings_return[0] if self.mode == 'settings' else self.mode
+        category = self.current_category(mode)
+        if (mode not in BROWSE_MODES or self.active_group == 'Custom' or
+                mode == 'subscriptions' and not category):
+            if force and self.mode == 'settings':
+                self.settings_form.status(t('Updating catalogue…'))
             return
-        self['status'].setText(t('Searching all countries…') if operation == 'search' else
-                               t('Updating catalogue…'))
-        if self.mode == 'settings':
-            self.settings_form.status(self['status'].getText())
+        key = (mode, self.active_group, self.query, category)
+        if self.browse_key != key:
+            self.catalogue_page, self.page_offset = None, 0
+        self.browse_key = key
+        task = self.catalogue_task = Event()
+        _, country, query, category = key
+        self.updating = self.catalogue_jobs.replace('catalogue',
+            lambda: self.browser.page(country, query, category, offset, force, task.is_set),
+            lambda page, error: self.catalogue_loaded(task, key, offset, force, last, page, error))
+        self.catalogue_status(t('Updating catalogue…') if self.updating else t('Cannot update catalogue'))
 
-    def catalogue_loaded(self, catalogue, error, task=None, operation='update'):
-        if self.closed or (task is not None and (task is not self.catalogue_task or task.cancelled.is_set())):
-            return
-        self.catalogue_task = None
-        self.updating = False
-        if error:
-            self['status'].setText(t('Cannot update catalogue'))
-            self.notify(t('Cannot update catalogue'), True)
-        elif operation == 'search':
-            if catalogue['query'] == self.query:
-                self.search_rows, self.search_total = catalogue['items'], catalogue['total']
-                if self.mode == 'radio':
-                    self.refresh_rows()
-                    self['status'].setText(t('Search results') + ': %d / %d' %
-                                          (len(self.search_rows), self.search_total))
-        else:
-            self.catalogue = catalogue
-            self.query = ''
-            if self.active_group != 'Custom' or operation == 'country':
-                self.active_group = catalogue.group
-            self.store.group = self.active_group
-            try:
-                self.store.save()
-            except OSError:
-                self.notify(t('Cannot save settings'), True)
-            if self.mode == 'radio':
-                self.refresh_rows()
-                playing = self.playback.current
-                if playing and playing.get('group') == self.active_group:
-                    index = next((i for i, row in enumerate(self.rows) if row['id'] == playing['id']), None)
-                    if index is not None:
-                        self['stations'].moveToIndex(index)
-                        self.update_count()
-            self['status'].setText(t('Catalogue updated') if operation == 'update' else '')
+    def catalogue_status(self, message):
+        self['status'].setText(message)
         if self.mode == 'settings':
-            self.settings_form.status(self['status'].getText())
+            self.settings_form.status(message)
+
+    def catalogue_loaded(self, task, key, offset, force, last, page, error):
+        if self.closed or task is not self.catalogue_task or task.is_set():
+            return
+        self.catalogue_task, self.updating = None, False
+        if error or page is None:
+            self.catalogue_status(t('Cannot update catalogue'))
+            self.update_count()
+            return
+        self.catalogue_page, self.page_offset = page, offset
+        if self.mode == key[0]:
+            selected = self.current() if force else self.playback.current
+            self.refresh_rows()
+            index = len(self.rows) - 1 if last else 0
+            if selected and selected.get('url') and offset == 0 and not last:
+                index = next((i for i, row in enumerate(self.rows) if same_station(row, selected)), 0)
+            self['stations'].moveToIndex(max(0, index))
+            self.update_count()
+        self.catalogue_status(t('Offline catalogue') if page.offline else t('Catalogue updated') if force else '')
+
+    def row_logo(self, url):
+        if self.logo_fallback is None:
+            self.logo_fallback = LoadPixmap(FALLBACK_LOGO, cached=True)
+        entry = self.logo_results.get(url)
+        return (entry[1] if entry else None) or self.logo_fallback
+
+    def show_saver_logo(self, url):
+        entry = self.logo_results.get(url)
+        self.saver_picon.show(entry[0] if entry else None)
+
+    def visible_logo_urls(self):
+        if self.mode == 'settings' or not getattr(self, 'shown', True) or self._saver_modal_open():
+            return []
+        if self.saver_active:
+            return [(self.playback.current or {}).get('favicon')]
+        widget = self['stations']
+        if not self.rows or widget.instance is None:
+            return []
+        index = max(0, widget.getSelectionIndex())
+        # OpenATV exposes its scroll origin. OpenPLi 9.2 aligns the top row
+        # to the start of the current viewport in eListbox::moveSelection.
+        get_top = getattr(widget.instance, 'getTopIndex', None)
+        top = get_top() if get_top else index - index % VISIBLE_ROWS
+        return [item.get('favicon') for item in self.rows[max(0, top):max(0, top) + VISIBLE_ROWS]]
+
+    def poll_logos(self):
+        self.logo_jobs.poll()
+        if self.logo_busy or self.logo_paused:
+            return
+        now = time.monotonic()
+        for url in self.visible_logo_urls():
+            if not url:
+                continue
+            entry = self.logo_results.get(url)
+            if entry and now < entry[2]:
+                self.logo_results.move_to_end(url)
+                continue
+            self.logo_busy = self.logo_jobs.submit('logo', lambda: self.logo_cache.get(url),
+                                                   lambda path, error: self.logo_loaded(url, path))
+            break
+
+    def logo_loaded(self, url, path):
+        self.logo_busy = False
+        if self.logo_paused or self.closed:
+            return
+        pixmap = LoadPixmap(path, cached=False) if path else None
+        self.logo_results[url] = (path if pixmap else None, pixmap, time.monotonic() + (3600 if pixmap else 900))
+        while len(self.logo_results) > 64:
+            self.logo_results.popitem(last=False)
+        if not pixmap:
+            return
+        if not self.saver_active and url in self.visible_logo_urls():
+            view = self['stations']
+            invalidate = getattr(view.l, 'invalidate', None) or view.instance.invalidate
+            invalidate()
+        if self.saver_active and (self.playback.current or {}).get('favicon') == url:
+            self.show_saver_logo(url)
+
+    def clear_logos(self, accepted):
+        if not accepted:
+            return
+        self.logo_paused = True
+        self.logo_results.clear()
+        self.logo_busy = self.logo_jobs.replace('logo', self.logo_cache.clear, self.logos_cleared)
+
+    def logos_cleared(self, result, error):
+        self.logo_busy = False
+        self.settings_form.status(t('Cannot clear logo cache' if error else 'Logo cache cleared'))
 
     def toggle_recording(self):
         if self.recording.running():
@@ -1388,18 +1415,10 @@ class WarderRadio(Screen):
 
     def poll(self):
         if not self.closed:
-            if self.catalogue_task is not None:
-                state = self.catalogue_task.take()
-                if state is not None and self.mode == 'radio':
-                    stage, name, done, total = state
-                    message = (t('Searching all countries…') if self.catalogue_operation == 'search' else
-                               t('Loading country {name}…').format(name=group_label(name)) if name else
-                               t('Checking country updates…'))
-                    if stage == 'download' and total:
-                        message += ' %d%%' % min(100, done * 100 // total)
-                    self['status'].setText(message)
             self.catalogue_jobs.poll()
-            self.picon_form.poll()
+            self.song_jobs.poll()
+            self.facet_jobs.poll()
+            self.poll_logos()
             progress = self.update_state.take()
             if progress is not None and self.update_window is not None:
                 self.update_window.set_stage(*progress)
@@ -1526,10 +1545,6 @@ class WarderRadio(Screen):
         if self.mode == 'settings' and not self.installing:
             self.settings_form.back()
             return
-        if self.mode == 'picons' and not self.installing:
-            if not self.picon_form.back():
-                self.close_picons()
-            return
         if not self.installing:
             self.close()
 
@@ -1545,7 +1560,9 @@ class WarderRadio(Screen):
             self.video_dialog.close()
             self.video_dialog = None
         self.video_jobs.close()
-        self.picon_form.cleanup()
+        self.logo_jobs.close()
+        self.song_jobs.close()
+        self.facet_jobs.close()
         self.cancel_catalogue()
         self.catalogue_jobs.close()
         if self.update_window is not None:

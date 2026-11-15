@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Для текущей композиции не удалось найти видео на YouTube.",
   "Yes": "Да",
   "No": "Нет",
-  "A new version is available. Do you want to install it?": "Доступна новая версия. Хотите установить её?"
+  "A new version is available. Do you want to install it?": "Доступна новая версия. Хотите установить её?",
+  "Home": "Главная",
+  "Subscriptions": "Подписки",
+  "Choose category": "Выбрать категорию",
+  "Follow category": "Подписаться на категорию",
+  "Unfollow category": "Отписаться от категории",
+  "All categories": "Все категории",
+  "No subscriptions": "Нет подписок",
+  "Page": "Страница",
+  "Offline catalogue": "Каталог без сети",
+  "Clear logo cache": "Очистить кэш логотипов",
+  "Clear cached station logos?": "Удалить сохранённые логотипы станций?",
+  "Logo cache cleared": "Кэш логотипов очищен",
+  "Cannot clear logo cache": "Не удалось очистить кэш логотипов",
+  "Lyrics": "Текст песни",
+  "Artist information": "Об исполнителе",
+  "Song information unavailable": "Сведения о композиции недоступны"
 }

@@ -15,7 +15,7 @@ from .model import clean, read_json, search_key, station, stream_url
 
 USER_AGENT = 'WarderRadio/' + VERSION + ' (+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution)'
 DISCOVERY = 'all.api.radio-browser.info'
-MIRRORS = ('de1.api.radio-browser.info', 'nl1.api.radio-browser.info')
+MIRRORS = (DISCOVERY, 'de1.api.radio-browser.info', 'nl1.api.radio-browser.info')
 PAGE_SIZE = 32
 MAX_RESPONSE = 512 * 1024
 PINNED = ('SK', 'CZ')
@@ -32,7 +32,7 @@ def country_code(value):
 
 
 def saved_country(value):
-    if value == 'Custom':
+    if value in ('Custom', 'ALL'):
         return value
     return country_code(value) or LEGACY_COUNTRIES.get(search_key(value or ''), 'SK')
 
@@ -96,7 +96,7 @@ class RadioBrowser:
             try:
                 request = Request('https://' + host + '/json/' + path + query,
                                   headers={'User-Agent': USER_AGENT, 'Accept': 'application/json'})
-                with self.opener(request, timeout=3) as response:
+                with self.opener(request, timeout=5) as response:
                     content = response.read(MAX_RESPONSE + 1)
                 if len(content) > MAX_RESPONSE:
                     raise ValueError('Radio Browser response too large')

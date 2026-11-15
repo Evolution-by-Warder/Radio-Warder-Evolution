@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Er is geen YouTube-video gevonden voor het huidige nummer.",
   "Yes": "Ja",
   "No": "Nee",
-  "A new version is available. Do you want to install it?": "Er is een nieuwe versie beschikbaar. Wilt u deze installeren?"
+  "A new version is available. Do you want to install it?": "Er is een nieuwe versie beschikbaar. Wilt u deze installeren?",
+  "Home": "Start",
+  "Subscriptions": "Abonnementen",
+  "Choose category": "Categorie kiezen",
+  "Follow category": "Categorie volgen",
+  "Unfollow category": "Categorie niet meer volgen",
+  "All categories": "Alle categorieën",
+  "No subscriptions": "Geen abonnementen",
+  "Page": "Pagina",
+  "Offline catalogue": "Offlinecatalogus",
+  "Clear logo cache": "Logocache wissen",
+  "Clear cached station logos?": "Opgeslagen zenderlogo’s wissen?",
+  "Logo cache cleared": "Logocache gewist",
+  "Cannot clear logo cache": "Logocache kon niet worden gewist",
+  "Lyrics": "Songtekst",
+  "Artist information": "Artiesteninformatie",
+  "Song information unavailable": "Nummerinformatie niet beschikbaar"
 }

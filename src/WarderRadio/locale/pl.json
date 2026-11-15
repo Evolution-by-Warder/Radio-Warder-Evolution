@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Nie znaleziono filmu w YouTube dla bieżącego utworu.",
   "Yes": "Tak",
   "No": "Nie",
-  "A new version is available. Do you want to install it?": "Dostępna jest nowa wersja. Czy chcesz ją zainstalować?"
+  "A new version is available. Do you want to install it?": "Dostępna jest nowa wersja. Czy chcesz ją zainstalować?",
+  "Home": "Strona główna",
+  "Subscriptions": "Subskrypcje",
+  "Choose category": "Wybierz kategorię",
+  "Follow category": "Subskrybuj kategorię",
+  "Unfollow category": "Anuluj subskrypcję kategorii",
+  "All categories": "Wszystkie kategorie",
+  "No subscriptions": "Brak subskrypcji",
+  "Page": "Strona",
+  "Offline catalogue": "Katalog offline",
+  "Clear logo cache": "Wyczyść pamięć podręczną logo",
+  "Clear cached station logos?": "Usunąć zapisane logo stacji?",
+  "Logo cache cleared": "Pamięć podręczna logo wyczyszczona",
+  "Cannot clear logo cache": "Nie udało się wyczyścić pamięci podręcznej logo",
+  "Lyrics": "Tekst piosenki",
+  "Artist information": "Informacje o wykonawcy",
+  "Song information unavailable": "Informacje o utworze niedostępne"
 }
