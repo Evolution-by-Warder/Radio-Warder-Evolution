@@ -84,6 +84,7 @@ class RadioList(MenuList):
         self.l.setBuildFunc(self.build)
         self.logo = None
         self.icy_supported = None
+        self.pinned = None
 
     def build(self, item, key=None):
         def n(value):
@@ -108,13 +109,14 @@ class RadioList(MenuList):
                                                size=(n(350), n(52)),
                                                font=0, flags=flags, text=item)]
         pixmap = self.logo(item) if self.logo else None
+        title = ('★ ' if self.pinned and self.pinned(item) else '') + item['name']
         icy = bool(self.icy_supported and self.icy_supported(item))
         contents = [None,
                 MultiContentEntryPixmapAlphaBlend(pos=(n(8), n(17)), size=(n(106), n(54)),
                     png=pixmap, flags=(enigma.BT_SCALE | enigma.BT_KEEP_ASPECT_RATIO
                     | enigma.BT_HALIGN_CENTER | enigma.BT_VALIGN_CENTER)),
                 MultiContentEntryText(pos=(n(126), n(7)), size=(n(392 if icy else 460), n(44)), font=0,
-                                      flags=flags, text=item['name']),
+                                      flags=flags, text=title),
                 MultiContentEntryText(pos=(n(126), n(50)), size=(n(215), n(30)), font=1,
                                       flags=flags, text=group_label(item.get('group', '')),
                                       color=0x89acc4, color_sel=0xb8e8f8),
@@ -198,6 +200,7 @@ class WarderRadio(Screen):
         self['functions'] = RadioList([], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
         self['stations'].logo = self.row_logo
+        self['stations'].pinned = self.store.is_pinned
         self['subscription_tabs'] = SubscriptionTabs(self.ui_scale)
         self.icy_known = set()
         self.icy_cache = IcyBadgeCache(self.store.directory)
@@ -509,6 +512,12 @@ class WarderRadio(Screen):
                 self.rows = [row for row in self.store.custom if key in search_key(row['name'])]
             else:
                 self.rows = list(self.catalogue_page.rows) if self.catalogue_page else []
+                if (self.mode == 'radio' and not self.query and not self.home_category
+                        and self.active_group != 'Custom'):
+                    pins = [item for item in self.store.pinned
+                            if self.active_group == 'ALL' or
+                            saved_country(item.get('group')) == self.active_group]
+                    self.rows = merge_stations(pins, self.rows)
         elif self.mode == 'favourites':
             self.rows, heading = list(self.store.favourites), t('Favourites')
         elif self.mode == 'history':
@@ -1197,6 +1206,40 @@ class WarderRadio(Screen):
             self['stations'].moveToIndex(min(index, max(0, len(self.rows) - 1)))
             self.update_count()
 
+    def pin_selected(self):
+        """Toggle only the selected Home pin; preserve other user preferences."""
+        item = self.current()
+        if not item or not item.get('url'):
+            return
+        try:
+            self.store.toggle_pin(item)
+        except (OSError, ValueError):
+            self.settings_form.status(t('Cannot save settings'))
+            return
+        selected = item.get('id')
+        self.close_settings()
+        self.refresh_rows()
+        index = next((i for i, row in enumerate(self.rows) if row.get('id') == selected), 0)
+        self['stations'].moveToIndex(index)
+        self.update_count()
+
+    def move_selected_favourite(self, direction):
+        if self.settings_return[0] != 'favourites':
+            return
+        item = self.current()
+        if not item:
+            return
+        try:
+            index = self.store.move_favourite(item, direction)
+        except OSError:
+            self.settings_form.status(t('Cannot save settings'))
+            return
+        self.close_settings()
+        if index >= 0:
+            self.refresh_rows()
+            self['stations'].moveToIndex(index)
+            self.update_count()
+
     def search(self):
         if self.mode == 'settings':
             if self.settings_form.view in ('name', 'url'):
@@ -1259,6 +1302,12 @@ class WarderRadio(Screen):
             self.choose_group()
         elif action == 'favourite':
             self.favourite()
+        elif action == 'pin-toggle':
+            self.pin_selected()
+        elif action == 'favourite-up':
+            self.move_selected_favourite(-1)
+        elif action == 'favourite-down':
+            self.move_selected_favourite(1)
         elif action == 'category':
             self.settings_form.choose_category()
         elif action == 'subscription':
