@@ -425,12 +425,12 @@ class NativeTests(unittest.TestCase):
         screen['stations'].moveToIndex(8)
         self.assertEqual(screen.visible_logo_urls(), expected)
         # A row outside the viewport can be measured by some Enigma2 builds.
-        hidden = screen.rows[26]['favicon']
+        hidden = screen.rows[26]
         self.assertTrue(screen.row_logo(hidden).endswith('plugin.png'))
         screen.logo_jobs.submit = lambda key, work, callback: (work(), True)[1]
         with patch.object(screen.logo_cache, 'get', return_value=None) as fetch:
             screen.poll_logos()
-            fetch.assert_called_once_with(expected[0])
+            fetch.assert_called_once_with(screen.rows[8])
         screen.options()
         self.assertEqual(screen.visible_logo_urls(), [])
 
@@ -442,7 +442,7 @@ class NativeTests(unittest.TestCase):
         screen.show()
         screen.logo_paused = False
         self.assertFalse(screen.logo_busy)
-        first = screen.rows[0]['favicon']
+        first = screen.rows[0]
         viewport = screen.rows[16:24]
         entered, release = threading.Event(), threading.Event()
         self.addCleanup(release.set)
@@ -469,7 +469,7 @@ class NativeTests(unittest.TestCase):
             while len(requests) < 2 and time.monotonic() < deadline:
                 screen.poll_logos()
                 time.sleep(0.001)
-            self.assertEqual(requests[1][0], viewport[0]['favicon'])
+            self.assertEqual(requests[1][0], viewport[0])
 
     def test_failed_stream_keeps_station_list_and_allows_next_station(self):
         screen, _, _ = self.new()
