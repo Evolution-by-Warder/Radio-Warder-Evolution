@@ -1130,8 +1130,6 @@ class WarderRadio(Screen):
             self.choose_group()
         elif action == 'favourite':
             self.favourite()
-        elif action == 'update':
-            self.update_catalogue()
         elif action == 'category':
             self.settings_form.choose_category()
         elif action == 'subscription':
