@@ -99,8 +99,58 @@ class MusicDetailTests(unittest.TestCase):
                 'extract':'Test Artist is a British rock band formed in 2001.'}
         fake = lambda request, timeout: io.BytesIO(json.dumps(page).encode())
         self.assertEqual(wikipedia_bio('Test Artist', opener=fake),
-                         ['Biography: Test Artist is a British rock band formed in 2001.', '', 'Wikipedia'])
+                         ['Biography: Test Artist is a British rock band formed in 2001.', '', 'Wikipedia (SK)'])
         self.assertEqual(wikipedia_bio('Other Artist', opener=fake), [])
+
+    def test_numbered_icy_elan_title_finds_genuine_itunes_release(self):
+        from urllib.parse import parse_qs, urlsplit
+        from WarderRadio.song_details import title_options
+        self.assertEqual(title_options('10.Kralovna bielych tenisiek'),
+                         ['10.Kralovna bielych tenisiek', 'Kralovna bielych tenisiek'])
+        self.assertEqual(title_options('99 Luftballons'), ['99 Luftballons'])
+        self.assertEqual(title_options('2+2=5'), ['2+2=5'])
+        calls = []
+        def opener(request, timeout):
+            params = parse_qs(urlsplit(request.full_url).query)
+            term = params.get('term', [''])[0]
+            calls.append(term)
+            if term == 'Elán Kralovna bielych tenisiek':
+                result = {'results': [{'kind': 'song', 'artistName': 'Elán',
+                          'trackName': 'Kráľovná bielych tenisiek',
+                          'collectionName': 'Hodina slovenčiny',
+                          'releaseDate': '1985-10-01T12:00:00Z',
+                          'primaryGenreName': 'Pop'}]}
+            else:
+                result = {'results': []}
+            return io.BytesIO(json.dumps(result).encode())
+        self.assertEqual(song_information('Elán', '10.Kralovna bielych tenisiek',
+                                          opener=opener),
+                         ['Album: Hodina slovenčiny', 'Year: 1985',
+                          'Genre: Pop', '', 'iTunes'])
+        self.assertEqual(calls, ['Elán 10.Kralovna bielych tenisiek',
+                                 'Elán Kralovna bielych tenisiek'])
+
+    def test_elan_band_wikipedia_fallback_rejects_generic_ambiguous_elan(self):
+        from urllib.parse import unquote, urlsplit
+        calls = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            title = unquote(url.path.split('/')[-1]).replace('_', ' ')
+            calls.append((url.hostname, title))
+            if url.hostname == 'en.wikipedia.org' and title == 'Elán (band)':
+                row = {'type':'standard', 'title':'Elán (band)',
+                       'description':'Slovak pop rock band',
+                       'extract':'Elán is a Slovak pop rock band formed in Bratislava.'}
+            elif title == 'Elán':
+                row = {'type':'disambiguation', 'title':'Elán',
+                       'description':'Disambiguation', 'extract':'Several entities'}
+            else:
+                raise OSError('Missing encyclopedia article')
+            return io.BytesIO(json.dumps(row).encode())
+        self.assertEqual(wikipedia_bio('Elán', opener=opener),
+                         ['Biography: Elán is a Slovak pop rock band formed in Bratislava.',
+                          '', 'Wikipedia (EN)'])
+        self.assertIn(('en.wikipedia.org', 'Elán (band)'), calls)
 
     def test_wikipedia_disambiguation_is_not_published_as_bio(self):
         page = {'type':'disambiguation','title':'Test Artist','extract':'Mixed identities'}
