@@ -1,5 +1,14 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – ICY pred spustením a vyčistenie MENU (0.2.0-test7)
+
+- [Draft PR #30](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/30) · vetva `fix/radio-icy-background-probes-test7-20261115`. Vychádza z test6; produkčný `main` zostáva nedotknutý.
+- **MENU:** odstránená redundantná položka `Aktualizovať katalóg rádií` aj jej GUI handler. Online katalóg sa obnovuje automaticky. `Odbery` naďalej slúžia na sledované kategórie a žánre; `Obľúbené`, `Aktualizovať` (samotný plugin) aj interné metódy obnovenia pre diagnostiku zostali zachované.
+- **ICY:** pri otvorenom zozname prebieha jediný, nízkoprioritný I/O probe pre aktuálne viditeľné online stanice (až po logách), bez spúšťania streamu cez Enigma2. Pri potvrdenej dvojici interpret + skladba sa aktivuje tyrkysový znak `ICY`. Pozitívny výsledok sa uloží podľa SHA-256 stream adresy max. na 7 dní (max. 256 záznamov); neúspešné kontroly majú 30 minút odklad v RAM. Safe fetch používa `http.client` bez redirectov a s pripnutým overeným verejným IP, limitmi prenosu a časovania.
+- **CI:** [GitHub Actions PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43753630797) — kompilácia, unit testy, natívne OpenPLi/OpenATV replaye, verifikácia IPK, izolovaný upgrade z produkčnej 0.1.9.4 a reinštalácia. Testovací artefakt `radio-browser-receiver-test`: `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test7_all.ipk` (2 915 658 bajtov, SHA-256 `5270bffe8ef0645a158819347b878e50d4f8720c64b2680927489839be1813d0`), overené oproti `SHA256SUMS`.
+- **Otvorené:** fyzické testy GigaBlue Quad 4K Pro a SF8008 vrátane reakcie na prvé automatické zisťovanie ICY, rýchleho posúvania a overenia staníc používateľa. Neoznačovať neoverené stanice za podporované, nekombinovať ICO s RDS. Ostré vydanie nebolo schválené, nespájať s `main` bez súhlasu.
+
+
 ## 15. 11. 2026 – oprava viditeľnosti kvality pri staniciach (0.2.0-test6)
 
 - Majiteľ pri testovaní nahlásil, že formát/bitrate sa v zozname nezobrazujú. Nová samostatná vetva `fix/radio-quality-visible-test6-20261115` vychádza z test5, [Draft PR #29](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/29).
