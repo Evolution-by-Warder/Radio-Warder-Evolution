@@ -1,5 +1,16 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – Radio 0.2.0-test10 (užitočné prvky Radiotecy, prehrávač nezmenený)
+
+- [Draft PR #33](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/33), `feature/radio-radioteca-useful-20261115`, nadväzuje na vydaný test9; `main` / ostrá 0.1.9.4 bez zmeny.
+- **Prehrávacie jadro zostáva pôvodné:** `Playback.play()` stále vyvoláva `eServiceReference(4097, 0, ...)`; bez výmeny na ExtePlayer/GstPlayer, bez nového prehrávacieho backendu. Nahrávanie, pôvodná navigácia, ICY, šetrič a ekvalizér neboli menené.
+- **Pripnuté stanice:** nové samostatné `pinned` v existujúcom `state.json`, MENU pripnúť/odopnúť na Domov; pripnuté stanice sa zobrazia prvé v domácom zozname pre danú krajinu, bez zmeny Obľúbených. **Ručné poradie Obľúbených:** MENU posunúť vyššie/nižšie, perzistentné a s rollbackom pri chybe zápisu.
+- **Viac informácií o hudbe:** položka `Informácie o skladbe` (overený album, dátum/rok a žáner z iTunes podľa identity nahrávky), `Informácie o interpretovi` môžu pridať krátky overený anglický životopis z Wikipedia summary; nejednoznačné identity sa nehádajú.
+- **Pridanie vlastného rádia:** priamy stream ako predtým alebo M3U/PLS a jednoduchá webová stránka s audio URL; limitovaný resolver pracuje výlučne cez existujúci off-GUI Jobs worker. Pri chybe sa neprepisujú pôvodné záznamy. **Diagnostika:** nový nesenzitívny pamäťový register (najviac 64 udalostí, bez stream URL či skladieb), dostupný v MENU. Nové texty pre 21 jazykov.
+- **Testy:** [GitHub CI PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43761446685) (kompilácia, unit, natívne OpenPLi a OpenATV, bezpečný scope IPK, izolovaný `opkg` upgrade / reinstall z 0.1.9.4). Artefakt `radio-browser-receiver-test` obsahuje `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test10_all.ipk`: **2 925 026 B**, SHA-256 `8cee7802c188df65d58e6aabce4d1a5c4ca65f3544420bc429acbd3c31790c57` — prevzaté, zhodné s `SHA256SUMS`, IPK dekódované a explicitne skontrolovaná referencia 4097.
+- **Otvorené:** reálny fyzický test na GigaBlue Quad 4K Pro a SF8008, obzvlášť praktickosť pripínania/ručného poradia, M3U/PLS odkazy, MusicBrainz/Wikipedia/iTunes, UI diagnostiky. Nezavádzať automatické výmeny prehrávačov, nepublikovať stabilné IPK ani nespájať Draft PR bez majiteľovho schválenia. Funkcie live-search počas písania, plnohodnotné nové prehrávanie a samostatná LIVE obrazovka nie sú súčasťou tejto dávky.
+
+
 ## 15. 11. 2026 – informácie o interpretovi a svižnejší šetrič (0.2.0-test9)
 
 - **Draft PR #32:** https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/32 · vetva `fix/radio-artist-info-saver-motion-test9-20261115`; pokračovanie test8 Odberov, produkčný `main` a stabilná 0.1.9.4 zostávajú nezmenené.
