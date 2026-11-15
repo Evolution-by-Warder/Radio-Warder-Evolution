@@ -127,3 +127,77 @@ def artist_information(artist, track, opener=urlopen):
     return [clean(value) for value in (row.get('name'), row.get('disambiguation'),
                                        area.get('name') if isinstance(area, dict) else '',
                                        years, genres) if value] + ['', 'MusicBrainz']
+
+def song_information(artist, track, opener=urlopen):
+    """Album, year and genre only when an iTunes recording identity matches."""
+    artist, track = clean(artist, 240), clean(track, 240)
+    if not artist or not track:
+        return []
+    from .covers import cover_rank
+    countries = ('US', 'SK')
+    for country in countries:
+        try:
+            rows = read_response('https://itunes.apple.com/search',
+                                 {'term': artist + ' ' + track, 'entity': 'song',
+                                  'media': 'music', 'country': country, 'limit': 15}, opener)
+        except (OSError, ValueError, TypeError):
+            continue
+        candidates = [(cover_rank(row, artist, track), row) for row in
+                      (rows.get('results', []) if isinstance(rows, dict) else [])
+                      if isinstance(row, dict)]
+        candidates = [(score, row) for score, row in candidates if score > 0]
+        if not candidates:
+            continue
+        candidates.sort(key=lambda pair: (-pair[0], pair[1].get('releaseDate') or '9999'))
+        item = candidates[0][1]
+        values = []
+        album = clean(item.get('collectionName'))
+        year = clean(item.get('releaseDate'))[:4]
+        genre = clean(item.get('primaryGenreName'))
+        if album:
+            values.append('Album: ' + album)
+        if year and year.isdigit():
+            values.append('Year: ' + year)
+        if genre:
+            values.append('Genre: ' + genre)
+        return values + ['', 'iTunes'] if values else []
+    return []
+
+
+def wikipedia_bio(artist, opener=urlopen):
+    """An exact-name music biography summary, not a speculative name search."""
+    artist = clean(artist, 100)
+    if not artist or '/' in artist or len(artist) > 90:
+        return []
+    from urllib.parse import quote
+    # Wikipedia REST page summary follows exact page title or official redirect;
+    # reject disambiguation pages and biographies with no musical indication.
+    url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + quote(artist.replace(' ', '_'), safe='')
+    request = Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'application/json'})
+    try:
+        with opener(request, timeout=4) as response:
+            body = response.read(24 * 1024 + 1)
+        if len(body) > 24 * 1024:
+            return []
+        info = json.loads(body)
+    except (OSError, ValueError, TypeError):
+        return []
+    if not isinstance(info, dict) or info.get('type') != 'standard':
+        return []
+    actual = info.get('title') or ''
+    if not matches(actual, artist):
+        return []
+    descriptor = clean(info.get('description')).casefold()
+    if not any(term in descriptor for term in
+               ('singer', 'band', 'musician', 'rapper', 'dj', 'music', 'songwriter',
+                'composer', 'record producer', 'vocalist', 'guitarist')):
+        return []
+    summary = clean(info.get('extract'), 700)
+    return ['Biography: ' + summary, '', 'Wikipedia'] if summary else []
+
+
+def artist_profile(artist, track, opener=urlopen):
+    """Keep MusicBrainz verified facts; enrich with a checked Wikipedia excerpt."""
+    result = artist_information(artist, track, opener)
+    wiki = wikipedia_bio(artist, opener)
+    return result + ([''] if result and wiki else []) + wiki if result or wiki else []
