@@ -128,12 +128,11 @@ class SettingsForm:
                     (t('Off') if host.store.screensaver_delay == 0 else str(host.store.screensaver_delay) + ' s'), 'saver-delay'),
                    (t('Clear logo cache'), 'clear-logos'), (t('About'), 'about')]
         mode = host.settings_return[0]
-        if mode == 'subscriptions' or mode == 'radio' and host.active_group != 'Custom':
+        if mode == 'subscriptions':
+            if host.subscription_category in host.store.subscriptions:
+                choices.insert(1, (t('Unfollow category'), 'subscription-remove'))
+        elif mode == 'radio' and host.active_group != 'Custom':
             choices.insert(1, (t('Choose category'), 'category'))
-            category = host.current_category(mode)
-            if category:
-                action = 'Unfollow category' if category in host.store.subscriptions else 'Follow category'
-                choices.insert(2, (t(action), 'subscription'))
         if host.radio_running() and host['artist'].getText():
             choices.extend([(t('Lyrics'), 'lyrics'), (t('Artist information'), 'artist-information')])
         if host.settings_return[0] == 'recordings':
@@ -160,7 +159,8 @@ class SettingsForm:
         title = {'menu': 'Settings', 'countries': 'Choose country', 'name': 'Station name',
                  'url': 'Stream URL', 'about': 'About', 'confirm': 'Information',
                  'main-menu': 'Show in Enigma2 main menu',
-                 'saver-delay': 'Screensaver after', 'categories': 'Choose category', 'song': self.song_title}[self.view]
+                 'saver-delay': 'Screensaver after', 'categories': 'Choose category',
+                 'subscription-add': 'Add subscription', 'song': self.song_title}[self.view]
         host['settings_title'].setText(t(title))
         options = host['settings_options']; index = options.getSelectionIndex()
         if self.view == 'menu':
@@ -190,6 +190,11 @@ class SettingsForm:
                 rows.extend((category, category, category == selected) for category in host.categories)
             if not rows:
                 rows = [(t('No subscriptions'), None, None)]
+        elif self.view == 'subscription-add':
+            rows = [(category, category, None) for category in host.categories
+                    if category not in host.store.subscriptions]
+            if not rows:
+                rows = [(t('No stations'), None, None)]
         elif self.view == 'song':
             rows = [(line, None, None) for line in self.song_lines]
         else:
@@ -235,6 +240,13 @@ class SettingsForm:
         self.host['settings_options'].moveToIndex(next((i for i, row in enumerate(rows) if row[2]), 0))
         self.host.set_focus(self.focus_name)
 
+    def add_subscription(self):
+        self.view = 'subscription-add'
+        self.host['settings_status'].setText('')
+        self.refresh()
+        self.host['settings_options'].moveToIndex(0)
+        self.host.set_focus(self.focus_name)
+
     def choose(self):
         if self.host.closed or self.host.installing:
             return
@@ -245,10 +257,13 @@ class SettingsForm:
                 self.host.option_done(row)
         elif self.view == 'countries':
             self.cursor_changed()
-        elif self.view == 'categories':
+        elif self.view in ('categories', 'subscription-add'):
             row = self.host['settings_options'].getCurrent()
             if row and row[1] is not None:
-                self.host.category_done(row[1])
+                if self.view == 'subscription-add':
+                    self.host.subscription_add_done(row[1])
+                else:
+                    self.host.category_done(row[1])
         elif self.view == 'main-menu':
             row = self.host['settings_options'].getCurrent()
             if row:
