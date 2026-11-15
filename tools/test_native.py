@@ -482,6 +482,22 @@ class NativeTests(unittest.TestCase):
         plain = screen['stations'].l.build(screen.rows[0])
         self.assertNotIn('128 kbps', str(plain))
 
+    def test_icy_badge_only_appears_for_confirmed_stream_song_metadata(self):
+        screen, _, _ = self.new()
+        first = screen.rows[0]
+        second = screen.rows[1]
+        self.assertNotIn("'ICY'", str(screen['stations'].l.build(first)))
+        screen.play()
+        screen.metadata_monitor.song = lambda *args, **kwargs: ('Test artist', 'Test track')
+        screen.metadata()
+        self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
+        self.assertNotIn("'ICY'", str(screen['stations'].l.build(second)))
+        # Confirmation is idempotent and survives a list redraw.
+        screen.mark_icy_supported(first)
+        screen.refresh_rows()
+        self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
+        self.assertEqual(len(screen.icy_known), 1)
+
     def test_failed_stream_keeps_station_list_and_allows_next_station(self):
         screen, _, _ = self.new()
         screen.play()
