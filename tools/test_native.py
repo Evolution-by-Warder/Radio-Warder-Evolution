@@ -399,6 +399,8 @@ class NativeTests(unittest.TestCase):
         self.wait_for_country(screen)
         self.assertEqual(screen.focus, 'subscription_tabs')
         self.assertIn(radio.t('Add first subscription'), str(screen['subscription_tabs'].l.build(0)))
+        self.assertEqual(screen['green'].getText(), radio.t('Add subscription'))
+        self.assertIn('OK', screen['hint'].getText())
         self.assertTrue(screen['subscription_tabs'].instance.isVisible())
         self.assertEqual(Store(self.tmp.name).subscriptions, [])
         # One OK on the top Add chip opens all genres (not only subscribed).
@@ -436,6 +438,19 @@ class NativeTests(unittest.TestCase):
         self.assertIs(session.nav.current, playing)
         self.assertIsNotNone(root.find("widget[@name='subscription_tabs']"))
         self.assertIsNotNone(root.find("widget[@name='section']"))
+
+    def test_green_directly_opens_add_subscription_from_empty_odbery(self):
+        screen, _, _ = self.new()
+        screen.select_mode('subscriptions')
+        self.assertEqual(screen.focus, 'subscription_tabs')
+        screen.green_pressed()
+        self.assertEqual(screen.settings_form.view, 'subscription-add')
+        self.assertEqual([row[1] for row in screen['settings_options'].list], ['news', 'rock'])
+        screen.exit()
+        self.assertEqual(screen.mode, 'settings')
+        screen.exit()
+        self.assertEqual(screen.mode, 'subscriptions')
+        self.assertEqual(screen.store.subscriptions, [])
 
     def test_subscription_tabs_are_native_and_only_shrink_subscriptions(self):
         screen, _, root = self.new()
