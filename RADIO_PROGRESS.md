@@ -1,5 +1,14 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – rýchlejšie online logá a kvalita vysielania (0.2.0-test4)
+
+- **Draft PR #27:** https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/27 · pracovná vetva `fix/radio-stream-quality-fast-logos-20261115`, nadväzuje na používateľom skúšaný 0.2.0-test3; produkčný `main` a stabilná 0.1.9.4 sa nemenili.
+- Online katalóg preberá z Radio Browser `codec` a `bitrate`, bezpečne ich ukladá s identitou stanice. Druhý riadok zoznamu zobrazuje skutočné oznámené metadáta, napr. `Slovensko · MP3 · 128 kbps`; keď metadáta chýbajú, kvalita sa neodhaduje. Triedenie a vzhľad iných polí zostávajú nezmenené.
+- Prvá sada viditeľných log sa spracúva naraz cez **tri oddelené I/O workery** mimo GUI, s prednosťou aktuálne vybranej stanice. Naraz sú najviac tri aktívne požiadavky, ignorujú sa už rozpracované identity. Pri presune kurzora sa prioritizuje nový výrez. Vymazanie cache počká na dokončenie rozpracovaných zápisov, aby nevznikol závod s opätovným ukladaním. Trvalá cache max. 4 MiB, negatívna cache a bezpečné sieťové pravidlá sa zachovali.
+- **CI PASS:** https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43749428967 (kompilácia, unit testy, OpenPLi/OpenATV natívne replaye, verifikácia balíka, reálny izolovaný `opkg` upgrade z 0.1.9.4). Artefakt `radio-browser-receiver-test`: `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test4_all.ipk`, **2 913 066 B**, SHA-256 `ea4a90834772094a337a815aa4f7e8f84e2dd472ef5a43b16be3a8eb62452e9e` (overené oproti `SHA256SUMS`).
+- **Nevydávať stabilnú verziu bez výslovného schválenia.** Na GigaBlue Quad 4K Pro a Octagon SF8008 treba fyzicky otestovať prvé otvorenie s prázdnou cache, ďalšie spustenie s cache, rýchle rolovanie a číselné údaje formátu/bitrate. Nezamieňať jednotkové testy s meraním fyzickej rýchlosti.
+
+
 ## 15. 11. 2026 – automatické online logá v Radio 0.2.0-test3
 
 - **Východisko:** nevydaný online kandidát 0.2.0-test2 z opravného PR #25 (`e78decf5`). Nový [Draft PR #26](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/26) obsahuje iba opravu online log, plus verziu `0.2.0-test3`; `main` a ostrá 0.1.9.4 sú nedotknuté.
