@@ -50,11 +50,14 @@ def station(value):
         except ValueError:
             pass
     if 'stationuuid' in item:
-        for key in ('favicon', 'original_url'):
+        for key in ('favicon', 'original_url', 'homepage'):
             try:
                 item[key] = stream_url(value.get(key))
             except ValueError:
                 pass
+        code = value.get('countrycode')
+        if isinstance(code, str) and len(code) == 2 and code.isalpha():
+            item['countrycode'] = code.upper()
     return item
 
 
