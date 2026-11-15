@@ -498,6 +498,25 @@ class NativeTests(unittest.TestCase):
         self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
         self.assertEqual(len(screen.icy_known), 1)
 
+    def test_quality_has_visible_independent_right_column(self):
+        screen, _, _ = self.new()
+        sample = dict(screen.rows[0], codec='MP3', bitrate=128)
+        rendered = screen['stations'].l.build(sample)
+        # Full radio label stays in its own title field.
+        self.assertEqual(rendered[2][-1], sample['name'])
+        self.assertIn('Slovensko', str(rendered[3]))
+        self.assertIn('MP3 · 128 kbps', str(rendered[4]))
+        self.assertEqual(rendered[4][2], 350)
+        self.assertEqual(rendered[4][4], 236)
+        self.assertLessEqual(rendered[4][2] + rendered[4][4], 620)
+        blank = screen['stations'].l.build(screen.rows[0])
+        self.assertIn('—', str(blank[4]))
+        # The indicator for verified ICY data remains in its own title row.
+        screen.mark_icy_supported(screen.rows[0])
+        marked = screen['stations'].l.build(sample)
+        self.assertIn('ICY', str(marked))
+        self.assertIn('MP3 · 128 kbps', str(marked[4]))
+
     def test_failed_stream_keeps_station_list_and_allows_next_station(self):
         screen, _, _ = self.new()
         screen.play()
