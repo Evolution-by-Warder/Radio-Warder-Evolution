@@ -18,7 +18,7 @@ from WarderRadio.i18n import SUPPORTED, translations
 from WarderRadio.model import Store, station, atomic_json
 from WarderRadio.radio_browser import RadioBrowser, PAGE_SIZE, merge_stations, browser_station
 from WarderRadio.song_details import lyrics, artist_information
-from WarderRadio.station_logos import StationLogos, public_connection, rasterize
+from WarderRadio.station_logos import StationLogos, public_connection, rasterize, website_icons, logo_key
 
 
 def remote_row(index, **values):
@@ -188,6 +188,70 @@ class LogoTests(unittest.TestCase):
             cache.clear()
             self.assertFalse(Path(path).exists())
             self.assertEqual(other.read_bytes(), b'other')
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_small_favicon_is_replaced_by_large_official_website_icon(self):
+        def png(size):
+            payload = io.BytesIO()
+            Image.new('RGBA', (size, size), (30, 120, 200, 255)).save(payload, 'PNG')
+            return payload.getvalue()
+
+        with tempfile.TemporaryDirectory() as temporary:
+            requests = []
+            def retrieve(url):
+                requests.append(url)
+                if url == 'https://logos.example/fav.png':
+                    return png(32)
+                if url == 'https://radio.example/apple-touch-icon.png':
+                    return png(180)
+                raise OSError('Not needed')
+            station_item = {'stationuuid': 'test-uuid', 'name': 'Radio Example',
+                            'group': 'Slovensko', 'countrycode': 'SK',
+                            'favicon': 'https://logos.example/fav.png',
+                            'homepage': 'https://radio.example'}
+            logos = StationLogos(temporary, download=retrieve, alternatives=lambda station: [])
+            path = logos.get(station_item)
+            self.assertIsNotNone(path)
+            with Image.open(path) as image:
+                self.assertEqual(image.size, (180, 180))
+            self.assertEqual(requests, [
+                'https://logos.example/fav.png',
+                'https://radio.example/apple-touch-icon.png'])
+            self.assertEqual(logos.get(station_item), path)
+            self.assertEqual(len(requests), 2)
+            self.assertEqual(logo_key(station_item), 'test-uuid')
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_missing_favicon_uses_checked_alternative_station_record(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            data = io.BytesIO()
+            Image.new('RGB', (100, 100), (40, 140, 80)).save(data, 'PNG')
+            urls = []
+            item = {'stationuuid': 'other-id', 'name': 'Station without logo',
+                    'group': 'Slovensko', 'countrycode': 'SK', 'favicon': ''}
+            def retrieve(url):
+                urls.append(url)
+                return data.getvalue()
+            logos = StationLogos(temporary, download=retrieve,
+                                alternatives=lambda station: ['https://station.example/alternate.png'])
+            self.assertIsNotNone(logos.get(item))
+            self.assertEqual(urls, ['https://station.example/alternate.png'])
+
+    def test_bad_logo_caches_miss_and_never_uses_private_icon_domain(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            calls = []
+            logos = StationLogos(temporary, download=lambda url: calls.append(url) or b'<html/>',
+                                alternatives=lambda item: [])
+            item = {'stationuuid': 'negative-id', 'name': 'Missing',
+                    'group': 'Custom', 'homepage': 'http://127.0.0.1/',
+                    'favicon': 'https://logo.example/bad.png'}
+            self.assertFalse(website_icons(item))
+            self.assertIsNone(logos.get(item))
+            self.assertIsNone(logos.get(item))
+            self.assertEqual(calls, ['https://logo.example/bad.png'])
+            logos.clear()
+            self.assertIsNone(logos.get(item))
+            self.assertEqual(len(calls), 2)
 
     def test_nonpublic_favicon_target_is_never_connected(self):
         private = [(socket.AF_INET, socket.SOCK_STREAM, 0, '', ('127.0.0.1', 80)),
