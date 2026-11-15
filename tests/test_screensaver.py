@@ -290,6 +290,8 @@ class SaverTests(unittest.TestCase):
         self.assertEqual(obj.saver_timer.started[-1], (10000, True))
         obj._saver_start()
         self.assertTrue(obj.saver_active)
+        self.assertEqual(obj.saver_motion_timer.started[-1], (1000, True),
+                         'OLED saver should update its bounded position every second')
         self.assertEqual(cover.path, '/tmp/song-cover.jpg')
         self.assertEqual(picon.path, '/tmp/picon.png')
         self.assertEqual(fields['saver_artist'].getText(), 'Linkin Park')
@@ -310,6 +312,7 @@ class SaverTests(unittest.TestCase):
         self.assertEqual(fields['saver_artist'].set_count,
                          before_refresh['saver_artist'])
         obj._saver_move()
+        self.assertEqual(obj.saver_motion_timer.started[-1], (1000, True))
         self.assertTrue(fields['saver_artist'].moves)
         saved_moves = len(fields['saver_artist'].moves)
         obj.session.current_dialog = object()
