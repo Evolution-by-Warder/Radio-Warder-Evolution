@@ -25,6 +25,7 @@ from .model import Store, Playback, same_station, search_key, station_quality
 from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country, merge_stations
 from .recording import Recording
 from .station_logos import StationLogos, logo_key
+from .subscription_tabs import SubscriptionTabs
 from .icy_badges import IcyBadgeCache
 from .song_details import lyrics, artist_information
 from .settings_screen import SettingsForm
@@ -197,6 +198,7 @@ class WarderRadio(Screen):
         self['functions'] = RadioList([], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
         self['stations'].logo = self.row_logo
+        self['subscription_tabs'] = SubscriptionTabs(self.ui_scale)
         self.icy_known = set()
         self.icy_cache = IcyBadgeCache(self.store.directory)
         self['stations'].icy_supported = lambda row: (row.get('id') in self.icy_known or
@@ -336,7 +338,7 @@ class WarderRadio(Screen):
         if self.mode == 'settings' and focus != 'functions':
             focus = self.settings_form.focus_name
         self.focus = focus
-        for widget in ('functions', 'stations', 'settings_options', 'settings_keys'):
+        for widget in ('functions', 'stations', 'subscription_tabs', 'settings_options', 'settings_keys'):
             self[widget].selectionEnabled(focus == widget)
         self.update_country_caption()
         hint = ('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options'
@@ -352,7 +354,10 @@ class WarderRadio(Screen):
                 else:
                     self.settings_form.back()
             return
-        if self.focus == 'stations' and (self['stations'].getSelectionIndex() > 0 or
+        if self.focus == 'subscription_tabs':
+            if not self['subscription_tabs'].move_cursor(-1):
+                self.set_focus('functions')
+        elif self.focus == 'stations' and (self['stations'].getSelectionIndex() > 0 or
                 (self.mode in BROWSE_MODES and self.page_offset > 0)):
             self.page_up()
         else:
@@ -364,10 +369,13 @@ class WarderRadio(Screen):
             if not self.settings_form.horizontal(1):
                 self.settings_form.choose()
             return
-        if self.focus == 'stations':
+        if self.focus == 'subscription_tabs':
+            if not self['subscription_tabs'].move_cursor(1):
+                self.set_focus('stations')
+        elif self.focus == 'stations':
             self.page_down()
         else:
-            self.set_focus('stations')
+            self.set_focus('subscription_tabs' if self.mode == 'subscriptions' else 'stations')
 
     def focus_country(self):
         self.startup_autoplay = False
@@ -377,12 +385,21 @@ class WarderRadio(Screen):
     def up(self):
         self.startup_autoplay = False
         self.logo_paused = self.logo_busy and self.logo_paused
+        if self.mode == 'subscriptions' and self.focus == 'stations' and self['stations'].getSelectionIndex() == 0:
+            self.set_focus('subscription_tabs')
+            return
+        if self.focus == 'subscription_tabs':
+            self.set_focus('functions')
+            return
         self[self.focus].up()
         self.update_count()
 
     def down(self):
         self.startup_autoplay = False
         self.logo_paused = self.logo_busy and self.logo_paused
+        if self.focus == 'subscription_tabs':
+            self.set_focus('stations')
+            return
         # Native MenuList wraps from the last row to the first. When more
         # remote results exist, fetch them instead of wrapping prematurely.
         if (self.focus == 'stations' and self.mode in BROWSE_MODES and
@@ -397,12 +414,18 @@ class WarderRadio(Screen):
     def page_up(self):
         self.startup_autoplay = False
         self.logo_paused = self.logo_busy and self.logo_paused
+        if self.focus == 'subscription_tabs':
+            self['subscription_tabs'].move_cursor(-1)
+            return
         self[self.focus].pageUp()
         self.update_count()
 
     def page_down(self):
         self.startup_autoplay = False
         self.logo_paused = self.logo_busy and self.logo_paused
+        if self.focus == 'subscription_tabs':
+            self.set_focus('stations')
+            return
         self[self.focus].pageDown()
         self.update_count()
         self.load_next_visible()
@@ -421,6 +444,9 @@ class WarderRadio(Screen):
             return
         if self.focus == 'stations':
             self.play()
+            return
+        if self.focus == 'subscription_tabs':
+            self.subscription_tab_chosen()
             return
         selected = self['functions'].getCurrent()
         if not selected:
@@ -445,11 +471,12 @@ class WarderRadio(Screen):
         if mode in BROWSE_MODES:
             self.load_page()
         self.refresh_rows()
-        self.set_focus('stations')
+        self.set_focus('subscription_tabs' if mode == 'subscriptions' else 'stations')
 
     def refresh_rows(self):
         changed = self.settings_form.set_visible(self.mode == 'settings')
         if self.mode == 'settings':
+            self['subscription_tabs'].hide()
             self.update_country_caption()
             return
         self['red'].setText(t('Close'))
@@ -463,10 +490,6 @@ class WarderRadio(Screen):
             heading = t('Home' if self.mode == 'radio' else 'Subscriptions')
             if category:
                 heading += '  ›  ' + category
-                if self.mode == 'subscriptions' and not self.query:
-                    others = [tag for tag in self.store.subscriptions if tag != category]
-                    if others:
-                        heading += '   ·   ' + '   ·   '.join(others[:2])
             if self.query:
                 heading += '  ·  ' + self.query
             if self.mode == 'radio' and self.active_group == 'Custom':
@@ -487,7 +510,93 @@ class WarderRadio(Screen):
         self.update_country_caption()
         self['stations'].setList([(item,) for item in self.rows])
         self['stations'].moveToIndex(0)
+        self.layout_subscription_tabs()
         self.update_count()
+
+    def layout_subscription_tabs(self):
+        """Subscriptions reserve one chip row; Home keeps its eight rows."""
+        tabs = self['subscription_tabs']
+        enabled = self.mode == 'subscriptions'
+        if enabled:
+            tabs.set_categories(self.store.subscriptions, self.subscription_category)
+            tabs.show()
+        else:
+            tabs.hide()
+        stations = self['stations']
+        if stations.instance is not None:
+            scale = self.ui_scale
+            y = 320 if enabled else 252
+            height = round(88 * scale) * (7 if enabled else 8)
+            stations.instance.move(ePoint(round(530 * scale), round(y * scale)))
+            stations.instance.resize(eSize(round(620 * scale), height))
+
+    def subscription_tab_chosen(self):
+        if self.mode != 'subscriptions':
+            return
+        category = self['subscription_tabs'].chosen()
+        if category is None:
+            self.open_settings()
+            self.settings_form.add_subscription()
+            return
+        if category == self.subscription_category:
+            return
+        previous = self.subscription_category
+        self.subscription_category = self.store.subscription_category = category
+        try:
+            self.store.save()
+        except OSError:
+            self.subscription_category = self.store.subscription_category = previous
+            self.notify(t('Cannot save settings'), True)
+            return
+        self.catalogue_page, self.page_offset = None, 0
+        self.load_page()
+        self.refresh_rows()
+        self.set_focus('subscription_tabs')
+
+    def subscription_add_done(self, category):
+        """Add a genre from one choice list and immediately show its radios."""
+        if self.mode != 'settings' or self.settings_return[0] != 'subscriptions':
+            return
+        if category not in self.categories:
+            self.settings_form.status(t('Cannot save settings'))
+            return
+        original = list(self.store.subscriptions)
+        previous = self.subscription_category
+        if category not in self.store.subscriptions:
+            if len(self.store.subscriptions) >= 80:
+                self.settings_form.status(t('Cannot save settings'))
+                return
+            self.store.subscriptions.append(category)
+        self.subscription_category = self.store.subscription_category = category
+        try:
+            self.store.save()
+        except OSError:
+            self.store.subscriptions = original
+            self.subscription_category = self.store.subscription_category = previous
+            self.settings_form.status(t('Cannot save settings'))
+            return
+        self.close_settings()
+        self.select_mode('subscriptions')
+
+    def subscription_remove(self):
+        """Remove this subscription, never the corresponding radio stations."""
+        if self.mode != 'settings' or self.settings_return[0] != 'subscriptions':
+            return
+        category = self.subscription_category
+        if not category or category not in self.store.subscriptions:
+            return
+        original = list(self.store.subscriptions)
+        self.store.subscriptions.remove(category)
+        self.subscription_category = self.store.subscription_category = next(iter(self.store.subscriptions), '')
+        try:
+            self.store.save()
+        except OSError:
+            self.store.subscriptions = original
+            self.subscription_category = self.store.subscription_category = category
+            self.settings_form.status(t('Cannot save settings'))
+            return
+        self.close_settings()
+        self.select_mode('subscriptions')
 
     def files_loaded(self, items, error):
         if self.mode != 'recordings':
