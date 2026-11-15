@@ -1292,24 +1292,58 @@ class WarderRadio(Screen):
             self.settings_form.status(self['status'].getText())
 
     def open_song_details(self, action):
-        artist, track = self['artist'].getText(), self['track'].getText()
+        artist, track = self['artist'].getText().strip(), self['track'].getText().strip()
         title = 'Lyrics' if action == 'lyrics' else 'Artist information'
-        self.settings_form.song(title, [])
-        if not self.radio_running() or not artist or not track or track == t('No track information'):
-            self.settings_form.song(title, [t('Current song information is unavailable')])
-            return
+        if not track or track in (t('No track information'), t('Connecting…'),
+                                  t('Select a station and press OK')):
+            track = ''
+        if action == 'artist-information':
+            # The current ICY/native tags are useful even when MusicBrainz
+            # does not index the track. Never show a completely empty panel.
+            base = ([t('Artist') + ': ' + artist] if artist else [])
+            if track:
+                base.append(t('Song') + ': ' + track)
+            if not base:
+                base = [t('Station name') + ': ' + self['station'].getText(),
+                        t('Current song information is unavailable')]
+            self.settings_form.song(title, base)
+            if not artist:
+                return
+            self.settings_form.status(t('Please wait…'))
+        else:
+            self.settings_form.song(title, [])
+            if not self.radio_running() or not artist or not track:
+                self.settings_form.song(title, [t('Current song information is unavailable')])
+                return
+        identity = ((self.playback.current or {}).get('id'), artist, track)
         lookup = lyrics if action == 'lyrics' else artist_information
-        identity = (self.playback.current['id'], artist, track)
-        self.settings_form.status(t('Please wait…'))
         self.song_jobs.replace('song-info', lambda: lookup(artist, track),
             lambda lines, error: self.song_details_loaded(title, identity, lines, error))
 
     def song_details_loaded(self, title, identity, lines, error):
         if self.closed or self.mode != 'settings' or self.settings_form.view != 'song':
             return
-        current = ((self.playback.current or {}).get('id'), self['artist'].getText(), self['track'].getText())
+        current_track = self['track'].getText().strip()
+        if current_track in (t('No track information'), t('Connecting…'),
+                             t('Select a station and press OK')):
+            current_track = ''
+        current = ((self.playback.current or {}).get('id'),
+                   self['artist'].getText().strip(), current_track)
         if current != identity:
             self.settings_form.song(title, [t('Current song information is unavailable')])
+        elif title == 'Artist information':
+            artist, track = identity[1:]
+            base = [t('Artist') + ': ' + artist]
+            if track:
+                base.append(t('Song') + ': ' + track)
+            if lines and not error:
+                details = list(lines)
+                # The performer is already labeled in our first line.
+                if details and search_key(details[0]) == search_key(artist):
+                    details.pop(0)
+                self.settings_form.song(title, base + [''] + details)
+            else:
+                self.settings_form.song(title, base + ['', t('Unavailable')])
         else:
             self.settings_form.song(title, lines or [t('Song information unavailable')])
 
