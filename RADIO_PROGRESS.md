@@ -1,5 +1,12 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – oprava viditeľnosti kvality pri staniciach (0.2.0-test6)
+
+- Majiteľ pri testovaní nahlásil, že formát/bitrate sa v zozname nezobrazujú. Nová samostatná vetva `fix/radio-quality-visible-test6-20261115` vychádza z test5, [Draft PR #29](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/29).
+- Pôvodný spoločný druhý riadok bol rozdelený na dve samostatné položky v natívnom Enigma2 zozname: krajina naľavo a vysielacia kvalita v samostatnom pravom tyrkysovom poli. Ak Radio Browser neposkytne `codec` ani `bitrate`, zobrazí sa „—“; nepoužíva sa odhad kodeku ani rýchlosti podľa názvu. Potvrdený ICY odznak v hornom riadku ostáva nezmenený. Bez zmien radenia, log, prehrávača, obalov, textov a používateľských nastavení.
+- [Plná kontrola GitHub Actions PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43751518459), vrátane unit testov, OpenPLi a OpenATV natívnych replayov a izolovaného `opkg` upgradu zo stabilnej 0.1.9.4; overené HD/FHD/WQHD/UHD rozloženia. Testovací IPK `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test6_all.ipk` má 2 913 488 bajtov a SHA-256 `85c8f44ba27dbe48687a98421a21acf83c39fbea29859c72a4470e84ff0a83ae`, skontrolovaný s `SHA256SUMS` z CI artefaktu `radio-browser-receiver-test`.
+- **Zatiaľ neschválené ostré vydanie.** Fyzické zobrazenie metadát zo skutočného Radio Browser servera na GigaBlue/SF8008 zatiaľ nebolo overené. Po skúške zaznamenať konkrétne stanice s `—` ako chýbajúce zdrojové údaje (nie automaticky chybu UI).
+
 ## 15. 11. 2026 – rýchlejšie online logá a kvalita vysielania (0.2.0-test4)
 
 - **Draft PR #27:** https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/27 · pracovná vetva `fix/radio-stream-quality-fast-logos-20261115`, nadväzuje na používateľom skúšaný 0.2.0-test3; produkčný `main` a stabilná 0.1.9.4 sa nemenili.
