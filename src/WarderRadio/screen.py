@@ -27,7 +27,7 @@ from .recording import Recording
 from .station_logos import StationLogos, logo_key
 from .subscription_tabs import SubscriptionTabs
 from .icy_badges import IcyBadgeCache
-from .song_details import lyrics, artist_information
+from .song_details import lyrics, artist_profile, song_information
 from .settings_screen import SettingsForm
 from .warder_update import check_release, install_release
 from .skin import make_skin, geometry
@@ -1314,7 +1314,7 @@ class WarderRadio(Screen):
             self.toggle_subscription()
         elif action == 'subscription-remove':
             self.subscription_remove()
-        elif action in ('lyrics', 'artist-information'):
+        elif action in ('lyrics', 'artist-information', 'song-information'):
             self.open_song_details(action)
         elif action == 'clear-logos':
             self.settings_form.confirm(t('Clear cached station logos?'), self.clear_logos)
@@ -1342,11 +1342,12 @@ class WarderRadio(Screen):
 
     def open_song_details(self, action):
         artist, track = self['artist'].getText().strip(), self['track'].getText().strip()
-        title = 'Lyrics' if action == 'lyrics' else 'Artist information'
+        title = {'lyrics': 'Lyrics', 'artist-information': 'Artist information',
+                 'song-information': 'Song information'}[action]
         if not track or track in (t('No track information'), t('Connecting…'),
                                   t('Select a station and press OK')):
             track = ''
-        if action == 'artist-information':
+        if action in ('artist-information', 'song-information'):
             # The current ICY/native tags are useful even when MusicBrainz
             # does not index the track. Never show a completely empty panel.
             base = ([t('Artist') + ': ' + artist] if artist else [])
@@ -1365,7 +1366,8 @@ class WarderRadio(Screen):
                 self.settings_form.song(title, [t('Current song information is unavailable')])
                 return
         identity = ((self.playback.current or {}).get('id'), artist, track)
-        lookup = lyrics if action == 'lyrics' else artist_information
+        lookup = {'lyrics': lyrics, 'artist-information': artist_profile,
+                  'song-information': song_information}[action]
         self.song_jobs.replace('song-info', lambda: lookup(artist, track),
             lambda lines, error: self.song_details_loaded(title, identity, lines, error))
 
@@ -1380,7 +1382,7 @@ class WarderRadio(Screen):
                    self['artist'].getText().strip(), current_track)
         if current != identity:
             self.settings_form.song(title, [t('Current song information is unavailable')])
-        elif title == 'Artist information':
+        elif title in ('Artist information', 'Song information'):
             artist, track = identity[1:]
             base = [t('Artist') + ': ' + artist]
             if track:
