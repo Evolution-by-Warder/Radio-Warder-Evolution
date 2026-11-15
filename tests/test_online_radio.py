@@ -16,7 +16,7 @@ except ImportError:
 
 from WarderRadio.i18n import SUPPORTED, translations
 from WarderRadio.model import Store, station, atomic_json
-from WarderRadio.radio_browser import RadioBrowser, PAGE_SIZE
+from WarderRadio.radio_browser import RadioBrowser, PAGE_SIZE, merge_stations, browser_station
 from WarderRadio.song_details import lyrics, artist_information
 from WarderRadio.station_logos import StationLogos, public_connection, rasterize
 
@@ -45,12 +45,13 @@ class BrowserTests(unittest.TestCase):
         if self.offline or url.netloc == 'first.api.radio-browser.info':
             raise OSError('unreachable')
         if url.path.endswith('/countrycodes'):
-            rows = [{'name': name} for name in ('FR', 'SK', 'CZ', 'AU', 'empty')]
+            rows = [{'name': name, 'stationcount': {'SK': 136, 'CZ': 268}.get(name, 10)}
+                    for name in ('FR', 'SK', 'CZ', 'AU', 'empty')]
         elif url.path.endswith('/tags'):
             rows = [{'name': name} for name in ('news', 'rock', 'news', '')]
         else:
             offset = int(params['offset'][0])
-            rows = [remote_row(i) for i in range(offset, min(39, offset + PAGE_SIZE + 1))]
+            rows = [remote_row(i) for i in range(offset, min(2 * PAGE_SIZE + 7, offset + PAGE_SIZE + 1))]
             if rows and offset == 0:
                 rows[3]['url_resolved'] = 'file:///invalid'
                 rows[4]['url'] = rows[4]['url_resolved'] = 'bad'
@@ -60,20 +61,37 @@ class BrowserTests(unittest.TestCase):
         facets = self.client.facets()
         self.assertEqual(facets.countries, ['SK', 'CZ', 'AU', 'FR'])
         self.assertEqual(facets.categories, ['news', 'rock'])
+        self.assertEqual(facets.counts['SK'], 136)
+        self.assertEqual(facets.counts['CZ'], 268)
         self.assertEqual([call[0].split('.')[0] for call in self.calls], ['first', 'second', 'second'])
         page = self.client.page('SK', 'Rádio', 'rock')
         self.assertEqual(len(page.rows), PAGE_SIZE - 1)
         self.assertTrue(page.more)
         self.assertEqual(page.rows[3]['url'], remote_row(3)['url'])
         self.assertEqual(page.rows[0]['stationuuid'], page.rows[0]['id'])
-        self.assertEqual(self.calls[-1][2], {'hidebroken': ['true'], 'limit': ['33'],
+        self.assertEqual(self.calls[-1][2], {'hidebroken': ['true'], 'limit': [str(PAGE_SIZE + 1)],
                          'offset': ['0'], 'order': ['name'], 'countrycode': ['SK'],
                          'name': ['Rádio'], 'tag': ['rock'], 'tagExact': ['true']})
         self.assertIn('WarderRadio/', self.calls[-1][3])
         second = self.client.page('SK', 'Rádio', 'rock', offset=PAGE_SIZE)
         self.assertFalse(second.more)
-        self.assertEqual(len(second.rows), 7)
+        self.assertEqual(len(second.rows), PAGE_SIZE)
+        self.assertTrue(second.more)
+        third = self.client.page('SK', 'Rádio', 'rock', offset=2 * PAGE_SIZE)
+        self.assertEqual(len(third.rows), 7)
+        self.assertFalse(third.more)
         self.assertTrue(set(row['id'] for row in page.rows).isdisjoint(row['id'] for row in second.rows))
+
+    def test_duplicate_names_streams_and_uuids_are_removed_across_batches(self):
+        original = browser_station(remote_row(1))
+        same_url = browser_station(remote_row(99, url_resolved=original['url'],
+                                              name='Different alias'))
+        same_name = browser_station(remote_row(100, name=original['name']))
+        distinct = browser_station(remote_row(101, name='Regional service'))
+        result = merge_stations([original], [same_url, same_name, distinct])
+        self.assertEqual([row['name'] for row in result],
+                         [original['name'], 'Regional service'])
+        self.assertEqual(len(merge_stations(result, result)), 2)
 
     def test_cache_fresh_reuse_persistent_offline_and_forced_refresh(self):
         original = self.client.page('SK')
