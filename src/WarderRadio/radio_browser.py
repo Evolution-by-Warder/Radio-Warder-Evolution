@@ -6,7 +6,7 @@ import re
 import socket
 import time
 from collections import namedtuple
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from . import ROOT, VERSION
@@ -16,7 +16,7 @@ from .model import clean, read_json, search_key, station, stream_url
 USER_AGENT = 'WarderRadio/' + VERSION + ' (+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution)'
 DISCOVERY = 'all.api.radio-browser.info'
 MIRRORS = (DISCOVERY, 'de1.api.radio-browser.info', 'nl1.api.radio-browser.info')
-PAGE_SIZE = 32
+PAGE_SIZE = 60
 MAX_RESPONSE = 512 * 1024
 PINNED = ('SK', 'CZ')
 NAMES = read_json(os.path.join(ROOT, 'country-names.json'), {}, 24 * 1024)
@@ -24,7 +24,7 @@ LEGACY_COUNTRIES = {search_key(name): code for code, name in NAMES.items()}
 LEGACY_COUNTRIES.update({'slovensko': 'SK', 'cechy': 'CZ', 'cesko': 'CZ', 'czech republic': 'CZ',
                          'slovakia': 'SK', 'czechia': 'CZ'})
 Page = namedtuple('Page', 'rows more offline')
-Facets = namedtuple('Facets', 'countries categories offline')
+Facets = namedtuple('Facets', 'countries categories offline counts', defaults=[None])
 
 
 def country_code(value):
@@ -52,6 +52,44 @@ def discover():
         if re.fullmatch(r'[a-z0-9-]+\.api\.radio-browser\.info', host):
             hosts.append(host)
     return hosts
+
+
+def station_keys(item):
+    """Compare UUID, canonical stream addresses and a country-scoped station name.
+
+    Radio Browser often exposes multiple UUIDs or stream URLs for one station.
+    Keep distinct named channels (e.g. regional and genre variants) separate.
+    """
+    keys = {('uuid', item.get('stationuuid') or item.get('id'))}
+    name = search_key(item.get('name', '')).strip()
+    country = search_key(item.get('group', '')).strip()
+    if name and country:
+        keys.add(('name', country, name))
+    for field in ('url', 'original_url'):
+        url = item.get(field)
+        if not url:
+            continue
+        try:
+            parsed = urlsplit(url)
+            port = parsed.port
+            if port in (80, 443):
+                port = None
+            keys.add(('stream', parsed.hostname.lower() if parsed.hostname else '',
+                      port, parsed.path.rstrip('/') or '/', parsed.query))
+        except ValueError:
+            pass
+    return keys
+
+
+def merge_stations(existing, new):
+    """Stable, cross-page de-duplication without losing earlier selections."""
+    result, seen = [], set()
+    for item in list(existing) + list(new):
+        keys = station_keys(item)
+        if seen.isdisjoint(keys):
+            result.append(item)
+            seen.update(keys)
+    return result
 
 
 def browser_station(row):
@@ -138,7 +176,12 @@ class RadioBrowser:
     def facets(self, force=False, cancelled=lambda: False):
         def countries(rows):
             codes = {country_code(row.get('name')) for row in rows if isinstance(row, dict)}
-            return {'rows': [*PINNED, *sorted(codes - {*PINNED, ''}, key=lambda code: search_key(country_name(code)))]}
+            counts = {country_code(row.get('name')): row['stationcount']
+                      for row in rows if isinstance(row, dict)
+                      and country_code(row.get('name'))
+                      and type(row.get('stationcount')) is int and row['stationcount'] >= 0}
+            return {'rows': [*PINNED, *sorted(codes - {*PINNED, ''}, key=lambda code: search_key(country_name(code)))],
+                    'counts': counts}
 
         def tags(rows):
             names = (clean(row.get('name'), 60) for row in rows if isinstance(row, dict))
@@ -157,7 +200,7 @@ class RadioBrowser:
             offline |= tags_offline
         except (OSError, ValueError):
             tag_rows = {'rows': []}
-        return Facets(country_rows['rows'], tag_rows['rows'], offline)
+        return Facets(country_rows['rows'], tag_rows['rows'], offline, country_rows.get('counts', {}))
 
     def page(self, country='', name='', category='', offset=0, force=False, cancelled=lambda: False):
         params = {'hidebroken': 'true', 'limit': PAGE_SIZE + 1,
@@ -170,16 +213,15 @@ class RadioBrowser:
             params.update(tag=clean(category, 60), tagExact='true')
 
         def normalize(rows):
-            items = {}
+            items = []
             for row in rows[:PAGE_SIZE]:
                 if not isinstance(row, dict):
                     continue
                 try:
-                    item = browser_station(row)
-                    items.setdefault(item['stationuuid'], item)
+                    items.append(browser_station(row))
                 except (ValueError, TypeError):
                     continue
-            return {'rows': list(items.values()), 'more': len(rows) > PAGE_SIZE}
+            return {'rows': merge_stations([], items), 'more': len(rows) > PAGE_SIZE}
 
         result, offline = self.cached('stations/search', params, normalize, force, cancelled)
         return Page(result['rows'], result['more'], offline)
