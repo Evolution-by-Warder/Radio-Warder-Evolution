@@ -33,17 +33,25 @@ def verify(opkg, stable, candidate):
     with tempfile.TemporaryDirectory(prefix='warder-online-upgrade-') as directory:
         root = Path(directory)
         status = root / 'var/lib/opkg/status'
-        status.parent.mkdir(parents=True)
+        info = status.parent / 'info'
+        info.mkdir(parents=True)
+        requirements = sorted(dependencies(stable) | dependencies(candidate))
         status.write_text(''.join(
             'Package: %s\nVersion: 1.0\nArchitecture: all\nStatus: install ok installed\n\n' % dependency
-            for dependency in sorted(dependencies(stable) | dependencies(candidate))))
+            for dependency in requirements))
+        for dependency in requirements:
+            (info / (dependency + '.list')).touch()
         config = root / 'opkg.conf'
         config.write_text('dest root /\narch all 1\noption info_dir /var/lib/opkg/info\n'
-                          'option status_file /var/lib/opkg/status\nlists_dir ext /var/lib/opkg/lists\n')
+                          'option status_file /var/lib/opkg/status\n')
 
-        def install(package):
-            subprocess.run([str(opkg), '-o', str(root), '-f', str(config), '--force-postinstall',
-                            'install', str(package)], check=True)
+        def install(package, reinstall=False):
+            command = [str(opkg), '-o', str(root), '-f', str(config), '--force-postinstall']
+            if reinstall:
+                command.append('--force-reinstall')
+            run = subprocess.run(command + ['install', str(package)], capture_output=True, text=True,
+                                 env=dict(os.environ, IPKG_INSTROOT=str(root)))
+            assert run.returncode == 0, run.stdout + run.stderr
 
         install(stable)
         runtime = root / PREFIX
@@ -75,7 +83,7 @@ def verify(opkg, stable, candidate):
                         "assert s.group=='Čechy' and s.screensaver_delay==20 and s.show_main_menu",
                         str(user_dir)], cwd=root, check=True,
                        env=dict(os.environ, PYTHONPATH=str(runtime.parent), PYTHONDONTWRITEBYTECODE='1'))
-        install(candidate)
+        install(candidate, reinstall=True)
         for path, data in user_files.items():
             assert path.read_bytes() == data, path
         print('Stable-to-test opkg upgrade, reinstall and %d byte-identical user files: PASS' % len(user_files))

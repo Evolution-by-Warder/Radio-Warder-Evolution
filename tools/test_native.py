@@ -415,8 +415,12 @@ class NativeTests(unittest.TestCase):
         self.assertIsNotNone(root.find("widget[@name='section']"))
 
     def test_logo_queue_only_visits_viewport_and_uses_placeholder(self):
-        screen, _, _ = self.new()
+        screen, _, _ = self.new(wait_ready=False)
+        screen.logo_paused = True
+        screen.finish_startup()
+        self.wait_for_catalogue(screen)
         screen.show()
+        screen.logo_paused = False
         expected = [row['favicon'] for row in screen.rows[8:16]]
         screen['stations'].moveToIndex(8)
         self.assertEqual(screen.visible_logo_urls(), expected)
@@ -429,6 +433,55 @@ class NativeTests(unittest.TestCase):
             fetch.assert_called_once_with(expected[0])
         screen.options()
         self.assertEqual(screen.visible_logo_urls(), [])
+
+    def test_slow_logo_worker_does_not_block_or_fetch_rows_left_behind(self):
+        screen, _, _ = self.new(wait_ready=False)
+        screen.logo_paused = True
+        screen.finish_startup()
+        self.wait_for_catalogue(screen)
+        screen.show()
+        screen.logo_paused = False
+        self.assertFalse(screen.logo_busy)
+        first = screen.rows[0]['favicon']
+        viewport = screen.rows[16:24]
+        entered, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        caller = threading.get_ident()
+        requests = []
+
+        def fetch(url):
+            requests.append((url, threading.get_ident()))
+            if url == first:
+                entered.set()
+                release.wait(2)
+            return None
+
+        with patch.object(screen.logo_cache, 'get', fetch):
+            screen.poll_logos()
+            self.assertTrue(entered.wait(1))
+            self.assertNotEqual(requests[0][1], caller)
+            screen['stations'].moveToIndex(16)
+            self.assertEqual(screen.current(), viewport[0])
+            screen.poll_logos()
+            self.assertEqual(len(requests), 1)
+            release.set()
+            deadline = time.monotonic() + 2
+            while len(requests) < 2 and time.monotonic() < deadline:
+                screen.poll_logos()
+                time.sleep(0.001)
+            self.assertEqual(requests[1][0], viewport[0]['favicon'])
+
+    def test_failed_stream_keeps_station_list_and_allows_next_station(self):
+        screen, _, _ = self.new()
+        screen.play()
+        screen.failed()
+        self.assertFalse(screen.playing)
+        self.assertEqual(screen['track'].getText(), radio.t('Cannot play station'))
+        screen.down()
+        selected = screen.current()
+        screen.play()
+        self.assertTrue(screen.playing)
+        self.assertEqual(screen.playback.current['id'], selected['id'])
 
     def test_slow_catalogue_never_blocks_navigation_and_late_pages_are_ignored(self):
         screen, session, _ = self.new()

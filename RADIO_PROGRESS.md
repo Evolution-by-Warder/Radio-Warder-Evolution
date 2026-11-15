@@ -1,3 +1,18 @@
+# Warder Radio – prechod na online katalóg
+
+15. 11. 2026 · Vetva `feature/radio-browser-online-20261115` · testovací kandidát **0.2.0-test1**.
+
+- Produkčné východisko je Radio `main` [1364072](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/1364072eea9c896db0e90746e461e3a6dd2f4b97), stabilné vydanie 0.1.9.4. Implementácia a zostavenie testovacieho IPK sú v [c306d5a](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/c306d5a10344646b7a8916733f3d6882f4085e6b). Testovací balík je určený na skúšku na prijímačoch. Produkčné zlúčenie a vydanie čakajú na samostatné schválenie.
+- [Dokumentácia Radio Browser API](https://docs.radio-browser.info/) opisuje krajiny, vyhľadávanie podľa kódu krajiny a žánru, stránkovanie a identitu `stationuuid`. Živý test vrátil 225 krajinských kódov, SK/CZ na začiatku, 80 kategórií, dve slovenské stránky so 64 odlišnými UUID a české výsledky s filtrom názvu a kategórie. Simulovaný výpadok vrátil predtým načítané dáta. Rast cache je obmedzený na 1 MiB pre katalóg a 4 MiB pre logá.
+- Domov a Odbery používajú spoločné okno a odlišný výber kategórie cez MENU. Rozpracovaná verzia Odberov v dostupných vetvách chýbala. Odbery v tomto kandidátovi predstavujú sledované kategórie Radio Browser, uložené v používateľskom stave.
+- Nové logá používa samostatný worker pre viditeľné riadky alebo aktívnu stanicu v šetriči. Kontroluje formát, veľkosť a rozmery obrázka. Referenčný PNG, neplatné logo, náhradný obrázok, zachovanie alfa kanála, vymazanie cache a pomalé načítanie prešli simulovaným testom. Hostiteľský test pri priamom DNS sťahovaní dvoch log zachytil sieťové obmedzenie. Živé zobrazovanie log čaká na overenie z prijímača.
+- Texty skladieb načítava LRCLIB po zhode interpreta a názvu. Informácie o interpretovi používa MusicBrainz po zhode kreditu nahrávky. Obaly, ICY, vizualizácia spektra, OLED šetrič, nahrávanie, YouTube, obľúbené, história, vlastné streamy a preklady sú zahrnuté v regresiách. Ovládanie ani vzhľad prehrávača nevyžadujú úpravu FullHDGlass.
+- Kontroly: 193 jednotkových prípadov, **182 PASS a 11 historických podmienene preskočených**. Natívny replay Enigma2: **74 PASS** na OpenPLi 9.2, **74 PASS** na kontrolovanej báze OpenATV 8.1 a **74 PASS** na OpenATV 8.0-next. Znovu zostavené IPK je deterministické. Reálny opkg 0.6.1 overil priamy prechod zo stabilnej 0.1.9.4 a opätovnú inštaláciu v izolovanom prostredí. Počas oboch krokov zostalo päť používateľských súborov bitovo zhodných. OpenATV 8.0.1 a fyzické GigaBlue Quad 4K Pro a Octagon SF8008 zostávajú na overenie.
+- IPK `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test1_all.ipk` má **2 909 754 B** a SHA-256 `05be55e70d36064a01fa98fd8dad5efd0232ec95238b4ff6d66ea49755b35744`. Závislosť `python3-pillow` zabezpečuje dekódovanie log na prijímači. Balík obsahuje online modul a používateľské dáta pri migrácii ostávajú na pôvodnom mieste.
+- Historická výroba rádiových piconov je ukončená pre online plugin. Rádiový [PR PiconHub #68](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/pull/68) a jeho [checkpoint dávky 101](https://github.com/Evolution-by-Warder/PiconHub-Warder-Evolution/commit/4b3e45cfaff2da88d49f7ce9d14cd1e75693008f) zostávajú historickým záznamom. Staré rádiové archívy, satelitné picony a FullHDGlass neboli súčasťou tejto úpravy.
+
+---
+
 # Warder Radio – register postupu
 
 Aktualizované 6. 11. 2026. Register pokrýva samostatný plugin pre Enigma2 a jeho rádiové picony. Pravidlá odovzdania sú v [AGENTS.md](AGENTS.md).
