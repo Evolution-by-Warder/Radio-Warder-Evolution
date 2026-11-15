@@ -33,11 +33,18 @@ PACKAGE = ('enigma2-plugin-extensions-warderradio' if args.legacy_bridge
            else 'enigma2-plugin-extensions-radio-warder-evolution')
 MIGRATION = ('' if args.legacy_bridge else
              'Replaces: enigma2-plugin-extensions-warderradio\nConflicts: enigma2-plugin-extensions-warderradio\n')
+# Historical inputs remain available to repository tools and regression tests.
+# Receiver packages contain only the online backend and the native player.
+LEGACY_RUNTIME = {
+    'legacy_catalogue.py', 'catalogue-source.json', 'country_catalogue.py',
+    'country-manifest.json', 'country-seed.json', 'seed.json',
+    'picon-countries.json', 'picon_catalogue.py', 'picon_download.py', 'picon_screen.py', 'picons.py',
+}
 FILES = {}
 for path in sorted(SOURCE.rglob('*')):
     if not path.is_file() or '__pycache__' in path.parts or path.suffix in ('.pyc', '.pyo'):
         continue
-    if path.name == 'warder-radio-logo.png':  # Original is kept in Git; the browser uses plugin.png.
+    if path.name in LEGACY_RUNTIME or path.name == 'warder-radio-logo.png':  # Original is kept in Git; the browser uses plugin.png.
         continue
     if path.suffix == '.py':
         ast.parse(path.read_text(), filename=str(path), feature_version=(3, 9))
@@ -54,11 +61,11 @@ Maintainer: Warder
 Section: extra
 Priority: optional
 License: GPL-2.0-or-later
-Depends: enigma2, python3-core, python3-compression, python3-crypt, python3-io, python3-json, python3-math, python3-netclient, python3-threading, python3-xml, python3-datetime, python3-email, python3-misc, streamripper
+Depends: enigma2, python3-core, python3-compression, python3-crypt, python3-io, python3-json, python3-math, python3-netclient, python3-threading, python3-xml, python3-pillow, python3-datetime, python3-email, python3-misc, streamripper
 {MIGRATION}Installed-Size: {installed}
 Description: Warder Radio - World of Radio Stations
- Native internet radio player for OpenPLi and OpenATV, with the Warder catalogue,
- favourites, history, picons and streamripper recording.
+ Native internet radio player for OpenPLi and OpenATV, with Radio Browser,
+ online station logos, favourites, history and streamripper recording.
 '''.encode()
 preinst = b'''#!/bin/sh
 set -eu

@@ -128,7 +128,7 @@ class SettingsForm:
                     (t('Off') if host.store.screensaver_delay == 0 else str(host.store.screensaver_delay) + ' s'), 'saver-delay'),
                    (t('Clear logo cache'), 'clear-logos'), (t('About'), 'about')]
         mode = host.settings_return[0]
-        if mode in ('radio', 'subscriptions') and host.active_group != 'Custom':
+        if mode == 'subscriptions' or mode == 'radio' and host.active_group != 'Custom':
             choices.insert(1, (t('Choose category'), 'category'))
             category = host.current_category(mode)
             if category:

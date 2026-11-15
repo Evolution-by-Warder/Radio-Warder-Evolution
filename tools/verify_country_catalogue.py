@@ -9,7 +9,7 @@ import time
 from urllib.request import Request, urlopen
 
 from WarderRadio.country_catalogue import CountryCatalogue, CatalogueTask, MANIFEST_URL, BASE, validate_manifest
-from WarderRadio.model import Catalogue, MAX_DOWNLOAD, UPSTREAM
+from WarderRadio.legacy_catalogue import Catalogue, MAX_DOWNLOAD, UPSTREAM
 
 requests = []
 def opener(request, **kwargs):

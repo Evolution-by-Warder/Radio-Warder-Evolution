@@ -129,7 +129,7 @@ class WarderRadio(Screen):
         self.catalogue_page = None
         self.page_offset = 0
         self.browse_key = None
-        self.home_category, self.subscription_category = '', next(iter(self.store.subscriptions), '')
+        self.home_category, self.subscription_category = self.store.home_category, self.store.subscription_category
         self.logo_cache = StationLogos(self.store.directory)
         self.logo_jobs = Jobs()
         self.logo_results = OrderedDict()
@@ -428,6 +428,10 @@ class WarderRadio(Screen):
             heading = t('Home' if self.mode == 'radio' else 'Subscriptions')
             if category:
                 heading += '  ›  ' + category
+                if self.mode == 'subscriptions' and not self.query:
+                    others = [tag for tag in self.store.subscriptions if tag != category]
+                    if others:
+                        heading += '   ·   ' + '   ·   '.join(others[:2])
             if self.query:
                 heading += '  ·  ' + self.query
             if self.mode == 'radio' and self.active_group == 'Custom':
@@ -1130,8 +1134,9 @@ class WarderRadio(Screen):
             return
         current = ((self.playback.current or {}).get('id'), self['artist'].getText(), self['track'].getText())
         if current != identity:
-            return
-        self.settings_form.song(title, lines or [t('Song information unavailable')])
+            self.settings_form.song(title, [t('Current song information is unavailable')])
+        else:
+            self.settings_form.song(title, lines or [t('Song information unavailable')])
 
     def update_country_caption(self):
         country = group_label(country_name(self.active_group)) if self.active_group != 'ALL' else t('All groups')
@@ -1179,9 +1184,13 @@ class WarderRadio(Screen):
     def category_done(self, category):
         mode = self.settings_return[0]
         if mode == 'subscriptions':
-            self.subscription_category = category
+            self.subscription_category = self.store.subscription_category = category
         else:
-            self.home_category = category
+            self.home_category = self.store.home_category = category
+        try:
+            self.store.save()
+        except OSError:
+            self.notify(t('Cannot save settings'), True)
         self.close_settings()
         self.catalogue_page, self.page_offset = None, 0
         self.load_page()
@@ -1194,6 +1203,7 @@ class WarderRadio(Screen):
         if not category:
             return
         previous = list(self.store.subscriptions)
+        previous_category = self.subscription_category
         if category in self.store.subscriptions:
             self.store.subscriptions.remove(category)
         elif len(previous) < 80:
@@ -1201,17 +1211,19 @@ class WarderRadio(Screen):
         else:
             self.settings_form.status(t('Cannot save settings'))
             return
+        if self.subscription_category not in self.store.subscriptions:
+            self.subscription_category = next(iter(self.store.subscriptions), '')
+        self.store.subscription_category = self.subscription_category
         try:
             self.store.save()
         except OSError:
             self.store.subscriptions = previous
+            self.store.subscription_category = self.subscription_category = previous_category
             self.settings_form.status(t('Cannot save settings'))
             return
-        if self.subscription_category not in self.store.subscriptions:
-            self.subscription_category = next(iter(self.store.subscriptions), '')
-            if mode == 'subscriptions':
-                self.catalogue_page, self.page_offset = None, 0
-                self.load_page()
+        if mode == 'subscriptions' and self.subscription_category != previous_category:
+            self.catalogue_page, self.page_offset = None, 0
+            self.load_page()
         self.settings_form.status(t('Saved'))
 
     def add_name_done(self, name):
@@ -1252,12 +1264,13 @@ class WarderRadio(Screen):
         self.cancel_catalogue()
         mode = self.settings_return[0] if self.mode == 'settings' else self.mode
         category = self.current_category(mode)
-        if (mode not in BROWSE_MODES or self.active_group == 'Custom' or
+        if (mode not in BROWSE_MODES or mode == 'radio' and self.active_group == 'Custom' or
                 mode == 'subscriptions' and not category):
             if force and self.mode == 'settings':
                 self.settings_form.status(t('Updating catalogue…'))
             return
-        key = (mode, self.active_group, self.query, category)
+        country = self.active_group if self.active_group != 'Custom' else 'ALL'
+        key = (mode, country, self.query, category)
         if self.browse_key != key:
             self.catalogue_page, self.page_offset = None, 0
         self.browse_key = key

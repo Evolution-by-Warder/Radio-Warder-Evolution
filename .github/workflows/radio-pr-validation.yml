@@ -21,6 +21,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install test image decoder
+        run: python3 -m pip install Pillow
       - name: Compile all Python files
         run: python3 -m compileall -q src tests tools
       - name: Build independent IPK and legacy bridge before unit tests
@@ -42,15 +44,18 @@ jobs:
           python3 tools/test_native.py --upstream fixtures/openpli-release-9.2 -v
           python3 tools/test_native.py --upstream fixtures/openatv-81-reviewed-base -v
           python3 tools/test_native.py --upstream fixtures/openatv-8.0-next -v
-      - name: Build installable private receiver revision (0.1.9.2-2)
+      - name: Replay stable 0.1.9.4 upgrade with real opkg
         run: |
-          python3 tools/build_ipk.py --package-revision 2
-          python3 tools/verify_ipk.py
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq autoconf automake libtool pkg-config libarchive-dev libssl-dev
+          curl --fail --location --retry 3 'https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.1.9.4/enigma2-plugin-extensions-radio-warder-evolution_0.1.9.4_all.ipk' -o /tmp/radio-stable-0194.ipk
+          sh tools/build_host_opkg.sh /tmp/radio-test-opkg cc330e2a5e311fa99ead37f6e439599a2a0909a0
+          python3 tools/verify_online_upgrade.py --opkg /tmp/radio-test-opkg/src/opkg --stable /tmp/radio-stable-0194.ipk --candidate dist/*_all.ipk
       - name: Upload test-only IPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: radio-country-navigation-pr
+          name: radio-browser-receiver-test
           path: |
-            dist/*-2_all.ipk
+            dist/*_all.ipk
             dist/build.json
             dist/SHA256SUMS

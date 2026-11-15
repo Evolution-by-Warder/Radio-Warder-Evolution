@@ -6,15 +6,47 @@ Official source: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution
 
 Releases and IPKs: https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases
 
- Warder Radio brings internet radio to Enigma2 receivers in the Warder graphic
-style: functions on the left, stations in the centre and live playback on the
-right. It combines the owned PiconHub catalogue with persistent favourites,
-listening history, native picons, recording support and verified updates.
+Warder Radio is a native internet-radio player for OpenATV and OpenPLi.
+The online candidate, **0.2.0-test1**, keeps the Warder player and loads station
+pages from Radio Browser. The supported stable release is **0.1.9.4**.
 
-**Slovensky:** Samostatný rádiový plugin pre OpenATV a OpenPLi s našou grafikou,
-rýchlym výberom krajiny, obnovením poslednej stanice, obľúbenými, históriou a
-piconami. Obsahuje všetkých 21 jazykov našich pluginov a automatickú aj ručnú
-aktualizáciu. Streamripper sa inštaluje spolu s pluginom; uložené nahrávky možno prehrávať aj mazať.
+## Online candidate 0.2.0-test1
+
+- **Domov** displays live stations. Choose a country on the left, use the
+  yellow key for search, and use MENU → **Vybrať kategóriu** to filter by
+  category. Select all countries for a worldwide search. Slovakia and Czechia
+  are always first in the country selector.
+- **Odbery** uses the same player. Follow a category from the Home MENU.
+  The selected subscription is shown above the rows. Choose another
+  subscribed category via MENU → **Vybrať kategóriu**.
+- Station pages contain up to 32 results. Use LEFT/RIGHT or the page keys.
+  Navigating forward from the last visible block loads the next server page.
+  MENU → **Update radio catalogue** fetches current data. Recent pages
+  are available from cache if the service is temporarily unreachable.
+  Playback still needs a reachable stream.
+- The logo worker fetches the icon for rows currently visible, or for the
+  active station when the screensaver covers the list. It normalizes supported
+  raster images to one transparent PNG in an automatically bounded cache.
+  A missing icon uses the plugin artwork. Clear it via MENU → **Clear logo
+  cache**. The package requires `python3-pillow` from the receiver's feed.
+- MENU also offers the current song's lyrics and information on the credited
+  performer when the respective service can identify the song. The existing
+  album and artist artwork search, ICY metadata, spectrum, recording and
+  YouTube playback remain available.
+- Existing favourites, history and custom streams retain their saved URLs
+  and references. Existing settings and user files are preserved. A saved
+  legacy station can match a Radio Browser row by exact stream URL.
+- Offline data sits under `/etc/enigma2/warder-radio/radio-browser-cache`
+  (48 entries and at most 1 MiB) and logos under
+  `/etc/enigma2/warder-radio/station-logo-cache` (128 files and at most 4 MiB).
+  Previous catalogue files, picon settings, and downloaded logos can remain
+  in their original locations for a return to the stable package.
+- Install the test IPK over the stable package and restart the Enigma2 GUI.
+  The standard playback controls and each of the 21 OSD languages are available
+  in the candidate. Package provenance and the validation record are tracked
+  in [RADIO_PROGRESS.md](RADIO_PROGRESS.md).
+
+## Historical guidance for 0.1.9.4 and earlier
 
 Current release: **0.1.9.4**. The optional black Radio OLED screensaver
 shows the live station, picon, song/artist, existing album art, native spectrum,

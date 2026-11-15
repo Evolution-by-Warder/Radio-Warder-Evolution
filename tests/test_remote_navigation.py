@@ -8,7 +8,7 @@ tree = ast.parse(SOURCE.read_text(encoding='utf-8'))
 radio = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'WarderRadio')
 names = ('left', 'right', 'focus_country', 'up', 'down', 'ok')
 methods = [n for n in radio.body if isinstance(n, ast.FunctionDef) and n.name in names]
-namespace = {}
+namespace = {'BROWSE_MODES': ('radio', 'subscriptions')}
 exec(compile(ast.Module(body=methods, type_ignores=[]), str(SOURCE), 'exec'), namespace)
 
 
@@ -45,6 +45,8 @@ class RadioStub:
     def __init__(self, index=12):
         self.focus = 'stations'
         self.startup_autoplay = True
+        self.mode, self.page_offset = 'radio', 0
+        self.logo_busy = self.logo_paused = False
         self.values = {'stations': ListStub(30, index), 'functions': ListStub(8, 3)}
         self.country_opened = False
         self.played = False

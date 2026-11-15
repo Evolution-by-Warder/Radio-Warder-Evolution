@@ -254,7 +254,6 @@ class SaverTests(unittest.TestCase):
         obj.saver_timer_armed = False
         obj.starting = False
         obj.saver_offset, obj.saver_direction = (0, 0), (1, 1)
-        obj.saver_picon_id = None
         obj.saver_text_cache = {}
         obj.saver_modal_suspended = False
         obj.playing = True
@@ -275,13 +274,13 @@ class SaverTests(unittest.TestCase):
         obj.spectrum, obj.saver_spectrum = normal_spectrum, saver_spectrum
         obj.saver_picon, obj.saver_cover, obj.cover_display = picon, cover, parent_cover
         obj.radio_running = lambda: True
+        obj.show_saver_logo = lambda url: picon.show('/tmp/picon.png')
         obj.sync_spectrum = lambda: None  # Bound on real Screen; stub for GUI-free fixture
         env = dict(allow_auto_saver=allow_auto_saver,
                    make_saver_widgets=make_saver_widgets,
                    bounded_motion=bounded_motion,
                    clock_text=lambda: ('Streda', '11.11.2026', '20:17', ':21'),
                    t=lambda text:text, group_label=lambda name:name,
-                   path_for=lambda station, library: '/tmp/picon.png',
                    ePoint=lambda x,y:(x,y))
         for name in ('_arm_saver', '_saver_auto_restore', '_saver_start', '_saver_refresh',
                      '_saver_set_text', '_saver_modal_open', '_saver_move',
