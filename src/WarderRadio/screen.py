@@ -25,6 +25,7 @@ from .model import Store, Playback, same_station, search_key, station_quality
 from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country, merge_stations
 from .recording import Recording
 from .station_logos import StationLogos, logo_key
+from .icy_badges import IcyBadgeCache
 from .song_details import lyrics, artist_information
 from .settings_screen import SettingsForm
 from .warder_update import check_release, install_release
@@ -173,6 +174,9 @@ class WarderRadio(Screen):
         self.cover_key, self.cover_generation = '', 0
         self.cover_pending, self.cover_attempts, self.cover_next = False, 0, 0.0
         self.metadata_monitor = IcyMonitor()
+        self.icy_probe_jobs = Jobs()
+        self.icy_probe_busy = False
+        self.icy_probe_next = 0.0
         self.closed = False
         self.updating = False
         self.update_pending = False
@@ -194,7 +198,9 @@ class WarderRadio(Screen):
         self['stations'] = RadioList([], self.ui_scale)
         self['stations'].logo = self.row_logo
         self.icy_known = set()
-        self['stations'].icy_supported = lambda row: row.get('id') in self.icy_known
+        self.icy_cache = IcyBadgeCache(self.store.directory)
+        self['stations'].icy_supported = lambda row: (row.get('id') in self.icy_known or
+                                                       self.icy_cache.known(row))
         for name in ('day', 'date', 'clock', 'seconds', 'version_caption', 'version', 'navtitle', 'section', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
@@ -832,6 +838,7 @@ class WarderRadio(Screen):
         if not identity or identity in self.icy_known:
             return
         self.icy_known.add(identity)
+        self.icy_cache.confirm(item)
         if not self.closed and self.mode != 'settings' and any(
                 row.get('id') == identity for row in self.rows if isinstance(row, dict)):
             widget = self['stations']
@@ -1366,6 +1373,35 @@ class WarderRadio(Screen):
             # Skip duplicate-only pages, but bound automatic retries.
             self.load_page(self.page_offset + PAGE_SIZE)
 
+    def poll_icy_badges(self):
+        """Slow, visible-only metadata discovery with one off-GUI worker.
+
+        Existing logo downloads take priority on low-end receivers.
+        """
+        self.icy_probe_jobs.poll()
+        if (self.icy_probe_busy or self.closed or self.installing or self.starting or
+                self.mode not in BROWSE_MODES or self.logo_slots or self.logo_paused or
+                time.monotonic() < self.icy_probe_next):
+            return
+        for item in self.visible_logo_items():
+            if not self.icy_cache.should_probe(item):
+                continue
+            self.icy_probe_busy = self.icy_probe_jobs.submit('icy-probe',
+                lambda item=item: self.icy_cache.probe(item),
+                lambda supported, error, item=item: self.icy_probe_loaded(item, supported, error))
+            if self.icy_probe_busy:
+                self.icy_probe_next = time.monotonic() + 2.0
+            break
+
+    def icy_probe_loaded(self, item, supported, error):
+        self.icy_probe_busy = False
+        if self.closed:
+            return
+        if not error and supported:
+            self.mark_icy_supported(item)
+        else:
+            self.icy_cache.reject(item)
+
     def row_logo(self, item):
         if self.logo_fallback is None:
             self.logo_fallback = LoadPixmap(FALLBACK_LOGO, cached=True)
@@ -1527,6 +1563,7 @@ class WarderRadio(Screen):
             self.song_jobs.poll()
             self.facet_jobs.poll()
             self.poll_logos()
+            self.poll_icy_badges()
             progress = self.update_state.take()
             if progress is not None and self.update_window is not None:
                 self.update_window.set_stage(*progress)
@@ -1672,6 +1709,7 @@ class WarderRadio(Screen):
         for worker in self.logo_extra_jobs:
             worker.close()
         self.song_jobs.close()
+        self.icy_probe_jobs.close()
         self.facet_jobs.close()
         self.cancel_catalogue()
         self.catalogue_jobs.close()
