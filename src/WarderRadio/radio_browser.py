@@ -105,6 +105,7 @@ def browser_station(row):
     item = station({'name': row.get('name'), 'url': url,
                     'group': country_name(code) if code else clean(row.get('country')) or 'Other',
                     'stationuuid': row.get('stationuuid'), 'favicon': row.get('favicon'),
+                    'homepage': row.get('homepage'), 'countrycode': code,
                     'original_url': row.get('url')})
     if not item.get('stationuuid'):
         raise ValueError('Missing station UUID')
