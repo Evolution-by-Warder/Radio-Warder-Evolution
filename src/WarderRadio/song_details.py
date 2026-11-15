@@ -85,7 +85,7 @@ def artist_information(artist, track, opener=urlopen):
         # from MusicBrainz (live shows, new singles and remixes).
         candidates = [artist]
         # Explicit guest credits are not part of the main performer's name.
-        main = re.split(r'\\s+(?:feat\\.?|ft\\.?|featuring)\\s+', artist, maxsplit=1, flags=re.I)[0]
+        main = re.split(r'\s+(?:feat\.?|ft\.?|featuring)\s+', artist, maxsplit=1, flags=re.I)[0]
         if main != artist:
             candidates.append(main)
         for name in candidates:
