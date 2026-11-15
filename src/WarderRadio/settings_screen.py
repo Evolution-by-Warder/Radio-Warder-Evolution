@@ -128,6 +128,16 @@ class SettingsForm:
                     (t('Off') if host.store.screensaver_delay == 0 else str(host.store.screensaver_delay) + ' s'), 'saver-delay'),
                    (t('Clear logo cache'), 'clear-logos'), (t('About'), 'about')]
         mode = host.settings_return[0]
+        if item and item.get('url') and mode in ('radio', 'subscriptions', 'favourites'):
+            choices.insert(1, (t('Unpin station from Home') if host.store.is_pinned(item)
+                               else t('Pin station to Home'), 'pin-toggle'))
+            if mode == 'favourites':
+                i = next((i for i, row in enumerate(host.store.favourites)
+                          if row['id'] == item['id']), -1)
+                if i > 0:
+                    choices.insert(2, (t('Move station up'), 'favourite-up'))
+                if 0 <= i < len(host.store.favourites) - 1:
+                    choices.insert(3, (t('Move station down'), 'favourite-down'))
         if mode == 'subscriptions':
             if host.subscription_category in host.store.subscriptions:
                 choices.insert(1, (t('Unfollow category'), 'subscription-remove'))
