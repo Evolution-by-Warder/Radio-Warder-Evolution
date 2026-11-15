@@ -498,6 +498,38 @@ class NativeTests(unittest.TestCase):
         self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
         self.assertEqual(len(screen.icy_known), 1)
 
+    def test_cached_icy_badge_shows_before_playback_and_probe_only_visible(self):
+        screen, _, _ = self.new()
+        first = screen.rows[0]
+        self.assertNotIn("'ICY'", str(screen['stations'].l.build(first)))
+        screen.icy_cache.confirm(first)
+        self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
+        self.assertFalse(screen.playback.owns())
+
+        # The worker is scheduled only for a visible online station; never
+        # for an arbitrary saved custom stream, nor for hidden catalogue pages.
+        probe_item = dict(screen.rows[1], countrycode='SK')
+        screen.rows[1] = probe_item
+        screen['stations'].setList([(row,) for row in screen.rows])
+        seen = []
+        screen.icy_cache.probe = lambda item: seen.append(item['id']) or True
+        screen.logo_paused = False
+        screen.logo_slots.clear()
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        deadline = time.monotonic() + 2
+        while screen.icy_probe_busy and time.monotonic() < deadline:
+            screen.poll_icy_badges()
+            time.sleep(0.002)
+        self.assertFalse(screen.icy_probe_busy)
+        self.assertIn(probe_item['id'], seen)
+        self.assertIn("'ICY'", str(screen['stations'].l.build(probe_item)))
+        screen.select_mode('favourites')
+        screen.icy_probe_next = 0
+        before = list(seen)
+        screen.poll_icy_badges()
+        self.assertEqual(seen, before)
+
     def test_quality_has_visible_independent_right_column(self):
         screen, _, _ = self.new()
         sample = dict(screen.rows[0], codec='MP3', bitrate=128)
@@ -976,7 +1008,8 @@ class NativeTests(unittest.TestCase):
 
     def test_settings_catalogue_update_and_errors_do_not_leave_the_panel(self):
         screen,session,_=self.new();screen.options()
-        screen.option_done(('','update'));self.wait_for_country(screen)
+        self.assertNotIn('update', [key for text, key in screen.settings_form.choices()])
+        screen.update_catalogue();self.wait_for_country(screen)
         self.assertEqual(screen.mode,'settings')
         self.assertEqual(screen['settings_status'].getText(),radio.t('Catalogue updated'))
         screen.notify(radio.t('Recording failed'),True)
@@ -1015,7 +1048,8 @@ class NativeTests(unittest.TestCase):
         screen,session,_=self.new();screen.options()
         def label():return next(text for text,key,*_ in screen['settings_options'].list if key=='favourite')
         self.assertEqual(label(),radio.t('Add station to favourites'))
-        self.assertIn((radio.t('Update radio catalogue'),'update'),screen.settings_form.choices())
+        self.assertNotIn((radio.t('Update radio catalogue'),'update'), screen.settings_form.choices())
+        self.assertIn('plugin-update', [key for text, key in screen.settings_form.choices()])
         self.settings_action(screen, 'favourite')
         self.assertEqual(label(),radio.t('Remove station from favourites'))
         with patch.object(screen.store,'save',side_effect=PermissionError):screen.ok()
