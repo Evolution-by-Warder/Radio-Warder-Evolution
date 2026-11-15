@@ -321,7 +321,7 @@ class WarderRadio(Screen):
         if not error and facets:
             self.countries, self.categories = facets.countries, facets.categories
             self.country_counts = getattr(facets, 'counts', None) or {}
-        if self.mode == 'settings' and self.settings_form.view in ('countries', 'categories'):
+        if self.mode == 'settings' and self.settings_form.view in ('countries', 'categories', 'subscription-add'):
             self.settings_form.refresh()
         elif self.mode == 'settings' and not self.updating and self.settings_return[0] not in BROWSE_MODES:
             self.settings_form.status(t('Offline catalogue' if error or facets.offline else 'Catalogue updated'))
@@ -1250,6 +1250,8 @@ class WarderRadio(Screen):
             self.settings_form.choose_category()
         elif action == 'subscription':
             self.toggle_subscription()
+        elif action == 'subscription-remove':
+            self.subscription_remove()
         elif action in ('lyrics', 'artist-information'):
             self.open_song_details(action)
         elif action == 'clear-logos':
