@@ -1925,7 +1925,7 @@ class NativeTests(unittest.TestCase):
         self.wait_for_country(screen)
         self.assertEqual(screen.page_offset, PAGE_SIZE)
         self.assertGreater(len(screen.rows), len(original))
-        self.assertEqual([row['id'] for row in screen.rows[:len(original)], original)
+        self.assertEqual([row['id'] for row in screen.rows[:len(original)]], original)
         self.assertEqual(screen['stations'].getSelectionIndex(), len(original))
         self.assertEqual(len({row['id'] for row in screen.rows}), len(screen.rows))
 
