@@ -27,6 +27,7 @@ from .recording import Recording
 from .station_logos import StationLogos, logo_key
 from .subscription_tabs import SubscriptionTabs
 from .stream_resolver import needs_resolution, resolve_custom
+from .diagnostics import Diagnostics
 from .icy_badges import IcyBadgeCache
 from .song_details import lyrics, artist_profile, song_information
 from .settings_screen import SettingsForm
@@ -167,6 +168,8 @@ class WarderRadio(Screen):
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
         self.custom_address_pending = False
+        self.diagnostics = Diagnostics()
+        self.diagnostics.add('plugin-open', status=VERSION)
         self.catalogue_jobs = Jobs()
         self.catalogue_task = None
         self.facet_jobs = Jobs()
@@ -747,6 +750,7 @@ class WarderRadio(Screen):
         self['details'].setText(group_label(item.get('group', '')))
         self['status'].setText(t('Connecting…'))
         self.reset_artwork()
+        self.diagnostics.add('play-request', mode='recording' if 'path' in item else 'radio')
         try:
             if 'path' in item:
                 self.playback.play_file(item)
@@ -759,6 +763,7 @@ class WarderRadio(Screen):
                     except OSError:
                         self.notify(t('Cannot save settings'), True)
         except Exception:
+            self.diagnostics.add('play-failed', status='native-service')
             self['status'].setText(t('Cannot play station'))
             self['track'].setText(t('Cannot play station'))
             self.settings_form.refresh_playback()
@@ -1040,6 +1045,7 @@ class WarderRadio(Screen):
         self.settings_form.refresh_playback()
 
     def failed(self):
+        self.diagnostics.add('stream-failed', status='native-event')
         self.saver_timer.timer.stop()
         if self.saver_active:
             self._saver_exit()
@@ -1322,6 +1328,8 @@ class WarderRadio(Screen):
             self.settings_form.confirm(t('Clear cached station logos?'), self.clear_logos)
         elif action == 'plugin-update':
             self.check_updates(manual=True)
+        elif action == 'diagnostics':
+            self.settings_form.song('Diagnostics', self.diagnostics.display(VERSION))
         elif action == 'add':
             if self.mode != 'settings':
                 self.open_settings()
@@ -1580,6 +1588,7 @@ class WarderRadio(Screen):
             return
         self.catalogue_task, self.updating = None, False
         if error or page is None:
+            self.diagnostics.add('catalogue-load', status='failed')
             self.catalogue_status(t('Cannot update catalogue'))
             self.update_count()
             return
@@ -1595,6 +1604,8 @@ class WarderRadio(Screen):
             self.catalogue_page = page
             self.empty_pages = 0
         self.page_offset = offset
+        self.diagnostics.add('catalogue-load', rows=len(page.rows),
+                             status='offline' if page.offline else 'online')
         if self.mode == key[0]:
             selected = self.current() if force else self.playback.current
             self.refresh_rows()
