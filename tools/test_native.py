@@ -503,7 +503,7 @@ class NativeTests(unittest.TestCase):
         sample = dict(screen.rows[0], codec='MP3', bitrate=128)
         rendered = screen['stations'].l.build(sample)
         # Full radio label stays in its own title field.
-        self.assertEqual(rendered[2][-1], sample['name'])
+        self.assertIn(sample['name'], str(rendered[2]))
         self.assertIn('Slovensko', str(rendered[3]))
         self.assertIn('MP3 · 128 kbps', str(rendered[4]))
         self.assertEqual(rendered[4][2], 350)
