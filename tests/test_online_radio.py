@@ -15,7 +15,7 @@ except ImportError:
     Image = None
 
 from WarderRadio.i18n import SUPPORTED, translations
-from WarderRadio.model import Store, station, atomic_json
+from WarderRadio.model import Store, station, atomic_json, station_quality
 from WarderRadio.radio_browser import RadioBrowser, PAGE_SIZE, merge_stations, browser_station
 from WarderRadio.song_details import lyrics, artist_information
 from WarderRadio.station_logos import StationLogos, public_connection, rasterize, website_icons, logo_key
@@ -80,6 +80,17 @@ class BrowserTests(unittest.TestCase):
         self.assertEqual(len(third.rows), 7)
         self.assertFalse(third.more)
         self.assertTrue(set(row['id'] for row in page.rows).isdisjoint(row['id'] for row in second.rows))
+
+    def test_stream_format_is_advertised_metadata_not_guessed(self):
+        item = browser_station(remote_row(5, codec='mp3', bitrate=192))
+        self.assertEqual((item['codec'], item['bitrate']), ('MP3', 192))
+        self.assertEqual(station_quality(item), 'MP3 · 192 kbps')
+        unknown = browser_station(remote_row(6, codec='', bitrate=0))
+        self.assertEqual(station_quality(unknown), '')
+        incomplete = browser_station(remote_row(7, codec='aac+', bitrate=None))
+        self.assertEqual(station_quality(incomplete), 'AAC+')
+        nonsense = browser_station(remote_row(8, codec='bad\\ncodec', bitrate=-20))
+        self.assertEqual(station_quality(nonsense), '')
 
     def test_duplicate_names_streams_and_uuids_are_removed_across_batches(self):
         original = browser_station(remote_row(1))
