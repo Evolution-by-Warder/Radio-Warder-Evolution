@@ -21,11 +21,12 @@ from Screens.VirtualKeyBoard import VirtualKeyBoard
 from . import ROOT, VERSION
 from .i18n import t, rtl, group_label
 from .jobs import Jobs
-from .model import Store, Playback, same_station, search_key, station_quality
+from .model import Store, Playback, same_station, search_key, station_quality, stream_url
 from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country, merge_stations
 from .recording import Recording
 from .station_logos import StationLogos, logo_key
 from .subscription_tabs import SubscriptionTabs
+from .stream_resolver import needs_resolution, resolve_custom
 from .icy_badges import IcyBadgeCache
 from .song_details import lyrics, artist_profile, song_information
 from .settings_screen import SettingsForm
@@ -165,6 +166,7 @@ class WarderRadio(Screen):
         self.ready_done = False
         self.recording = Recording(directory=self.store.recording_dir)
         self.jobs = Jobs()
+        self.custom_address_pending = False
         self.catalogue_jobs = Jobs()
         self.catalogue_task = None
         self.facet_jobs = Jobs()
@@ -1495,15 +1497,42 @@ class WarderRadio(Screen):
             self.settings_form.edit('url', 'https://')
 
     def add_url_done(self, url):
-        if not url or self.closed:
+        if not url or self.closed or self.custom_address_pending:
             return
         try:
-            self.store.add(self.new_station_name, url)
+            checked = stream_url(url)
         except ValueError:
-            self.notify(t('Invalid stream address'), True)
+            self.settings_form.status(t('Invalid stream address'))
+            return
+        if needs_resolution(checked):
+            # Try web pages and playlists on a bounded worker. Do not freeze
+            # the keyboard and never modify favourites if lookup fails.
+            name = self.new_station_name
+            self.custom_address_pending = self.jobs.submit(
+                'resolve-custom-radio', lambda: resolve_custom(checked),
+                lambda found, error: self.custom_address_ready(name, found, error))
+            self.settings_form.status(t('Please wait…') if self.custom_address_pending
+                                      else t('Cannot add station'))
+            return
+        self.store_custom_url(self.new_station_name, checked)
+
+    def custom_address_ready(self, name, found, error):
+        self.custom_address_pending = False
+        if self.closed or self.mode != 'settings' or self.settings_form.view != 'url':
+            return
+        if error or not found:
+            self.settings_form.status(t('Invalid stream address'))
+            return
+        self.store_custom_url(name, found)
+
+    def store_custom_url(self, name, url):
+        try:
+            self.store.add(name, url)
+        except ValueError:
+            self.settings_form.status(t('Invalid stream address'))
             return
         except OSError:
-            self.notify(t('Cannot add station'), True)
+            self.settings_form.status(t('Cannot add station'))
             return
         self.active_group = 'Custom'
         self.select_mode('radio')
