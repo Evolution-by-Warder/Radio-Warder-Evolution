@@ -81,6 +81,7 @@ class RadioList(MenuList):
         self.l.setFont(2, gFont('Regular', round(24 * scale)))
         self.l.setBuildFunc(self.build)
         self.logo = None
+        self.icy_supported = None
 
     def build(self, item, key=None):
         def n(value):
@@ -105,16 +106,24 @@ class RadioList(MenuList):
                                                size=(n(350), n(52)),
                                                font=0, flags=flags, text=item)]
         pixmap = self.logo(item) if self.logo else None
-        return [None,
+        icy = bool(self.icy_supported and self.icy_supported(item))
+        contents = [None,
                 MultiContentEntryPixmapAlphaBlend(pos=(n(8), n(17)), size=(n(106), n(54)),
                     png=pixmap, flags=(enigma.BT_SCALE | enigma.BT_KEEP_ASPECT_RATIO
                     | enigma.BT_HALIGN_CENTER | enigma.BT_VALIGN_CENTER)),
-                MultiContentEntryText(pos=(n(126), n(7)), size=(n(460), n(44)), font=0,
+                MultiContentEntryText(pos=(n(126), n(7)), size=(n(392 if icy else 460), n(44)), font=0,
                                       flags=flags, text=item['name']),
                 MultiContentEntryText(pos=(n(126), n(50)), size=(n(460), n(30)), font=1,
                                       flags=flags, text=' · '.join(part for part in
                                           (group_label(item.get('group', '')), station_quality(item)) if part),
                                       color=0x89acc4, color_sel=0xb8e8f8)]
+        if icy:
+            # Compact ICY indicator, like Radioteca's note but with truthful
+            # stream metadata semantics and Warder's own cyan typography.
+            contents.append(MultiContentEntryText(pos=(n(534), n(13)), size=(n(52), n(34)), font=1,
+                                               flags=enigma.RT_HALIGN_CENTER | enigma.RT_VALIGN_CENTER,
+                                               text='ICY', color=0x00ceff, color_sel=0x00ceff))
+        return contents
 
 
 class WarderRadio(Screen):
@@ -181,6 +190,8 @@ class WarderRadio(Screen):
         self['functions'] = RadioList([], self.ui_scale, True)
         self['stations'] = RadioList([], self.ui_scale)
         self['stations'].logo = self.row_logo
+        self.icy_known = set()
+        self['stations'].icy_supported = lambda row: row.get('id') in self.icy_known
         for name in ('day', 'date', 'clock', 'seconds', 'version_caption', 'version', 'navtitle', 'section', 'nowlabel', 'station',
                      'artist', 'track', 'details', 'count', 'status', 'hint',
                      'red', 'green', 'yellow', 'blue'):
@@ -812,6 +823,21 @@ class WarderRadio(Screen):
         else:
             self.spectrum.start()
 
+    def mark_icy_supported(self, item):
+        """Remember confirmed ICY track data for this GUI session only."""
+        identity = item.get('id') if isinstance(item, dict) else None
+        if not identity or identity in self.icy_known:
+            return
+        self.icy_known.add(identity)
+        if not self.closed and self.mode != 'settings' and any(
+                row.get('id') == identity for row in self.rows if isinstance(row, dict)):
+            widget = self['stations']
+            invalidate = getattr(widget.l, 'invalidate', None)
+            if invalidate:
+                invalidate()
+            elif widget.instance is not None:
+                widget.instance.invalidate()
+
     def metadata(self):
         if self.video_active:
             return
@@ -843,6 +869,10 @@ class WarderRadio(Screen):
                 legacy_charset=station_charset(self.playback.current))
             if icy_title:
                 artist, title = icy_artist, icy_title
+                # Only a confirmed artist + track from the current ICY stream
+                # enables the per-station badge. Do not probe whole catalogues.
+                if icy_artist:
+                    self.mark_icy_supported(self.playback.current)
         artist, title = repair_legacy_pair(artist, title, station_charset(self.playback.current))
         self.playing = True
         self['artist'].setText(artist[:240])
