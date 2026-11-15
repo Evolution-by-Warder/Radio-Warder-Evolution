@@ -1908,12 +1908,26 @@ class NativeTests(unittest.TestCase):
         screen.right()
         self.wait_for_country(screen)
         self.assertEqual(screen.page_offset, PAGE_SIZE)
-        self.assertIn('2', screen['count'].getText())
+        self.assertGreater(len(screen.rows), PAGE_SIZE)
+        self.assertIn('/ %d' % len(screen.rows), screen['count'].getText())
         screen.left()
-        self.wait_for_country(screen)
-        self.assertEqual(screen.page_offset, 0)
+        self.assertEqual(screen.page_offset, PAGE_SIZE)
         self.assertEqual(len(session.dialogs), before)
         self.assertIs(session.nav.current, playing)
+
+    def test_down_at_end_loads_next_batch_without_replacing_old_stations(self):
+        screen, session, _ = self.new()
+        self.wait_for_country(screen)
+        original = [row['id'] for row in screen.rows]
+        self.assertEqual(len(original), PAGE_SIZE)
+        screen['stations'].moveToIndex(len(original) - 1)
+        screen.down()
+        self.wait_for_country(screen)
+        self.assertEqual(screen.page_offset, PAGE_SIZE)
+        self.assertGreater(len(screen.rows), len(original))
+        self.assertEqual([row['id'] for row in screen.rows[:len(original)], original)
+        self.assertEqual(screen['stations'].getSelectionIndex(), len(original))
+        self.assertEqual(len({row['id'] for row in screen.rows}), len(screen.rows))
 
     def test_navigation_hint_follows_receiver_language_for_station_focus(self):
         screen, _, _ = self.new()
