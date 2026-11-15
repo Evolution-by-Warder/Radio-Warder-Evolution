@@ -506,9 +506,9 @@ class NativeTests(unittest.TestCase):
         self.assertIn(sample['name'], str(rendered[2]))
         self.assertIn('Slovensko', str(rendered[3]))
         self.assertIn('MP3 · 128 kbps', str(rendered[4]))
-        self.assertEqual(rendered[4][2], 350)
-        self.assertEqual(rendered[4][4], 236)
-        self.assertLessEqual(rendered[4][2] + rendered[4][4], 620)
+        self.assertEqual(rendered[4][1], 350)
+        self.assertEqual(rendered[4][3], 236)
+        self.assertLessEqual(rendered[4][1] + rendered[4][3], 620)
         blank = screen['stations'].l.build(screen.rows[0])
         self.assertIn('—', str(blank[4]))
         # The indicator for verified ICY data remains in its own title row.
