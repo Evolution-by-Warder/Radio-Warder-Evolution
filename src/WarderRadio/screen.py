@@ -113,10 +113,13 @@ class RadioList(MenuList):
                     | enigma.BT_HALIGN_CENTER | enigma.BT_VALIGN_CENTER)),
                 MultiContentEntryText(pos=(n(126), n(7)), size=(n(392 if icy else 460), n(44)), font=0,
                                       flags=flags, text=item['name']),
-                MultiContentEntryText(pos=(n(126), n(50)), size=(n(460), n(30)), font=1,
-                                      flags=flags, text=' · '.join(part for part in
-                                          (group_label(item.get('group', '')), station_quality(item)) if part),
-                                      color=0x89acc4, color_sel=0xb8e8f8)]
+                MultiContentEntryText(pos=(n(126), n(50)), size=(n(215), n(30)), font=1,
+                                      flags=flags, text=group_label(item.get('group', '')),
+                                      color=0x89acc4, color_sel=0xb8e8f8),
+                MultiContentEntryText(pos=(n(350), n(50)), size=(n(236), n(30)), font=1,
+                                      flags=enigma.RT_HALIGN_RIGHT | enigma.RT_VALIGN_CENTER,
+                                      text=station_quality(item) or '—',
+                                      color=0x00ceff, color_sel=0x6deaff)]
         if icy:
             # Compact ICY indicator, like Radioteca's note but with truthful
             # stream metadata semantics and Warder's own cyan typography.
