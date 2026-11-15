@@ -72,7 +72,7 @@ def verify(opkg, stable, candidate):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
         install(candidate)
-        assert (runtime / 'version.txt').read_text().strip() == metadata['version'].rsplit('-', 1)[0]
+        assert (runtime / 'version.txt').read_text().strip() == metadata['version'].removesuffix('-1')
         assert (runtime / 'radio_browser.py').is_file() and (runtime / 'station_logos.py').is_file()
         assert not (runtime / 'country-manifest.json').exists() and not (runtime / 'picon_download.py').exists()
         for path, data in user_files.items():
