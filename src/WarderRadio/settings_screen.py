@@ -173,7 +173,9 @@ class SettingsForm:
                      seconds == self.pending_saver_delay)
                     for seconds in (0, 10, 20, 30, 60)]
         elif self.view == 'countries':
-            rows = [(group_label(country_name(code)), code, code == self.pending_country)
+            rows = [(group_label(country_name(code)) +
+                     ('  (%d)' % host.country_counts[code] if code in host.country_counts else ''),
+                     code, code == self.pending_country)
                     for code in host.countries]
             rows.insert(2, (t('All groups'), 'ALL', self.pending_country == 'ALL'))
             if host.store.custom:
