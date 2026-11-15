@@ -1,5 +1,14 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – informácie o interpretovi a svižnejší šetrič (0.2.0-test9)
+
+- **Draft PR #32:** https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/32 · vetva `fix/radio-artist-info-saver-motion-test9-20261115`; pokračovanie test8 Odberov, produkčný `main` a stabilná 0.1.9.4 zostávajú nezmenené.
+- **Informácie o interpretovi:** pred internetovým vyhľadávaním sa okamžite zobrazia lokálne dostupné ICY/native údaje `Interpret` a `Skladba`. Aj ak MusicBrainz nemá presnú nahrávku alebo je rádio otvorené v MENU, panel sa nezobrazí prázdny. MusicBrainz najprv skúša presne overený kredit nahrávky; pri nedostupnej nahrávke potom overuje jednoznačný presný názov interpreta, prípadne hlavného interpreta pri `feat./ft./x` a viacnásobných kreditoch. Ak identita nie je jednoznačná, ďalšie fakty sa neodhadujú. Žiadne generovanie životopisných údajov.
+- **Šetrič OLED:** natívne widgety a ich celá skupina sa posúvajú každých **1000 ms** namiesto **2000 ms**. Maximálne posuny `±90/±60 px`, krok `(7,5)`, grafika, odrazy, ochrana pri modálnych oknách a prehrávanie zostávajú pôvodné. 2× vyššia frekvencia posunu bez pridania maliara či ďalších vlákien.
+- **Overenie:** [GitHub Actions PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43758303381), Python kompilácia, unit testy, Enigma2 natívne replaye na OpenPLi 9.2, OpenATV 8.1 a 8.0-next, overenie IPK a izolovaný `opkg` prechod zo stabilnej 0.1.9.4. Testovací artefakt `radio-browser-receiver-test` obsahuje `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test9_all.ipk` (**2 919 548 B**, SHA-256 `5272150e61c732db22b0f7d77b1f7f21b4021a4c85dce1e2c6f600a73af8a167`), zhodu s `SHA256SUMS` potvrdilo stiahnutie aj lokálne overenie archívu.
+- **Otvorené:** na fyzických GigaBlue Quad 4K Pro a Octagon SF8008 otestovať otvorenie menu pri aktuálnej skladbe, interpretov absentujúcich v MusicBrainz a pohyb obrazovky bez trhania. Neschválené na merge/ostré vydanie.
+
+
 ## 15. 11. 2026 – Odbery: pridanie priamo v pravom paneli (0.2.0-test8)
 
 - **Draft PR #31:** https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/31, pracovná vetva `feature/radio-simple-subscriptions-test8-20261115`, vychádza z test7 `6a9b356`. Stabilná 0.1.9.4 na `main` nebola zmenená, nič sa nemergovalo ani nepublikovalo ako ostré vydanie.
