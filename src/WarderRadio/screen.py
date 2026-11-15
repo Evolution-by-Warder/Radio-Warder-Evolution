@@ -117,7 +117,7 @@ class RadioList(MenuList):
                                       flags=flags, text=group_label(item.get('group', '')),
                                       color=0x89acc4, color_sel=0xb8e8f8),
                 MultiContentEntryText(pos=(n(350), n(50)), size=(n(236), n(30)), font=1,
-                                      flags=enigma.RT_HALIGN_RIGHT | enigma.RT_VALIGN_CENTER,
+                                      flags=getattr(enigma, 'RT_HALIGN_RIGHT', enigma.RT_HALIGN_LEFT) | enigma.RT_VALIGN_CENTER,
                                       text=station_quality(item) or '—',
                                       color=0x00ceff, color_sel=0x6deaff)]
         if icy:
