@@ -64,6 +64,13 @@ def make_skin(width, height):
         parts.append('<eLabel zPosition="3" %s backgroundColor="#0019c9ff" />'
                      % rect(x, 25, 2, 84))
     row_h = n(88)
+    # Native subscription chip row is shown only in Odbery, above its station list.
+    # The screen shifts the station widget down to 7 rows in that mode only.
+    parts.append('<widget name="subscription_tabs" zPosition="2" position="%d,%d" size="%d,%d" '
+                 'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
+                 'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
+                 'transparent="1" scrollbarMode="showNever" enableWrapAround="0" />'
+                 % (n(530), n(252), n(620), n(64)))
     # Height is derived from the actual scaled row height, never rounded separately.
     parts.append('<widget name="stations" zPosition="2" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
