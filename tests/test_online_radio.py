@@ -18,6 +18,7 @@ from WarderRadio.i18n import SUPPORTED, translations
 from WarderRadio.model import Store, station, atomic_json, station_quality
 from WarderRadio.radio_browser import RadioBrowser, PAGE_SIZE, merge_stations, browser_station
 from WarderRadio.song_details import lyrics, artist_information
+from WarderRadio.icy_badges import IcyBadgeCache, stream_identity
 from WarderRadio.station_logos import StationLogos, public_connection, rasterize, website_icons, logo_key
 
 
@@ -280,6 +281,48 @@ class LogoTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             rasterize(body.getvalue())
 
+
+class IcyBadgeTests(unittest.TestCase):
+    def test_verified_icy_supported_station_survives_restart_for_seven_days(self):
+        with tempfile.TemporaryDirectory() as directory:
+            now = [1800000000]
+            responses = []
+            def fetch(url, legacy_charset=None):
+                responses.append((url, legacy_charset))
+                return ('Artist', 'Song')
+            item = browser_station(remote_row(123))
+            badges = IcyBadgeCache(directory, fetch=fetch, clock=lambda: now[0])
+            self.assertTrue(badges.should_probe(item))
+            self.assertTrue(badges.probe(item))
+            self.assertEqual(len(responses), 1)
+            badges.confirm(item)
+            self.assertTrue(badges.known(item))
+            reload = IcyBadgeCache(directory, fetch=fetch, clock=lambda: now[0])
+            self.assertTrue(reload.known(item))
+            self.assertFalse(reload.should_probe(item))
+            self.assertEqual(len(stream_identity(item)), 64)
+            now[0] += 8 * 24 * 3600
+            self.assertFalse(reload.known(item))
+            self.assertTrue(reload.should_probe(item))
+
+    def test_icy_probe_is_visible_only_and_negatives_do_not_persist(self):
+        with tempfile.TemporaryDirectory() as directory:
+            now = [1800000000]
+            calls = []
+            item = browser_station(remote_row(124))
+            badges = IcyBadgeCache(directory,
+                                    fetch=lambda url, legacy_charset=None: calls.append(url) or ('', ''),
+                                    clock=lambda: now[0])
+            custom = dict(item, countrycode='', stationuuid='')
+            self.assertFalse(badges.should_probe(custom))
+            self.assertFalse(badges.probe(item))
+            badges.reject(item)
+            self.assertFalse(badges.should_probe(item))
+            self.assertEqual(len(calls), 1)
+            again = IcyBadgeCache(directory, fetch=badges.fetch, clock=lambda: now[0])
+            self.assertTrue(again.should_probe(item))
+            now[0] += 31 * 60
+            self.assertTrue(badges.should_probe(item))
 
 class SongDetailsTests(unittest.TestCase):
     def test_lyrics_require_matching_artist_and_song_and_keep_lines(self):
