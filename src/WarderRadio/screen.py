@@ -112,7 +112,8 @@ class RadioList(MenuList):
                 MultiContentEntryText(pos=(n(126), n(7)), size=(n(460), n(44)), font=0,
                                       flags=flags, text=item['name']),
                 MultiContentEntryText(pos=(n(126), n(50)), size=(n(460), n(30)), font=1,
-                                      flags=flags, text=group_label(item.get('group', '')),
+                                      flags=flags, text=' · '.join(part for part in
+                                          (group_label(item.get('group', '')), station_quality(item)) if part),
                                       color=0x89acc4, color_sel=0xb8e8f8)]
 
 
