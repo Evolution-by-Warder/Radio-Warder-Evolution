@@ -344,6 +344,61 @@ class SongDetailsTests(unittest.TestCase):
         self.assertEqual(artist_information('Artist', 'Song', opener),
                          ['Artist', 'Slovakia', '2000', 'rock', '', 'MusicBrainz'])
 
+    def test_artist_fallback_finds_unique_exact_artist_when_recording_missing(self):
+        calls = []
+        identifier = str(UUID(int=315))
+        def opener(request, timeout):
+            calls.append(request.full_url)
+            if '/recording?' in request.full_url:
+                value = {'recordings': []}
+            elif '/artist?' in request.full_url:
+                value = {'artists': [{'id': identifier, 'name': 'Harlej'},
+                                     {'id': str(UUID(int=316)), 'name': 'Other Harlej'}]}
+            else:
+                value = {'name': 'Harlej', 'area': {'name': 'Czechia'},
+                         'life-span': {'begin': '1995-01-01'},
+                         'genres': [{'name': 'hard rock'}]}
+            return io.BytesIO(json.dumps(value).encode())
+        result = artist_information('Harlej', 'Svařák', opener)
+        self.assertEqual(result, ['Harlej', 'Czechia', '1995', 'hard rock', '', 'MusicBrainz'])
+        self.assertEqual(len(calls), 3)
+        self.assertIn('/recording?', calls[0])
+        self.assertIn('/artist?', calls[1])
+        self.assertIn('/artist/' + identifier + '?', calls[2])
+
+    def test_artist_fallback_without_track_and_ambiguous_identity(self):
+        def single(request, timeout):
+            if '/artist?' in request.full_url:
+                value = {'artists': [{'id': str(UUID(int=101)), 'name': 'Artist'}]}
+            else:
+                value = {'name': 'Artist', 'area': {'name': 'Slovakia'}}
+            return io.BytesIO(json.dumps(value).encode())
+        self.assertEqual(artist_information('Artist', '', single),
+                         ['Artist', 'Slovakia', '', 'MusicBrainz'])
+        def ambiguous(request, timeout):
+            value = {'artists': [{'id': str(UUID(int=101)), 'name': 'Artist'},
+                                 {'id': str(UUID(int=102)), 'name': 'Artist'}]}
+            return io.BytesIO(json.dumps(value).encode())
+        self.assertEqual(artist_information('Artist', '', ambiguous), [])
+
+    def test_multi_artist_credits_can_find_identified_primary_performer(self):
+        seen = []
+        identifier = str(UUID(int=55))
+        def opener(request, timeout):
+            seen.append(request.full_url)
+            if '/recording?' in request.full_url:
+                value = {'recordings': []}
+            elif '/artist?' in request.full_url and len(seen) < 3:
+                value = {'artists': []}
+            elif '/artist?' in request.full_url:
+                value = {'artists': [{'id': identifier, 'name': 'Joel Corry'}]}
+            else:
+                value = {'name': 'Joel Corry', 'area': {'name': 'United Kingdom'}}
+            return io.BytesIO(json.dumps(value).encode())
+        result = artist_information('Joel Corry x MNEK', 'Head & Heart', opener)
+        self.assertEqual(result[0:2], ['Joel Corry', 'United Kingdom'])
+        self.assertGreaterEqual(len(seen), 4)
+
     def test_translations_include_online_labels_in_every_language(self):
         for code in SUPPORTED:
             for term in ('Home', 'Subscriptions', 'Choose category', 'Page', 'Offline catalogue',
