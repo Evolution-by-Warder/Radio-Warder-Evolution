@@ -133,10 +133,15 @@ class WarderRadio(Screen):
         self.browse_key = None
         self.home_category, self.subscription_category = self.store.home_category, self.store.subscription_category
         self.logo_cache = StationLogos(self.store.directory)
+        # Three independent bounded workers fetch visible logos concurrently.
+        # They never touch Enigma2 widgets; all callbacks run on the GUI timer.
         self.logo_jobs = Jobs()
+        self.logo_extra_jobs = [Jobs(), Jobs()]
+        self.logo_slots = {}
         self.logo_results = OrderedDict()
         self.logo_fallback = None
         self.logo_busy = self.logo_paused = False
+        self.logo_clear_requested = self.logo_clear_running = False
         self.playback = Playback(session.nav, eServiceReference)
         self.last_radio_station = dict(self.store.history[0]) if self.store.history else None
         self.starting, self.startup_autoplay = True, True
@@ -1360,27 +1365,51 @@ class WarderRadio(Screen):
         return [item.get('favicon') for item in self.visible_logo_items()]
 
     def poll_logos(self):
-        self.logo_jobs.poll()
-        if self.logo_busy or self.logo_paused:
+        workers = [self.logo_jobs] + self.logo_extra_jobs
+        for worker in workers:
+            worker.poll()
+        if self.logo_clear_requested:
+            if not self.logo_slots and not self.logo_clear_running:
+                self.logo_clear_running = self.logo_jobs.submit(
+                    'clear-logos', self.logo_cache.clear, self.logos_cleared)
+            return
+        if self.logo_paused or self.closed:
             return
         now = time.monotonic()
-        for item in self.visible_logo_items():
-            identity = logo_key(item)
-            entry = self.logo_results.get(identity)
-            if entry and now < entry[2]:
-                self.logo_results.move_to_end(identity)
+        visible = self.visible_logo_items()
+        selected = self.current() if self.mode in BROWSE_MODES else None
+        if selected in visible:
+            visible = [selected] + [item for item in visible if item is not selected]
+        pending = set(self.logo_slots.values())
+        for slot, worker in enumerate(workers):
+            if slot in self.logo_slots:
                 continue
-            self.logo_busy = self.logo_jobs.submit('logo',
-                lambda item=item: self.logo_cache.get(item),
-                lambda path, error, identity=identity: self.logo_loaded(identity, path))
-            break
+            for item in visible:
+                identity = logo_key(item)
+                if not identity or identity in pending:
+                    continue
+                entry = self.logo_results.get(identity)
+                if entry and now < entry[2]:
+                    self.logo_results.move_to_end(identity)
+                    continue
+                success = worker.submit('logo',
+                    lambda item=item: self.logo_cache.get(item),
+                    lambda path, error, identity=identity, slot=slot:
+                        self.logo_loaded(identity, path, slot))
+                if success:
+                    self.logo_slots[slot] = identity
+                    pending.add(identity)
+                    break
+        self.logo_busy = bool(self.logo_slots)
 
-    def logo_loaded(self, identity, path):
-        self.logo_busy = False
+    def logo_loaded(self, identity, path, slot):
+        self.logo_slots.pop(slot, None)
+        self.logo_busy = bool(self.logo_slots)
         if self.logo_paused or self.closed:
             return
         pixmap = LoadPixmap(path, cached=False) if path else None
-        self.logo_results[identity] = (path if pixmap else None, pixmap, time.monotonic() + (3600 if pixmap else 900))
+        self.logo_results[identity] = (path if pixmap else None, pixmap,
+                                       time.monotonic() + (3600 if pixmap else 900))
         while len(self.logo_results) > 64:
             self.logo_results.popitem(last=False)
         if not pixmap:
@@ -1395,12 +1424,18 @@ class WarderRadio(Screen):
     def clear_logos(self, accepted):
         if not accepted:
             return
+        # Finish pending writes before deleting cache, so an old worker cannot
+        # immediately repopulate it after a user-requested clear.
         self.logo_paused = True
         self.logo_results.clear()
-        self.logo_busy = self.logo_jobs.replace('logo', self.logo_cache.clear, self.logos_cleared)
+        self.logo_clear_requested = True
+        self.logo_busy = True
+        self.poll_logos()
 
     def logos_cleared(self, result, error):
-        self.logo_busy = False
+        self.logo_clear_running = self.logo_clear_requested = False
+        self.logo_busy = bool(self.logo_slots)
+        self.logo_paused = False
         self.settings_form.status(t('Cannot clear logo cache' if error else 'Logo cache cleared'))
 
     def toggle_recording(self):
@@ -1603,6 +1638,8 @@ class WarderRadio(Screen):
             self.video_dialog = None
         self.video_jobs.close()
         self.logo_jobs.close()
+        for worker in self.logo_extra_jobs:
+            worker.close()
         self.song_jobs.close()
         self.facet_jobs.close()
         self.cancel_catalogue()
