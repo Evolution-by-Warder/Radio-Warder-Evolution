@@ -1,5 +1,14 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – Odbery: pridanie priamo v pravom paneli (0.2.0-test8)
+
+- **Draft PR #31:** https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/31, pracovná vetva `feature/radio-simple-subscriptions-test8-20261115`, vychádza z test7 `6a9b356`. Stabilná 0.1.9.4 na `main` nebola zmenená, nič sa nemergovalo ani nepublikovalo ako ostré vydanie.
+- **UX:** v móde `Odbery` je horný natívny vodorovný výber uložených kategórií (až tri naraz, listovanie šípkami) a pevne prítomné `+ Pridať odber`; pri prázdnom zozname `+ Pridať prvý odber`. OK alebo zelené na tomto tlačidle otvorí priamo jednoduchý zoznam dostupných žánrov zo súčasného Radio Browser. Zeleným sa kategória uloží a zobrazia sa jej stanice. DOWN prejde na stanice, UP na začiatku zoznamu sa vráti ku kategóriám. MENU v Odberoch ponúkne `Odstrániť odber`, odstráni iba uloženú kategóriu; nikdy nemení zdrojové stanice.
+- **Layout:** `Domov` zachováva pôvodných 8 riadkov; `Odbery` rezervujú jediný horný riadok pre kategórie a ukážu 7 staníc. Žiadne ďalšie okno na celú obrazovku, bez zásahov do prehrávača, log, streamovej kvality, ICY, obalov, ekvalizéra, histórie, obľúbených, šetriča a preferencií používateľa. Dve nové lokalizované textové akcie sú vo všetkých 21 jazykoch.
+- **Overenie:** [GitHub Actions PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43756516568) — Python compile, 21-jazyčné unit regresie, natívne OpenPLi 9.2 a OpenATV 8.1/8.0-next replaye, kontrola IPK a izolovaný `opkg` upgrade/reinstall zo stabilnej 0.1.9.4. Zostavený testovací `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test8_all.ipk`: **2 918 618 bajtov**, SHA-256 `28acf53aab8bba57022d2ef593a91fd24591443b6ed7f2395ca9f08e0a98a112` overené proti `SHA256SUMS` v CI artefakte.
+- **Ďalší krok:** fyzicky vyskúšať Odbery na GigaBlue Quad 4K Pro a SF8008, najmä prvé pridanie, prepínanie medzi dvoma kategóriami, odstránenie a návrat do Domov. Testovacie IPK zatiaľ nie je ostré vydanie a merge vyžaduje výslovné schválenie.
+
+
 ## 15. 11. 2026 – ICY pred spustením a vyčistenie MENU (0.2.0-test7)
 
 - [Draft PR #30](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/30) · vetva `fix/radio-icy-background-probes-test7-20261115`. Vychádza z test6; produkčný `main` zostáva nedotknutý.
