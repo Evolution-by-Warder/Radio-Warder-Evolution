@@ -85,9 +85,16 @@ def artist_information(artist, track, opener=urlopen):
         # from MusicBrainz (live shows, new singles and remixes).
         candidates = [artist]
         # Explicit guest credits are not part of the main performer's name.
-        main = re.split(r'\s+(?:feat\.?|ft\.?|featuring)\s+', artist, maxsplit=1, flags=re.I)[0]
+        main = re.split(r'\s+(?:feat\.?|ft\.?|featuring|x|vs\.?)\s+', artist,
+                        maxsplit=1, flags=re.I)[0]
         if main != artist:
             candidates.append(main)
+        # Some ICY servers list several guests with commas; look up the
+        # first credited performer only if the combined name is not indexed.
+        if artist.count(',') >= 2:
+            first = artist.split(',', 1)[0].strip()
+            if first and first not in candidates:
+                candidates.append(first)
         for name in candidates:
             try:
                 rows = read_response(MUSICBRAINZ + 'artist',
