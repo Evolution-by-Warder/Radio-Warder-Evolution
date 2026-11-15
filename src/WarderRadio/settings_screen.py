@@ -144,7 +144,8 @@ class SettingsForm:
         elif mode == 'radio' and host.active_group != 'Custom':
             choices.insert(1, (t('Choose category'), 'category'))
         if host.radio_running() and host['artist'].getText():
-            choices.extend([(t('Lyrics'), 'lyrics'), (t('Artist information'), 'artist-information')])
+            choices.extend([(t('Lyrics'), 'lyrics'), (t('Song information'), 'song-information'),
+                            (t('Artist information'), 'artist-information')])
         if host.settings_return[0] == 'recordings':
             choices.insert(0, (t('Delete'), 'delete-recording'))
         return choices
