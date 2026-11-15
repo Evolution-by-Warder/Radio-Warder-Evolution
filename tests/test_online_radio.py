@@ -74,7 +74,6 @@ class BrowserTests(unittest.TestCase):
                          'name': ['Rádio'], 'tag': ['rock'], 'tagExact': ['true']})
         self.assertIn('WarderRadio/', self.calls[-1][3])
         second = self.client.page('SK', 'Rádio', 'rock', offset=PAGE_SIZE)
-        self.assertFalse(second.more)
         self.assertEqual(len(second.rows), PAGE_SIZE)
         self.assertTrue(second.more)
         third = self.client.page('SK', 'Rádio', 'rock', offset=2 * PAGE_SIZE)
