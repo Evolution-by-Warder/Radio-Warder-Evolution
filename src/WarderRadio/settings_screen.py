@@ -126,7 +126,8 @@ class SettingsForm:
                     t('Yes' if host.store.show_main_menu else 'No'), 'main-menu-toggle'),
                    (t('Screensaver after') + ': ' +
                     (t('Off') if host.store.screensaver_delay == 0 else str(host.store.screensaver_delay) + ' s'), 'saver-delay'),
-                   (t('Clear logo cache'), 'clear-logos'), (t('About'), 'about')]
+                   (t('Clear logo cache'), 'clear-logos'), (t('Diagnostics'), 'diagnostics'),
+                   (t('About'), 'about')]
         mode = host.settings_return[0]
         if item and item.get('url') and mode in ('radio', 'subscriptions', 'favourites'):
             choices.insert(1, (t('Unpin station from Home') if host.store.is_pinned(item)
