@@ -22,7 +22,7 @@ from . import ROOT, VERSION
 from .i18n import t, rtl, group_label
 from .jobs import Jobs
 from .model import Store, Playback, same_station, search_key
-from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country
+from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country, merge_stations
 from .recording import Recording
 from .station_logos import StationLogos
 from .song_details import lyrics, artist_information
@@ -125,9 +125,10 @@ class WarderRadio(Screen):
         self.setTitle('Warder Radio')
         self.store = Store()
         self.browser = RadioBrowser(self.store.directory)
-        self.countries, self.categories = list(PINNED), []
+        self.countries, self.categories, self.country_counts = list(PINNED), [], {}
         self.catalogue_page = None
         self.page_offset = 0
+        self.empty_pages = 0
         self.browse_key = None
         self.home_category, self.subscription_category = self.store.home_category, self.store.subscription_category
         self.logo_cache = StationLogos(self.store.directory)
@@ -291,6 +292,7 @@ class WarderRadio(Screen):
     def facets_loaded(self, facets, error):
         if not error and facets:
             self.countries, self.categories = facets.countries, facets.categories
+            self.country_counts = getattr(facets, 'counts', None) or {}
         if self.mode == 'settings' and self.settings_form.view in ('countries', 'categories'):
             self.settings_form.refresh()
         elif self.mode == 'settings' and not self.updating and self.settings_return[0] not in BROWSE_MODES:
@@ -357,27 +359,27 @@ class WarderRadio(Screen):
         self.logo_paused = self.logo_busy and self.logo_paused
         self[self.focus].down()
         self.update_count()
+        self.load_next_visible()
 
     def page_up(self):
         self.startup_autoplay = False
         self.logo_paused = self.logo_busy and self.logo_paused
-        if self.focus == 'stations' and self.mode in BROWSE_MODES and self.page_offset and self['stations'].getSelectionIndex() == 0:
-            if not self.updating:
-                self.load_page(self.page_offset - PAGE_SIZE, last=True)
-            return
         self[self.focus].pageUp()
         self.update_count()
 
     def page_down(self):
         self.startup_autoplay = False
         self.logo_paused = self.logo_busy and self.logo_paused
-        if (self.focus == 'stations' and self.mode in BROWSE_MODES and self.catalogue_page and
-                self.catalogue_page.more and self['stations'].getSelectionIndex() >= max(0, len(self.rows) - VISIBLE_ROWS)):
-            if not self.updating:
-                self.load_page(self.page_offset + PAGE_SIZE)
-            return
         self[self.focus].pageDown()
         self.update_count()
+        self.load_next_visible()
+
+    def load_next_visible(self):
+        """Prefetch the next online batch without replacing the visible stations."""
+        if (self.focus == 'stations' and self.mode in BROWSE_MODES
+                and self.catalogue_page and self.catalogue_page.more and not self.updating
+                and self['stations'].getSelectionIndex() >= max(0, len(self.rows) - VISIBLE_ROWS)):
+            self.load_page(self.page_offset + PAGE_SIZE)
 
     def ok(self):
         self.startup_autoplay = False
@@ -470,10 +472,8 @@ class WarderRadio(Screen):
             return
         index = self['stations'].getSelectionIndex() if self.rows else -1
         count = '%d / %d' % (max(0, index + 1), len(self.rows))
-        if self.mode in BROWSE_MODES and self.catalogue_page:
-            count = '%s %d  ·  %s' % (t('Page'), self.page_offset // PAGE_SIZE + 1, count)
-            if self.catalogue_page.more:
-                count += '  ›'
+        if self.mode in BROWSE_MODES and self.catalogue_page and self.catalogue_page.more:
+            count += '  +'
         if not self.rows and not (self.mode in BROWSE_MODES and self.catalogue_page and self.catalogue_page.more):
             count = (t('Please wait…') if (self.starting or self.updating) and self.mode in BROWSE_MODES else
                      t('No recordings' if self.mode == 'recordings' else 'No stations'))
@@ -1252,7 +1252,7 @@ class WarderRadio(Screen):
 
     def update_catalogue(self):
         self.load_facets(force=True)
-        self.load_page(self.page_offset, force=True)
+        self.load_page(0, force=True)
 
     def cancel_catalogue(self):
         if self.catalogue_task is not None:
@@ -1271,8 +1271,8 @@ class WarderRadio(Screen):
             return
         country = self.active_group if self.active_group != 'Custom' else 'ALL'
         key = (mode, country, self.query, category)
-        if self.browse_key != key:
-            self.catalogue_page, self.page_offset = None, 0
+        if self.browse_key != key or offset == 0:
+            self.catalogue_page, self.page_offset, self.empty_pages = None, 0, 0
         self.browse_key = key
         task = self.catalogue_task = Event()
         _, country, query, category = key
@@ -1294,16 +1294,33 @@ class WarderRadio(Screen):
             self.catalogue_status(t('Cannot update catalogue'))
             self.update_count()
             return
-        self.catalogue_page, self.page_offset = page, offset
+        append = offset > 0 and self.catalogue_page is not None and self.browse_key == key
+        previous_index = self['stations'].getSelectionIndex() if self.rows else 0
+        previous_length = len(self.catalogue_page.rows) if append else 0
+        if append:
+            combined = merge_stations(self.catalogue_page.rows, page.rows)
+            self.catalogue_page = page._replace(rows=combined,
+                           offline=page.offline or self.catalogue_page.offline)
+            self.empty_pages = self.empty_pages + 1 if len(combined) == previous_length else 0
+        else:
+            self.catalogue_page = page
+            self.empty_pages = 0
+        self.page_offset = offset
         if self.mode == key[0]:
             selected = self.current() if force else self.playback.current
             self.refresh_rows()
-            index = len(self.rows) - 1 if last else 0
-            if selected and selected.get('url') and offset == 0 and not last:
-                index = next((i for i, row in enumerate(self.rows) if same_station(row, selected)), 0)
+            if append:
+                index = previous_length if previous_index >= previous_length - 1 and len(self.rows) > previous_length else previous_index
+            else:
+                index = 0
+                if selected and selected.get('url') and offset == 0:
+                    index = next((i for i, row in enumerate(self.rows) if same_station(row, selected)), 0)
             self['stations'].moveToIndex(max(0, index))
             self.update_count()
         self.catalogue_status(t('Offline catalogue') if page.offline else t('Catalogue updated') if force else '')
+        if append and not page.offline and self.empty_pages and self.empty_pages <= 3 and page.more:
+            # Skip duplicate-only pages, but bound automatic retries.
+            self.load_page(self.page_offset + PAGE_SIZE)
 
     def row_logo(self, url):
         if self.logo_fallback is None:
