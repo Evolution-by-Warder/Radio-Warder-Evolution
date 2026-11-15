@@ -343,7 +343,14 @@ class WarderRadio(Screen):
         self.update_country_caption()
         hint = ('LEFT: previous page/menu · RIGHT: next page · 0: country · MENU: options'
                 if focus == 'stations' else 'Use left/right to switch panels · MENU: options')
-        self['hint'].setText('' if self.mode == 'settings' else t(hint))
+        if self.mode == 'subscriptions' and focus == 'subscription_tabs':
+            self['hint'].setText(t('Choose category') + '  ◀ ▶  ·  OK  ·  MENU')
+            self['green'].setText(t('Add subscription') if self['subscription_tabs'].chosen() is None
+                                  else t('Choose category'))
+        else:
+            self['hint'].setText('' if self.mode == 'settings' else t(hint))
+            if self.mode != 'settings':
+                self['green'].setText(t('Play'))
 
     def left(self):
         self.startup_autoplay = False
@@ -357,6 +364,8 @@ class WarderRadio(Screen):
         if self.focus == 'subscription_tabs':
             if not self['subscription_tabs'].move_cursor(-1):
                 self.set_focus('functions')
+            else:
+                self.set_focus('subscription_tabs')
         elif self.focus == 'stations' and (self['stations'].getSelectionIndex() > 0 or
                 (self.mode in BROWSE_MODES and self.page_offset > 0)):
             self.page_up()
@@ -372,6 +381,8 @@ class WarderRadio(Screen):
         if self.focus == 'subscription_tabs':
             if not self['subscription_tabs'].move_cursor(1):
                 self.set_focus('stations')
+            else:
+                self.set_focus('subscription_tabs')
         elif self.focus == 'stations':
             self.page_down()
         else:
@@ -704,6 +715,8 @@ class WarderRadio(Screen):
     def green_pressed(self):
         if self.mode == 'settings':
             self.settings_form.green()
+        elif self.focus == 'subscription_tabs':
+            self.subscription_tab_chosen()
         else:
             self.play()
 
