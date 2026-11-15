@@ -1,23 +1,25 @@
-"""Remember verified ICY song support and probe only visible online stations.
+"""Verified ICY song badge cache and safe, background-only station probes.
 
-The network probe is invoked strictly from an I/O worker, never by Enigma2 UI.
-Only *positive* results persist; negatives are short-lived and RAM-only.
+No streams play through Enigma2: one bounded worker reads ICY metadata directly.
+Only positive checks are persisted; unverified stations never get a badge.
 """
 import hashlib
-import ipaddress
+import http.client
+import io
 import json
 import os
-import socket
 import time
 from urllib.parse import urlsplit
 
 from .cache import write_atomic
-from .metadata import fetch_icy, station_charset
+from .metadata import parse_icy, station_charset
 from .model import read_json, search_key, stream_url
+from .station_logos import public_connection
 
 POSITIVE_TTL = 7 * 24 * 3600
 NEGATIVE_TTL = 30 * 60
 MAX_SAVED = 256
+MAX_INTERVAL = 256 * 1024
 
 
 def stream_identity(item):
@@ -30,28 +32,63 @@ def stream_identity(item):
     return hashlib.sha256(url.encode('utf-8')).hexdigest()
 
 
-def public_stream(url):
-    """Reject local/embedded hosts and private DNS results before probing."""
+def fetch_icy_safe(url, legacy_charset=None):
+    """Fetch a single ICY metadata block with a *pinned, verified public IP*.
+
+    HTTPS retains TLS certificate verification and SNI for the original host.
+    HTTP redirects are intentionally NOT followed. No proxy/env fallback.
+    """
+    parts = urlsplit(stream_url(url))
+    host = parts.hostname
+    connection_type = http.client.HTTPSConnection if parts.scheme.lower() == 'https' else http.client.HTTPConnection
+    connection = connection_type(host.encode('idna').decode(), parts.port, timeout=2.5)
+    connection._create_connection = lambda address, timeout, source: public_connection(*address, timeout)
+    target = parts.path or '/'
+    if parts.query:
+        target += '?' + parts.query
+    if any(ord(c) < 32 for c in target):
+        raise ValueError('Invalid metadata stream URL')
+    deadline = time.monotonic() + 6
     try:
-        parts = urlsplit(stream_url(url))
-        host = (parts.hostname or '').lower()
-        if host in ('localhost',) or host.endswith(('.local', '.localhost', '.internal')):
-            return False
-        try:
-            address = ipaddress.ip_address(host)
-            return bool(address.is_global)
-        except ValueError:
-            pass
-        addresses = socket.getaddrinfo(host, parts.port or (443 if parts.scheme == 'https' else 80),
-                                       type=socket.SOCK_STREAM)
-        return bool(addresses) and all(
-            ipaddress.ip_address(endpoint[4][0]).is_global for endpoint in addresses)
-    except (OSError, ValueError):
-        return False
+        connection.request('GET', target, headers={
+            'Icy-MetaData': '1', 'User-Agent': 'WarderRadio/ICY', 'Connection': 'close'})
+        with connection.getresponse() as response:
+            if response.status != 200:
+                return '', ''
+            try:
+                interval = int(response.getheader('icy-metaint', '0'))
+            except (ValueError, TypeError):
+                return '', ''
+            if not 0 < interval <= MAX_INTERVAL:
+                return '', ''
+
+            def read_exact(size):
+                pieces = []
+                while size:
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError('ICY probe deadline exceeded')
+                    chunk = response.read(min(size, 4096))
+                    if not chunk:
+                        return b''
+                    pieces.append(chunk)
+                    size -= len(chunk)
+                return b''.join(pieces)
+
+            if not read_exact(interval):
+                return '', ''
+            length = read_exact(1)
+            if not length:
+                return '', ''
+            payload = read_exact(length[0] * 16)
+            if not payload:
+                return '', ''
+            return parse_icy(payload, legacy_charset=legacy_charset)
+    finally:
+        connection.close()
 
 
 class IcyBadgeCache:
-    def __init__(self, directory, fetch=fetch_icy, clock=time.time):
+    def __init__(self, directory, fetch=fetch_icy_safe, clock=time.time):
         self.directory = directory
         self.path = os.path.join(directory, 'icy-capabilities.json')
         self.fetch, self.clock = fetch, clock
@@ -66,7 +103,8 @@ class IcyBadgeCache:
 
     def known(self, item):
         identity = stream_identity(item)
-        return bool(identity and identity in self.positive)
+        return bool(identity and identity in self.positive and
+                    0 <= self.clock() - self.positive[identity] < POSITIVE_TTL)
 
     def should_probe(self, item):
         if not isinstance(item, dict) or not item.get('stationuuid') or not item.get('countrycode'):
@@ -76,16 +114,19 @@ class IcyBadgeCache:
             return False
         url = item.get('url', '')
         if '.m3u8' in url.lower():
-            return False  # Transport playlists rarely expose ICY blocks.
+            return False
         return self.clock() >= self.negative.get(identity, 0)
 
     def probe(self, item):
-        """Return true only for real artist+track data read from this stream."""
-        url = item.get('url', '')
-        if not public_stream(url):
+        """No known station is labeled until it supplies real artist+track."""
+        if not self.should_probe(item):
             return False
-        artist, title = self.fetch(url, legacy_charset=station_charset(item))
-        return bool(artist and title and search_key(title) != search_key(item.get('name', '')))
+        url = item['url']
+        try:
+            artist, title = self.fetch(url, legacy_charset=station_charset(item))
+            return bool(artist and title and search_key(title) != search_key(item.get('name', '')))
+        except (OSError, ValueError, TypeError, TimeoutError, http.client.HTTPException):
+            return False
 
     def reject(self, item):
         identity = stream_identity(item)
