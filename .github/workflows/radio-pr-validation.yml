@@ -27,7 +27,7 @@ jobs:
         run: python3 -m compileall -q src tests tools
       - name: Build independent IPK and legacy bridge before unit tests
         run: |
-          python3 tools/build_ipk.py
+          python3 tools/build_ipk.py --package-revision 2
           python3 tools/build_ipk.py --legacy-bridge
           python3 tools/build_ipk.py --tester-bridge
       - name: Run complete unit suite
