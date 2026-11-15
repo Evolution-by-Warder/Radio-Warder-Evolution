@@ -347,6 +347,7 @@ class SongDetailsTests(unittest.TestCase):
     def test_translations_include_online_labels_in_every_language(self):
         for code in SUPPORTED:
             for term in ('Home', 'Subscriptions', 'Choose category', 'Page', 'Offline catalogue',
-                         'Clear logo cache', 'Lyrics', 'Artist information'):
+                         'Clear logo cache', 'Lyrics', 'Artist information',
+                         'Add subscription', 'Add first subscription'):
                 self.assertTrue(translations(code).get(term), (code, term))
         self.assertEqual(translations('sk')['Choose category'], 'Vybrať kategóriu')
