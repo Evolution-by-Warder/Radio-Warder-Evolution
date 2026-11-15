@@ -7,6 +7,7 @@ import os
 import tempfile
 import threading
 import unicodedata
+from uuid import UUID
 from collections import OrderedDict
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
@@ -53,10 +54,33 @@ def station(value):
             not field or any(c not in '0123456789abcdefABCDEF' for c in field)
             for field in ref.split(':')):
         ref = ''
-    identity = ref or url
-    return {'id': hashlib.sha256(identity.encode('utf-8')).hexdigest()[:24],
+    item = {'id': hashlib.sha256((ref or url).encode('utf-8')).hexdigest()[:24],
             'name': name, 'url': url, 'group': clean(value.get('group') or 'Other'),
             'reference': ref}
+    raw_uuid = value.get('stationuuid')
+    if raw_uuid:
+        try:
+            item['stationuuid'] = item['id'] = str(UUID(str(raw_uuid)))
+        except ValueError:
+            pass
+    if 'stationuuid' in item:
+        for key in ('favicon', 'original_url'):
+            try:
+                item[key] = stream_url(value.get(key))
+            except ValueError:
+                pass
+    return item
+
+
+def same_station(first, second):
+    if first['id'] == second['id']:
+        return True
+    # UUIDs are authoritative for online rows. For an older saved row the
+    # previously stored stream URL is the only exact online match we can make.
+    if bool(first.get('stationuuid')) == bool(second.get('stationuuid')):
+        return False
+    online, legacy = (first, second) if first.get('stationuuid') else (second, first)
+    return legacy.get('group') != 'Custom' and legacy['url'] in (online['url'], online.get('original_url'))
 
 
 def parse_bouquet(text):
@@ -121,13 +145,18 @@ class Store:
     def __init__(self, directory='/etc/enigma2/warder-radio'):
         self.directory = directory
         self.path = os.path.join(directory, 'state.json')
-        data = read_json(self.path, {}, 512 * 1024)
+        data = read_json(self.path, {}, 16 * 1024 * 1024)
         if not isinstance(data, dict):
             data = {}
+        self.data = data
+        tags = data.get('radio_subscriptions', [])
+        self.subscriptions = list(dict.fromkeys(clean(tag, 60) for tag in tags[:80]
+                                  if isinstance(tag, str) and clean(tag, 60))) if isinstance(tags, list) else []
         self.favourites = self._items(data.get('favourites'), 1000)
         self.history = self._items(data.get('history'), 100)
         self.custom = self._items(data.get('custom'), 1000)
         self.group = clean(data.get('group', 'Slovensko'))
+        self.online_country = clean(data.get('online_country', self.group))
         self.show_main_menu = data.get('show_main_menu') is True
         setting = data.get('screensaver_delay', 0)
         self.screensaver_delay = setting if type(setting) is int and setting in (0, 10, 20, 30, 60) else 0
@@ -148,13 +177,15 @@ class Store:
         return result
 
     def save(self):
-        atomic_json(self.path, {'schema': 1, 'favourites': self.favourites,
-                    'history': self.history, 'custom': self.custom, 'group': self.group,
-                    'show_main_menu': self.show_main_menu,
-                    'screensaver_delay': self.screensaver_delay})
+        data = dict(self.data, schema=self.data.get('schema', 1), favourites=self.favourites,
+                    history=self.history, custom=self.custom, group=self.group,
+                    show_main_menu=self.show_main_menu, screensaver_delay=self.screensaver_delay,
+                    online_country=self.online_country, radio_subscriptions=self.subscriptions)
+        atomic_json(self.path, data)
+        self.data = data
 
     def is_favourite(self, item):
-        return any(row['id'] == item['id'] for row in self.favourites)
+        return any(same_station(row, item) for row in self.favourites)
 
     def toggle(self, item):
         old = list(self.favourites)
@@ -162,7 +193,7 @@ class Store:
         if adding:
             self.favourites.append(station(item))
         else:
-            self.favourites = [row for row in self.favourites if row['id'] != item['id']]
+            self.favourites = [row for row in self.favourites if not same_station(row, item)]
         try:
             self.save()
         except OSError:
@@ -172,7 +203,7 @@ class Store:
 
     def played(self, item):
         old = list(self.history)
-        self.history = [station(item)] + [row for row in self.history if row['id'] != item['id']]
+        self.history = [station(item)] + [row for row in self.history if not same_station(row, item)]
         self.history = self.history[:100]
         try:
             self.save()
@@ -183,7 +214,7 @@ class Store:
     def add(self, name, url):
         item = station({'name': name, 'url': url, 'group': 'Custom'})
         old = list(self.custom)
-        self.custom = [row for row in self.custom if row['id'] != item['id']] + [item]
+        self.custom = [row for row in self.custom if not same_station(row, item)] + [item]
         try:
             self.save()
         except OSError:
