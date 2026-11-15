@@ -357,6 +357,13 @@ class WarderRadio(Screen):
     def down(self):
         self.startup_autoplay = False
         self.logo_paused = self.logo_busy and self.logo_paused
+        # Native MenuList wraps from the last row to the first. When more
+        # remote results exist, fetch them instead of wrapping prematurely.
+        if (self.focus == 'stations' and self.mode in BROWSE_MODES and
+                self.catalogue_page and self.catalogue_page.more and self.rows and
+                self['stations'].getSelectionIndex() >= len(self.rows) - 1):
+            self.load_next_visible()
+            return
         self[self.focus].down()
         self.update_count()
         self.load_next_visible()
