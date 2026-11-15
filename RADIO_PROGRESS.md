@@ -1,5 +1,15 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – Elán / Kráľovná bielych tenisiek: opravený informačný lookup (0.2.0-test11)
+
+- **Používateľský prípad:** screenshoty GigaBlue v test10 ukázali `Interpret: Elan`, `Skladba: 10.Kralovna bielych tenisiek`, ale v oboch oknách `Nedostupné`. Externé dôkazy (Apple Music, Spotify, Wikipedia) potvrdzujú, že správne záznamy existujú: skladba na albume `Hodina slovenčiny` (1985), interpret slovenská pop-rocková kapela Elán.
+- **Oprava test11 / [Draft PR #34](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/34):** vyhľadávanie iTunes používa pôvodný ICY názov a iba pri neúspechu odstráni jednoznačný playlistový prefix (napr. `10.Kralovna bielych tenisiek` → `Kralovna bielych tenisiek`). Zobrazený názov stanice/skladby a skutočné ICY metadáta sa nemenia. Presná identita interpreta a nahrávky zostáva kontrolovaná cez existujúce `cover_rank`; limitované SK/US/CZ volania. MusicBrainz kontrola nahrávky tiež vie čistý titul.
+- **Životopis interpreta:** Wikipedia summary skúša hudobné články s disambiguáciou (vrátane `Elán (band)`) v SK/EN/CS, kontroluje presný titul, hudobný kontext a vylučuje všeobecné rozcestníky alebo nesúvisiace osoby. Overený biografický text je priorita pred pomalším MusicBrainz doplnením; bez dôkazu sa nič nevymýšľa.
+- **Regresie:** zahrnuté konkrétne `Elán / 10.Kralovna bielych tenisiek`, rok 1985, album Hodina slovenčiny, neprepisovanie číselných názvov typu `99 Luftballons`, bezpečná identita kapely `Elán (band)`, pôvodné testy.
+- **CI:** [Radio PR validation PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43762980834) — kompilácia, unit testy, natívne OpenPLi/OpenATV replaye, overenie IPK, izolovaný `opkg` upgrade zo stabilnej 0.1.9.4. Artefakt `radio-browser-receiver-test`: `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test11_all.ipk` (**2 925 690 B**), SHA-256 `4263d18f2f44f67ffbb355208cb083313337275fe4f1023acec77405a8f10259`. Overená shoda s `SHA256SUMS` a integrita ZIP.
+- **Žiadne zmeny prehrávania:** zostáva pôvodný Enigma2 `4097`, logá, ICY, nahrávanie, prehrávač, Odbery, šetrič aj nastavenia bez zásahu. `main` a stabilná verzia 0.1.9.4 nezmenené. Fyzické GigaBlue / SF8008 a dostupnosť externých API na prijímači ešte treba overiť.
+
+
 ## 15. 11. 2026 – Radio 0.2.0-test10 (užitočné prvky Radiotecy, prehrávač nezmenený)
 
 - [Draft PR #33](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/33), `feature/radio-radioteca-useful-20261115`, nadväzuje na vydaný test9; `main` / ostrá 0.1.9.4 bez zmeny.
