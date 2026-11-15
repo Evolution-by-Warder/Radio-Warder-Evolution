@@ -452,6 +452,40 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.mode, 'subscriptions')
         self.assertEqual(screen.store.subscriptions, [])
 
+    def test_artist_info_shows_real_stream_tags_even_when_musicbrainz_has_no_record(self):
+        screen, _, _ = self.new()
+        screen.play()
+        artist = screen['artist'].getText()
+        track = screen['track'].getText()
+        self.assertTrue(artist and track)
+        screen.options()
+        with patch.object(screen.song_jobs, 'replace', return_value=True):
+            screen.open_song_details('artist-information')
+            self.assertEqual(screen.settings_form.view, 'song')
+            self.assertIn(radio.t('Artist') + ': ' + artist, screen.settings_form.song_lines)
+            self.assertIn(radio.t('Song') + ': ' + track, screen.settings_form.song_lines)
+            identity = ((screen.playback.current or {}).get('id'), artist, track)
+            screen.song_details_loaded('Artist information', identity, [], None)
+            self.assertIn(radio.t('Unavailable'), screen.settings_form.song_lines)
+            self.assertIn(radio.t('Artist') + ': ' + artist, screen.settings_form.song_lines)
+            # A successful lookup adds useful facts while retaining source tags.
+            details = [artist, 'Czechia', '1995', 'rock', '', 'MusicBrainz']
+            screen.song_details_loaded('Artist information', identity, details, None)
+            self.assertIn('Czechia', screen.settings_form.song_lines)
+            self.assertIn('MusicBrainz', screen.settings_form.song_lines)
+
+    def test_artist_info_without_track_still_shows_artist_and_requests_lookup(self):
+        screen, _, _ = self.new()
+        screen.play()
+        screen['artist'].setText('Harlej')
+        screen['track'].setText(radio.t('No track information'))
+        screen.options()
+        with patch.object(screen.song_jobs, 'replace', return_value=True) as request:
+            screen.open_song_details('artist-information')
+            self.assertEqual(screen.settings_form.view, 'song')
+            self.assertIn(radio.t('Artist') + ': Harlej', screen.settings_form.song_lines)
+            request.assert_called_once()
+
     def test_subscription_tabs_are_native_and_only_shrink_subscriptions(self):
         screen, _, root = self.new()
         stations = screen['stations'].instance
