@@ -24,7 +24,7 @@ from .jobs import Jobs
 from .model import Store, Playback, same_station, search_key
 from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country, merge_stations
 from .recording import Recording
-from .station_logos import StationLogos
+from .station_logos import StationLogos, logo_key
 from .song_details import lyrics, artist_information
 from .settings_screen import SettingsForm
 from .warder_update import check_release, install_release
@@ -104,7 +104,7 @@ class RadioList(MenuList):
             return [None, MultiContentEntryText(pos=(n(16), n(6)),
                                                size=(n(350), n(52)),
                                                font=0, flags=flags, text=item)]
-        pixmap = self.logo(item.get('favicon')) if self.logo else None
+        pixmap = self.logo(item) if self.logo else None
         return [None,
                 MultiContentEntryPixmapAlphaBlend(pos=(n(8), n(17)), size=(n(106), n(54)),
                     png=pixmap, flags=(enigma.BT_SCALE | enigma.BT_KEEP_ASPECT_RATIO
@@ -753,7 +753,7 @@ class WarderRadio(Screen):
         self._saver_set_text('saver_group', group_label(station.get('group', ''))[:100])
         self._saver_set_text('saver_artist', (self['artist'].getText() or t('Waiting for song information'))[:100])
         self._saver_set_text('saver_track', (self['track'].getText() or t('Waiting for song information'))[:120])
-        self.show_saver_logo(station.get('favicon'))
+        self.show_saver_logo(station)
         # Parent cover worker already performs all network/cache lookups.
         # Reuse its successful decoded path; no second cover request.
         self.saver_cover.show(self.cover_display.path)
@@ -1329,63 +1329,67 @@ class WarderRadio(Screen):
             # Skip duplicate-only pages, but bound automatic retries.
             self.load_page(self.page_offset + PAGE_SIZE)
 
-    def row_logo(self, url):
+    def row_logo(self, item):
         if self.logo_fallback is None:
             self.logo_fallback = LoadPixmap(FALLBACK_LOGO, cached=True)
-        entry = self.logo_results.get(url)
+        entry = self.logo_results.get(logo_key(item))
         return (entry[1] if entry else None) or self.logo_fallback
 
-    def show_saver_logo(self, url):
-        entry = self.logo_results.get(url)
+    def show_saver_logo(self, item):
+        entry = self.logo_results.get(logo_key(item))
         self.saver_picon.show(entry[0] if entry else None)
 
-    def visible_logo_urls(self):
+    def visible_logo_items(self):
         if self.mode == 'settings' or not getattr(self, 'shown', True) or self._saver_modal_open():
             return []
         if self.saver_active:
-            return [(self.playback.current or {}).get('favicon')]
+            station = self.playback.current
+            return [station] if isinstance(station, dict) and logo_key(station) else []
         widget = self['stations']
         if not self.rows or widget.instance is None:
             return []
         index = max(0, widget.getSelectionIndex())
-        # OpenATV exposes its scroll origin. OpenPLi 9.2 aligns the top row
-        # to the start of the current viewport in eListbox::moveSelection.
         get_top = getattr(widget.instance, 'getTopIndex', None)
         top = get_top() if get_top else index - index % VISIBLE_ROWS
-        return [item.get('favicon') for item in self.rows[max(0, top):max(0, top) + VISIBLE_ROWS]]
+        return [item for item in self.rows[max(0, top):max(0, top) + VISIBLE_ROWS]
+                if isinstance(item, dict) and item.get('name') and logo_key(item)]
+
+    def visible_logo_urls(self):
+        """Compatibility helper for the original native navigation diagnostics."""
+        return [item.get('favicon') for item in self.visible_logo_items()]
 
     def poll_logos(self):
         self.logo_jobs.poll()
         if self.logo_busy or self.logo_paused:
             return
         now = time.monotonic()
-        for url in self.visible_logo_urls():
-            if not url:
-                continue
-            entry = self.logo_results.get(url)
+        for item in self.visible_logo_items():
+            identity = logo_key(item)
+            entry = self.logo_results.get(identity)
             if entry and now < entry[2]:
-                self.logo_results.move_to_end(url)
+                self.logo_results.move_to_end(identity)
                 continue
-            self.logo_busy = self.logo_jobs.submit('logo', lambda: self.logo_cache.get(url),
-                                                   lambda path, error: self.logo_loaded(url, path))
+            self.logo_busy = self.logo_jobs.submit('logo',
+                lambda item=item: self.logo_cache.get(item),
+                lambda path, error, identity=identity: self.logo_loaded(identity, path))
             break
 
-    def logo_loaded(self, url, path):
+    def logo_loaded(self, identity, path):
         self.logo_busy = False
         if self.logo_paused or self.closed:
             return
         pixmap = LoadPixmap(path, cached=False) if path else None
-        self.logo_results[url] = (path if pixmap else None, pixmap, time.monotonic() + (3600 if pixmap else 900))
+        self.logo_results[identity] = (path if pixmap else None, pixmap, time.monotonic() + (3600 if pixmap else 900))
         while len(self.logo_results) > 64:
             self.logo_results.popitem(last=False)
         if not pixmap:
             return
-        if not self.saver_active and url in self.visible_logo_urls():
+        if not self.saver_active and any(logo_key(item) == identity for item in self.visible_logo_items()):
             view = self['stations']
             invalidate = getattr(view.l, 'invalidate', None) or view.instance.invalidate
             invalidate()
-        if self.saver_active and (self.playback.current or {}).get('favicon') == url:
-            self.show_saver_logo(url)
+        if self.saver_active and logo_key(self.playback.current) == identity:
+            self.show_saver_logo(self.playback.current)
 
     def clear_logos(self, accepted):
         if not accepted:
