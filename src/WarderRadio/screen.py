@@ -21,7 +21,7 @@ from Screens.VirtualKeyBoard import VirtualKeyBoard
 from . import ROOT, VERSION
 from .i18n import t, rtl, group_label
 from .jobs import Jobs
-from .model import Store, Playback, same_station, search_key
+from .model import Store, Playback, same_station, search_key, station_quality
 from .radio_browser import RadioBrowser, PAGE_SIZE, PINNED, country_name, saved_country, merge_stations
 from .recording import Recording
 from .station_logos import StationLogos, logo_key
