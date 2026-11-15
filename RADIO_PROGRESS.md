@@ -1,5 +1,14 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – opravný návrh úplného online zoznamu (bez vydania)
+
+- Samostatná vetva `fix/radio-browser-seamless-stations-20261115` vychádza z nepublikovaného kandidáta 0.2.0-test1 (`c58a081`). [Draft PR #25](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/25) je len na kontrolu/testy, produkčný `main` a stabilná 0.1.9.4 zostávajú nedotknuté.
+- Opravené načítavanie po **60 záznamoch** na stránku; ďalšia dávka sa prednačíta pri navigácii DOWN/PAGE DOWN a **pripojí sa bez vymazania predchádzajúcich staníc**. Výber sa zachová. Nástroj používa pôvodnú surovú hodnotu offsetu a cez deduplikáciu UUID, názvu v rovnakej krajine a stream URL preskakuje duplicity naprieč dávkami. Automatické preskakovanie prázdnych dávok je obmedzené.
+- Vo výbere krajín sa z Radio Browser API `countrycodes.stationcount` uvádza počet **záznamov** (nie overených unikátnych staníc). Doplnili sa kontraktové testy a native testy navigácie.
+- Commity: `c6a7ceb` (API, počty a deduplikácia), `2b51404` (GUI), `5919529` (výber krajín), `9d8d5c1` (unit testy), `89a87d3` (native testy).
+- Validácia: po PR sa úspešne dokončil saver workflow `43742844145`. Plná Radio PR validation a reálne OpenATV/OpenPLi/GigaBlue/SF8008 skúšky zatiaľ **nepotvrdené**. Pred nasadením sa musí otestovať SK a CZ kompletný zoznam, reálne logá a neprerušené prehrávanie; nevydávať ani nemergovať bez súhlasu.
+
+
 15. 11. 2026 · Vetva `feature/radio-browser-online-20261115` · testovací kandidát **0.2.0-test1**.
 
 - Produkčné východisko je Radio `main` [1364072](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/1364072eea9c896db0e90746e461e3a6dd2f4b97), stabilné vydanie 0.1.9.4. Implementácia a zostavenie testovacieho IPK sú v [c306d5a](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/c306d5a10344646b7a8916733f3d6882f4085e6b). Testovací balík je určený na skúšku na prijímačoch. Produkčné zlúčenie a vydanie čakajú na samostatné schválenie.
