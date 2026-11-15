@@ -245,7 +245,10 @@ def wikipedia_bio(artist, opener=urlopen):
 
 
 def artist_profile(artist, track, opener=urlopen):
-    """Keep MusicBrainz verified facts; enrich with a checked Wikipedia excerpt."""
-    result = artist_information(artist, track, opener)
+    """Show the confirmed musical biography quickly if encyclopedia has it.
+
+    MusicBrainz is the alternative when no exact musical Wikipedia page is
+    available; several slow APIs are not chained after a successful biography.
+    """
     wiki = wikipedia_bio(artist, opener)
-    return result + ([''] if result and wiki else []) + wiki if result or wiki else []
+    return wiki or artist_information(artist, track, opener)
