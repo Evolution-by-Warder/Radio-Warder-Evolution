@@ -796,7 +796,7 @@ class WarderRadio(Screen):
             else:
                 self.saver_modal_suspended = False
                 self.saver_spectrum.resume()
-            self.saver_motion_timer.start(2000, True)
+            self.saver_motion_timer.start(1000, True)
         else:
             self.saver_spectrum.pause()
             self.spectrum.resume()
@@ -866,7 +866,7 @@ class WarderRadio(Screen):
         self.spectrum.pause()
         self._saver_refresh()
         self.saver_spectrum.resume()
-        self.saver_motion_timer.start(2000, True)
+        self.saver_motion_timer.start(1000, True)
 
     def _saver_set_text(self, name, value):
         # The clock updates every second; metadata/station labels are only
@@ -913,7 +913,7 @@ class WarderRadio(Screen):
             # The parent may remain technically "shown" under a transparent
             # modal. Suspend movement; the existing slow timer resumes after
             # that modal closes, without any new GUI thread or painter.
-            self.saver_motion_timer.start(2000, True)
+            self.saver_motion_timer.start(1000, True)
             return
         self.saver_offset, self.saver_direction = bounded_motion(
             self.saver_offset, self.saver_direction)
@@ -924,8 +924,8 @@ class WarderRadio(Screen):
             widget = self[name]
             if widget.instance is not None:
                 widget.instance.move(ePoint(x + dx, y + dy))
-        # Throttle to one coordinated move every 2 seconds on slower boxes.
-        self.saver_motion_timer.start(2000, True)
+        # Move the existing native overlay once per second (2× prior speed).
+        self.saver_motion_timer.start(1000, True)
 
     def _saver_exit(self):
         if not self.saver_active:
