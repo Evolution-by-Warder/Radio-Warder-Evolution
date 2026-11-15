@@ -311,6 +311,31 @@ _SAVER_TEXT = {
 }
 
 
+_SUBSCRIPTION_TEXT = {
+    "al": {"Add subscription": "Shto abonim", "Add first subscription": "Shto abonimin e parë"},
+    "cs": {"Add subscription": "Přidat odběr", "Add first subscription": "Přidat první odběr"},
+    "de": {"Add subscription": "Abo hinzufügen", "Add first subscription": "Erstes Abo hinzufügen"},
+    "el": {"Add subscription": "Προσθήκη συνδρομής", "Add first subscription": "Προσθήκη πρώτης συνδρομής"},
+    "en": {"Add subscription": "Add subscription", "Add first subscription": "Add first subscription"},
+    "es": {"Add subscription": "Añadir suscripción", "Add first subscription": "Añadir primera suscripción"},
+    "et": {"Add subscription": "Lisa tellimus", "Add first subscription": "Lisa esimene tellimus"},
+    "fa": {"Add subscription": "افزودن اشتراک", "Add first subscription": "افزودن اولین اشتراک"},
+    "fr": {"Add subscription": "Ajouter un abonnement", "Add first subscription": "Ajouter un premier abonnement"},
+    "hu": {"Add subscription": "Feliratkozás hozzáadása", "Add first subscription": "Első feliratkozás hozzáadása"},
+    "it": {"Add subscription": "Aggiungi abbonamento", "Add first subscription": "Aggiungi primo abbonamento"},
+    "lt": {"Add subscription": "Pridėti prenumeratą", "Add first subscription": "Pridėti pirmą prenumeratą"},
+    "nl": {"Add subscription": "Abonnement toevoegen", "Add first subscription": "Eerste abonnement toevoegen"},
+    "pl": {"Add subscription": "Dodaj subskrypcję", "Add first subscription": "Dodaj pierwszą subskrypcję"},
+    "pt": {"Add subscription": "Adicionar subscrição", "Add first subscription": "Adicionar primeira subscrição"},
+    "ro": {"Add subscription": "Adaugă abonament", "Add first subscription": "Adaugă primul abonament"},
+    "ru": {"Add subscription": "Добавить подписку", "Add first subscription": "Добавить первую подписку"},
+    "sk": {"Add subscription": "Pridať odber", "Add first subscription": "Pridať prvý odber", "Unfollow category": "Odstrániť odber"},
+    "tr": {"Add subscription": "Abonelik ekle", "Add first subscription": "İlk aboneliği ekle"},
+    "uk": {"Add subscription": "Додати підписку", "Add first subscription": "Додати першу підписку"},
+    "zh": {"Add subscription": "添加订阅", "Add first subscription": "添加首个订阅"}
+}
+
+
 def language_code(value=None):
     if value is None:
         try:
@@ -330,6 +355,7 @@ def translations(code):
             _CACHE[code] = json.load(handle)
         _CACHE[code].update(_MAIN_MENU_TEXT[code])
         _CACHE[code].update(_SAVER_TEXT.get(code, {}))
+        _CACHE[code].update(_SUBSCRIPTION_TEXT.get(code, {}))
     return _CACHE[code]
 
 
