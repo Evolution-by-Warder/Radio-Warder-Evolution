@@ -50,6 +50,18 @@ def station(value):
         except ValueError:
             pass
     if 'stationuuid' in item:
+        # Metadata from Radio Browser describes the advertised stream.
+        codec = clean(value.get('codec'), 24)
+        if codec and all(ch.isalnum() or ch in '+.-/' for ch in codec):
+            item['codec'] = codec.upper()
+        bitrate = value.get('bitrate')
+        if not isinstance(bitrate, bool):
+            try:
+                bitrate = int(bitrate)
+                if 1 <= bitrate <= 10000:
+                    item['bitrate'] = bitrate
+            except (TypeError, ValueError, OverflowError):
+                pass
         for key in ('favicon', 'original_url', 'homepage'):
             try:
                 item[key] = stream_url(value.get(key))
@@ -59,6 +71,18 @@ def station(value):
         if isinstance(code, str) and len(code) == 2 and code.isalpha():
             item['countrycode'] = code.upper()
     return item
+
+
+def station_quality(item):
+    """Codec / bitrate advertised by the online catalogue, not estimated."""
+    codec = item.get('codec') if isinstance(item, dict) else None
+    bitrate = item.get('bitrate') if isinstance(item, dict) else None
+    result = []
+    if isinstance(codec, str) and codec:
+        result.append(codec)
+    if isinstance(bitrate, int) and not isinstance(bitrate, bool) and bitrate > 0:
+        result.append('%d kbps' % bitrate)
+    return ' · '.join(result)
 
 
 def same_station(first, second):
