@@ -1,5 +1,14 @@
 # Warder Radio – prechod na online katalóg
 
+## 15. 11. 2026 – automatické online logá v Radio 0.2.0-test3
+
+- **Východisko:** nevydaný online kandidát 0.2.0-test2 z opravného PR #25 (`e78decf5`). Nový [Draft PR #26](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/26) obsahuje iba opravu online log, plus verziu `0.2.0-test3`; `main` a ostrá 0.1.9.4 sú nedotknuté.
+- **Oprava:** stanice uchovávajú `favicon`, `homepage` a `countrycode`. Samostatný logo worker skúša platný favicon, veľkú webovú ikonu, externé verejné favicon zdroje a alternatívny favicon podľa presnej identity názvu a krajiny v Radio Browser. Uprednostní originálne logo aspoň 64 px, zachová priehľadnosť, vyrobí iba jeden PNG max. 224×224. Namiesto neprerušovaného opakovania neúspechu používa zápornú cache na 12 h. Pozitívna cache zostáva najviac 128 PNG / 4 MiB. Sieť sa vykonáva mimo GUI; súkromné IP sú odmietnuté.
+- **Prepojenie rozhrania:** zoznam aj OLED šetrič teraz žiadajú logá podľa identity stanice; funguje aj stanica bez `favicon`. Triedenie staníc, odbery, prehrávač, ICY, obaly a všetky jeho špeciality neboli menené.
+- **Overenie:** [GitHub CI #43747037378](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43747037378) **PASS** (unit, OpenPLi/OpenATV natívne replaye, IPK verifier a izolovaný upgrade z 0.1.9.4). Artefakt `radio-browser-receiver-test`: `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test3_all.ipk`, **2 912 198 B**, SHA-256 `64d73757c3ee032c88face6293fbee6c8470b039dce1968289bb4f95090792ff` overené po stiahnutí. Fyzický test GigaBlue a SF8008 ani prítomnosť konkrétnych verejných obrázkov na ich sieťach neboli overené.
+- **Stav:** pripravená iba testovacia revízia, zatiaľ bez merge a bez ostrého vydania. Pred publikovaním skontrolovať na prijímači skutočné logá pri staniciach bez favicon (napr. používateľom hlásené položky) a odozvu posúvania.
+
+
 ## 15. 11. 2026 – opravný návrh úplného online zoznamu (bez vydania)
 
 - Samostatná vetva `fix/radio-browser-seamless-stations-20261115` vychádza z nepublikovaného kandidáta 0.2.0-test1 (`c58a081`). [Draft PR #25](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/25) je len na kontrolu/testy, produkčný `main` a stabilná 0.1.9.4 zostávajú nedotknuté.
