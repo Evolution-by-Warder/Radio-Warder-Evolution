@@ -117,7 +117,7 @@ class SettingsForm:
         item = host.current()
         favourite = ('Remove station from favourites' if item and item.get('url') and host.store.is_favourite(item)
                      else 'Add station to favourites')
-        choices = [(t('Choose country'), 'group'), (t('Update radio catalogue'), 'update'),
+        choices = [(t('Choose country'), 'group'),
                    (t(favourite), 'favourite'), (t('Add station'), 'add'),
                    (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if host.recording.running() else 'Start recording'), 'record'),
