@@ -30,15 +30,39 @@ def make_skin(width, height):
              'title="Warder Radio" flags="wfNoBorder" backgroundColor="#000b19">' % (canvas_w, canvas_h),
              '<ePixmap zPosition="0" position="0,0" size="%d,%d" pixmap="%s/artwork/background.png" scale="1" />'
              % (canvas_w, canvas_h, escape(ROOT, {'"': '&quot;'}))]
-    for x, y, w, h in [(32, 204, 440, 790), (500, 204, 680, 790), (1200, 204, 688, 790)]:
-        parts.append('<eLabel zPosition="1" %s backgroundColor="%s" />' % (rect(x, y, w, h), PANEL_BACKGROUND))
-        # Native opaque edge widgets preserve the thin cyan panel outline on
-        # both the TV compositor and Webif, at every supported resolution.
-        px, py, pw, ph, edge = n(x), n(y), n(w), n(h), n(2)
-        for bx, by, bw, bh in [(px, py, pw, edge), (px, py + ph - edge, pw, edge),
-                               (px, py, edge, ph), (px + pw - edge, py, edge, ph)]:
-            parts.append('<eLabel zPosition="1" position="%d,%d" size="%d,%d" '
-                         'backgroundColor="#0045c7e6" />' % (bx, by, bw, bh))
+    ui_path = escape(ROOT + '/artwork/ui', {'"': '&quot;'})
+    def rounded_card(x, y, w, h, z=1, color=PANEL_BACKGROUND):
+        """Genuinely round panel, four tiny PNG corners plus native eLabels.
+
+        No whole-screen raster or extra renderer. Transparent corners are
+        never overdrawn by a rectangular background.
+        """
+        px, py, pw, ph, radius, edge = n(x), n(y), n(w), n(h), n(26), max(1, n(2))
+        def flat(bx, by, bw, bh, fill):
+            parts.append('<eLabel zPosition="%d" position="%d,%d" size="%d,%d" '
+                         'backgroundColor="%s" />' % (z, bx, by, bw, bh, fill))
+        # Three nonoverlapping fill rectangles make the rounded mask.
+        flat(px + radius, py, pw - radius * 2, ph, color)
+        flat(px, py + radius, radius, ph - radius * 2, color)
+        flat(px + pw - radius, py + radius, radius, ph - radius * 2, color)
+        for bx, by, bw, bh in [
+                (px + radius, py, pw - radius * 2, edge),
+                (px + radius, py + ph - edge, pw - radius * 2, edge),
+                (px, py + radius, edge, ph - radius * 2),
+                (px + pw - edge, py + radius, edge, ph - radius * 2)]:
+            flat(bx, by, bw, bh, '#0045c7e6')
+        for name, cx, cy in [('tl', px, py), ('tr', px + pw - radius, py),
+                             ('bl', px, py + ph - radius),
+                             ('br', px + pw - radius, py + ph - radius)]:
+            parts.append('<ePixmap zPosition="%d" position="%d,%d" size="%d,%d" '
+                         'pixmap="%s/corner-%s.png" alphatest="blend" scale="1" />'
+                         % (z, cx, cy, radius, radius, ui_path, name))
+        flat(px + radius + n(8), py + edge + n(5),
+             pw - 2 * radius - n(16), max(1, n(1)), '#2650acc5')
+
+    for box in ((32, 204, 440, 790), (500, 204, 680, 790),
+                (1200, 204, 688, 790)):
+        rounded_card(*box)
     # Same three-field header as PiconHub/GSU: weekday and local date,
     # large hours/minutes with smaller seconds, cyan version caption.
     # The Radio logo/backdrop stay unchanged and the entire block fits
@@ -105,10 +129,12 @@ def make_skin(width, height):
                      'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
                      'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
                      % (name,n(520),n(y),n(1348),n(60)*rows))
+    rounded_card(32, 1000, 1856, 68, color='#16091b30')
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
         parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))
-        parts.append('<eLabel zPosition="1" %s backgroundColor="%s" />' % (rect(x, 1051, 430, 4), color))
+        parts.append('<eLabel zPosition="1" %s backgroundColor="%s" />'
+                     % (rect(x + 144, 1053, 142, 3), color))
     # Hidden until Radio playback activates the optional OLED saver.
     saver_markup, _ = make_saver_widgets(scale, canvas_w, canvas_h)
     parts.append(saver_markup)
