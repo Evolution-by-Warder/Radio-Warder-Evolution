@@ -217,6 +217,7 @@ def album_masks():
 
 
 def premium_details():
+    glass_strip('glass-nav.png', 1856, 43, (3, 67, 107), 19)
     glass_strip('glass-country.png', 408, 65, (4, 74, 135), 19)
     glass_strip('glass-section.png', 642, 54, (3, 107, 170), 19)
     glass_strip('glass-now.png', 648, 53, (3, 107, 170), 20)
@@ -241,7 +242,7 @@ def main():
     premium_details()
     result = list(OUT.glob('*.png'))
     total = sum(path.stat().st_size for path in result)
-    assert len(result) == 33 and total < 256 * 1024, (len(result), total)
+    assert len(result) == 34 and total < 320 * 1024, (len(result), total)
     print('Warder lightweight UI assets: %d PNG, %d bytes' % (len(result), total))
 
 
