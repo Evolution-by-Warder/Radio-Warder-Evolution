@@ -361,6 +361,31 @@ _RADIO_ENHANCEMENT_TEXT = {
 }
 
 
+_COUNTRY_OK_TEXT = {
+    "al": {"Press OK to select": "Zgjidh me OK"},
+    "cs": {"Press OK to select": "Výběr potvrď OK"},
+    "de": {"Press OK to select": "Mit OK auswählen"},
+    "el": {"Press OK to select": "Επιλογή με OK"},
+    "en": {"Press OK to select": "Press OK to select"},
+    "es": {"Press OK to select": "Selecciona con OK"},
+    "et": {"Press OK to select": "Vali nupuga OK"},
+    "fa": {"Press OK to select": "انتخاب با OK"},
+    "fr": {"Press OK to select": "Choisir avec OK"},
+    "hu": {"Press OK to select": "Kiválasztás: OK"},
+    "it": {"Press OK to select": "Seleziona con OK"},
+    "lt": {"Press OK to select": "Pasirinkite su OK"},
+    "nl": {"Press OK to select": "Kies met OK"},
+    "pl": {"Press OK to select": "Wybierz przyciskiem OK"},
+    "pt": {"Press OK to select": "Selecionar com OK"},
+    "ro": {"Press OK to select": "Selectează cu OK"},
+    "ru": {"Press OK to select": "Выберите кнопкой OK"},
+    "sk": {"Press OK to select": "Výber potvrď OK"},
+    "tr": {"Press OK to select": "OK ile seç"},
+    "uk": {"Press OK to select": "Вибрати кнопкою OK"},
+    "zh": {"Press OK to select": "按 OK 选择"},
+}
+
+
 def language_code(value=None):
     if value is None:
         try:
@@ -382,6 +407,7 @@ def translations(code):
         _CACHE[code].update(_SAVER_TEXT.get(code, {}))
         _CACHE[code].update(_SUBSCRIPTION_TEXT.get(code, {}))
         _CACHE[code].update(_RADIO_ENHANCEMENT_TEXT.get(code, {}))
+        _CACHE[code].update(_COUNTRY_OK_TEXT[code])
     return _CACHE[code]
 
 
