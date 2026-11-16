@@ -128,14 +128,18 @@ class Widget:
 class Content:
     TYPE_TEXT = 0
     TYPE_PIXMAP_ALPHABLEND = 4
-    def __init__(self): self.rows = []; self.index = 0; self.fonts = {}; self.height = 0
+    def __init__(self):
+        self.rows = []; self.index = 0; self.fonts = {}; self.height = 0
+        self.invalidated_entries = []
+        self.full_invalidations = 0
     def setList(self, rows): self.rows = rows; self.index = min(self.index, max(0, len(rows) - 1))
     def setFont(self, index, font): self.fonts[index] = font
     def setItemHeight(self, height): self.height = height
     def setBuildFunc(self, func): self.build = func
     def getCurrentSelection(self): return self.rows[self.index] if self.rows else None
     def getCurrentSelectionIndex(self): return self.index
-    def invalidate(self): pass
+    def invalidate(self): self.full_invalidations += 1
+    def invalidateEntry(self, index): self.invalidated_entries.append(index)
 
 
 class Reference:
@@ -502,6 +506,51 @@ class NativeTests(unittest.TestCase):
         screen.select_mode('radio')
         self.assertEqual(stations.size().height(), screen['stations'].l.height * 8)
         self.assertFalse(screen['subscription_tabs'].instance.isVisible())
+
+    def test_subscription_seven_visible_rows_do_not_probe_hidden_eighth(self):
+        screen, _, _ = self.new()
+        screen.store.subscriptions = ['news']
+        screen.subscription_category = screen.store.subscription_category = 'news'
+        screen.select_mode('subscriptions')
+        self.wait_for_country(screen)
+        screen.show()
+        self.assertGreaterEqual(len(screen.rows), 8)
+        screen['stations'].moveToIndex(0)
+        visible = screen.visible_logo_items()
+        self.assertEqual(visible, screen.rows[:7])
+        self.assertNotIn(screen.rows[7], visible)
+        # The Home layout still displays eight station entries.
+        screen.select_mode('radio')
+        self.wait_for_country(screen)
+        self.assertEqual(screen.visible_logo_items(), screen.rows[:8])
+
+    def test_logo_and_icy_redraw_only_visible_station_not_the_entire_list(self):
+        screen, _, _ = self.new()
+        screen.show()
+        listbox = screen['stations'].l
+        first, far = screen.rows[2], screen.rows[22]
+        before = listbox.full_invalidations
+        screen.mark_icy_supported(first)
+        self.assertEqual(listbox.invalidated_entries[-1], 2)
+        self.assertEqual(listbox.full_invalidations, before)
+        seen = list(listbox.invalidated_entries)
+        screen.mark_icy_supported(far)
+        self.assertEqual(listbox.invalidated_entries, seen,
+                         'Offscreen ICY badges must not redraw the current list')
+        with patch.object(radio, 'LoadPixmap', return_value='PIXMAP'):
+            screen.logo_loaded(radio.logo_key(first), '/tmp/known-logo.png', 0)
+            self.assertEqual(listbox.invalidated_entries[-1], 2)
+            seen = list(listbox.invalidated_entries)
+            screen.logo_loaded(radio.logo_key(far), '/tmp/other-logo.png', 1)
+            self.assertEqual(listbox.invalidated_entries, seen)
+        self.assertEqual(listbox.full_invalidations, before)
+        # The older Enigma2 path has only a full-list invalidator. It still
+        # runs only for one visible changed station, never for an offscreen one.
+        listbox.invalidateEntry = None
+        screen.invalidate_visible_station(lambda row: row['id'] == first['id'])
+        self.assertEqual(listbox.full_invalidations, before + 1)
+        screen.invalidate_visible_station(lambda row: row['id'] == far['id'])
+        self.assertEqual(listbox.full_invalidations, before + 1)
 
     def test_logo_queue_only_visits_viewport_and_uses_placeholder(self):
         screen, _, _ = self.new(wait_ready=False)
