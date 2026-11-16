@@ -11,8 +11,8 @@ from WarderRadio.skin import make_skin
 class LightweightDesignTests(unittest.TestCase):
     def test_ui_assets_are_tiny_alpha_png_files(self):
         files = sorted((Path(ROOT) / 'artwork' / 'ui').glob('*.png'))
-        self.assertEqual(len(files), 34)
-        self.assertLess(sum(path.stat().st_size for path in files), 320 * 1024)
+        self.assertEqual(len(files), 36)
+        self.assertLess(sum(path.stat().st_size for path in files), 750 * 1024)
         for path in files:
             with self.subTest(path=path.name):
                 data = path.read_bytes()
@@ -25,12 +25,11 @@ class LightweightDesignTests(unittest.TestCase):
             with self.subTest(resolution=(width, height)):
                 root = ET.fromstring(make_skin(width, height))
                 self.assertEqual(root.attrib['size'], '%d,%d' % (width, height))
-                main_corners = [node for node in root.findall('ePixmap')
-                                if '/ui/corner-' in node.attrib.get('pixmap', '')]
-                self.assertEqual(len(main_corners), 16)
-                for component in main_corners:
-                    self.assertEqual(component.get('alphatest'), 'blend')
-                    self.assertTrue(component.get('pixmap', '').endswith('.png'))
+                overlay = [node for node in root.findall('ePixmap')
+                           if '/ui/dashboard-overlay.png' in node.attrib.get('pixmap', '')]
+                self.assertEqual(len(overlay), 1)
+                self.assertEqual(overlay[0].get('alphatest'), 'blend')
+                self.assertEqual(overlay[0].get('zPosition'), '1')
                 named = {node.get('name'): node for node in root.findall('widget')}
                 for name in ('settings_fill_middle', 'settings_fill_left',
                              'settings_fill_right', 'settings_corner_tl',
@@ -41,11 +40,10 @@ class LightweightDesignTests(unittest.TestCase):
                     self.assertIn('selectionPixmap', named[name].attrib)
                 decorations = [node for node in root.findall('ePixmap')
                                if '/ui/' in node.attrib.get('pixmap', '')]
-                self.assertTrue(any('glass-now.png' in n.get('pixmap', '') for n in decorations))
-                self.assertTrue(any('vinyl-disc.png' in n.get('pixmap', '') for n in decorations))
+                self.assertTrue(any('dashboard-overlay.png' in n.get('pixmap', '') for n in decorations))
                 self.assertTrue(any('album-frame.png' in n.get('pixmap', '') for n in decorations))
                 self.assertEqual(len([n for n in decorations if '/album-mask-' in n.get('pixmap', '')]), 4)
-                self.assertEqual(len([n for n in decorations if '/button-' in n.get('pixmap', '')]), 4)
+                self.assertFalse(any('/button-' in n.get('pixmap', '') for n in decorations))
                 self.assertNotIn('OpenGL', ET.tostring(root, encoding='unicode'))
                 self.assertNotIn('GLES', ET.tostring(root, encoding='unicode'))
 
