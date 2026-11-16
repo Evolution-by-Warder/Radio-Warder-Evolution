@@ -262,6 +262,9 @@ class MusicDetailTests(unittest.TestCase):
 
     def test_broadcaster_credit_splits_only_clear_collaborations(self):
         from WarderRadio.song_details import credited_artist_names
+        self.assertEqual(credited_artist_names('Emma Llure & Peter Pann'),
+                         ['Emma Llure', 'Peter Pann'])
+        self.assertEqual(credited_artist_names('AYA'), ['AYA'])
         self.assertEqual(credited_artist_names('Sean Paul, INNA'),
                          ['Sean Paul', 'INNA'])
         self.assertEqual(credited_artist_names('NEBE feat. KATARINA KNECHTOVA'),
@@ -296,6 +299,43 @@ class MusicDetailTests(unittest.TestCase):
         self.assertNotIn('INNA', details[0])
         self.assertEqual(details[-1], 'TheAudioDB')
         self.assertEqual(len(requests), 1)
+
+    def test_two_full_stage_names_with_ampersand_find_separate_verified_profile(self):
+        from urllib.parse import urlsplit, parse_qs
+        calls = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            self.assertEqual(url.hostname, 'www.theaudiodb.com')
+            name = parse_qs(url.query)['s'][0]
+            calls.append(name)
+            if name == 'Emma Llure':
+                data = {'artists': None}
+            elif name == 'Peter Pann':
+                data = {'artists': [{
+                    'idArtist': '482', 'strArtist': 'Peter Pann',
+                    'strBiographyEN': 'Peter Pann is a Slovak music producer and songwriter with several released recordings.'
+                }]}
+            else:
+                self.fail('Unexpected extra artist search')
+            return io.BytesIO(json.dumps(data).encode())
+        result = artist_profile('Emma Llure & Peter Pann', 'Čierna dáma', opener)
+        self.assertIn('Peter Pann', result[0])
+        self.assertEqual(result[-1], 'TheAudioDB')
+        self.assertEqual(calls, ['Emma Llure', 'Peter Pann'])
+
+    def test_unknown_short_artist_does_not_get_a_guessed_profile(self):
+        from urllib.parse import urlsplit
+        calls = []
+        def opener(request, timeout):
+            calls.append(urlsplit(request.full_url).hostname)
+            if 'theaudiodb.com' in request.full_url:
+                return io.BytesIO(json.dumps({'artists': [{
+                    'idArtist': '999', 'strArtist': 'Other AYA',
+                    'strBiographyEN': 'An unrelated artist who should never be presented.'
+                }]}).encode())
+            raise OSError('No verified record')
+        self.assertEqual(artist_profile('AYA', 'Malý princ', opener), [])
+        self.assertTrue(calls)
 
     def test_nebe_featuring_knechtova_uses_credited_guest_if_lead_is_missing(self):
         from urllib.parse import urlsplit, parse_qs
