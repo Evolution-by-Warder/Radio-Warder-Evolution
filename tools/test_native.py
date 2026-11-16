@@ -1279,8 +1279,35 @@ class NativeTests(unittest.TestCase):
         icon = getattr(descriptor, 'iconstr', None) or getattr(descriptor, 'iconString', None)
         self.assertEqual(icon, 'plugin.png')
         self.assertTrue(Path(ROOT, 'src/WarderRadio', icon).is_file())
-        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors[:2]))
+        self.assertTrue(all(item.name == 'Radio – Warder Evolution' for item in descriptors))
         self.assertEqual(descriptors[2].where, [PluginDescriptor.WHERE_MENU])
+        with patch('WarderRadio.model.read_json', return_value={'show_main_menu': True}):
+            rows = plugin.main_menu('mainmenu')
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][0], 'Radio – Warder Evolution')
+        self.assertEqual(rows[0][2], 'warder_radio_mainmenu')
+
+    def test_home_remains_catalogue_not_pinned_and_favourite_reordering_remains(self):
+        screen, _, _ = self.new()
+        self.assertFalse(hasattr(screen.store, 'pinned'))
+        self.assertFalse(hasattr(screen.store, 'toggle_pin'))
+        self.assertNotIn('pin-toggle', [key for name, key in screen.settings_form.choices()])
+        self.assertFalse(hasattr(screen['stations'], 'pinned'))
+        first = screen.rows[0]
+        rendered = screen['stations'].l.build(first)
+        self.assertIn(first['name'], str(rendered))
+        self.assertNotIn('★', str(rendered))
+        screen.play()
+        screen.favourite()
+        screen.play_item(screen.rows[1])
+        screen.favourite()
+        screen.select_mode('favourites')
+        self.assertEqual(len(screen.rows), 2)
+        screen['stations'].moveToIndex(1)
+        screen.options()
+        actions = [key for name, key in screen.settings_form.choices()]
+        self.assertIn('favourite-up', actions)
+        self.assertNotIn('pin-toggle', actions)
 
     def test_remote_context_is_private_and_each_action_is_bound(self):
         screen, _, _ = self.new()
