@@ -1844,8 +1844,14 @@ class NativeTests(unittest.TestCase):
                 if x < bx + bw and x + w > bx and y < by + bh and y + h > by:
                     self.assertGreater(order(widget), order(background), node.attrib['name'])
         panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == PANEL_BACKGROUND]
-        self.assertEqual(len(panels), 3)
+        # Three cards are now three nonoverlapping native fill rectangles each,
+        # with four tiny rounded corners. Text and focus remain normal widgets.
+        self.assertEqual(len(panels), 9)
         self.assertTrue(all(int(node.attrib['backgroundColor'][1:3], 16) == 0x18 for node in panels))
+        corners = [node for node in root.findall('ePixmap')
+                   if '/ui/corner-' in node.attrib.get('pixmap', '')]
+        self.assertEqual(len(corners), 16)  # three panels + action footer
+        self.assertTrue(all(node.attrib.get('alphatest') == 'blend' for node in corners))
 
     def test_original_test1_reproduces_occlusion_and_corrected_skin_does_not(self):
         text = (ROOT / 'tools/fixtures/skin-test1.py.txt').read_text()
@@ -2265,8 +2271,13 @@ class NativeTests(unittest.TestCase):
             item = nodes[name].attrib
             return tuple(map(int, item['position'].split(',') + item['size'].split(',')))
         panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == PANEL_BACKGROUND]
-        self.assertEqual(len(panels), 3)
-        self.assertTrue(all(node.attrib['size'].endswith(',790') for node in panels))
+        self.assertEqual(len(panels), 9)
+        self.assertEqual(sum(node.attrib['size'].endswith(',790') for node in panels), 3)
+        self.assertEqual(sum(node.attrib['size'].endswith(',738') for node in panels), 6)
+        # Selected rows have real anti-aliased rounded pixmaps, not a fake
+        # static render of the entire screen.
+        for list_name in ('functions', 'stations', 'settings_options', 'settings_keys'):
+            self.assertIn('/ui/select-', nodes[list_name].attrib['selectionPixmap'])
         self.assertEqual(box('stations')[3], 8 * screen['stations'].l.height)
         self.assertEqual(box('functions')[1], 232)
         country_content = screen['functions'].l.build(*screen['functions'].l.rows[0])
