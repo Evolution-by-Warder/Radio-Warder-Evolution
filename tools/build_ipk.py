@@ -13,6 +13,10 @@ import sys
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
+# Pre-render the 15 tiny static UI PNGs before collecting the IPK payload.
+# The receiver itself never runs Pillow, an asset generator or a new renderer.
+from generate_ui_assets import main as generate_ui_assets
+generate_ui_assets()
 SOURCE = ROOT / 'src/WarderRadio'
 parser = argparse.ArgumentParser()
 parser.add_argument('--legacy-bridge', action='store_true')
