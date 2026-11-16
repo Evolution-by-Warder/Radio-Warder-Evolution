@@ -139,7 +139,7 @@ jobs:
                 --title "Warder Radio $RADIO_VERSION" --notes-file docs/CHANGELOG.md
             else
               gh release create "$tag" --target "$GITHUB_SHA" --latest \
-                --title "Warder Radio $RADIO_VERSION (stable)" --notes-file docs/CHANGELOG.md
+                --title "Radio Warder Evolution $RADIO_VERSION (stable)" --notes-file docs/CHANGELOG.md
             fi
             gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json
           fi
