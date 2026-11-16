@@ -192,13 +192,26 @@ def song_information(artist, track, opener=urlopen):
     return values + ['', 'iTunes'] if values else []
 
 
+def wiki_artist_name(artist):
+    """Normalize all-caps broadcaster tags for case-sensitive wiki titles.
+
+    Preserve branded acronyms such as ABBA and slash-names such as AC/DC.
+    This never changes the artist as shown in the player's metadata.
+    """
+    value = clean(artist, 100)
+    if (value.isupper() and len(value.split()) >= 2
+            and not any(character in value for character in ('/', '&', '(', ')'))):
+        return value.title()
+    return value
+
+
 def wikipedia_bio(artist, opener=urlopen, timeout=3, max_pages=5):
     """Find an exact music biography, including verified band disambiguations.
 
     Avoid generic pages (for example "elan" means enthusiasm) and unrelated
     performers with the same name. Local-language summaries take priority.
     """
-    artist = clean(artist, 100)
+    artist = wiki_artist_name(artist)
     if not artist or '/' in artist or len(artist) > 90:
         return []
     from urllib.parse import quote
@@ -244,12 +257,52 @@ def wikipedia_bio(artist, opener=urlopen, timeout=3, max_pages=5):
     return []
 
 
-def artist_profile(artist, track, opener=urlopen):
-    """Prefer two quick exact-artist MusicBrainz calls over slow wiki probing.
+def wikipedia_action_bio(artist, opener=urlopen, timeout=2):
+    """Independent Wikipedia Action API fallback when REST summaries fail.
 
-    The song does not need to exist in the recording index to identify an
-    unambiguous performer. Only if MusicBrainz cannot establish the identity,
-    try three short, music-specific Wikipedia summaries.
+    Check the resolved article title and the text's music context. This uses
+    the site's public query API, never a guessed person/artist identity.
     """
+    artist = wiki_artist_name(artist)
+    if not artist or '/' in artist or len(artist) > 90:
+        return []
+    music_markers = ('spevák', 'speváčka', 'hudobn', 'skupina', 'gitarist',
+                     'singer', 'musician', 'band', 'songwriter', 'composer',
+                     'guitarist', 'vocalist', 'rapper', 'rocková', 'kapela')
+    for locale in ('sk', 'en'):
+        try:
+            info = read_response('https://' + locale + '.wikipedia.org/w/api.php',
+                {'action': 'query', 'format': 'json', 'formatversion': 2,
+                 'prop': 'extracts', 'exintro': 1, 'explaintext': 1,
+                 'redirects': 1, 'titles': artist}, opener, timeout)
+        except (OSError, ValueError, TypeError):
+            continue
+        pages = ((info.get('query') or {}).get('pages') or []) if isinstance(info, dict) else []
+        for page in pages if isinstance(pages, list) else []:
+            if not isinstance(page, dict) or page.get('missing') or not matches(page.get('title'), artist):
+                continue
+            intro = clean(page.get('extract'), 700)
+            if intro and any(token in intro.casefold() for token in music_markers):
+                return ['Biography: ' + intro, '', 'Wikipedia (' + locale.upper() + ')']
+    return []
+
+
+def artist_profile(artist, track, opener=urlopen):
+    """Find a verified musician with quick fallback across independent APIs.
+
+    All-caps ICY names (e.g. PAVOL HAMMEL, THE BEATLES) must not be sent
+    verbatim as case-sensitive Wikipedia article paths. These requests are
+    on the existing background song-info worker, never the GUI thread.
+    """
+    canonical = wiki_artist_name(artist)
+    if canonical != clean(artist, 100):
+        # A single regional lookup often yields a biography immediately for
+        # Slovak/Czech broadcasters with uppercase metadata.
+        wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=1)
+        if wiki:
+            return wiki
     information = artist_information(artist, '', opener, timeout=2.5)
-    return information or wikipedia_bio(artist, opener, timeout=2, max_pages=3)
+    if information:
+        return information
+    wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=2)
+    return wiki or wikipedia_action_bio(canonical, opener, timeout=2)
