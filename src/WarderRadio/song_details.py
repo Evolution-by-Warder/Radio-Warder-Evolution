@@ -359,6 +359,7 @@ def credited_artist_names(credit):
         # Keep most permanent bands ("Simon & Garfunkel", "Earth, Wind
         # & Fire") intact; never guess a name from a single word.
         if (len(left.split()) >= 2 and len(right.split()) >= 2
+                and right.split()[0].casefold() not in ('the', 'a', 'an')
                 and len(left) <= 60 and len(right) <= 60):
             parts = [left, right]
         else:
