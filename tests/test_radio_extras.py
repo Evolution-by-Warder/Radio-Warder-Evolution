@@ -239,7 +239,7 @@ class MusicDetailTests(unittest.TestCase):
         self.assertEqual(audiodb_artist_bio('Beatles', fake([good])), [])
         self.assertEqual(audiodb_artist_bio('The Beatles', fake([good, dict(good, idArtist='8')])), [])
         self.assertEqual(audiodb_artist_bio('The Beatles', fake(None)), [])
-        self.assertEqual(audiodb_artist_bio('The Beatles', fake([dict(good, strBiographyEN='')]), []))
+        self.assertEqual(audiodb_artist_bio('The Beatles', fake([dict(good, strBiographyEN='')])), [])
         self.assertTrue(audiodb_artist_bio('THE BEATLES', fake([good]), language='en'))
         self.assertTrue(audiodb_artist_bio('THE BEATLES', fake([dict(good, strBiographyEN=None,
                                     strBiography='The Beatles were a British rock group in England.')]),
