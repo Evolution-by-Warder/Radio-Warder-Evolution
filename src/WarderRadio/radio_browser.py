@@ -97,14 +97,63 @@ def station_keys(item):
     return keys
 
 
+def damaged_name_match(first, second):
+    """Recognize one undecodable glyph only with strong matching station data.
+
+    Radio Browser sometimes lists the same Czech radio as both "Chat R�dio"
+    and "Chat Rádio" under different UUIDs, URLs and website domains. The
+    replacement character is NOT a letter: require every other letter to match,
+    the same country, codec and bitrate. Never apply fuzzy spelling to clean
+    names, aliases or regional station variants.
+    """
+    a, b = search_key(first.get('name', '')), search_key(second.get('name', ''))
+    if ('\ufffd' in a) == ('\ufffd' in b):
+        return False
+    damaged, clean_name = (a, b) if '\ufffd' in a else (b, a)
+    if (damaged.count('\ufffd') != 1 or len(damaged) < 8 or
+            len(damaged) != len(clean_name)):
+        return False
+    if not all(x == y or x == '\ufffd'
+               for x, y in zip(damaged, clean_name)):
+        return False
+    return (first.get('group') and first.get('group') == second.get('group')
+            and first.get('countrycode') and
+            first.get('countrycode') == second.get('countrycode')
+            and first.get('codec') and first.get('codec') == second.get('codec')
+            and first.get('bitrate') and first.get('bitrate') == second.get('bitrate'))
+
+
 def merge_stations(existing, new):
-    """Stable, cross-page de-duplication without losing earlier selections."""
-    result, seen = [], set()
+    """Stable cross-page dedup; prefer legible names when identity is proven.
+
+    Match normal UUID/name/stream keys in O(n) time. Only the rare rows with
+    a replacement glyph require the additional conservative comparison.
+    Preserve original order, IDs for normal stations and all saved favourites.
+    """
+    result, owners, damaged_indexes = [], {}, set()
     for item in list(existing) + list(new):
         keys = station_keys(item)
-        if seen.isdisjoint(keys):
-            result.append(item)
-            seen.update(keys)
+        index = next((owners[key] for key in keys if key in owners), None)
+        if index is None:
+            candidates = (range(len(result)) if '\ufffd' in item.get('name', '')
+                          else tuple(damaged_indexes))
+            index = next((i for i in candidates
+                          if damaged_name_match(result[i], item)), None)
+        if index is not None:
+            previous = result[index]
+            if '\ufffd' in previous.get('name', '') and '\ufffd' not in item.get('name', ''):
+                result[index] = item
+                damaged_indexes.discard(index)
+            # Retain both the old and new source identities for further pages.
+            for key in keys:
+                owners.setdefault(key, index)
+            continue
+        index = len(result)
+        result.append(item)
+        if '\ufffd' in item.get('name', ''):
+            damaged_indexes.add(index)
+        for key in keys:
+            owners.setdefault(key, index)
     return result
 
 
