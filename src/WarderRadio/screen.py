@@ -1108,7 +1108,7 @@ class WarderRadio(Screen):
         generation = self.cover_generation
         self.cover_pending = self.cover_jobs.submit(
             'cover', lambda: self._cover_lookup_with_identity(artist, title),
-            lambda result, error: self.cover_loaded(generation, artist, title, result, error))
+            lambda result, error: self.cover_loaded(generation, result, error, original=(artist, title)))
         if self.cover_pending:
             self.cover_attempts += 1
 
@@ -1124,14 +1124,24 @@ class WarderRadio(Screen):
         cover = lookup_cover(artist, title, trace=trace)
         return cover, (proven[-1] if proven else None)
 
-    def cover_loaded(self, generation, original_artist, original_title, result, error):
+    def cover_loaded(self, generation, result, error, original=None):
+        """Accept original 3-argument callers and new verified worker results."""
         self.cover_pending = False
         if self.closed or generation != self.cover_generation:
             return
-        cover, proven = result if not error and result else (('', ''), None)
+        cover, proven = (('', ''), None)
+        if not error and result:
+            # Native test harnesses and older worker callers still return
+            # (path, source), whereas our worker also returns catalogue proof.
+            if (original is not None and isinstance(result, (tuple, list))
+                    and len(result) == 2 and isinstance(result[0], (tuple, list))):
+                cover, proven = result
+            else:
+                cover = result
         path, source = cover or ('', '')
         current = (self['artist'].getText(), self['track'].getText())
-        if proven and current == (original_artist, original_title):
+        if proven and original and current == original:
+            original_artist, original_title = original
             corrected = align_icy_to_catalogue(original_artist, original_title,
                                                 proven[0], proven[1])
             if corrected != current:
