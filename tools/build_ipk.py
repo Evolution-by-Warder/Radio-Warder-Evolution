@@ -34,17 +34,11 @@ PACKAGE = ('enigma2-plugin-extensions-warderradio' if args.legacy_bridge
            else 'enigma2-plugin-extensions-radio-warder-evolution')
 MIGRATION = ('' if args.legacy_bridge else
              'Replaces: enigma2-plugin-extensions-warderradio\nConflicts: enigma2-plugin-extensions-warderradio\n')
-# Historical inputs remain available to repository tools and regression tests.
-# Receiver packages contain only the online backend and the native player.
-LEGACY_RUNTIME = {
-    'legacy_catalogue.py', 'catalogue-source.json', 'country_catalogue.py',
-    'country-manifest.json', 'country-seed.json', 'seed.json',
-}
 FILES = {}
 for path in sorted(SOURCE.rglob('*')):
     if not path.is_file() or '__pycache__' in path.parts or path.suffix in ('.pyc', '.pyo'):
         continue
-    if path.name in LEGACY_RUNTIME or path.name == 'warder-radio-logo.png':  # Original is kept in Git; the browser uses plugin.png.
+    if path.name == 'warder-radio-logo.png':  # Original is kept in Git; the browser uses plugin.png.
         continue
     if path.suffix == '.py':
         ast.parse(path.read_text(), filename=str(path), feature_version=(3, 9))
