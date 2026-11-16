@@ -161,6 +161,70 @@ class BrowserTests(unittest.TestCase):
                          [original['name'], 'Regional service'])
         self.assertEqual(len(merge_stations(result, result)), 2)
 
+    def test_czech_chat_radio_mojibake_duplicate_prefers_correct_station(self):
+        # The community directory publishes separate UUIDs and endpoints for
+        # Chat R�dio and Chat Rádio, both advertised as Czech MP3/128.
+        damaged = browser_station(remote_row(301, name='Chat R�dio',
+            countrycode='CZ', codec='MP3', bitrate=128,
+            url='https://stream-bad.example/live', url_resolved='https://play-bad.example/live',
+            homepage='https://chatradio.cz', favicon='https://chatradio.cz/icon.png'))
+        clean_name = browser_station(remote_row(302, name='Chat Rádio',
+            countrycode='CZ', codec='MP3', bitrate=128,
+            url='https://stream-good.example/play', url_resolved='https://play-good.example/play',
+            homepage='https://chatujme.cz', favicon=''))
+        result = merge_stations([], [damaged, clean_name])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['name'], 'Chat Rádio')
+        self.assertEqual(result[0]['stationuuid'], clean_name['stationuuid'])
+        self.assertEqual(result[0]['url'], clean_name['url'])
+        # Keep the same result if the entries appear in reverse order or
+        # arrive on separate API pages.
+        self.assertEqual(merge_stations([], [clean_name, damaged]), [clean_name])
+        self.assertEqual(merge_stations([damaged], [clean_name]), [clean_name])
+        self.assertEqual(merge_stations([clean_name], [damaged]), [clean_name])
+        self.assertEqual(merge_stations(result, [damaged, clean_name]), result)
+
+    def test_bad_encoding_does_not_merge_unrelated_services_or_bitrate_variants(self):
+        damaged = browser_station(remote_row(311, name='Chat R�dio',
+            countrycode='CZ', codec='MP3', bitrate=128))
+        clean_name = browser_station(remote_row(312, name='Chat Rádio',
+            countrycode='CZ', codec='MP3', bitrate=128))
+        same_name_other_quality = browser_station(remote_row(313, name='Chat Rádio',
+            countrycode='CZ', codec='AAC', bitrate=64))
+        other_country = browser_station(remote_row(314, name='Chat Rádio',
+            countrycode='SK', codec='MP3', bitrate=128))
+        other_name = browser_station(remote_row(315, name='Chat Rádia',
+            countrycode='CZ', codec='MP3', bitrate=128))
+        # Test the conservative matcher directly because regular name-key
+        # dedup intentionally removes same-name quality variants.
+        from WarderRadio.radio_browser import damaged_name_match
+        self.assertTrue(damaged_name_match(damaged, clean_name))
+        self.assertFalse(damaged_name_match(damaged, same_name_other_quality))
+        self.assertFalse(damaged_name_match(damaged, other_country))
+        self.assertFalse(damaged_name_match(damaged, other_name))
+        self.assertFalse(damaged_name_match(clean_name, clean_name))
+        self.assertFalse(damaged_name_match(
+            browser_station(remote_row(316, name='R�dio', countrycode='CZ',
+                codec='MP3', bitrate=128)), clean_name))
+
+    def test_czech_page_dedup_uses_existing_radio_browser_cache_and_no_extra_calls(self):
+        calls = []
+        bad = remote_row(331, name='Chat R�dio', countrycode='CZ',
+                         codec='MP3', bitrate=128)
+        good = remote_row(332, name='Chat Rádio', countrycode='CZ',
+                          codec='MP3', bitrate=128)
+        def opener(request, timeout):
+            calls.append(request.full_url)
+            return io.BytesIO(json.dumps([bad, good], ensure_ascii=False).encode('utf-8'))
+        browser = RadioBrowser(str(self.path), opener=opener, discovery=lambda: [],
+                               clock=lambda:self.now)
+        result = browser.page('CZ')
+        self.assertEqual([row['name'] for row in result.rows], ['Chat Rádio'])
+        self.assertFalse(result.more)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(browser.page('CZ'), result)
+        self.assertEqual(len(calls), 1)
+
     def test_cache_fresh_reuse_persistent_offline_and_forced_refresh(self):
         original = self.client.page('SK')
         calls = len(self.calls)
