@@ -220,18 +220,10 @@ def album_masks():
 
 
 def premium_details():
-    glass_strip('glass-nav.png', 1856, 43, (3, 67, 107), 19)
-    glass_strip('glass-country.png', 408, 65, (4, 74, 135), 19)
-    glass_strip('glass-section.png', 642, 54, (3, 107, 170), 19)
-    glass_strip('glass-now.png', 648, 53, (3, 107, 170), 20)
+    # Only assets that the live Enigma2 skin actually references. The old
+    # separate vinyl (75 KB), button and header strips are now baked into one
+    # shared dashboard-overlay and must NOT bloat the installed package.
     glass_strip('glass-settings.png', 1354, 64, (3, 92, 142), 22)
-    glass_strip('glass-meta.png', 610, 49, (2, 73, 124), 21)
-    glass_strip('glass-source.png', 126, 28, (3, 77, 121), 13)
-    glass_strip('glass-spectrum.png', 390, 156, (3, 55, 94), 20)
-    for name, color in [('red', (248, 65, 78)), ('green', (44, 220, 117)),
-                        ('yellow', (247, 196, 47)), ('blue', (37, 153, 255))]:
-        footer_button('button-' + name + '.png', color)
-    vinyl()
     album_frame()
     album_masks()
 
@@ -373,7 +365,7 @@ def main():
     active_menu_surface()
     result = list(OUT.glob('*.png'))
     total = sum(path.stat().st_size for path in result)
-    assert len(result) == 36 and total < 750 * 1024, (len(result), total)
+    assert len(result) == 24 and total < 200 * 1024, (len(result), total)
     print('Warder lightweight UI assets: %d PNG, %d bytes' % (len(result), total))
 
 
