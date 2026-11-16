@@ -1,6 +1,8 @@
 """Lazy plugin entry: no network, playback or firmware changes at discovery."""
 from Plugins.Plugin import PluginDescriptor
 
+DISPLAY_NAME = 'Radio – Warder Evolution'
+
 def main(session, **kwargs):
     from .screen import WarderRadio
     session.open(WarderRadio)
@@ -15,13 +17,13 @@ def main_menu(menuid, **kwargs):
     state = read_json('/etc/enigma2/warder-radio/state.json', {}, 512 * 1024)
     if not isinstance(state, dict) or state.get('show_main_menu') is not True:
         return []
-    return [('Radio by Warder', main, 'warder_radio_mainmenu', 55)]
+    return [(DISPLAY_NAME, main, 'warder_radio_mainmenu', 55)]
 
 
 def Plugins(**kwargs):
-    return [PluginDescriptor(name='Radio Warder Evolution', description='World of Radio Stations',
+    return [PluginDescriptor(name=DISPLAY_NAME, description='World of Radio Stations',
                              where=PluginDescriptor.WHERE_PLUGINMENU, icon='plugin.png', fnc=main),
-            PluginDescriptor(name='Radio Warder Evolution', description='World of Radio Stations',
+            PluginDescriptor(name=DISPLAY_NAME, description='World of Radio Stations',
                              where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=main),
-            PluginDescriptor(name='Radio by Warder', description='Optional main menu entry',
+            PluginDescriptor(name=DISPLAY_NAME, description='Optional main menu entry',
                              where=PluginDescriptor.WHERE_MENU, fnc=main_menu)]
