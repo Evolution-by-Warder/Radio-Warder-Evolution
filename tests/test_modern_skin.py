@@ -11,8 +11,8 @@ from WarderRadio.skin import make_skin
 class LightweightDesignTests(unittest.TestCase):
     def test_ui_assets_are_tiny_alpha_png_files(self):
         files = sorted((Path(ROOT) / 'artwork' / 'ui').glob('*.png'))
-        self.assertEqual(len(files), 36)
-        self.assertLess(sum(path.stat().st_size for path in files), 750 * 1024)
+        self.assertEqual(len(files), 24)
+        self.assertLess(sum(path.stat().st_size for path in files), 200 * 1024)
         for path in files:
             with self.subTest(path=path.name):
                 data = path.read_bytes()
