@@ -38,7 +38,7 @@ MIGRATION = ('' if args.legacy_bridge else
 # Receiver packages contain only the online backend and the native player.
 LEGACY_RUNTIME = {
     'legacy_catalogue.py', 'catalogue-source.json', 'country_catalogue.py',
-    'seed.json',
+    'country-manifest.json', 'country-seed.json', 'seed.json',
 }
 FILES = {}
 for path in sorted(SOURCE.rglob('*')):
