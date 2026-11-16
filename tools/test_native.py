@@ -1846,15 +1846,14 @@ class NativeTests(unittest.TestCase):
                 bw, bh = map(int, background.attributes['size'].split(','))
                 if x < bx + bw and x + w > bx and y < by + bh and y + h > by:
                     self.assertGreater(order(widget), order(background), node.attrib['name'])
-        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == PANEL_BACKGROUND]
-        # Three cards are now three nonoverlapping native fill rectangles each,
-        # with four tiny rounded corners. Text and focus remain normal widgets.
-        self.assertEqual(len(panels), 9)
-        self.assertTrue(all(int(node.attrib['backgroundColor'][1:3], 16) == 0x18 for node in panels))
-        corners = [node for node in root.findall('ePixmap')
-                   if '/ui/corner-' in node.attrib.get('pixmap', '')]
-        self.assertEqual(len(corners), 16)  # three panels + action footer
-        self.assertTrue(all(node.attrib.get('alphatest') == 'blend' for node in corners))
+        backgrounds = [node for node in root.findall('ePixmap')
+                       if '/dashboard-overlay.png' in node.attrib.get('pixmap', '')]
+        self.assertEqual(len(backgrounds), 1)
+        self.assertEqual(backgrounds[0].attrib['zPosition'], '1')
+        self.assertEqual(backgrounds[0].attrib['alphatest'], 'blend')
+        # Single static chrome layer is strictly BEHIND all live eListboxes.
+        self.assertEqual(len([node for node in root.findall('eLabel')
+                              if node.attrib.get('backgroundColor') == PANEL_BACKGROUND]), 0)
 
     def test_original_test1_reproduces_occlusion_and_corrected_skin_does_not(self):
         text = (ROOT / 'tools/fixtures/skin-test1.py.txt').read_text()
@@ -2273,12 +2272,12 @@ class NativeTests(unittest.TestCase):
         def box(name):
             item = nodes[name].attrib
             return tuple(map(int, item['position'].split(',') + item['size'].split(',')))
-        panels = [node for node in root.findall('eLabel') if node.attrib.get('backgroundColor') == PANEL_BACKGROUND]
-        self.assertEqual(len(panels), 9)
-        self.assertEqual(sum(node.attrib['size'].endswith(',790') for node in panels), 3)
-        self.assertEqual(sum(node.attrib['size'].endswith(',738') for node in panels), 6)
-        # Selected rows have real anti-aliased rounded pixmaps, not a fake
-        # static render of the entire screen.
+        overlays = [node for node in root.findall('ePixmap')
+                    if '/ui/dashboard-overlay.png' in node.attrib.get('pixmap', '')]
+        self.assertEqual(len(overlays), 1)
+        self.assertEqual(overlays[0].attrib['size'], '1920,1080')
+        # Rounded station selection remains live, separate from the
+        # static, build-time image and independent of the broadcaster data.
         for list_name in ('functions', 'stations', 'settings_options', 'settings_keys'):
             self.assertIn('/ui/select-', nodes[list_name].attrib['selectionPixmap'])
         self.assertEqual(box('stations')[3], 8 * screen['stations'].l.height)
@@ -2287,9 +2286,13 @@ class NativeTests(unittest.TestCase):
         radio_content = screen['functions'].l.build(*screen['functions'].l.rows[1])
         self.assertEqual(country_content[1][2], 1)  # scaled zero clamps to one pixel
         self.assertEqual(country_content[1][4], 58)
-        self.assertEqual(radio_content[1][2], 6)
-        self.assertEqual(radio_content[1][4], 52)
-        self.assertEqual(64 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 11)
+        # Home retains its real active glow even when the station list has
+        # focus, rendered before the ordinary menu text and icon.
+        self.assertGreaterEqual(len(radio_content), 4)
+        radio_text = radio_content[2]
+        self.assertEqual(radio_text[2], 6)
+        self.assertEqual(radio_text[4], 52)
+        self.assertEqual(64 + radio_text[2] - (country_content[1][2] + country_content[1][4]), 11)
         self.assertEqual(screen['functions'].l.fonts[2], ('Regular', 24))
         self.assertLessEqual(box('navtitle')[1] + box('navtitle')[3], box('functions')[1])
         self.assertEqual(box('art')[2:], (462, 462))
