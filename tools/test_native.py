@@ -1828,7 +1828,10 @@ class NativeTests(unittest.TestCase):
         # Real createGUIScreen creates additionalWidgets after named components.
         # eWidget inserts equal-z children after existing ones (ewidget.cpp).
         screen, _, root = self.new()
-        static = [item.instance for item in screen.additionalWidgets]
+        static = [item.instance for item in screen.additionalWidgets
+                  if int(item.instance.attributes.get('zPosition', 0)) < 2]
+        # The live album-cover frame and corner masks intentionally render
+        # above the real cover at z=3; they are not opaque panel backgrounds.
         def order(widget):
             return (int(widget.attributes.get('zPosition', 0)), widget.created)
         for node in root.findall('widget'):
@@ -2289,7 +2292,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(64 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 11)
         self.assertEqual(screen['functions'].l.fonts[2], ('Regular', 24))
         self.assertLessEqual(box('navtitle')[1] + box('navtitle')[3], box('functions')[1])
-        self.assertEqual(box('art')[2:], (520, 520))
+        self.assertEqual(box('art')[2:], (462, 462))
         self.assertLess(box('activity')[0] + box('activity')[2], 472)
         previous_bottom = 0
         for name in ('art', 'nowlabel', 'station', 'artist', 'track', 'details'):
