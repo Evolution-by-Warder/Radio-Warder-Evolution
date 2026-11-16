@@ -1,4 +1,4 @@
-"""Check Warder Radio's own neon navigation icon set (no YouTube assets)."""
+"""Check Warder Radio's own native menu icons (no YouTube assets)."""
 import os
 import struct
 import unittest
@@ -24,25 +24,31 @@ class RadioMenuIconTests(unittest.TestCase):
                 self.assertEqual(struct.unpack('>II', data[16:24]), (56, 56))
                 self.assertEqual(data[25], 6)  # RGBA with alpha, not opaque overlay
 
-    def test_icons_fit_all_menu_rows_at_hd_fhd_wqhd_uhd(self):
+    def test_icons_use_native_list_rows_not_overlapping_static_pixmaps(self):
+        import ast
+        source = (Path(ROOT) / 'screen.py').read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        rows = next(node for node in tree.body
+                    if isinstance(node, ast.ClassDef) and node.name == 'RadioList')
+        build = next(node for node in rows.body
+                     if isinstance(node, ast.FunctionDef) and node.name == 'build')
+        self.assertTrue(any(isinstance(node, ast.Call) and
+                            isinstance(node.func, ast.Name) and
+                            node.func.id == 'MultiContentEntryPixmapAlphaBlend'
+                            for node in ast.walk(build)))
+        self.assertIn('self.menu_icons.get(key)', source)
+        self.assertIn('size=(n(56), n(56))', source)
         for width, height in ((1280, 720), (1920, 1080),
                               (2560, 1440), (3840, 2160)):
-            with self.subTest(size=(width, height)):
-                scale = min(width / 1920.0, height / 1080.0)
+            with self.subTest(resolution=(width, height)):
                 xml = ET.fromstring(make_skin(width, height))
-                icons = [x for x in xml.findall('ePixmap')
-                         if '/artwork/menu/' in x.get('pixmap', '')]
-                self.assertEqual(len(icons), len(ICONS))
-                for i, (node, name) in enumerate(zip(icons, ICONS)):
-                    self.assertTrue(node.get('pixmap').endswith('/artwork/menu/' + name + '.png'))
-                    self.assertEqual(node.get('alphatest'), 'blend')
-                    self.assertEqual(tuple(map(int, node.get('position').split(','))),
-                                     (round(62 * scale), round((236 + 64 * i) * scale)))
-                    self.assertEqual(tuple(map(int, node.get('size').split(','))),
-                                     (round(56 * scale), round(56 * scale)))
-                    self.assertLessEqual(round((236 + 64 * i) * scale) +
-                                         round(56 * scale), round(994 * scale))
-                    self.assertGreaterEqual(round(62 * scale), round(32 * scale))
+                self.assertFalse(any('/artwork/menu/' in x.get('pixmap', '')
+                                     for x in xml.findall('ePixmap')))
+                menu = next(x for x in xml.findall('widget')
+                            if x.get('name') == 'functions')
+                scale = min(width / 1920.0, height / 1080.0)
+                self.assertEqual(int(menu.get('size').split(',')[1]),
+                                 round(64 * scale) * 8)
 
 
 if __name__ == '__main__':
