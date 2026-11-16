@@ -4,6 +4,7 @@ import textwrap
 import enigma
 from enigma import eListboxPythonMultiContent, gFont
 from Components.Label import Label
+from Components.Pixmap import Pixmap
 from Components.MenuList import MenuList
 from Components.MultiContent import MultiContentEntryText
 
@@ -75,7 +76,10 @@ class SettingsKeyboard(MenuList):
 
 
 class SettingsForm:
-    widgets = ('settings_panel', 'settings_edge_top', 'settings_edge_bottom',
+    widgets = ('settings_panel', 'settings_fill_middle', 'settings_fill_left',
+               'settings_fill_right', 'settings_corner_tl', 'settings_corner_tr',
+               'settings_corner_bl', 'settings_corner_br',
+               'settings_edge_top', 'settings_edge_bottom',
                'settings_edge_left', 'settings_edge_right', 'settings_title',
                'settings_text', 'settings_input', 'settings_status',
                'settings_options', 'settings_keys')
@@ -93,7 +97,8 @@ class SettingsForm:
         self.song_title, self.song_lines = '', []
         for name in self.widgets:
             host[name] = (SettingsOptions(scale) if name == 'settings_options' else
-                          SettingsKeyboard(scale) if name == 'settings_keys' else Label(''))
+                          SettingsKeyboard(scale) if name == 'settings_keys' else
+                          Pixmap() if name.startswith('settings_corner_') else Label(''))
 
     @property
     def focus_name(self):
