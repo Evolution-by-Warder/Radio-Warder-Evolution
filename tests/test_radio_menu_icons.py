@@ -23,13 +23,35 @@ class RadioMenuIconTests(unittest.TestCase):
                 self.assertEqual(data[12:16], b'IHDR')
                 self.assertEqual(struct.unpack('>II', data[16:24]), (56, 56))
                 self.assertEqual(data[25], 6)  # RGBA with alpha, not opaque overlay
-                # Decoder test also checks compressed payload and transparency.
-                from PIL import Image
-                with Image.open(str(path)) as image:
-                    image.load()
-                    self.assertEqual(image.mode, 'RGBA')
-                    self.assertEqual(image.size, (56, 56))
-                    self.assertGreater(image.getchannel('A').getextrema()[1], 0)
+                # Decode all PNG chunks and alpha using stdlib only, so the
+                # stable release workflow does not depend on Pillow.
+                import zlib
+                offset = 8
+                compressed = []
+                found_end = False
+                while offset + 12 <= len(data):
+                    length = struct.unpack('>I', data[offset:offset + 4])[0]
+                    kind = data[offset + 4:offset + 8]
+                    end = offset + 12 + length
+                    self.assertLessEqual(end, len(data))
+                    body = data[offset + 8:offset + 8 + length]
+                    actual_crc = struct.unpack('>I', data[end - 4:end])[0]
+                    self.assertEqual(actual_crc, zlib.crc32(kind + body) & 0xffffffff)
+                    if kind == b'IDAT':
+                        compressed.append(body)
+                    offset = end
+                    if kind == b'IEND':
+                        found_end = True
+                        break
+                self.assertTrue(found_end)
+                self.assertEqual(offset, len(data))
+                self.assertTrue(compressed)
+                pixels = zlib.decompress(b''.join(compressed))
+                row = 1 + 56 * 4
+                self.assertEqual(len(pixels), 56 * row)
+                self.assertTrue(all(pixels[y * row] == 0 for y in range(56)))
+                self.assertGreater(max(pixels[y * row + 4 + x * 4]
+                                       for y in range(56) for x in range(56)), 0)
 
     def test_icons_use_native_list_rows_not_overlapping_static_pixmaps(self):
         import ast
