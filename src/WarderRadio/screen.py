@@ -1596,9 +1596,18 @@ class WarderRadio(Screen):
         self.icy_probe_jobs.poll()
         if (self.icy_probe_busy or self.closed or self.installing or self.starting or
                 self.mode not in BROWSE_MODES or self.logo_slots or self.logo_paused or
-                time.monotonic() < self.icy_probe_next):
+                self.saver_active or time.monotonic() < self.icy_probe_next):
             return
-        for item in self.visible_logo_items():
+        visible = self.visible_logo_items()
+        selected = self.current()
+        if selected in visible:
+            visible = [selected] + [item for item in visible if item is not selected]
+        for item in visible:
+            # Metadata of the actual playing stream is already monitored.
+            # Do not open a redundant ICY network stream to the same station.
+            if (self.playback.current and self.playback.owns() and
+                    same_station(item, self.playback.current)):
+                continue
             if not self.icy_cache.should_probe(item):
                 continue
             self.icy_probe_busy = self.icy_probe_jobs.submit('icy-probe',
