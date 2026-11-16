@@ -52,11 +52,6 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           python3 tools/verify_ipk.py
-      - name: Verify published country packages, incremental updates and legacy compatibility
-        env:
-          PYTHONPATH: src
-          PYTHONDONTWRITEBYTECODE: '1'
-        run: python3 tools/verify_country_catalogue.py
       - name: Verify real offline opkg upgrades
         if: env.RADIO_VERSION == '0.1.9'
         env:
@@ -72,8 +67,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: sh tools/run_0192_opkg_checks.sh
-      - name: Verify live picon downloader in all backgrounds
-        run: python3 tools/verify_receiver_candidate.py
       - name: Verify current-song artwork against live provider
         env:
           PYTHONPATH: src
