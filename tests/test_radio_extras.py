@@ -277,6 +277,8 @@ class MusicDetailTests(unittest.TestCase):
                          ['Tyler, The Creator'])
         self.assertEqual(credited_artist_names('Simon & Garfunkel'),
                          ['Simon & Garfunkel'])
+        self.assertEqual(credited_artist_names('Huey Lewis & The News'),
+                         ['Huey Lewis & The News'])
         self.assertEqual(credited_artist_names('ABBA'), ['ABBA'])
         self.assertEqual(credited_artist_names(''), [])
 
