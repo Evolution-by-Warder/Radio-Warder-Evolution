@@ -18,6 +18,10 @@
   performers, and allow proven corrections of reversed ICY artist/song fields.
 - Remove clear broken-encoding duplicate stations such as Chat R�dio / Chat Rádio
   in the visible catalogue only, without deleting user-owned favourites.
+- Installed 0.2.0-testN packages migrate automatically via the verified
+  0.2.0-test22 compatibility bridge before the stable 0.2.0; this is needed
+  because opkg sorts test suffixes above the bare stable version. Installed
+  stable 0.1.9.4 users upgrade directly. No data is erased.
 - Preserve the original approved branding, spectrum, OLED saver, YouTube controls,
   recording, original Enigma2 playback and all existing saved user settings.
 - Keep the plugin name **Radio Warder Evolution** without a separator across
