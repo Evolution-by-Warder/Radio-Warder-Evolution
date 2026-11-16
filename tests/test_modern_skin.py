@@ -11,8 +11,8 @@ from WarderRadio.skin import make_skin
 class LightweightDesignTests(unittest.TestCase):
     def test_ui_assets_are_tiny_alpha_png_files(self):
         files = sorted((Path(ROOT) / 'artwork' / 'ui').glob('*.png'))
-        self.assertEqual(len(files), 16)
-        self.assertLess(sum(path.stat().st_size for path in files), 48 * 1024)
+        self.assertEqual(len(files), 34)
+        self.assertLess(sum(path.stat().st_size for path in files), 320 * 1024)
         for path in files:
             with self.subTest(path=path.name):
                 data = path.read_bytes()
@@ -35,10 +35,17 @@ class LightweightDesignTests(unittest.TestCase):
                 for name in ('settings_fill_middle', 'settings_fill_left',
                              'settings_fill_right', 'settings_corner_tl',
                              'settings_corner_tr', 'settings_corner_bl',
-                             'settings_corner_br'):
+                             'settings_corner_br', 'settings_header', 'nowtitle'):
                     self.assertIn(name, named)
                 for name in ('stations', 'functions', 'settings_options', 'settings_keys'):
                     self.assertIn('selectionPixmap', named[name].attrib)
+                decorations = [node for node in root.findall('ePixmap')
+                               if '/ui/' in node.attrib.get('pixmap', '')]
+                self.assertTrue(any('glass-now.png' in n.get('pixmap', '') for n in decorations))
+                self.assertTrue(any('vinyl-disc.png' in n.get('pixmap', '') for n in decorations))
+                self.assertTrue(any('album-frame.png' in n.get('pixmap', '') for n in decorations))
+                self.assertEqual(len([n for n in decorations if '/album-mask-' in n.get('pixmap', '')]), 4)
+                self.assertEqual(len([n for n in decorations if '/button-' in n.get('pixmap', '')]), 4)
                 self.assertNotIn('OpenGL', ET.tostring(root, encoding='unicode'))
                 self.assertNotIn('GLES', ET.tostring(root, encoding='unicode'))
 
