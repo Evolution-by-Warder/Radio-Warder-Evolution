@@ -143,7 +143,7 @@ jobs:
             fi
             gh release upload "$tag" dist/*.ipk dist/SHA256SUMS dist/build.json
           fi
-          if [ "$RADIO_VERSION" = "0.1.9" ] || [ "$RADIO_VERSION" = "0.1.9.1" ]; then
+          if [ "$RADIO_VERSION" = "0.1.9" ] || [ "$RADIO_VERSION" = "0.1.9.1" ] || [ "$RADIO_VERSION" = "0.2.0" ]; then
           tester_version=$(python3 -c "import json; print(json.load(open('dist/tester-bridge/build.json'))['version'].removesuffix('-1'))")
           tester_tag="warder-radio-v$tester_version"
           if ! gh release view "$tester_tag" >/dev/null 2>&1; then
