@@ -39,7 +39,6 @@ MIGRATION = ('' if args.legacy_bridge else
 LEGACY_RUNTIME = {
     'legacy_catalogue.py', 'catalogue-source.json', 'country_catalogue.py',
     'country-manifest.json', 'country-seed.json', 'seed.json',
-    'picon-countries.json', 'picon_catalogue.py', 'picon_download.py', 'picon_screen.py', 'picons.py',
 }
 FILES = {}
 for path in sorted(SOURCE.rglob('*')):
