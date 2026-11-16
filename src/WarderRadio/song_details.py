@@ -1,6 +1,7 @@
 """On-demand lyrics and artist information for the currently displayed song."""
 import json
 import re
+import time
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -10,6 +11,10 @@ from .radio_browser import USER_AGENT
 MAX_JSON = 512 * 1024
 LRCLIB = 'https://lrclib.net/api/search'
 MUSICBRAINZ = 'https://musicbrainz.org/ws/2/'
+AUDIODB = 'https://www.theaudiodb.com/api/v1/json/123/search.php'
+_ARTIST_BIO_CACHE = {}  # bounded positive-only memory cache; never stores missing data
+_ARTIST_BIO_TTL = 12 * 60 * 60
+_ARTIST_BIO_MAX = 80
 
 
 def read_response(url, params, opener, timeout=5):
@@ -288,6 +293,47 @@ def wikipedia_action_bio(artist, opener=urlopen, timeout=2):
     return []
 
 
+def audiodb_artist_bio(artist, opener=urlopen, timeout=2.5, language=None):
+    """One bounded, exact-name TheAudioDB request for an on-demand biography.
+
+    The shared API endpoint can return no result, multiple results, or 429.
+    A valid biography is shown only for an unambiguous exact artist identity.
+    Never scrape web pages or expose links supplied by catalogue records.
+    """
+    artist = clean(artist, 100)
+    if not artist:
+        return []
+    from .i18n import language_code
+    locale = language_code(language).upper()
+    prefer = {
+        'SK': ('SK', 'CZ', 'EN'),
+        'CS': ('CZ', 'SK', 'EN'),
+    }.get(locale, (locale, 'EN'))
+    try:
+        rows = read_response(AUDIODB, {'s': artist}, opener, timeout)
+    except (OSError, ValueError, TypeError, KeyError):
+        return []
+    records = rows.get('artists') if isinstance(rows, dict) else None
+    if not isinstance(records, list):
+        return []
+    exact = [item for item in records if isinstance(item, dict)
+             and matches(item.get('strArtist'), artist)]
+    identifiers = {clean(item.get('idArtist')) for item in exact}
+    if len(identifiers) != 1 or not identifiers or '' in identifiers:
+        return []
+    item = exact[0]
+    for code in dict.fromkeys(prefer):
+        # TheAudioDB uses either strBiographyEN or the plain strBiography.
+        fields = ('strBiographyEN', 'strBiography') if code == 'EN' else ('strBiography' + code,)
+        for field in fields:
+            value = item.get(field)
+            if isinstance(value, str):
+                text = clean(value, 700)
+                if len(text) >= 35:
+                    return ['Biography: ' + text, '', 'TheAudioDB']
+    return []
+
+
 def artist_profile(artist, track, opener=urlopen):
     """Find a verified musician with quick fallback across independent APIs.
 
@@ -296,17 +342,38 @@ def artist_profile(artist, track, opener=urlopen):
     on the existing background song-info worker, never the GUI thread.
     """
     canonical = wiki_artist_name(artist)
+    use_cache = opener is urlopen
+    cache_key = search_key(clean(canonical, 100))
+    if use_cache:
+        hit = _ARTIST_BIO_CACHE.get(cache_key)
+        if hit is not None:
+            expires, lines = hit
+            if expires > time.monotonic():
+                return list(lines)
+            _ARTIST_BIO_CACHE.pop(cache_key, None)
+    def finish(lines):
+        if lines and use_cache:
+            if len(_ARTIST_BIO_CACHE) >= _ARTIST_BIO_MAX:
+                _ARTIST_BIO_CACHE.pop(next(iter(_ARTIST_BIO_CACHE)))
+            _ARTIST_BIO_CACHE[cache_key] = (time.monotonic() + _ARTIST_BIO_TTL,
+                                            tuple(lines))
+        return lines
+
+    # Fast one-request source. No list browsing or background probing.
+    bio = audiodb_artist_bio(canonical, opener, timeout=2.5)
+    if bio:
+        return finish(bio)
     uppercase_icy = canonical != clean(artist, 100)
     if uppercase_icy:
         # A single regional lookup often yields a biography immediately for
         # Slovak/Czech broadcasters with uppercase metadata.
         wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=1)
         if wiki:
-            return wiki
+            return finish(wiki)
     information = artist_information(artist, '', opener, timeout=2.5)
     if information:
-        return information
+        return finish(information)
     # Do not repeat the Slovak summary when uppercase tags already tried it.
     wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=2,
                           skip_first=uppercase_icy)
-    return wiki or wikipedia_action_bio(canonical, opener, timeout=2)
+    return finish(wiki or wikipedia_action_bio(canonical, opener, timeout=2))
