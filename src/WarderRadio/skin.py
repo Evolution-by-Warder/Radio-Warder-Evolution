@@ -63,6 +63,22 @@ def make_skin(width, height):
     for box in ((32, 204, 440, 790), (500, 204, 680, 790),
                 (1200, 204, 688, 790)):
         rounded_card(*box)
+    # These are REAL small static skin decorations, beneath the native live
+    # Enigma2 widgets. Nothing is a full-screen mockup or bitmap of UI text.
+    def glass(asset, x, y, w, h, z=1):
+        parts.append('<ePixmap zPosition="%d" %s pixmap="%s/%s.png" '
+                     'alphatest="blend" scale="1" />'
+                     % (z, rect(x, y, w, h), ui_path, asset))
+    glass('glass-nav', 32, 140, 1856, 43)
+    glass('glass-country', 47, 207, 408, 65)
+    glass('glass-section', 517, 204, 642, 54)
+    glass('glass-now', 1220, 209, 648, 53)
+    glass('glass-spectrum', 55, 832, 390, 156)
+    # Decorative vinyl is static and always BEHIND the dynamically decoded
+    # album cover; nothing new runs on the player or on a refresh timer.
+    glass('vinyl-disc', 1670, 291, 212, 420)
+    glass('glass-source', 1480, 741, 126, 28)
+    glass('glass-meta', 1238, 936, 610, 49)
     # Same three-field header as PiconHub/GSU: weekday and local date,
     # large hours/minutes with smaller seconds, cyan version caption.
     # The Radio logo/backdrop stay unchanged and the entire block fits
@@ -74,15 +90,16 @@ def make_skin(width, height):
               label('version_caption', 1680, 25, 210, 36, 25, '#00ceff', 'center'),
               label('version', 1680, 70, 210, 36, 24, '#00ceff', 'center'),
               label('navtitle', 62, 220, 1, 1, 1, '#00ceff'),
-              label('section', 530, 211, 620, 36, 23, '#a6bed1'),
-              label('nowlabel', 1230, 744, 620, 18, 14, '#87a4b9', 'center'),
-              label('station', 1230, 768, 620, 30, 24, '#a6bed1', 'center'),
-              label('artist', 1230, 806, 620, 40, 28, '#00ceff', 'center'),
-              label('track', 1230, 854, 620, 80, 27, '#e7f4ff', 'center', True),
-              label('details', 1230, 944, 620, 34, 22, '#a6bed1', 'center'),
+              label('nowtitle', 1248, 218, 584, 37, 28, '#00ceff', 'center'),
+              label('section', 557, 212, 578, 38, 30, '#00ceff'),
+              label('nowlabel', 1240, 745, 600, 20, 16, '#a6e7ff', 'center'),
+              label('station', 1237, 776, 620, 32, 26, '#bdd4e6', 'center'),
+              label('artist', 1237, 814, 620, 43, 35, '#00e5ff', 'center'),
+              label('track', 1237, 856, 620, 68, 30, '#f2f8ff', 'center', True),
+              label('details', 1234, 945, 620, 33, 23, '#b5d9ed', 'center'),
               label('count', 530, 966, 620, 26, 22, '#9bbad0'),
               label('status', 62, 796, 380, 44, 18, '#d6e9f7', 'left', True),
-              label('hint', 60, 160, 1800, 32, 21, '#a4c3d8', 'left')]
+              label('hint', 72, 148, 1768, 35, 21, '#bed8e9', 'left')]
     # Native cyan vertical separators, identical to PiconHub placements.
     for x in (1392, 1664):
         parts.append('<eLabel zPosition="3" %s backgroundColor="#0019c9ff" />'
@@ -108,7 +125,14 @@ def make_skin(width, height):
                  'selectionPixmap="%s/select-menu.png" transparent="1" '
                  'scrollbarMode="showNever" enableWrapAround="1" />'
                  % (n(55), n(232), n(390), n(64) * 8, ui_path))
-    parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
+    # The real cover is still an ePixmap updated by CoverDisplay. The tiny
+    # masks clip only its four corners; a slim rim at z3 frames live artwork.
+    parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />'
+                 % rect(1317, 266, 462, 462))
+    glass('album-frame', 1298, 246, 500, 500, 3)
+    for corner, cx, cy in (('tl', 1317, 266), ('tr', 1759, 266),
+                           ('bl', 1317, 708), ('br', 1759, 708)):
+        glass('album-mask-' + corner, cx, cy, 20, 20, 3)
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
     # Settings hides every named part together; the panel's rounded geometry
     # is the same as the permanent cards. No static box over Home/Subscriptions.
@@ -138,8 +162,11 @@ def make_skin(width, height):
         parts.append('<widget name="settings_edge_%s" zPosition="5" '
                      'position="%d,%d" size="%d,%d" backgroundColor="#0045c7e6" />'
                      % (name, bx, by, bw, bh))
+    parts.append('<widget name="settings_header" zPosition="5" %s '
+                 'pixmap="%s/glass-settings.png" alphatest="blend" scale="1" />'
+                 % (rect(534, 220, 1320, 64), ui_path))
     for key, box, font, color, wrap in [
-            ('title', (534,228,1300,56), 34, '#00ceff', False),
+            ('title', (550,228,1280,56), 34, '#00ceff', False),
             ('text', (534,310,1300,540), 27, '#d9e6ef', True),
             ('input', (534,310,1300,80), 28, '#ffffff', True),
             ('status', (534,926,1300,44), 25, '#00ceff', False)]:
@@ -154,11 +181,11 @@ def make_skin(width, height):
                      'scrollbarMode="showOnDemand" enableWrapAround="1" />'
                      % (name,n(520),n(y),n(1348),n(60)*rows,ui_path))
     rounded_card(32, 1000, 1856, 68, color='#16091b30')
-    for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
-                           ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
-        parts.append(label(name, x, 1001, 430, 44, 28, color, 'center'))
-        parts.append('<eLabel zPosition="1" %s backgroundColor="%s" />'
-                     % (rect(x + 144, 1053, 142, 3), color))
+    for name, x in [('red', 40), ('green', 510),
+                    ('yellow', 980), ('blue', 1450)]:
+        glass('button-' + name, x, 1008, 430, 52)
+        parts.append(label(name, x + 64, 1011, 344, 42, 28,
+                           '#eef9ff', 'center'))
     # Hidden until Radio playback activates the optional OLED saver.
     saver_markup, _ = make_saver_widgets(scale, canvas_w, canvas_h)
     parts.append(saver_markup)
