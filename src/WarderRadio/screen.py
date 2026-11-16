@@ -114,22 +114,22 @@ class RadioList(MenuList):
                                      enigma.BT_HALIGN_CENTER |
                                      enigma.BT_VALIGN_CENTER)))
             if key == 'group':
-                caption = t('Choose country') + ' – '
+                caption = t('Country') + ' – '
                 country = item[len(caption):]
-                # The slightly larger first-row font keeps the country selector legible.
-                # Bound both translated text and cyan country name to the menu.
+                # Country uses the same 30px font and baseline as the other menu rows.
+                # The selected country remains Warder cyan.
                 # The radio-specific cyan icons occupy the first 64px of the
                 # navigation cell, without changing the 8x64px menu geometry.
                 # Reserve room for the localized country name and dropdown.
                 text_start = 76
-                caption_width = min(198, max(158, len(caption) * 10 + 8))
+                caption_width = min(155, max(105, len(caption) * 13))
                 return prefix + [
-                        MultiContentEntryText(pos=(n(text_start), n(0)),
-                                              size=(n(caption_width), n(58)),
-                                              font=2, flags=flags, text=caption),
-                        MultiContentEntryText(pos=(n(text_start + caption_width), n(0)),
-                                              size=(n(382 - text_start - caption_width), n(58)),
-                                              font=2, flags=flags, text=country,
+                        MultiContentEntryText(pos=(n(text_start), n(6)),
+                                              size=(n(caption_width), n(52)),
+                                              font=0, flags=flags, text=caption),
+                        MultiContentEntryText(pos=(n(text_start + caption_width), n(6)),
+                                              size=(n(382 - text_start - caption_width), n(52)),
+                                              font=0, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
             return prefix + [MultiContentEntryText(pos=(n(76), n(6)),
                                                size=(n(302), n(52)),
@@ -1448,7 +1448,7 @@ class WarderRadio(Screen):
     def update_country_caption(self):
         country = group_label(country_name(self.active_group)) if self.active_group != 'ALL' else t('All groups')
         current = self['functions'].getSelectionIndex()
-        entries = [(t('Choose country') + ' – ' + country + ' ▾', 'group'),
+        entries = [(t('Country') + ' – ' + country, 'group'),
                    (t('Home'), 'radio'), (t('Subscriptions'), 'subscriptions'),
                    (t('Favourites'), 'favourites'),
                    (t('History'), 'history'), (t('Recordings'), 'recordings'),
