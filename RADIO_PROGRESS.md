@@ -1,5 +1,15 @@
 # Warder Radio – prechod na online katalóg
 
+## 16. 11. 2026 – rýchlejší interpret a potvrdené poradie skladby (0.2.0-test15)
+
+- **Draft [PR #38](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/38)**, vetva `fix/radio-artist-details-order-test15-20261116`, vychádza z test14. Produkčný `main` a stabilná 0.1.9.4 zostávajú nezmenené.
+- **Interpret:** zrušené drahé poradie až piatich Wikipedia dotazov pred MusicBrainz. Priamo sa hľadá jednoznačný interpret podľa mena a čítajú sa jeho detaily (bez nutnosti registrácie konkrétnej skladby), s kratším timeoutom; len pri neúspechu sa skúšajú najviac tri krátke encyklopedické dotazy. Žiadna domnienka pri viacerých rovnomenných interpretoch.
+- **ICY skladba/interpret:** vysielatelia niekedy zapisujú `Title – Artist`, inak `Artist – Title`. Automatické otočenie povoľuje iba zhoda oboch natívnych tagov Enigma2 s obráteným ICY poradím alebo nezávislý presný, už dostupný záznam iTunes z existujúceho artwork workeru. Bez dodatočného sieťového dotazu alebo odhadu podľa dĺžky textu. Ak neexistuje spoľahlivý dôkaz, pôvodné ICY údaje zostávajú nezmenené.
+- Korekcia potvrdeného páru sa drží pre aktuálnu kombináciu stanica/skladba, aby sa pri ďalšom ICY ticku nevrátilo nesprávne poradie. Pri zmene stanice alebo skladby sa na nesúvisiacu položku nepoužije.
+- **Názov:** v menu Plugins, Extensions a hlavnom menu zostáva správny `Radio Warder Evolution` bez pomlčky. Prehrávač Enigma2 4097, uložené údaje, odbery, nahrávanie a vzhľad bez zásahu.
+- **Testy:** pribudli regresie na opačné i normálne poradie s jednoznačnou a nejednoznačnou evidenciou, rýchle primárne MusicBrainz a obmedzený Wikipedia fallback. Fyzický test na GigaBlue a SF8008 je pred ostrou verziou povinný. CI/IPK ešte nemajú výsledok pri vytvorení PR.
+
+
 ## 16. 11. 2026 – cielené prekreslenie log a ICY, presný rozsah Odberov (0.2.0-test14)
 
 - **Draft [PR #37](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/37)**, vetva `fix/radio-visible-picons-icy-test14-20261116`, nadväzuje na test13 `307d1cfc`. Produkčný `main` a stabilná 0.1.9.4 nezmenené; **prehrávač cez Enigma2 4097 nie je modifikovaný**.
