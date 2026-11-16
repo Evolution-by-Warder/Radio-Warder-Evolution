@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 from WarderRadio.model import Store, Playback, atomic_json, stream_url, station, read_json
-from WarderRadio.legacy_catalogue import Catalogue, parse_bouquet
 from WarderRadio.jobs import Jobs
 from WarderRadio.recording import Recording
 
@@ -20,28 +19,6 @@ class ModelTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-
-    def test_catalogue_has_full_owned_bouquet_with_identity_and_accent_search(self):
-        catalogue = Catalogue(self.tmp.name)
-        self.assertEqual(len(catalogue.items), 5444)
-        self.assertEqual(len(catalogue.groups()), 203)
-        self.assertTrue(catalogue.search('radio expres', 'Slovensko'))
-        self.assertTrue(all(item['group'] == 'Slovensko' for item in catalogue.search(group='Slovensko')))
-        self.assertEqual(len({s['id'] for s in catalogue.items}), 5444)
-        for item in catalogue.items:
-            stream_url(item['url'])
-            self.assertEqual(len(item['reference'].split(':')), 10)
-
-    def test_parser_preserves_encoded_query_and_removes_exact_identity_duplicates(self):
-        text = ('#NAME Demo\n#SERVICE 1:64:2:0:0:0:0:0:0:0:\n#DESCRIPTION Test\n'
-                '#SERVICE 4097:0:2:1:2:3:0:0:0:0:https%3a//radio.example/x?a=b%26c&v=%2F\n'
-                '#DESCRIPTION Rádio Test\n')
-        values = parse_bouquet(text + text)
-        self.assertEqual(len(values), 1)
-        self.assertEqual(values[0]['url'], 'https://radio.example/x?a=b%26c&v=%2F')
-        self.assertEqual(values[0]['group'], 'Test')
-        with self.assertRaises(ValueError):
-            parse_bouquet('#NAME empty')
 
     def test_reject_unsafe_or_malformed_urls(self):
         for value in ['file:///etc/passwd', 'javascript:alert(1)', 'https://',
@@ -78,29 +55,10 @@ class ModelTests(unittest.TestCase):
         self.assertTrue(Store(self.tmp.name).is_favourite(item))
         self.assertEqual(os.listdir(self.tmp.name), ['state.json'])
 
-    def test_corrupt_or_wrong_type_state_and_cache_fall_back(self):
+    def test_corrupt_or_wrong_type_state_falls_back(self):
         for payload in ['not json', '[]', '{"favourites":42,"history":[null],"custom":[{}]}']:
             Path(self.tmp.name, 'state.json').write_text(payload)
             self.assertFalse(Store(self.tmp.name).favourites)
-        Path(self.tmp.name, 'catalogue.json').write_text('null')
-        self.assertEqual(len(Catalogue(self.tmp.name).items), 5444)
-
-    def test_failed_update_keeps_working_catalogue_and_download_is_bounded(self):
-        catalogue = Catalogue(self.tmp.name)
-        previous = catalogue.items
-        with self.assertRaises(ValueError):
-            catalogue.replace([SAMPLE])
-        self.assertIs(catalogue.items, previous)
-        class Response:
-            def __enter__(self): return self
-            def __exit__(self, *args): pass
-            def read(self, maximum):
-                self.maximum = maximum
-                return b'x' * maximum
-        response = Response()
-        with self.assertRaises(ValueError):
-            Catalogue.fetch(lambda *args, **kwargs: response)
-        self.assertEqual(response.maximum, 8 * 1024 * 1024 + 1)
 
     def test_recordings_dont_follow_symlinks_outside_owned_folder(self):
         target = Path(self.tmp.name, 'outside.mp3'); target.write_bytes(b'not audio')
