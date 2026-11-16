@@ -128,7 +128,7 @@ class UpdateTests(unittest.TestCase):
         # opkg treats 0.2.0-test21 as newer than 0.2.0. A small verified
         # test22 bridge must be installed first; only it can request
         # force-downgrade for the authenticated exact 0.2.0 stable package.
-        self.assertEqual(VERSION, '0.2.0')
+        # Migration mapping persists even in later candidate versions.
         self.assertEqual(update.release_channel('0.2.0-test21'), 'testing')
         self.assertEqual(update.release_channel('0.2.0-test22'), 'stable')
         self.assertEqual(update.TESTER_MIGRATIONS['0.2.0-test22'], '0.2.0')
@@ -149,6 +149,8 @@ class UpdateTests(unittest.TestCase):
                 '0.2.0-1', 'lt', '0.2.0-test22-1']).returncode, 0)
 
     def test_0200_only_exact_verified_bridge_may_use_force_downgrade(self):
+        if VERSION != '0.2.0':
+            self.skipTest('Stable 0.2.0 package-only test; this is a later UI test build')
         from unittest.mock import patch
         root = Path(__file__).resolve().parents[1]
         build = json.loads((root / 'dist/build.json').read_text())
