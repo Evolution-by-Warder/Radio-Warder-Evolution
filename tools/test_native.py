@@ -2256,7 +2256,7 @@ class NativeTests(unittest.TestCase):
         first = screen['functions'].l.build(*screen['functions'].l.rows[0])
         # Radio's original icon is part of native list content, not an overlay.
         self.assertEqual(len(first), 4)
-        self.assertEqual(first[1][2:4], (4, 8))
+        self.assertEqual(first[1][2:4], (4, 56))  # icon top=4, width=56
         self.assertEqual(first[2][5], first[3][5])  # identical font ID
         self.assertIn(radio.t('Country') + ' – ', screen['functions'].l.rows[0][0])
         self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
