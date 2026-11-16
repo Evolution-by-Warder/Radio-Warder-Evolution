@@ -24,7 +24,8 @@ MAX_IPK_BYTES = 128 * 1024 * 1024
 # updates that installer, then reads the stable feed after GUI restart.
 TESTER_BRIDGE_VERSION = '0.1.9-test3'
 # Each test-to-stable exception is restricted to an installed migration build.
-TESTER_MIGRATIONS = {TESTER_BRIDGE_VERSION: '0.1.9', '0.1.9.1-test2': '0.1.9.1'}
+TESTER_MIGRATIONS = {TESTER_BRIDGE_VERSION: '0.1.9', '0.1.9.1-test2': '0.1.9.1',
+                     '0.2.0-test22': '0.2.0'}
 
 
 def release_channel(current_version):
