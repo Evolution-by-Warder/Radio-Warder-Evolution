@@ -43,7 +43,7 @@ from .cover_display import CoverDisplay
 from .update_progress import UpdateProgress
 from .update_result import UpdateResult
 from .update_state import UpdateState
-from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair, station_charset, repair_legacy_pair
+from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair, station_charset, repair_legacy_pair, align_icy_to_native
 
 
 class Timer:
@@ -995,13 +995,14 @@ class WarderRadio(Screen):
                 parsed = split_song(title)
                 if all(parsed):
                     artist, title = parsed
-        # Internet-radio stream metadata is primary. Native decoder tags are
-        # only the fallback while ICY is absent/unavailable or still loading.
+        native_artist, native_title = artist, title
+        # Internet-radio stream metadata is primary. Native decoder tags also
+        # help confirm reversed broadcaster fields without guessing.
         if self.playback.current and self.playback.current.get('url'):
             icy_artist, icy_title = self.metadata_monitor.song(self.playback.current['url'],
                 legacy_charset=station_charset(self.playback.current))
             if icy_title:
-                artist, title = icy_artist, icy_title
+                artist, title = align_icy_to_native(icy_artist, icy_title, native_artist, native_title)
                 # Only a confirmed artist + track from the current ICY stream
                 # enables the per-station badge. Do not probe whole catalogues.
                 if icy_artist:
