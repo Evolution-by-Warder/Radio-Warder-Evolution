@@ -78,7 +78,7 @@ class SettingsKeyboard(MenuList):
 class SettingsForm:
     widgets = ('settings_panel', 'settings_fill_middle', 'settings_fill_left',
                'settings_fill_right', 'settings_corner_tl', 'settings_corner_tr',
-               'settings_corner_bl', 'settings_corner_br',
+               'settings_corner_bl', 'settings_corner_br', 'settings_header',
                'settings_edge_top', 'settings_edge_bottom',
                'settings_edge_left', 'settings_edge_right', 'settings_title',
                'settings_text', 'settings_input', 'settings_status',
@@ -98,7 +98,7 @@ class SettingsForm:
         for name in self.widgets:
             host[name] = (SettingsOptions(scale) if name == 'settings_options' else
                           SettingsKeyboard(scale) if name == 'settings_keys' else
-                          Pixmap() if name.startswith('settings_corner_') else Label(''))
+                          Pixmap() if name.startswith('settings_corner_') or name == 'settings_header' else Label(''))
 
     @property
     def focus_name(self):
