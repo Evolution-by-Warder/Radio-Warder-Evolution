@@ -1,3 +1,19 @@
+# 0.2.1 (Warder Radio — original menu icons)
+
+- Add eight original cyan/ice-blue navigation icons designed for Warder Radio:
+  Country, Home, Subscriptions, Favourites, History, Recordings, Settings and Update.
+  Icons are installed locally with the IPK, require no network, and remain
+  inside native Enigma2 list items (no overlays over selection highlights).
+- Rename the first navigation item to **Country: Slovakia** (localized),
+  with the same 30px font as the other seven menu rows and the selected country
+  shown in cyan. Keep the country selector functional and readable.
+- Keep the approved background, headers, layout, playback, favourites, history,
+  recordings, settings and 21 language translations unchanged.
+- Bump the stable package to 0.2.1 for a normal opkg upgrade from 0.2.0,
+  including local 0.2.0-2 and 0.2.0-3 trial package revisions.
+- Validate the real native menu on OpenATV 8.0/8.1 and OpenPLi 9.2 fixtures,
+  pixel-bearing PNG files, update semantics, and package integrity.
+
 # 0.2.0 (Radio Warder Evolution — online radio catalogue)
 
 - Promote the owner-tested Radio 0.2.0 series to stable: worldwide Radio Browser
