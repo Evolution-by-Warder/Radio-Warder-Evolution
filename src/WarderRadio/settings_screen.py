@@ -215,7 +215,9 @@ class SettingsForm:
         host['settings_text'].setText(self.message_text)
         host['hint'].setText('')
         host['red'].setText(t('Back'))
-        host['green'].setText(t('Close') if self.view == 'about' else t('Confirm selection'))
+        host['green'].setText(t('Close') if self.view == 'about' else
+                              t('Press OK to select') if self.view == 'countries' else
+                              t('Confirm selection'))
         host['yellow'].setText('⌫' if editing else '')
         host['blue'].setText('a/A' if editing else '')
 
@@ -265,7 +267,11 @@ class SettingsForm:
                 self.menu_index = self.host['settings_options'].getSelectionIndex()
                 self.host.option_done(row)
         elif self.view == 'countries':
-            self.cursor_changed()
+            # Selecting a country navigates immediately. No second green
+            # confirmation is needed; green remains a compatible shortcut.
+            row = self.host['settings_options'].getCurrent()
+            if row:
+                self.host.group_done(row)
         elif self.view in ('categories', 'subscription-add'):
             row = self.host['settings_options'].getCurrent()
             if row and row[1] is not None:
