@@ -343,8 +343,9 @@ _FEATURED_CREDIT = re.compile(r'\s+(?:feat(?:uring)?\.?|ft\.?)\s+', re.I)
 def credited_artist_names(credit):
     """Return up to two individual artists when the radio states a collaboration.
 
-    Keep an unrecognized/ambiguous credit intact. Never split on a bare &,
-    slash, the word 'and', or a comma in an ordinary name.
+    Keep an unrecognized/ambiguous credit intact. Split explicit feat./ft.
+    pairings and a conservative two-full-name & credit; never split a bare
+    slash, the word 'and', or a comma in an ordinary band name.
     """
     credit = clean(credit, 240)
     if not credit:
@@ -352,6 +353,16 @@ def credited_artist_names(credit):
     featured = _FEATURED_CREDIT.split(credit, maxsplit=1)
     if len(featured) == 2:
         parts = featured
+    elif credit.count('&') == 1 and ',' not in credit:
+        left, right = (part.strip() for part in credit.split('&', 1))
+        # Two full stage names, e.g. "Emma Llure & Peter Pann".
+        # Keep most permanent bands ("Simon & Garfunkel", "Earth, Wind
+        # & Fire") intact; never guess a name from a single word.
+        if (len(left.split()) >= 2 and len(right.split()) >= 2
+                and len(left) <= 60 and len(right) <= 60):
+            parts = [left, right]
+        else:
+            return [credit]
     elif credit.count(',') == 1:
         left, right = (part.strip() for part in credit.split(',', 1))
         # Clear station credit such as "Sean Paul, INNA". An ordinary
