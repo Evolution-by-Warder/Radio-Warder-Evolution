@@ -16,7 +16,7 @@ except ImportError:
 
 from WarderRadio.i18n import SUPPORTED, translations
 from WarderRadio.model import Store, station, atomic_json, station_quality
-from WarderRadio.radio_browser import RadioBrowser, PAGE_SIZE, merge_stations, browser_station
+from WarderRadio.radio_browser import RadioBrowser, PAGE_SIZE, merge_stations, browser_station, search_variants
 from WarderRadio.song_details import lyrics, artist_information
 from WarderRadio.icy_badges import IcyBadgeCache, stream_identity
 from WarderRadio.station_logos import StationLogos, public_connection, rasterize, website_icons, logo_key
@@ -81,6 +81,63 @@ class BrowserTests(unittest.TestCase):
         self.assertEqual(len(third.rows), 7)
         self.assertFalse(third.more)
         self.assertTrue(set(row['id'] for row in page.rows).isdisjoint(row['id'] for row in second.rows))
+
+    def test_search_variants_keep_original_and_strip_only_accents_and_punctuation(self):
+        self.assertEqual(search_variants('Český Rádio-FM'), ['Český Rádio-FM', 'Cesky Radio FM'])
+        self.assertEqual(search_variants('Radio BBC 1'), ['Radio BBC 1'])
+        self.assertEqual(search_variants('99 Luftballons'), ['99 Luftballons'])
+        self.assertEqual(search_variants('  ČRo   D-Dur  '), ['ČRo   D-Dur', 'CRo D Dur'])
+
+    def test_fallback_is_used_only_after_empty_result_and_keeps_country_paging(self):
+        calls = []
+        def opener(request, timeout):
+            query = parse_qs(urlsplit(request.full_url).query)
+            calls.append(query)
+            search = query.get('name', [''])[0]
+            offset = int(query.get('offset', ['0'])[0])
+            if search == 'Cesky Radio FM':
+                rows = [remote_row(i + offset, name='Cesky Radio FM %d' % (i + offset))
+                        for i in range(PAGE_SIZE + 1 if offset == 0 else 2)]
+            else:
+                rows = []
+            return io.BytesIO(json.dumps(rows).encode())
+        browser = RadioBrowser(str(self.path), opener=opener, discovery=lambda: [],
+                               clock=lambda:self.now)
+        first = browser.page('CZ', 'Český Rádio-FM')
+        self.assertTrue(first.more)
+        self.assertEqual(len(first.rows), PAGE_SIZE)
+        self.assertEqual([q['name'][0] for q in calls],
+                         ['Český Rádio-FM', 'Cesky Radio FM'])
+        self.assertTrue(all(q['countrycode'] == ['CZ'] for q in calls))
+        second = browser.page('CZ', 'Český Rádio-FM', offset=PAGE_SIZE)
+        self.assertFalse(second.more)
+        self.assertEqual(len(second.rows), 2)
+        self.assertEqual(calls[-1]['name'], ['Cesky Radio FM'])
+        self.assertEqual(calls[-1]['offset'], [str(PAGE_SIZE)])
+
+    def test_successful_exact_search_and_empty_plain_search_do_not_extra_probe(self):
+        calls = []
+        def opener(request, timeout):
+            query = parse_qs(urlsplit(request.full_url).query)
+            calls.append(query)
+            rows = [remote_row(1, name='Český Rádio-FM')] if query.get('name') == ['Český Rádio-FM'] else []
+            return io.BytesIO(json.dumps(rows).encode())
+        browser = RadioBrowser(str(self.path), opener=opener, discovery=lambda: [],
+                               clock=lambda:self.now)
+        result = browser.page('CZ', 'Český Rádio-FM', 'rock')
+        self.assertEqual(len(result.rows), 1)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]['tag'], ['rock'])
+        self.assertEqual(calls[0]['tagExact'], ['true'])
+        self.assertEqual(browser.page('SK', 'Radio BBC 1').rows, [])
+        self.assertEqual(len(calls), 2)
+
+    def test_offline_empty_search_does_not_try_second_network_lookup(self):
+        browser = RadioBrowser(str(self.path), opener=lambda *args, **kw: (_ for _ in ()).throw(OSError('offline')),
+                               discovery=lambda: [], clock=lambda:self.now)
+        with self.assertRaises(OSError):
+            browser.page('SK', 'Český Rádio-FM')
+        self.assertFalse(browser.search_fallbacks)
 
     def test_stream_format_is_advertised_metadata_not_guessed(self):
         item = browser_station(remote_row(5, codec='mp3', bitrate=192))
