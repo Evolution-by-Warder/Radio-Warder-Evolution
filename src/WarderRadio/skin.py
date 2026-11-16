@@ -95,7 +95,7 @@ def make_skin(width, height):
               label('nowlabel', 1240, 745, 600, 20, 16, '#a6e7ff', 'center'),
               label('station', 1237, 776, 620, 32, 26, '#bdd4e6', 'center'),
               label('artist', 1237, 814, 620, 43, 35, '#00e5ff', 'center'),
-              label('track', 1237, 856, 620, 68, 30, '#f2f8ff', 'center', True),
+              label('track', 1237, 861, 620, 68, 30, '#f2f8ff', 'center', True),
               label('details', 1234, 945, 620, 33, 23, '#b5d9ed', 'center'),
               label('count', 530, 966, 620, 26, 22, '#9bbad0'),
               label('status', 62, 796, 380, 44, 18, '#d6e9f7', 'left', True),
