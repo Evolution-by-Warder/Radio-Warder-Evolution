@@ -16,7 +16,7 @@ class LightweightDesignTests(unittest.TestCase):
         for path in files:
             with self.subTest(path=path.name):
                 data = path.read_bytes()
-                self.assertTrue(data.startswith(b'\\x89PNG\\r\\n\\x1a\\n'))
+                self.assertTrue(data.startswith(b'\x89PNG\r\n\x1a\n'))
                 self.assertEqual(data[25], 6, 'RGBA with real transparency')
                 self.assertGreater(struct.unpack('>I', data[16:20])[0], 0)
 
