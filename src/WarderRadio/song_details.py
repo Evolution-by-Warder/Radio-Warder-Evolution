@@ -12,10 +12,10 @@ LRCLIB = 'https://lrclib.net/api/search'
 MUSICBRAINZ = 'https://musicbrainz.org/ws/2/'
 
 
-def read_response(url, params, opener):
+def read_response(url, params, opener, timeout=5):
     request = Request(url + '?' + urlencode(params),
                       headers={'User-Agent': USER_AGENT, 'Accept': 'application/json'})
-    with opener(request, timeout=5) as response:
+    with opener(request, timeout=timeout) as response:
         data = response.read(MAX_JSON + 1)
     if len(data) > MAX_JSON:
         raise ValueError('Song information response too large')
@@ -53,7 +53,7 @@ def lyrics(artist, track, opener=urlopen):
     return []
 
 
-def artist_information(artist, track, opener=urlopen):
+def artist_information(artist, track, opener=urlopen, timeout=5):
     """Retrieve a confidently identified artist even if this song isn't indexed.
 
     MusicBrainz recording credits are preferred; a unique exact artist-name
@@ -73,7 +73,7 @@ def artist_information(artist, track, opener=urlopen):
         query = 'recording:' + quote(track) + ' AND artist:' + quote(artist)
         try:
             recordings = read_response(MUSICBRAINZ + 'recording',
-                                       {'query': query, 'fmt': 'json', 'limit': 12}, opener)
+                                       {'query': query, 'fmt': 'json', 'limit': 12}, opener, timeout)
         except (OSError, ValueError, TypeError):
             recordings = {}
         artists = set()
@@ -112,7 +112,7 @@ def artist_information(artist, track, opener=urlopen):
         for name in candidates:
             try:
                 rows = read_response(MUSICBRAINZ + 'artist',
-                                     {'query': 'artist:' + quote(name), 'fmt': 'json', 'limit': 12}, opener)
+                                     {'query': 'artist:' + quote(name), 'fmt': 'json', 'limit': 12}, opener, timeout)
             except (OSError, ValueError, TypeError):
                 continue
             found = {row.get('id') for row in rows.get('artists', [])
@@ -127,7 +127,7 @@ def artist_information(artist, track, opener=urlopen):
     if not identifier:
         return []
     try:
-        row = read_response(MUSICBRAINZ + 'artist/' + identifier, {'fmt': 'json', 'inc': 'genres'}, opener)
+        row = read_response(MUSICBRAINZ + 'artist/' + identifier, {'fmt': 'json', 'inc': 'genres'}, opener, timeout)
     except (OSError, ValueError, TypeError):
         return []
     if not isinstance(row, dict):
@@ -192,7 +192,7 @@ def song_information(artist, track, opener=urlopen):
     return values + ['', 'iTunes'] if values else []
 
 
-def wikipedia_bio(artist, opener=urlopen):
+def wikipedia_bio(artist, opener=urlopen, timeout=3, max_pages=5):
     """Find an exact music biography, including verified band disambiguations.
 
     Avoid generic pages (for example "elan" means enthusiasm) and unrelated
@@ -204,9 +204,9 @@ def wikipedia_bio(artist, opener=urlopen):
     from urllib.parse import quote
     pages = [
         ('sk', artist),
-        ('sk', artist + ' (hudobná skupina)'),
         ('en', artist),
         ('en', artist + ' (band)'),
+        ('sk', artist + ' (hudobná skupina)'),
         ('cs', artist + ' (hudební skupina)'),
     ]
     music_markers = (
@@ -215,12 +215,12 @@ def wikipedia_bio(artist, opener=urlopen):
         'skupina', 'spevak', 'spevák', 'hudobn', 'poprock',
         'zpěvák', 'hudebn', 'rockov', 'kapela',
     )
-    for locale, title in pages:
+    for locale, title in pages[:max_pages]:
         url = ('https://' + locale + '.wikipedia.org/api/rest_v1/page/summary/' +
                quote(title.replace(' ', '_'), safe=''))
         request = Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'application/json'})
         try:
-            with opener(request, timeout=3) as response:
+            with opener(request, timeout=timeout) as response:
                 body = response.read(24 * 1024 + 1)
             if len(body) > 24 * 1024:
                 continue
@@ -245,10 +245,11 @@ def wikipedia_bio(artist, opener=urlopen):
 
 
 def artist_profile(artist, track, opener=urlopen):
-    """Show the confirmed musical biography quickly if encyclopedia has it.
+    """Prefer two quick exact-artist MusicBrainz calls over slow wiki probing.
 
-    MusicBrainz is the alternative when no exact musical Wikipedia page is
-    available; several slow APIs are not chained after a successful biography.
+    The song does not need to exist in the recording index to identify an
+    unambiguous performer. Only if MusicBrainz cannot establish the identity,
+    try three short, music-specific Wikipedia summaries.
     """
-    wiki = wikipedia_bio(artist, opener)
-    return wiki or artist_information(artist, track, opener)
+    information = artist_information(artist, '', opener, timeout=2.5)
+    return information or wikipedia_bio(artist, opener, timeout=2, max_pages=3)
