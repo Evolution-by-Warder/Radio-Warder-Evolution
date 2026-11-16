@@ -89,6 +89,8 @@ class RadioList(MenuList):
         # Small on-disk vector-like glyphs (40 px each) are decoded only once.
         # No extra per-row PNG reads or new worker is created while scrolling.
         self.menu_icons = {}
+        self.active_section = 'radio' if functions else ''
+        self.active_background = None
         self.menu_icon_names = {'radio': 'home', 'subscriptions': 'subscriptions',
                                 'favourites': 'favourites', 'history': 'history',
                                 'recordings': 'recordings', 'settings': 'settings',
@@ -113,9 +115,24 @@ class RadioList(MenuList):
                                               size=(n(372 - caption_width), n(58)),
                                               font=2, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            entries = [None, MultiContentEntryText(
+            entries = [None]
+            if key == self.active_section:
+                if self.active_background is None:
+                    try:
+                        self.active_background = LoadPixmap(
+                            os.path.join(ROOT, 'artwork', 'ui', 'active-menu.png'),
+                            cached=True)
+                    except (OSError, ValueError, TypeError):
+                        self.active_background = False
+                if self.active_background:
+                    entries.append(MultiContentEntryPixmapAlphaBlend(
+                        pos=(n(1), n(1)), size=(n(378), n(62)),
+                        png=self.active_background, flags=enigma.BT_SCALE))
+            entries.append(MultiContentEntryText(
                 pos=(n(64), n(6)), size=(n(298), n(52)),
-                font=0, flags=flags, text=item)]
+                font=0, flags=flags, text=item,
+                color=0xffffff if key == self.active_section else 0xd9e6ef,
+                color_sel=0xffffff))
             icon = self.menu_icon_names.get(key)
             if icon:
                 if icon not in self.menu_icons:
@@ -505,6 +522,12 @@ class WarderRadio(Screen):
 
     def select_mode(self, mode):
         self.mode, self.query = mode, ''
+        # Keep the currently open section visibly highlighted in the left
+        # navigation even when the user's focus moves to the station list.
+        self['functions'].active_section = mode
+        invalidate = getattr(self['functions'].l, 'invalidate', None)
+        if invalidate:
+            invalidate()
         self.logo_paused = self.logo_busy and self.logo_paused
         self.cancel_catalogue()
         self.catalogue_page, self.page_offset = None, 0
@@ -1315,6 +1338,10 @@ class WarderRadio(Screen):
         if self.mode != 'settings':
             self.settings_return = (self.mode, self.query, self['stations'].getSelectionIndex(), self.focus)
         self.mode, self.startup_autoplay = 'settings', False
+        self['functions'].active_section = 'settings'
+        invalidate = getattr(self['functions'].l, 'invalidate', None)
+        if invalidate:
+            invalidate()
         self.video_generation += 1; self.video_pending = False
         self.cover_generation += 1; self.cover_pending = False
         self.cover_display.token += 1; self.cover_display.disconnect(); self.cover_display.path = ''
@@ -1330,6 +1357,10 @@ class WarderRadio(Screen):
         if self.closed or self.installing:
             return
         self.mode, self.query, index, focus = self.settings_return
+        self['functions'].active_section = self.mode
+        invalidate = getattr(self['functions'].l, 'invalidate', None)
+        if invalidate:
+            invalidate()
         self.settings_form.confirm_callback = None
         self.refresh_rows(); self['stations'].moveToIndex(index)
         self.set_focus(focus); self.sync_spectrum()
