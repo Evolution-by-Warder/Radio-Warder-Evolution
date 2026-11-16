@@ -205,7 +205,7 @@ def wiki_artist_name(artist):
     return value
 
 
-def wikipedia_bio(artist, opener=urlopen, timeout=3, max_pages=5):
+def wikipedia_bio(artist, opener=urlopen, timeout=3, max_pages=5, skip_first=False):
     """Find an exact music biography, including verified band disambiguations.
 
     Avoid generic pages (for example "elan" means enthusiasm) and unrelated
@@ -228,7 +228,8 @@ def wikipedia_bio(artist, opener=urlopen, timeout=3, max_pages=5):
         'skupina', 'spevak', 'spevák', 'hudobn', 'poprock',
         'zpěvák', 'hudebn', 'rockov', 'kapela',
     )
-    for locale, title in pages[:max_pages]:
+    start = 1 if skip_first else 0
+    for locale, title in pages[start:start + max_pages]:
         url = ('https://' + locale + '.wikipedia.org/api/rest_v1/page/summary/' +
                quote(title.replace(' ', '_'), safe=''))
         request = Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'application/json'})
@@ -295,7 +296,8 @@ def artist_profile(artist, track, opener=urlopen):
     on the existing background song-info worker, never the GUI thread.
     """
     canonical = wiki_artist_name(artist)
-    if canonical != clean(artist, 100):
+    uppercase_icy = canonical != clean(artist, 100)
+    if uppercase_icy:
         # A single regional lookup often yields a biography immediately for
         # Slovak/Czech broadcasters with uppercase metadata.
         wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=1)
@@ -304,5 +306,7 @@ def artist_profile(artist, track, opener=urlopen):
     information = artist_information(artist, '', opener, timeout=2.5)
     if information:
         return information
-    wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=2)
+    # Do not repeat the Slovak summary when uppercase tags already tried it.
+    wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=2,
+                          skip_first=uppercase_icy)
     return wiki or wikipedia_action_bio(canonical, opener, timeout=2)
