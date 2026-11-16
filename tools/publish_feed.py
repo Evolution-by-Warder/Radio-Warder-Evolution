@@ -30,7 +30,7 @@ def verify_public(public_url, metadata):
 
 verify_public(url, build)
 release = {'version': version, 'tag': tag, 'url': url, 'sha256': build['sha256'],
-           'bytes': build['bytes'], 'notes': 'Warder Radio ' + version, 'notes_i18n': {}}
+           'bytes': build['bytes'], 'notes': 'Radio Warder Evolution ' + version, 'notes_i18n': {}}
 channel = 'testing' if is_testing else 'stable'
 feed = {'schema': 1, 'product': 'Warder Radio', 'channel': channel, 'release': release}
 target = ROOT / 'update/v2' / (channel + '.json')
