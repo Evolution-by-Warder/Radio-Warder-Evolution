@@ -1370,12 +1370,12 @@ class NativeTests(unittest.TestCase):
         icon = getattr(descriptor, 'iconstr', None) or getattr(descriptor, 'iconString', None)
         self.assertEqual(icon, 'plugin.png')
         self.assertTrue(Path(ROOT, 'src/WarderRadio', icon).is_file())
-        self.assertTrue(all(item.name == 'Radio – Warder Evolution' for item in descriptors))
+        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors))
         self.assertEqual(descriptors[2].where, [PluginDescriptor.WHERE_MENU])
         with patch('WarderRadio.model.read_json', return_value={'show_main_menu': True}):
             rows = plugin.main_menu('mainmenu')
         self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0][0], 'Radio – Warder Evolution')
+        self.assertEqual(rows[0][0], 'Radio Warder Evolution')
         self.assertEqual(rows[0][2], 'warder_radio_mainmenu')
 
     def test_home_remains_catalogue_not_pinned_and_favourite_reordering_remains(self):
