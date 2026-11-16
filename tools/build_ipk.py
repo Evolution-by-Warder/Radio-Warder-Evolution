@@ -71,14 +71,14 @@ preinst = b'''#!/bin/sh
 set -eu
 [ -n "${IPKG_INSTROOT:-}" ] && exit 0
 echo "******************************************************************"
-echo "*                 Radio by Warder                                *"
+echo "*                 Radio Warder Evolution                                *"
 echo "******************************************************************"
 case "${1:-}" in
-    upgrade) echo "Preparing Radio by Warder upgrade or reinstall..." ;;
-    *) echo "Preparing Radio by Warder installation or reinstall..." ;;
+    upgrade) echo "Preparing Radio Warder Evolution upgrade or reinstall..." ;;
+    *) echo "Preparing Radio Warder Evolution installation or reinstall..." ;;
 esac
 python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' || {
-    echo "ERROR: Radio by Warder requires Python 3.9 or newer." >&2
+    echo "ERROR: Radio Warder Evolution requires Python 3.9 or newer." >&2
     exit 1
 }
 echo "Python compatibility: OK"
@@ -92,7 +92,7 @@ plugin_root=/usr/lib/enigma2/python/Plugins/Extensions/WarderRadio
 rm -f "$plugin_root"/__pycache__/*.pyc "$plugin_root"/__pycache__/*.pyo \\
       "$plugin_root"/*.pyc "$plugin_root"/*.pyo
 echo "******************************************************************"
-echo "Install/upgrade/reinstall finished: Radio by Warder"
+echo "Install/upgrade/reinstall finished: Radio Warder Evolution"
 echo "Existing radio settings, favourites, history and picons were preserved."
 echo "Please restart GUI to activate changes."
 echo "******************************************************************"
@@ -105,9 +105,9 @@ set -eu
 case "${1:-}" in
     remove|deconfigure)
         echo "******************************************************************"
-        echo "*                 Radio by Warder                                *"
+        echo "*                 Radio Warder Evolution                                *"
         echo "******************************************************************"
-        echo "Removing Radio by Warder plugin files..."
+        echo "Removing Radio Warder Evolution plugin files..."
         ;;
 esac
 exit 0
@@ -120,7 +120,7 @@ set -eu
 case "${1:-}" in
     remove|purge)
         echo "******************************************************************"
-        echo "Radio by Warder removal finished."
+        echo "Radio Warder Evolution removal finished."
         echo "Saved Enigma2 settings, favourites, history and picons were left intact."
         echo "Please restart GUI to activate changes."
         echo "******************************************************************"
