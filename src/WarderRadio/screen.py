@@ -43,7 +43,7 @@ from .cover_display import CoverDisplay
 from .update_progress import UpdateProgress
 from .update_result import UpdateResult
 from .update_state import UpdateState
-from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair, station_charset, repair_legacy_pair, align_icy_to_native
+from .metadata import IcyMonitor, clean as clean_metadata, split_song, repair_pair, station_charset, repair_legacy_pair, align_icy_to_native, align_icy_to_catalogue
 
 
 class Timer:
@@ -180,6 +180,7 @@ class WarderRadio(Screen):
         self.cover_key, self.cover_generation = '', 0
         self.cover_pending, self.cover_attempts, self.cover_next = False, 0, 0.0
         self.metadata_monitor = IcyMonitor()
+        self.verified_song_order = None  # Last exact, catalogue-confirmed pair only.
         self.icy_probe_jobs = Jobs()
         self.icy_probe_busy = False
         self.icy_probe_next = 0.0
@@ -1008,6 +1009,11 @@ class WarderRadio(Screen):
                 if icy_artist:
                     self.mark_icy_supported(self.playback.current)
         artist, title = repair_legacy_pair(artist, title, station_charset(self.playback.current))
+        if self.verified_song_order:
+            station_id = (self.playback.current or {}).get('id')
+            raw, verified = self.verified_song_order
+            if (station_id, artist, title) == raw:
+                artist, title = verified
         self.playing = True
         self['artist'].setText(artist[:240])
         self['track'].setText(title[:480] or t('No track information'))
@@ -1100,16 +1106,45 @@ class WarderRadio(Screen):
         if not key or self.cover_pending or self.cover_attempts >= 2 or time.monotonic() < self.cover_next:
             return
         generation = self.cover_generation
-        self.cover_pending = self.cover_jobs.submit('cover', lambda: lookup_cover(artist, title),
-            lambda result, error: self.cover_loaded(generation, result, error))
+        self.cover_pending = self.cover_jobs.submit(
+            'cover', lambda: self._cover_lookup_with_identity(artist, title),
+            lambda result, error: self.cover_loaded(generation, artist, title, result, error))
         if self.cover_pending:
             self.cover_attempts += 1
 
-    def cover_loaded(self, generation, result, error):
+    def _cover_lookup_with_identity(self, artist, title):
+        # This is executed in the existing artwork worker, never on GUI thread.
+        # Reuse its verified iTunes result, without extra HTTP requests.
+        proven = []
+        def trace(event):
+            if (event.get('event') == 'selected' and
+                    event.get('rank', 0) >= 1 and
+                    event.get('artist') and event.get('title')):
+                proven.append((event['artist'], event['title']))
+        cover = lookup_cover(artist, title, trace=trace)
+        return cover, (proven[-1] if proven else None)
+
+    def cover_loaded(self, generation, original_artist, original_title, result, error):
         self.cover_pending = False
-        if self.closed or self.mode == 'settings' or generation != self.cover_generation:
+        if self.closed or generation != self.cover_generation:
             return
-        path, source = result if not error and result else ('', '')
+        cover, proven = result if not error and result else (('', ''), None)
+        path, source = cover or ('', '')
+        current = (self['artist'].getText(), self['track'].getText())
+        if proven and current == (original_artist, original_title):
+            corrected = align_icy_to_catalogue(original_artist, original_title,
+                                                proven[0], proven[1])
+            if corrected != current:
+                station_id = (self.playback.current or {}).get('id')
+                if station_id:
+                    self.verified_song_order = ((station_id, original_artist, original_title),
+                                                corrected)
+                    self['artist'].setText(corrected[0][:240])
+                    self['track'].setText(corrected[1][:480])
+                    self.cover_key = (station_id, corrected[0].casefold(), corrected[1].casefold())
+                    self.settings_form.refresh_playback()
+        if self.mode == 'settings':
+            return
         if path and os.path.isfile(path):
             self['nowlabel'].setText('iTunes · ' + t('Artist artwork') if source == 'iTunes artist' else source)
             self.cover_display.show(path)
