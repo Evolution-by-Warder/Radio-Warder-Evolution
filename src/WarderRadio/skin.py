@@ -82,6 +82,16 @@ def make_skin(width, height):
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
                  % (n(55), n(232), n(390), n(64) * 8))
+    # Eight original Warder Radio menu symbols (not reused from YouTube).
+    # Icon positions track the native 64px MenuList rows; the existing left
+    # panel, equalizer, country selector and selection/highlight stay intact.
+    radio_menu_icons = ('country', 'home', 'subscriptions', 'favourites',
+                        'history', 'recordings', 'settings', 'update')
+    for i, icon in enumerate(radio_menu_icons):
+        parts.append('<ePixmap zPosition="3" %s pixmap="%s/artwork/menu/%s.png" '
+                     'alphatest="blend" scale="1" />'
+                     % (rect(62, 236 + 64 * i, 56, 56),
+                        escape(ROOT, {'"': '&quot;'}), icon))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
     # Settings and every nested choice stay in the same combined content area.

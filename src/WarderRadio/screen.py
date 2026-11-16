@@ -97,17 +97,21 @@ class RadioList(MenuList):
                 country = item[len(caption):]
                 # The slightly larger first-row font keeps the country selector legible.
                 # Bound both translated text and cyan country name to the menu.
-                caption_width = min(232, max(165, len(caption) * 12 + 12))
+                # The radio-specific cyan icons occupy the first 64px of the
+                # navigation cell, without changing the 8x64px menu geometry.
+                # Reserve room for the localized country name and dropdown.
+                text_start = 76
+                caption_width = min(198, max(158, len(caption) * 10 + 8))
                 return [None,
-                        MultiContentEntryText(pos=(n(16), n(0)),
-                                              size=(n(caption_width - 16), n(58)),
+                        MultiContentEntryText(pos=(n(text_start), n(0)),
+                                              size=(n(caption_width), n(58)),
                                               font=2, flags=flags, text=caption),
-                        MultiContentEntryText(pos=(n(caption_width), n(0)),
-                                              size=(n(372 - caption_width), n(58)),
+                        MultiContentEntryText(pos=(n(text_start + caption_width), n(0)),
+                                              size=(n(382 - text_start - caption_width), n(58)),
                                               font=2, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            return [None, MultiContentEntryText(pos=(n(16), n(6)),
-                                               size=(n(350), n(52)),
+            return [None, MultiContentEntryText(pos=(n(76), n(6)),
+                                               size=(n(302), n(52)),
                                                font=0, flags=flags, text=item)]
         pixmap = self.logo(item) if self.logo else None
         icy = bool(self.icy_supported and self.icy_supported(item))
