@@ -2010,9 +2010,10 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['settings_title'].getText(), radio.t('Choose country'))
         self.assertEqual(screen['settings_options'].getCurrent()[1], screen.active_group)
         choices=screen['settings_options'].list
+        self.assertEqual(screen['green'].getText(), radio.t('Press OK to select'))
         screen['settings_options'].moveToIndex(next(i for i,row in enumerate(choices) if row[1]=='CZ'))
-        screen.ok();self.assertNotEqual(screen.active_group,'CZ')
-        screen.green_pressed()
+        screen.ok()
+        self.assertEqual(screen.active_group, 'CZ')
         self.assertEqual(screen.focus, 'stations')
         self.wait_for_country(screen)
         self.assertEqual(screen.active_group, 'CZ')
@@ -2020,6 +2021,21 @@ class NativeTests(unittest.TestCase):
         self.assertIn(radio.group_label('Čechy'), screen['functions'].l.rows[0][0])
         self.assertEqual(Store(self.tmp.name).online_country, 'CZ')
         self.assertIs(session.nav.current, playing)
+
+    def test_country_green_remains_optional_and_other_settings_keep_confirmation(self):
+        screen, session, _ = self.new()
+        screen.focus_country(); screen.ok()
+        self.assertEqual(screen['green'].getText(), radio.t('Press OK to select'))
+        countries = screen['settings_options'].list
+        screen['settings_options'].moveToIndex(
+            next(i for i, row in enumerate(countries) if row[1] == 'CZ'))
+        screen.green_pressed()
+        self.wait_for_country(screen)
+        self.assertEqual(screen.active_group, 'CZ')
+        screen.options()
+        self.assertEqual(screen['green'].getText(), radio.t('Confirm selection'))
+        screen.exit()
+        self.assertEqual(screen.mode, 'radio')
 
     def test_country_menu_cancel_preserves_station_selection_and_other_section(self):
         screen, session, root = self.new()
