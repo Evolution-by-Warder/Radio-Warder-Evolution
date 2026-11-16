@@ -146,6 +146,61 @@ class MusicDetailTests(unittest.TestCase):
         self.assertEqual(calls, [('musicbrainz.org', 2.5),
                                  ('sk.wikipedia.org', 2)])
 
+    def test_uppercase_icy_artist_finds_correct_slovak_and_world_artist_quickly(self):
+        from urllib.parse import unquote, urlsplit
+        from WarderRadio.song_details import artist_profile, wiki_artist_name
+        self.assertEqual(wiki_artist_name('PAVOL HAMMEL'), 'Pavol Hammel')
+        self.assertEqual(wiki_artist_name('THE BEATLES'), 'The Beatles')
+        self.assertEqual(wiki_artist_name('ABBA'), 'ABBA')
+        self.assertEqual(wiki_artist_name('AC/DC'), 'AC/DC')
+        for incoming, expected_title, kind in [
+                ('PAVOL HAMMEL', 'Pavol Hammel', 'Slovak singer'),
+                ('THE BEATLES', 'The Beatles', 'English rock band')]:
+            calls = []
+            def opener(request, timeout):
+                url = urlsplit(request.full_url)
+                calls.append((url.hostname, unquote(url.path), timeout))
+                self.assertEqual(url.hostname, 'sk.wikipedia.org')
+                self.assertEqual(unquote(url.path).split('/')[-1], expected_title.replace(' ', '_'))
+                self.assertEqual(timeout, 2)
+                data = {'type': 'standard', 'title': expected_title,
+                        'description': kind, 'extract': expected_title + ' is an important musician.'}
+                return io.BytesIO(json.dumps(data).encode())
+            self.assertEqual(
+                artist_profile(incoming, 'An Ordinary Track', opener),
+                ['Biography: ' + expected_title + ' is an important musician.',
+                 '', 'Wikipedia (SK)'])
+            self.assertEqual(len(calls), 1)
+
+    def test_wikipedia_action_bio_recovers_when_musicbrainz_and_rest_fail(self):
+        from urllib.parse import urlsplit
+        from WarderRadio.song_details import wikipedia_action_bio, artist_profile
+        calls = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            calls.append(url.path)
+            if url.path.endswith('/w/api.php'):
+                value = {'query': {'pages': [{'title': 'Pavol Hammel',
+                       'extract': 'Pavol Hammel je slovenský spevák, gitarista a skladateľ.'}]}}
+                return io.BytesIO(json.dumps(value).encode())
+            raise OSError('Upstream unavailable')
+        self.assertEqual(
+            wikipedia_action_bio('PAVOL HAMMEL', opener),
+            ['Biography: Pavol Hammel je slovenský spevák, gitarista a skladateľ.',
+             '', 'Wikipedia (SK)'])
+        calls.clear()
+        self.assertEqual(
+            artist_profile('PAVOL HAMMEL', 'Cirkus Leto', opener),
+            ['Biography: Pavol Hammel je slovenský spevák, gitarista a skladateľ.',
+             '', 'Wikipedia (SK)'])
+        self.assertIn('/w/api.php', calls)
+        # Exact musical title is mandatory; generic unrelated biographies
+        # cannot be accepted because a service returned a page.
+        bad = lambda request, timeout: io.BytesIO(json.dumps({
+            'query': {'pages': [{'title': 'Other person',
+                                'extract': 'A musician.'}]}}).encode())
+        self.assertEqual(wikipedia_action_bio('PAVOL HAMMEL', bad), [])
+
     def test_exact_music_wikipedia_summary(self):
         page = {'type':'standard','title':'Test Artist','description':'British rock band',
                 'extract':'Test Artist is a British rock band formed in 2001.'}
