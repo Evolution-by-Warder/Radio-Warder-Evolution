@@ -1,7 +1,7 @@
 """Lazy plugin entry: no network, playback or firmware changes at discovery."""
 from Plugins.Plugin import PluginDescriptor
 
-DISPLAY_NAME = 'Radio – Warder Evolution'
+DISPLAY_NAME = 'Radio Warder Evolution'
 
 def main(session, **kwargs):
     from .screen import WarderRadio
