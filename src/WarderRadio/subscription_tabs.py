@@ -4,9 +4,12 @@ Use LEFT/RIGHT to choose a saved category or the always-visible Add control.
 The category bar never downloads stations or handles playback itself.
 """
 import enigma
+import os
 from enigma import eListboxPythonMultiContent, gFont
 from Components.MenuList import MenuList
-from Components.MultiContent import MultiContentEntryText
+from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
+from Tools.LoadPixmap import LoadPixmap
+from . import ROOT
 
 from .i18n import t
 
@@ -24,6 +27,10 @@ class SubscriptionTabs(MenuList):
         self.l.setFont(0, gFont('Regular', max(1, round(21 * scale))))
         self.l.setFont(1, gFont('Regular', max(1, round(27 * scale))))
         self.l.setBuildFunc(self.build)
+        try:
+            self.selected_chip = LoadPixmap(os.path.join(ROOT, 'artwork', 'ui', 'chip-selected.png'), cached=True)
+        except (OSError, ValueError, TypeError):
+            self.selected_chip = None
 
     def set_categories(self, categories, active):
         categories = list(categories)
@@ -61,6 +68,10 @@ class SubscriptionTabs(MenuList):
 
         if not self.categories:
             # An empty subscription screen must have an obvious first action.
+            if self.selected_chip is not None:
+                result.append(MultiContentEntryPixmapAlphaBlend(
+                    pos=(n(8), n(7)), size=(n(594), n(48)),
+                    png=self.selected_chip, flags=enigma.BT_SCALE))
             result.append(MultiContentEntryText(
                 pos=(n(12), n(5)), size=(n(594), n(52)), font=1, flags=flags,
                 text='+ ' + t('Add first subscription'),
@@ -75,11 +86,19 @@ class SubscriptionTabs(MenuList):
             current = category == self.active
             short = category[:11] + ('…' if len(category) > 11 else '')
             caption = ('› ' if focus else '● ' if current else '') + short
+            if focus and self.selected_chip is not None:
+                result.append(MultiContentEntryPixmapAlphaBlend(
+                    pos=(n(8 + column * 150), n(7)), size=(n(145), n(48)),
+                    png=self.selected_chip, flags=enigma.BT_SCALE))
             result.append(MultiContentEntryText(
                 pos=(n(8 + column * 150), n(7)), size=(n(145), n(48)),
                 font=0, flags=flags, text=caption,
                 color=0x00ceff if focus else 0x4bc951 if current else 0xa6bed1,
                 color_sel=0x00ceff if focus else 0x4bc951 if current else 0xa6bed1))
+        if self.cursor == len(self.categories) and self.selected_chip is not None:
+            result.append(MultiContentEntryPixmapAlphaBlend(
+                pos=(n(462), n(7)), size=(n(151), n(48)),
+                png=self.selected_chip, flags=enigma.BT_SCALE))
         result.append(MultiContentEntryText(
             pos=(n(462), n(7)), size=(n(151), n(48)), font=0, flags=flags,
             text='+ ' + t('Add subscription'),
