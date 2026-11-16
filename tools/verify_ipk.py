@@ -78,14 +78,14 @@ with tempfile.TemporaryDirectory() as tmp:
         scripts = {name: tar.extractfile('./' + name).read().decode()
                    for name in ('preinst', 'postinst', 'prerm', 'postrm')}
         for name in ('preinst', 'postinst', 'prerm', 'postrm'):
-            assert 'Radio by Warder' in scripts[name], name
+            assert 'Radio Warder Evolution' in scripts[name], name
         assert 'remove|purge' in scripts['postrm']
         assert '/etc/enigma2/warder-radio' in scripts['postrm']
         for name, event, expected in (
-                ('preinst', 'install', 'Preparing Radio by Warder installation'),
-                ('preinst', 'upgrade', 'Preparing Radio by Warder upgrade'),
-                ('prerm', 'remove', 'Removing Radio by Warder'),
-                ('postrm', 'remove', 'Radio by Warder removal finished')):
+                ('preinst', 'install', 'Preparing Radio Warder Evolution installation'),
+                ('preinst', 'upgrade', 'Preparing Radio Warder Evolution upgrade'),
+                ('prerm', 'remove', 'Removing Radio Warder Evolution'),
+                ('postrm', 'remove', 'Radio Warder Evolution removal finished')):
             result = subprocess.run(['sh', str(Path(tmp, name)), event],
                                     check=True, capture_output=True, text=True)
             assert expected in result.stdout, (name, event, result.stdout)
