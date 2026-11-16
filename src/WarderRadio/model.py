@@ -137,7 +137,6 @@ class Store:
         category = clean(data.get('radio_subscription_category'), 60)
         self.subscription_category = category if category in self.subscriptions else next(iter(self.subscriptions), '')
         self.favourites = self._items(data.get('favourites'), 1000)
-        self.pinned = self._items(data.get('pinned'), 80)
         self.history = self._items(data.get('history'), 100)
         self.custom = self._items(data.get('custom'), 1000)
         self.group = clean(data.get('group', 'Slovensko'))
@@ -163,7 +162,6 @@ class Store:
 
     def save(self):
         data = dict(self.data, schema=self.data.get('schema', 1), favourites=self.favourites,
-                    pinned=self.pinned,
                     history=self.history, custom=self.custom, group=self.group,
                     show_main_menu=self.show_main_menu, screensaver_delay=self.screensaver_delay,
                     online_country=self.online_country, radio_subscriptions=self.subscriptions,
@@ -185,26 +183,6 @@ class Store:
             self.save()
         except OSError:
             self.favourites = old
-            raise
-        return adding
-
-    def is_pinned(self, item):
-        return any(same_station(row, item) for row in self.pinned)
-
-    def toggle_pin(self, item):
-        """Keep an explicit Home pin list, separate from favourites/history."""
-        previous = list(self.pinned)
-        adding = not self.is_pinned(item)
-        if adding:
-            if len(self.pinned) >= 80:
-                raise ValueError('Too many pinned stations')
-            self.pinned.append(station(item))
-        else:
-            self.pinned = [row for row in self.pinned if not same_station(row, item)]
-        try:
-            self.save()
-        except OSError:
-            self.pinned = previous
             raise
         return adding
 
