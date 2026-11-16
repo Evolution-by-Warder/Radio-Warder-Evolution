@@ -86,6 +86,13 @@ class RadioList(MenuList):
         self.l.setBuildFunc(self.build)
         self.logo = None
         self.icy_supported = None
+        # Small on-disk vector-like glyphs (40 px each) are decoded only once.
+        # No extra per-row PNG reads or new worker is created while scrolling.
+        self.menu_icons = {}
+        self.menu_icon_names = {'radio': 'home', 'subscriptions': 'subscriptions',
+                                'favourites': 'favourites', 'history': 'history',
+                                'recordings': 'recordings', 'settings': 'settings',
+                                'plugin-update': 'plugin-update'}
 
     def build(self, item, key=None):
         def n(value):
@@ -106,9 +113,24 @@ class RadioList(MenuList):
                                               size=(n(372 - caption_width), n(58)),
                                               font=2, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            return [None, MultiContentEntryText(pos=(n(16), n(6)),
-                                               size=(n(350), n(52)),
-                                               font=0, flags=flags, text=item)]
+            entries = [None, MultiContentEntryText(
+                pos=(n(64), n(6)), size=(n(298), n(52)),
+                font=0, flags=flags, text=item)]
+            icon = self.menu_icon_names.get(key)
+            if icon:
+                if icon not in self.menu_icons:
+                    try:
+                        self.menu_icons[icon] = LoadPixmap(
+                            os.path.join(ROOT, 'artwork', 'ui', 'icon-' + icon + '.png'),
+                            cached=True)
+                    except (OSError, ValueError, TypeError):
+                        self.menu_icons[icon] = None
+                if self.menu_icons[icon] is not None:
+                    entries.append(MultiContentEntryPixmapAlphaBlend(
+                        pos=(n(14), n(13)), size=(n(40), n(40)),
+                        png=self.menu_icons[icon],
+                        flags=(enigma.BT_SCALE | enigma.BT_KEEP_ASPECT_RATIO)))
+            return entries
         pixmap = self.logo(item) if self.logo else None
         icy = bool(self.icy_supported and self.icy_supported(item))
         contents = [None,
