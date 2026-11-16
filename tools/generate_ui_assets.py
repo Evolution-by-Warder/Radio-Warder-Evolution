@@ -132,10 +132,11 @@ def main():
     selection('select-stations.png', 620, 88, 19)
     selection('select-menu.png', 390, 64, 16)
     selection('select-settings.png', 1348, 60, 16)
+    selection('chip-selected.png', 145, 48, 13)
     icons()
     result = list(OUT.glob('*.png'))
     total = sum(path.stat().st_size for path in result)
-    assert len(result) == 15 and total < 32 * 1024, (len(result), total)
+    assert len(result) == 16 and total < 48 * 1024, (len(result), total)
     print('Warder lightweight UI assets: %d PNG, %d bytes' % (len(result), total))
 
 
