@@ -14,8 +14,8 @@ class TranslationTests(unittest.TestCase):
                     'lt', 'nl', 'pl', 'pt', 'ro', 'ru', 'sk', 'tr', 'uk', 'zh'}
         self.assertEqual(set(i18n.SUPPORTED), expected)
         english = i18n.translations('en')
-        # Existing 184 keys plus six radio enhancement labels.
-        self.assertEqual(len(english), 190)
+        # Existing 184 keys plus four useful radio enhancement labels.
+        self.assertEqual(len(english), 188)
         for code in expected:
             with self.subTest(code=code):
                 translated = i18n.translations(code)
