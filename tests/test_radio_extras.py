@@ -112,6 +112,8 @@ class MusicDetailTests(unittest.TestCase):
         def opener(request, timeout):
             url = urlsplit(request.full_url)
             calls.append((url.netloc, url.path, timeout))
+            if url.netloc == 'www.theaudiodb.com':
+                return io.BytesIO(b'{"artists": null}')
             self.assertEqual(url.netloc, 'musicbrainz.org')
             self.assertEqual(timeout, 2.5)
             if url.path.endswith('/artist'):
@@ -125,7 +127,7 @@ class MusicDetailTests(unittest.TestCase):
         self.assertEqual(
             artist_profile('Dorota BAROVÁ', 'Šťastná planeta', opener),
             ['Dorota Barová', 'Czechia', '1975', '', 'MusicBrainz'])
-        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(calls), 3)  # one failed TheAudioDB, two MusicBrainz
 
     def test_artist_profile_falls_back_to_short_wikipedia_search(self):
         from urllib.parse import urlsplit
@@ -133,6 +135,8 @@ class MusicDetailTests(unittest.TestCase):
         def opener(request, timeout):
             url = urlsplit(request.full_url)
             calls.append((url.netloc, timeout))
+            if url.netloc == 'www.theaudiodb.com':
+                return io.BytesIO(b'{"artists": null}')
             if url.netloc == 'musicbrainz.org':
                 raise OSError('MusicBrainz unavailable')
             self.assertEqual(timeout, 2)
@@ -143,7 +147,8 @@ class MusicDetailTests(unittest.TestCase):
         self.assertEqual(
             artist_profile('Local Artist', 'Any Song', opener),
             ['Biography: Local Artist is a Slovak singer.', '', 'Wikipedia (SK)'])
-        self.assertEqual(calls, [('musicbrainz.org', 2.5),
+        self.assertEqual(calls, [('www.theaudiodb.com', 2.5),
+                                 ('musicbrainz.org', 2.5),
                                  ('sk.wikipedia.org', 2)])
 
     def test_uppercase_icy_artist_finds_correct_slovak_and_world_artist_quickly(self):
@@ -160,6 +165,8 @@ class MusicDetailTests(unittest.TestCase):
             def opener(request, timeout):
                 url = urlsplit(request.full_url)
                 calls.append((url.hostname, unquote(url.path), timeout))
+                if url.hostname == 'www.theaudiodb.com':
+                    return io.BytesIO(b'{"artists": null}')
                 self.assertEqual(url.hostname, 'sk.wikipedia.org')
                 self.assertEqual(unquote(url.path).split('/')[-1], expected_title.replace(' ', '_'))
                 self.assertEqual(timeout, 2)
@@ -170,7 +177,7 @@ class MusicDetailTests(unittest.TestCase):
                 artist_profile(incoming, 'An Ordinary Track', opener),
                 ['Biography: ' + expected_title + ' is an important musician.',
                  '', 'Wikipedia (SK)'])
-            self.assertEqual(len(calls), 1)
+            self.assertEqual(len(calls), 2)  # failed AudioDB then regional Wiki
 
     def test_wikipedia_action_bio_recovers_when_musicbrainz_and_rest_fail(self):
         from urllib.parse import urlsplit
@@ -200,6 +207,58 @@ class MusicDetailTests(unittest.TestCase):
             'query': {'pages': [{'title': 'Other person',
                                 'extract': 'A musician.'}]}}).encode())
         self.assertEqual(wikipedia_action_bio('PAVOL HAMMEL', bad), [])
+
+    def test_audiodb_verified_biography_uses_preferred_language_and_one_call(self):
+        from WarderRadio.song_details import audiodb_artist_bio, artist_profile
+        from urllib.parse import urlsplit, parse_qs
+        calls = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            calls.append((url.hostname, parse_qs(url.query), timeout))
+            self.assertEqual(url.hostname, 'www.theaudiodb.com')
+            return io.BytesIO(json.dumps({'artists': [{
+                'idArtist': '12345', 'strArtist': 'Pavol Hammel',
+                'strBiographySK': 'Slovenský spevák a skladateľ s bohatou hudobnou históriou.',
+                'strBiographyEN': 'Slovak musician, singer and composer with decades of recorded music.'
+            }]}).encode())
+        bio = audiodb_artist_bio('PAVOL HAMMEL', opener, language='sk')
+        self.assertEqual(bio[-1], 'TheAudioDB')
+        self.assertIn('Slovenský spevák', bio[0])
+        self.assertEqual(calls[0][1]['s'], ['PAVOL HAMMEL'])
+        self.assertEqual(len(calls), 1)
+        # Profile makes one AudioDB request; no Wikipedia/MB when verified.
+        self.assertEqual(artist_profile('Pavol Hammel', 'Cirkus Leto', opener)[-1], 'TheAudioDB')
+        self.assertEqual(len(calls), 2)
+
+    def test_audiodb_rejects_unrelated_and_ambiguous_artists(self):
+        from WarderRadio.song_details import audiodb_artist_bio
+        def fake(rows):
+            return lambda *a, **k: io.BytesIO(json.dumps({'artists': rows}).encode())
+        good = {'idArtist': '7', 'strArtist': 'The Beatles',
+                'strBiographyEN': 'The Beatles were an English rock band formed in Liverpool.'}
+        self.assertEqual(audiodb_artist_bio('Beatles', fake([good])), [])
+        self.assertEqual(audiodb_artist_bio('The Beatles', fake([good, dict(good, idArtist='8')])), [])
+        self.assertEqual(audiodb_artist_bio('The Beatles', fake(None)), [])
+        self.assertEqual(audiodb_artist_bio('The Beatles', fake([dict(good, strBiographyEN='')]), []))
+        self.assertTrue(audiodb_artist_bio('THE BEATLES', fake([good]), language='en'))
+        self.assertTrue(audiodb_artist_bio('THE BEATLES', fake([dict(good, strBiographyEN=None,
+                                    strBiography='The Beatles were a British rock group in England.')]),
+                                    language='en'))
+
+    def test_artist_profile_never_caches_absent_results_or_test_openers(self):
+        from WarderRadio.song_details import artist_profile
+        calls = []
+        def opener(request, timeout):
+            calls.append(request.full_url)
+            if 'theaudiodb.com' in request.full_url:
+                return io.BytesIO(json.dumps({'artists': [{
+                    'idArtist': '9', 'strArtist': 'The Beatles',
+                    'strBiographyEN': 'The Beatles were an influential rock band from Liverpool, England.'
+                }]}).encode())
+            raise AssertionError('Unnecessary fallback')
+        self.assertEqual(artist_profile('THE BEATLES', 'Hello Goodbye', opener)[-1], 'TheAudioDB')
+        self.assertEqual(artist_profile('THE BEATLES', 'Hello Goodbye', opener)[-1], 'TheAudioDB')
+        self.assertEqual(len(calls), 2)
 
     def test_exact_music_wikipedia_summary(self):
         page = {'type':'standard','title':'Test Artist','description':'British rock band',
