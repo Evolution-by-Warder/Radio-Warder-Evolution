@@ -968,14 +968,8 @@ class WarderRadio(Screen):
             return
         self.icy_known.add(identity)
         self.icy_cache.confirm(item)
-        if not self.closed and self.mode != 'settings' and any(
-                row.get('id') == identity for row in self.rows if isinstance(row, dict)):
-            widget = self['stations']
-            invalidate = getattr(widget.l, 'invalidate', None)
-            if invalidate:
-                invalidate()
-            elif widget.instance is not None:
-                widget.instance.invalidate()
+        # Do not force a whole-list repaint for a song on another page.
+        self.invalidate_visible_station(lambda row: row.get('id') == identity)
 
     def metadata(self):
         if self.video_active:
@@ -1633,20 +1627,63 @@ class WarderRadio(Screen):
         entry = self.logo_results.get(logo_key(item))
         self.saver_picon.show(entry[0] if entry else None)
 
+    def visible_station_range(self):
+        """Exact mounted page geometry, avoiding hidden logo/ICY lookups.
+
+        Home shows eight stations, Subscriptions only seven because of its
+        native category tabs. Do not probe or redraw the hidden eighth row.
+        """
+        if (self.mode == 'settings' or self.saver_active or
+                not getattr(self, 'shown', True) or self._saver_modal_open()):
+            return range(0)
+        widget = self['stations']
+        if not self.rows or widget.instance is None:
+            return range(0)
+        count = 7 if self.mode == 'subscriptions' else VISIBLE_ROWS
+        index = max(0, widget.getSelectionIndex())
+        get_top = getattr(widget.instance, 'getTopIndex', None)
+        top = get_top() if get_top else index - index % count
+        first = max(0, min(top, len(self.rows)))
+        return range(first, min(first + count, len(self.rows)))
+
     def visible_logo_items(self):
         if self.mode == 'settings' or not getattr(self, 'shown', True) or self._saver_modal_open():
             return []
         if self.saver_active:
             station = self.playback.current
             return [station] if isinstance(station, dict) and logo_key(station) else []
+        return [self.rows[index] for index in self.visible_station_range()
+                if isinstance(self.rows[index], dict)
+                and self.rows[index].get('name') and logo_key(self.rows[index])]
+
+    def invalidate_visible_station(self, matches):
+        """Invalidate only the affected visible native list row when supported.
+
+        Some older Enigma2 images lack invalidateEntry; retain the original
+        full-invalidate fallback for them, but only when the row is visible.
+        """
         widget = self['stations']
-        if not self.rows or widget.instance is None:
-            return []
-        index = max(0, widget.getSelectionIndex())
-        get_top = getattr(widget.instance, 'getTopIndex', None)
-        top = get_top() if get_top else index - index % VISIBLE_ROWS
-        return [item for item in self.rows[max(0, top):max(0, top) + VISIBLE_ROWS]
-                if isinstance(item, dict) and item.get('name') and logo_key(item)]
+        if self.closed or widget.instance is None:
+            return False
+        for index in self.visible_station_range():
+            if not matches(self.rows[index]):
+                continue
+            partial = getattr(widget.l, 'invalidateEntry', None)
+            if callable(partial):
+                try:
+                    partial(index)
+                    return True
+                except (TypeError, RuntimeError):
+                    pass
+            invalidate = getattr(widget.l, 'invalidate', None)
+            if callable(invalidate):
+                invalidate()
+            else:
+                repaint = getattr(widget.instance, 'invalidate', None)
+                if callable(repaint):
+                    repaint()
+            return True
+        return False
 
     def visible_logo_urls(self):
         """Compatibility helper for the original native navigation diagnostics."""
@@ -1702,10 +1739,10 @@ class WarderRadio(Screen):
             self.logo_results.popitem(last=False)
         if not pixmap:
             return
-        if not self.saver_active and any(logo_key(item) == identity for item in self.visible_logo_items()):
-            view = self['stations']
-            invalidate = getattr(view.l, 'invalidate', None) or view.instance.invalidate
-            invalidate()
+        # Only the row receiving this logo should repaint. A completed worker
+        # for an old viewport must not redraw the new list page.
+        if not self.saver_active:
+            self.invalidate_visible_station(lambda item: logo_key(item) == identity)
         if self.saver_active and logo_key(self.playback.current) == identity:
             self.show_saver_logo(self.playback.current)
 
