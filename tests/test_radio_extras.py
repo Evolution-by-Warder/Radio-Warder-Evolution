@@ -7,7 +7,7 @@ from pathlib import Path
 from uuid import UUID
 
 from WarderRadio.model import Store, station, Playback
-from WarderRadio.song_details import song_information, wikipedia_bio
+from WarderRadio.song_details import song_information, wikipedia_bio, artist_profile
 from WarderRadio.stream_resolver import needs_resolution, playlist_links, page_links, resolve_custom
 from WarderRadio.diagnostics import Diagnostics
 
@@ -104,6 +104,47 @@ class MusicDetailTests(unittest.TestCase):
             return io.BytesIO(json.dumps(results).encode('utf-8'))
         result = song_information('Test Artist', 'My Song', opener=fake)
         self.assertEqual(result, ['Album: My Album', 'Year: 2021', 'Genre: Rock', '', 'iTunes'])
+
+    def test_artist_profile_prefers_exact_musicbrainz_name_without_recording_or_wiki(self):
+        from urllib.parse import urlsplit
+        identifier = str(UUID(int=815))
+        calls = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            calls.append((url.netloc, url.path, timeout))
+            self.assertEqual(url.netloc, 'musicbrainz.org')
+            self.assertEqual(timeout, 2.5)
+            if url.path.endswith('/artist'):
+                data = {'artists': [{'id': identifier, 'name': 'Dorota Barová'}]}
+            elif url.path.endswith('/artist/' + identifier):
+                data = {'name': 'Dorota Barová', 'area': {'name': 'Czechia'},
+                        'life-span': {'begin': '1975-01-01'}}
+            else:
+                self.fail('Unexpected recording lookup')
+            return io.BytesIO(json.dumps(data).encode())
+        self.assertEqual(
+            artist_profile('Dorota BAROVÁ', 'Šťastná planeta', opener),
+            ['Dorota Barová', 'Czechia', '1975', '', 'MusicBrainz'])
+        self.assertEqual(len(calls), 2)
+
+    def test_artist_profile_falls_back_to_short_wikipedia_search(self):
+        from urllib.parse import urlsplit
+        calls = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            calls.append((url.netloc, timeout))
+            if url.netloc == 'musicbrainz.org':
+                raise OSError('MusicBrainz unavailable')
+            self.assertEqual(timeout, 2)
+            return io.BytesIO(json.dumps({
+                'type': 'standard', 'title': 'Local Artist',
+                'description': 'Slovak singer', 'extract': 'Local Artist is a Slovak singer.'
+            }).encode())
+        self.assertEqual(
+            artist_profile('Local Artist', 'Any Song', opener),
+            ['Biography: Local Artist is a Slovak singer.', '', 'Wikipedia (SK)'])
+        self.assertEqual(calls, [('musicbrainz.org', 2.5),
+                                 ('sk.wikipedia.org', 2)])
 
     def test_exact_music_wikipedia_summary(self):
         page = {'type':'standard','title':'Test Artist','description':'British rock band',
