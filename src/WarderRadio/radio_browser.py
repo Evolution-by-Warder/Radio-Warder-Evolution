@@ -5,6 +5,7 @@ import os
 import re
 import socket
 import time
+import unicodedata
 from collections import namedtuple
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
@@ -29,6 +30,21 @@ Facets = namedtuple('Facets', 'countries categories offline counts', defaults=[N
 
 def country_code(value):
     return value.upper() if isinstance(value, str) and re.fullmatch('[A-Za-z]{2}', value) else ''
+
+
+def search_variants(value):
+    """Original query first, normalized text only when genuinely different.
+
+    Strip accents and separator punctuation for a bounded fallback if Radio
+    Browser found no stations for the exact user-entered query. This must not
+    alter the displayed name, station identities or any playback stream.
+    """
+    original = clean(value, 100)
+    folded = unicodedata.normalize('NFKD', original)
+    plain = ''.join(ch for ch in folded if not unicodedata.combining(ch))
+    simplified = ' '.join(''.join(ch if ch.isalnum() or ch.isspace() else ' '
+                                  for ch in plain).split())
+    return list(dict.fromkeys(x for x in (original, simplified) if x))
 
 
 def saved_country(value):
@@ -120,6 +136,7 @@ class RadioBrowser:
         self.hosts = list(MIRRORS)
         self.discovery_due = 0
         self.preferred = None
+        self.search_fallbacks = {}
 
     def request(self, path, params, cancelled):
         if not cancelled() and self.clock() >= self.discovery_due:
@@ -209,8 +226,15 @@ class RadioBrowser:
                   'offset': max(0, offset), 'order': 'name'}
         if country_code(country):
             params['countrycode'] = country_code(country)
-        if name:
-            params['name'] = clean(name, 100)
+        normalized_name = clean(name, 100)
+        variants = search_variants(normalized_name)
+        key = (country_code(country) or country, normalized_name, clean(category, 60))
+        # A fallback found on the first page must also apply to later pages.
+        # Without this, scrolling after a successful accent fallback would
+        # query the old title and return an empty second page.
+        effective = self.search_fallbacks.get(key, normalized_name) if offset else normalized_name
+        if effective:
+            params['name'] = effective
         if category:
             params.update(tag=clean(category, 60), tagExact='true')
 
@@ -226,4 +250,24 @@ class RadioBrowser:
             return {'rows': merge_stations([], items), 'more': len(rows) > PAGE_SIZE}
 
         result, offline = self.cached('stations/search', params, normalize, force, cancelled)
+        if not offset and normalized_name:
+            self.search_fallbacks.pop(key, None)
+            # A second call is only justified on an actual zero-result query.
+            # Never retry after a network/offline failure or cancellation.
+            if (not result['rows'] and not offline and not cancelled()
+                    and len(variants) > 1):
+                alternative = variants[1]
+                fallback_params = dict(params, name=alternative)
+                try:
+                    substitute, substitute_offline = self.cached(
+                        'stations/search', fallback_params, normalize, force, cancelled)
+                except (OSError, ValueError):
+                    substitute = None
+                else:
+                    if substitute['rows']:
+                        self.search_fallbacks[key] = alternative
+                        result, offline = substitute, substitute_offline
+            # Keep a small, in-memory map, never persist user searches.
+            if len(self.search_fallbacks) > 64:
+                self.search_fallbacks.clear()
         return Page(result['rows'], result['more'], offline)
