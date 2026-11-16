@@ -99,7 +99,7 @@ def make_skin(width, height):
               label('details', 1234, 945, 620, 33, 23, '#b5d9ed', 'center'),
               label('count', 530, 966, 620, 26, 22, '#9bbad0'),
               label('status', 62, 796, 380, 44, 18, '#d6e9f7', 'left', True),
-              label('hint', 72, 148, 1768, 35, 21, '#bed8e9', 'left')]
+              label('hint', 60, 148, 1800, 35, 21, '#bed8e9', 'left')]
     # Native cyan vertical separators, identical to PiconHub placements.
     for x in (1392, 1664):
         parts.append('<eLabel zPosition="3" %s backgroundColor="#0019c9ff" />'
