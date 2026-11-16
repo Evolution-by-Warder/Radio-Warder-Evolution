@@ -668,6 +668,48 @@ class NativeTests(unittest.TestCase):
         screen.poll_icy_badges()
         self.assertEqual(seen, before)
 
+    def test_icy_prioritizes_selected_station_and_never_probes_during_saver(self):
+        screen, _, _ = self.new()
+        screen.show()
+        screen.logo_slots.clear()
+        screen.logo_paused = False
+        screen['stations'].moveToIndex(5)
+        selected = screen.rows[5]
+        probed = []
+        screen.icy_cache.probe = lambda item: probed.append(item) or False
+        # Isolate prioritization rather than persistent positive/negative cache.
+        screen.icy_cache.should_probe = lambda item: True
+        screen.icy_cache.reject = lambda item: None
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        deadline = time.monotonic() + 2
+        while screen.icy_probe_busy and time.monotonic() < deadline:
+            screen.poll_icy_badges()
+            time.sleep(.002)
+        self.assertFalse(screen.icy_probe_busy)
+        self.assertEqual(probed[0], selected)
+
+        # For an actively playing selected station, the normal metadata
+        # monitor is already open: a second background stream is redundant.
+        screen.play()
+        self.assertTrue(screen.playback.owns())
+        probed[:] = []
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        deadline = time.monotonic() + 2
+        while screen.icy_probe_busy and time.monotonic() < deadline:
+            screen.poll_icy_badges()
+            time.sleep(.002)
+        self.assertTrue(probed)
+        self.assertNotIn(selected, probed)
+
+        screen.saver_active = True
+        probed[:] = []
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        self.assertEqual(probed, [], 'OLED saver must not trigger hidden probes')
+        screen.saver_active = False
+
     def test_quality_has_visible_independent_right_column(self):
         screen, _, _ = self.new()
         sample = dict(screen.rows[0], codec='MP3', bitrate=128)
