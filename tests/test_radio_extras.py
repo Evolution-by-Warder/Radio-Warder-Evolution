@@ -260,6 +260,96 @@ class MusicDetailTests(unittest.TestCase):
         self.assertEqual(artist_profile('THE BEATLES', 'Hello Goodbye', opener)[-1], 'TheAudioDB')
         self.assertEqual(len(calls), 2)
 
+    def test_broadcaster_credit_splits_only_clear_collaborations(self):
+        from WarderRadio.song_details import credited_artist_names
+        self.assertEqual(credited_artist_names('Sean Paul, INNA'),
+                         ['Sean Paul', 'INNA'])
+        self.assertEqual(credited_artist_names('NEBE feat. KATARINA KNECHTOVA'),
+                         ['NEBE', 'KATARINA KNECHTOVA'])
+        self.assertEqual(credited_artist_names('Katarína Knechtová ft. NEBE'),
+                         ['Katarína Knechtová', 'NEBE'])
+        self.assertEqual(credited_artist_names('Earth, Wind & Fire'),
+                         ['Earth, Wind & Fire'])
+        self.assertEqual(credited_artist_names('Tyler, The Creator'),
+                         ['Tyler, The Creator'])
+        self.assertEqual(credited_artist_names('Simon & Garfunkel'),
+                         ['Simon & Garfunkel'])
+        self.assertEqual(credited_artist_names('ABBA'), ['ABBA'])
+        self.assertEqual(credited_artist_names(''), [])
+
+    def test_sean_paul_inna_profile_identifies_the_lead_without_a_combined_query(self):
+        from urllib.parse import urlsplit, parse_qs
+        requests = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            name = parse_qs(url.query)['s'][0]
+            requests.append((url.hostname, name, timeout))
+            self.assertEqual(url.hostname, 'www.theaudiodb.com')
+            self.assertEqual(name, 'Sean Paul')
+            data = {'artists': [{
+                'idArtist': '123456', 'strArtist': 'Sean Paul',
+                'strBiographyEN': 'Sean Paul is a Jamaican singer and musician with an international music career.'
+            }]}
+            return io.BytesIO(json.dumps(data).encode())
+        details = artist_profile('Sean Paul, INNA', 'Let It Talk To Me', opener)
+        self.assertIn('Sean Paul', details[0])
+        self.assertNotIn('INNA', details[0])
+        self.assertEqual(details[-1], 'TheAudioDB')
+        self.assertEqual(len(requests), 1)
+
+    def test_nebe_featuring_knechtova_uses_credited_guest_if_lead_is_missing(self):
+        from urllib.parse import urlsplit, parse_qs
+        requests = []
+        def opener(request, timeout):
+            url = urlsplit(request.full_url)
+            self.assertEqual(url.hostname, 'www.theaudiodb.com')
+            name = parse_qs(url.query)['s'][0]
+            requests.append(name)
+            if name == 'NEBE':
+                payload = {'artists': None}
+            elif name == 'KATARINA KNECHTOVA':
+                payload = {'artists': [{
+                    'idArtist': '191919', 'strArtist': 'Katarína Knechtová',
+                    'strBiographyEN': 'Katarína Knechtová is a Slovak singer and songwriter, active in Slovak music.'
+                }]}
+            else:
+                self.fail('Unexpected artist or extra request')
+            return io.BytesIO(json.dumps(payload).encode())
+        details = artist_profile('NEBE feat. KATARINA KNECHTOVA', 'Plany Poplach', opener)
+        self.assertIn('Katarina Knechtova', details[0])
+        self.assertEqual(details[-1], 'TheAudioDB')
+        self.assertEqual(requests, ['NEBE', 'KATARINA KNECHTOVA'])
+
+    def test_collaboration_does_not_publish_wrong_name_or_search_forever(self):
+        from urllib.parse import urlsplit
+        from WarderRadio.song_details import combined_artist_profile
+        calls = []
+        def opener(request, timeout):
+            calls.append((urlsplit(request.full_url).hostname, timeout))
+            if 'theaudiodb.com' in request.full_url:
+                return io.BytesIO(json.dumps({'artists': [{
+                    'idArtist': '999', 'strArtist': 'Someone Else',
+                    'strBiographyEN': 'A completely unrelated musician who must not be shown.'
+                }]}).encode())
+            raise OSError('network unavailable')
+        clock = iter([0.0] * 100)
+        self.assertEqual(combined_artist_profile(
+            'Sean Paul, INNA', 'Let It Talk To Me', opener, clock=lambda: next(clock)), [])
+        self.assertGreaterEqual(len(calls), 2)
+        self.assertTrue(all(timeout <= 1.8 for _, timeout in calls))
+
+    def test_collaboration_timeout_prevents_second_round_of_network_calls(self):
+        from WarderRadio.song_details import combined_artist_profile
+        calls = []
+        tick = [0.0]
+        def opener(request, timeout):
+            calls.append(request.full_url)
+            tick[0] += 10.0
+            raise OSError('slow upstream')
+        self.assertEqual(combined_artist_profile(
+            'Sean Paul, INNA', 'Let It Talk To Me', opener, clock=lambda: tick[0]), [])
+        self.assertEqual(len(calls), 1)
+
     def test_exact_music_wikipedia_summary(self):
         page = {'type':'standard','title':'Test Artist','description':'British rock band',
                 'extract':'Test Artist is a British rock band formed in 2001.'}
