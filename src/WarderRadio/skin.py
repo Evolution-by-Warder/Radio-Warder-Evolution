@@ -101,13 +101,13 @@ def make_skin(width, height):
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'selectionPixmap="%s/select-stations.png" transparent="1" '
                  'scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                 % (ui_path, n(530), n(252), n(620), row_h * 8))
+                 % (n(530), n(252), n(620), row_h * 8, ui_path))
     parts.append('<widget name="functions" zPosition="2" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'selectionPixmap="%s/select-menu.png" transparent="1" '
                  'scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (ui_path, n(55), n(232), n(390), n(64) * 8))
+                 % (n(55), n(232), n(390), n(64) * 8, ui_path))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
     # Settings hides every named part together; the panel's rounded geometry
@@ -152,7 +152,7 @@ def make_skin(width, height):
                      'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
                      'selectionPixmap="%s/select-settings.png" transparent="1" '
                      'scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                     % (ui_path, name,n(520),n(y),n(1348),n(60)*rows))
+                     % (name,n(520),n(y),n(1348),n(60)*rows,ui_path))
     rounded_card(32, 1000, 1856, 68, color='#16091b30')
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
