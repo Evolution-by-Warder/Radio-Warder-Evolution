@@ -1,5 +1,17 @@
 # Warder Radio – prechod na online katalóg
 
+## 16. 11. 2026 – cielené prekreslenie log a ICY, presný rozsah Odberov (0.2.0-test14)
+
+- **Draft [PR #37](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/37)**, vetva `fix/radio-visible-picons-icy-test14-20261116`, nadväzuje na test13 `307d1cfc`. Produkčný `main` a stabilná 0.1.9.4 nezmenené; **prehrávač cez Enigma2 4097 nie je modifikovaný**.
+- **GUI výkon:** nová pomocná metóda `visible_station_range()` presne vracia viditeľné riadky, v `Odbery` 7 a v `Domov` 8. Stanica na ôsmom neviditeľnom riadku Odberov sa už zbytočne neposiela na načítanie loga/ICY. Zobrazenie a fyzická geometria zostávajú schválené.
+- **Logo/ICY prekreslenie:** `invalidate_visible_station` zmení iba zodpovedajúci viditeľný riadok cez `eListboxPythonMultiContent.invalidateEntry(index)` tam, kde túto operáciu natívny image poskytuje. Na starších imagoch je bezpečný fallback `invalidate()`; po dokončení pracovnej úlohy pre neviditeľnú stanicu sa list vôbec neprekreslí. Pri aktívnom OLED šetriči zostáva načítanie jeho artworku oddelené.
+- **ICY priority:** pri objavovaní nových staníc dostane prioritu aktuálne vybraná viditeľná stanica. Stream, ktorý už prehrávame a monitorujeme cez ICY na službe Enigma2, sa cez samostatný probe neotvára znovu. Počas zapnutého šetriča sa nové probe úlohy nespúšťajú. Zachovaný jediný nízkoprioritný ICY worker, tri pôvodné logo I/O workery a všetky bezpečnostné limity/cache.
+- **Regresie:** natívne testy merajú skutočný rozsah 7/8 riadkov, per-row redraw, fallback pri chýbajúcej `invalidateEntry`, nulové repaint pre neviditeľné logo/ICY, vybranú ICY stanicu, vynechanie aktívneho streamu a pozastavenie probe počas šetriča.
+- **CI PASS:** [plná kontrola](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43820093736) + [OLED regression PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43820093971); Python kompilácia, kompletné unit testy, natívne replaye OpenATV/OpenPLi a izolovaný `opkg` upgrade zo stable 0.1.9.4.
+- **IPK skutočne stiahnuté a lokálne overené:** `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test14_all.ipk`, **2 925 892 B**, SHA-256 `a1064b7d35b6b3889c1aadff62fd8d44ae2f044f44d2b4e41c3daca145f63afc`, `build.json` verzia `0.2.0-test14-1`, ZIP testzip a SHA256SUMS **PASS**. GitHub CI artifact `radio-browser-receiver-test`, ID `14204415714`.
+- **Fyzické testy zostávajú:** skontrolovať rýchlosť listovania na SF8008/OpenATV 8.0.1 a OpenATV 8.1, rozdiel v redraw pri viacerých logách, funkčnosť ICY pri práve prehrávanej stanici a Odbery so siedmimi riadkami. Výkonové čísla na hardvéri zatiaľ neodmerané. Bez súhlasu nepublikovať ostrú verziu ani nemergovať.
+
+
 ## 16. 11. 2026 – inteligentnejšie vyhľadávanie (0.2.0-test13)
 
 - [Draft PR #36](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/36), vetva `feature/radio-search-fallback-test13-20261116`, nadväzuje na predchádzajúci `0.2.0-test12`; `main` a produkčná 0.1.9.4 bez zmeny. Pôvodný Enigma2 prehrávač **4097 sa nemení**.
