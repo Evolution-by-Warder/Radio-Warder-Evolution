@@ -18,24 +18,35 @@ def radio(number, group='Slovensko'):
                     'group': group})
 
 
-class FavouriteAndPinsTests(unittest.TestCase):
-    def test_pins_are_persisted_separately_without_changing_favourites(self):
+class FavouriteOrderTests(unittest.TestCase):
+    def test_order_persists_without_extra_pins_or_changing_history(self):
         with tempfile.TemporaryDirectory() as directory:
             store = Store(directory)
             one, two, three = radio(1), radio(2), radio(3)
             for item in (one, two, three):
                 store.toggle(item)
-            self.assertEqual([v['name'] for v in store.favourites], ['Station 1', 'Station 2', 'Station 3'])
-            self.assertTrue(store.toggle_pin(two))
-            self.assertTrue(store.toggle_pin(three))
-            self.assertTrue(store.is_pinned(two))
+            store.played(two)
+            self.assertEqual([v['id'] for v in store.favourites],
+                             [one['id'], two['id'], three['id']])
             self.assertEqual(store.move_favourite(three, -1), 1)
             reopened = Store(directory)
-            self.assertEqual([v['id'] for v in reopened.pinned], [two['id'], three['id']])
-            self.assertEqual([v['id'] for v in reopened.favourites], [one['id'], three['id'], two['id']])
+            self.assertEqual([v['id'] for v in reopened.favourites],
+                             [one['id'], three['id'], two['id']])
+            self.assertEqual(reopened.history[0]['id'], two['id'])
             self.assertEqual(reopened.move_favourite(one, -1), -1)
-            self.assertFalse(reopened.toggle_pin(two))
-            self.assertEqual(Store(directory).pinned, [three])
+            self.assertFalse(hasattr(reopened, 'pinned'))
+            self.assertFalse(hasattr(reopened, 'toggle_pin'))
+            self.assertNotIn('pinned', reopened.data)
+
+    def test_legacy_pinned_state_is_ignored_and_left_unchanged(self):
+        with tempfile.TemporaryDirectory() as directory:
+            from WarderRadio.model import atomic_json
+            atomic_json(str(Path(directory) / 'state.json'),
+                        {'pinned': [radio(5)], 'favourites': [radio(6)]})
+            store = Store(directory)
+            self.assertFalse(hasattr(store, 'pinned'))
+            store.save()
+            self.assertEqual(Store(directory).data['pinned'][0]['id'], radio(5)['id'])
 
     def test_favourite_move_write_error_rolls_back(self):
         with tempfile.TemporaryDirectory() as directory:
