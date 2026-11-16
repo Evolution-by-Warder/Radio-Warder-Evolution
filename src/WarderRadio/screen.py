@@ -232,9 +232,10 @@ class WarderRadio(Screen):
         self['stations'].icy_supported = lambda row: (row.get('id') in self.icy_known or
                                                        self.icy_cache.known(row))
         for name in ('day', 'date', 'clock', 'seconds', 'version_caption', 'version', 'navtitle', 'section', 'nowlabel', 'station',
-                     'artist', 'track', 'details', 'count', 'status', 'hint',
+                     'artist', 'track', 'details', 'count', 'status', 'hint', 'nowtitle',
                      'red', 'green', 'yellow', 'blue'):
             self[name] = Label('')
+        self['nowtitle'].setText(t('Now playing'))
         self['art'] = Pixmap()
         self.cover_display = CoverDisplay(self['art'], ePicLoad, os.path.join(ROOT, 'plugin.png'),
                                           lambda: self['nowlabel'].setText(''))
