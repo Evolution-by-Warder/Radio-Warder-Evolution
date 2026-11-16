@@ -23,6 +23,13 @@ class RadioMenuIconTests(unittest.TestCase):
                 self.assertEqual(data[12:16], b'IHDR')
                 self.assertEqual(struct.unpack('>II', data[16:24]), (56, 56))
                 self.assertEqual(data[25], 6)  # RGBA with alpha, not opaque overlay
+                # Decoder test also checks compressed payload and transparency.
+                from PIL import Image
+                with Image.open(str(path)) as image:
+                    image.load()
+                    self.assertEqual(image.mode, 'RGBA')
+                    self.assertEqual(image.size, (56, 56))
+                    self.assertGreater(image.getchannel('A').getextrema()[1], 0)
 
     def test_icons_use_native_list_rows_not_overlapping_static_pixmaps(self):
         import ast
