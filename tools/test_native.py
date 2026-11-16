@@ -2000,7 +2000,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['navtitle'].getText(), '')
         self.assertIsNone(root.find("widget[@name='heading']"))
         self.assertIsNone(root.find("widget[@name='countrycaption']"))
-        self.assertIn(radio.t('Choose country'), screen['functions'].l.rows[0][0])
+        self.assertIn(radio.t('Country') + ': ', screen['functions'].l.rows[0][0])
         self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
         screen.play()
         playing = session.nav.current
@@ -2254,8 +2254,11 @@ class NativeTests(unittest.TestCase):
         self.assertIsNone(root.find("widget[@name='heading']"))
         self.assertIsNone(root.find("widget[@name='countrycaption']"))
         first = screen['functions'].l.build(*screen['functions'].l.rows[0])
-        self.assertEqual(len(first), 3)
-        self.assertIn(radio.t('Choose country'), screen['functions'].l.rows[0][0])
+        # Radio's original icon is part of native list content, not an overlay.
+        self.assertEqual(len(first), 4)
+        self.assertEqual(first[1][2:4], (4, 56))  # icon top=4, width=56
+        self.assertEqual(first[2][5], first[3][5])  # identical font ID
+        self.assertIn(radio.t('Country') + ': ', screen['functions'].l.rows[0][0])
         self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
         before = len(session.dialogs)
         screen.focus_country()
@@ -2276,11 +2279,16 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(box('functions')[1], 232)
         country_content = screen['functions'].l.build(*screen['functions'].l.rows[0])
         radio_content = screen['functions'].l.build(*screen['functions'].l.rows[1])
-        self.assertEqual(country_content[1][2], 1)  # scaled zero clamps to one pixel
-        self.assertEqual(country_content[1][4], 58)
-        self.assertEqual(radio_content[1][2], 6)
-        self.assertEqual(radio_content[1][4], 52)
-        self.assertEqual(64 + radio_content[1][2] - (country_content[1][2] + country_content[1][4]), 11)
+        self.assertEqual(len(country_content), 4)
+        self.assertEqual(len(radio_content), 3)
+        country_label = country_content[2]
+        radio_label = radio_content[2]
+        self.assertEqual(country_label[2], 6)
+        self.assertEqual(country_label[4], 52)
+        self.assertEqual(radio_label[2], 6)
+        self.assertEqual(radio_label[4], 52)
+        self.assertEqual(country_label[5], radio_label[5])
+        self.assertEqual(64 + radio_label[2] - (country_label[2] + country_label[4]), 12)
         self.assertEqual(screen['functions'].l.fonts[2], ('Regular', 24))
         self.assertLessEqual(box('navtitle')[1] + box('navtitle')[3], box('functions')[1])
         self.assertEqual(box('art')[2:], (520, 520))

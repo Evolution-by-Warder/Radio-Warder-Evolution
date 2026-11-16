@@ -86,28 +86,53 @@ class RadioList(MenuList):
         self.l.setBuildFunc(self.build)
         self.logo = None
         self.icy_supported = None
+        # Cached native Enigma2 pixmaps live in the list rows themselves:
+        # no static overlay can hide the selected menu background or text.
+        self.menu_icons = {}
+        if functions:
+            for key, name in (('group', 'country'), ('radio', 'home'),
+                              ('subscriptions', 'subscriptions'),
+                              ('favourites', 'favourites'), ('history', 'history'),
+                              ('recordings', 'recordings'), ('settings', 'settings'),
+                              ('plugin-update', 'update')):
+                path = os.path.join(ROOT, 'artwork', 'menu', name + '.png')
+                if os.path.isfile(path):
+                    self.menu_icons[key] = LoadPixmap(path=path)
 
     def build(self, item, key=None):
         def n(value):
             return max(1, round(value * self.ui_scale))
         flags = (getattr(enigma, 'RT_HALIGN_RIGHT', enigma.RT_HALIGN_LEFT) if self.functions and rtl() else enigma.RT_HALIGN_LEFT) | enigma.RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0)
         if self.functions:
+            icon = self.menu_icons.get(key)
+            prefix = [None]
+            if icon is not None:
+                prefix.append(MultiContentEntryPixmapAlphaBlend(
+                    pos=(n(8), n(4)), size=(n(56), n(56)),
+                    png=icon, flags=(enigma.BT_SCALE |
+                                     enigma.BT_KEEP_ASPECT_RATIO |
+                                     enigma.BT_HALIGN_CENTER |
+                                     enigma.BT_VALIGN_CENTER)))
             if key == 'group':
-                caption = t('Choose country') + ' – '
+                caption = t('Country') + ': '
                 country = item[len(caption):]
-                # The slightly larger first-row font keeps the country selector legible.
-                # Bound both translated text and cyan country name to the menu.
-                caption_width = min(232, max(165, len(caption) * 12 + 12))
-                return [None,
-                        MultiContentEntryText(pos=(n(16), n(0)),
-                                              size=(n(caption_width - 16), n(58)),
-                                              font=2, flags=flags, text=caption),
-                        MultiContentEntryText(pos=(n(caption_width), n(0)),
-                                              size=(n(372 - caption_width), n(58)),
-                                              font=2, flags=flags, text=country,
+                # Country uses the same 30px font and baseline as the other menu rows.
+                # The selected country remains Warder cyan.
+                # The radio-specific cyan icons occupy the first 64px of the
+                # navigation cell, without changing the 8x64px menu geometry.
+                # Reserve room for the localized country name and dropdown.
+                text_start = 76
+                caption_width = min(150, max(120, len(caption) * 14))
+                return prefix + [
+                        MultiContentEntryText(pos=(n(text_start), n(6)),
+                                              size=(n(caption_width), n(52)),
+                                              font=0, flags=flags, text=caption),
+                        MultiContentEntryText(pos=(n(text_start + caption_width), n(6)),
+                                              size=(n(382 - text_start - caption_width), n(52)),
+                                              font=0, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            return [None, MultiContentEntryText(pos=(n(16), n(6)),
-                                               size=(n(350), n(52)),
+            return prefix + [MultiContentEntryText(pos=(n(76), n(6)),
+                                               size=(n(302), n(52)),
                                                font=0, flags=flags, text=item)]
         pixmap = self.logo(item) if self.logo else None
         icy = bool(self.icy_supported and self.icy_supported(item))
@@ -1423,7 +1448,7 @@ class WarderRadio(Screen):
     def update_country_caption(self):
         country = group_label(country_name(self.active_group)) if self.active_group != 'ALL' else t('All groups')
         current = self['functions'].getSelectionIndex()
-        entries = [(t('Choose country') + ' – ' + country + ' ▾', 'group'),
+        entries = [(t('Country') + ': ' + country, 'group'),
                    (t('Home'), 'radio'), (t('Subscriptions'), 'subscriptions'),
                    (t('Favourites'), 'favourites'),
                    (t('History'), 'history'), (t('Recordings'), 'recordings'),
