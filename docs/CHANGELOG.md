@@ -1,3 +1,32 @@
+# 0.2.0 (Radio Warder Evolution — online radio catalogue)
+
+- Promote the owner-tested Radio 0.2.0 series to stable: worldwide Radio Browser
+  station discovery, country selection, search, categories, Home and Subscriptions
+  while retaining the original Enigma2 service 4097 audio player.
+- Use the same native blue Warder layout in Home and Subscriptions. Switch
+  subscription categories from the header row without losing the active radio.
+  In the country list, selecting with OK loads the country immediately; the
+  hint reads “Výber potvrď OK” in Slovak and is localized into all 21 languages.
+- Improve station search for punctuation and diacritics only when the original
+  query returns zero results; keep pagination, offline cache and favourite/history
+  identities stable.
+- Reduce unnecessary logo and ICY repaints, limit artwork/ICY work to visible
+  stations and prioritize the selected row on slower receivers.
+- Use direct, bounded artist-name lookups through TheAudioDB, MusicBrainz and
+  encyclopaedia fallback with verified identities and modest positive-only cache.
+  Recognize clearly credited artist collaborations, without claiming unrelated
+  performers, and allow proven corrections of reversed ICY artist/song fields.
+- Remove clear broken-encoding duplicate stations such as Chat R�dio / Chat Rádio
+  in the visible catalogue only, without deleting user-owned favourites.
+- Preserve the original approved branding, spectrum, OLED saver, YouTube controls,
+  recording, original Enigma2 playback and all existing saved user settings.
+- Keep the plugin name **Radio Warder Evolution** without a separator across
+  Plugins/Extensions/main menu and installer/update/removal terminal messages.
+- Verified automated unit and OpenATV 8.0/8.1 / OpenPLi 9.2 widget replays,
+  installation, upgrade and preserved user files; owner has already tested core
+  playback and navigation on GigaBlue. Future minor catalogue/content gaps
+  are maintenance fixes and must not block playback.
+
 # 0.1.9.4 (Radio OLED screensaver — owner-tested)
 
 - Add the optional native black Radio screensaver, confirmed working by the
