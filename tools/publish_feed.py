@@ -42,9 +42,10 @@ target.write_text(json.dumps(feed, indent=2) + '\n')
 # The stable release outranks all earlier 0.1.0-testN versions for both the
 # internal version comparator and opkg packaging (stable is 0.1.1).
 if not is_testing:
-    if version in ('0.1.9', '0.1.9.1'):
+    if version in ('0.1.9', '0.1.9.1', '0.2.0'):
         tester = json.loads((ROOT / 'dist/tester-bridge/build.json').read_text())
-        bridge_version = '0.1.9.1-test2' if version == '0.1.9.1' else '0.1.9-test3'
+        bridge_version = ('0.2.0-test22' if version == '0.2.0' else
+                          '0.1.9.1-test2' if version == '0.1.9.1' else '0.1.9-test3')
         assert tester['version'] == bridge_version + '-1'
         tester_tag = 'warder-radio-v' + bridge_version
         tester_url = ('https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/'
