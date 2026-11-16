@@ -85,6 +85,23 @@ def align_icy_to_native(icy_artist, icy_title, native_artist='', native_title=''
     return icy_artist, icy_title
 
 
+def align_icy_to_catalogue(icy_artist, icy_title, catalogue_artist, catalogue_title):
+    """Allow a correction only if a verified catalogue recording matches reverse.
+
+    The cover worker already performs a catalogue lookup, so this introduces
+    no extra network requests and does not guess from names or punctuation.
+    """
+    if not all((icy_artist, icy_title, catalogue_artist, catalogue_title)):
+        return icy_artist, icy_title
+    from .song_identity import identity_options
+    confirmed = identity_options(catalogue_artist, catalogue_title)
+    original = identity_options(icy_artist, icy_title)
+    reversed_pair = identity_options(icy_title, icy_artist)
+    if confirmed.intersection(reversed_pair) and not confirmed.intersection(original):
+        return icy_title, icy_artist
+    return icy_artist, icy_title
+
+
 def split_song(value):
     return split_stream(clean(value))
 
