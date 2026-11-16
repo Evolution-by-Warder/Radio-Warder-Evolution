@@ -60,25 +60,17 @@ def make_skin(width, height):
         flat(px + radius + n(8), py + edge + n(5),
              pw - 2 * radius - n(16), max(1, n(1)), '#2650acc5')
 
-    for box in ((32, 204, 440, 790), (500, 204, 680, 790),
-                (1200, 204, 688, 790)):
-        rounded_card(*box)
-    # These are REAL small static skin decorations, beneath the native live
-    # Enigma2 widgets. Nothing is a full-screen mockup or bitmap of UI text.
-    def glass(asset, x, y, w, h, z=1):
+    # All static chrome is a single small, build-time rendered RGBA PNG.
+    # Enigma2 paints its native dynamic list/text/cover widgets above it.
+    # This replaces many cyan eLabels and flat blue glass strips with one
+    # coherent softly lit dashboard. No timer or costly runtime renderer.
+    parts.append('<ePixmap zPosition="1" position="0,0" size="%d,%d" '
+                 'pixmap="%s/dashboard-overlay.png" alphatest="blend" scale="1" />'
+                 % (canvas_w, canvas_h, ui_path))
+    def glass(asset, x, y, w, h, z=3):
         parts.append('<ePixmap zPosition="%d" %s pixmap="%s/%s.png" '
                      'alphatest="blend" scale="1" />'
-                     % (z, rect(x, y, w, h), ui_path, asset))
-    glass('glass-nav', 32, 140, 1856, 43)
-    glass('glass-country', 47, 207, 408, 65)
-    glass('glass-section', 517, 204, 642, 54)
-    glass('glass-now', 1220, 209, 648, 53)
-    glass('glass-spectrum', 55, 832, 390, 156)
-    # Decorative vinyl is static and always BEHIND the dynamically decoded
-    # album cover; nothing new runs on the player or on a refresh timer.
-    glass('vinyl-disc', 1670, 291, 212, 420)
-    glass('glass-source', 1480, 741, 126, 28)
-    glass('glass-meta', 1238, 936, 610, 49)
+                     % (z, rect(x,y,w,h), ui_path,asset))
     # Same three-field header as PiconHub/GSU: weekday and local date,
     # large hours/minutes with smaller seconds, cyan version caption.
     # The Radio logo/backdrop stay unchanged and the entire block fits
@@ -90,11 +82,11 @@ def make_skin(width, height):
               label('version_caption', 1680, 25, 210, 36, 25, '#00ceff', 'center'),
               label('version', 1680, 70, 210, 36, 24, '#00ceff', 'center'),
               label('navtitle', 62, 220, 1, 1, 1, '#00ceff'),
-              label('nowtitle', 1248, 218, 584, 37, 28, '#00ceff', 'center'),
-              label('section', 557, 212, 578, 38, 30, '#00ceff'),
+              label('nowtitle', 1265, 216, 565, 42, 29, '#e2f8ff', 'left'),
+              label('section', 551, 212, 596, 38, 30, '#e2f8ff'),
               label('nowlabel', 1240, 745, 600, 20, 16, '#a6e7ff', 'center'),
-              label('station', 1237, 776, 620, 32, 26, '#bdd4e6', 'center'),
-              label('artist', 1237, 814, 620, 43, 35, '#00e5ff', 'center'),
+              label('station', 1237, 776, 620, 32, 25, '#c8dce9', 'center'),
+              label('artist', 1237, 814, 620, 43, 34, '#04e4ff', 'center'),
               label('track', 1237, 861, 620, 68, 30, '#f2f8ff', 'center', True),
               label('details', 1234, 945, 620, 33, 23, '#b5d9ed', 'center'),
               label('count', 530, 966, 620, 26, 22, '#9bbad0'),
@@ -180,11 +172,11 @@ def make_skin(width, height):
                      'selectionPixmap="%s/select-settings.png" transparent="1" '
                      'scrollbarMode="showOnDemand" enableWrapAround="1" />'
                      % (name,n(520),n(y),n(1348),n(60)*rows,ui_path))
-    rounded_card(32, 1000, 1856, 68, color='#16091b30')
+    # Footer cards and button accents are already in dashboard-overlay;
+    # only the live labels remain as native Enigma2 widgets.
     for name, x in [('red', 40), ('green', 510),
                     ('yellow', 980), ('blue', 1450)]:
-        glass('button-' + name, x, 1008, 430, 52)
-        parts.append(label(name, x + 64, 1011, 344, 42, 28,
+        parts.append(label(name, x + 66, 1011, 344, 42, 28,
                            '#eef9ff', 'center'))
     # Hidden until Radio playback activates the optional OLED saver.
     saver_markup, _ = make_saver_widgets(scale, canvas_w, canvas_h)
