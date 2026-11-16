@@ -328,13 +328,18 @@ class NativeTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.browser_calls = []
-        seed = json.loads((ROOT / 'src/WarderRadio/seed.json').read_text())
+        # Deterministic online-station fixtures: the deleted worldwide
+        # catalogue and its legacy seed are neither needed nor fetched.
         source = {'SK': [], 'CZ': []}
-        for row in seed:
-            code = {'Slovensko': 'SK', 'Čechy': 'CZ'}.get(row['group'])
-            if code:
-                item = station(dict(row, stationuuid=str(uuid5(NAMESPACE_URL, row['url'])),
-                                    favicon='https://logo.example/' + str(len(source[code]))))
+        for code, group, count in (('SK', 'Slovensko', 96),
+                                   ('CZ', 'Čechy', 80)):
+            for index in range(count):
+                url = 'https://radio.example/%s/%03d' % (code.lower(), index)
+                row = dict(name='Test %s Rádio %03d' % (code, index + 1),
+                           url=url, group=group,
+                           reference='4097:0:2:%X:1:ED:0:0:0:0' % (index + 1))
+                item = station(dict(row, stationuuid=str(uuid5(NAMESPACE_URL, url)),
+                                    favicon='https://logo.example/%s/%d' % (code, index)))
                 source[code].append(item)
         self.online_rows = source
 
