@@ -1,5 +1,15 @@
 # Warder Radio – prechod na online katalóg
 
+## 16. 11. 2026 – inteligentnejšie vyhľadávanie (0.2.0-test13)
+
+- [Draft PR #36](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/36), vetva `feature/radio-search-fallback-test13-20261116`, nadväzuje na predchádzajúci `0.2.0-test12`; `main` a produkčná 0.1.9.4 bez zmeny. Pôvodný Enigma2 prehrávač **4097 sa nemení**.
+- Radio Browser sa na prvý pokus dopytuje presne pôvodným názvom. **Len pri nulových výsledkoch, funkčnom online spojení a skutočne odlišnom prepise** môže vykonať jeden ďalší dopyt po odstránení diakritiky a oddeľovacej interpunkcie. Príklad `Český Rádio-FM` → `Cesky Radio FM`. Žiadne nové volania pre bežný úspešný dopyt, žiadny prepis streamu, identít, výberu krajiny ani kategórie.
+- Ak prvá strana nájde stanice alternatívnym názvom, aj následné stránky používajú tú istú alternatívu. Vyhľadávanie si drží len malé dočasné mapovanie (max. 64 kombinácií), bez perzistentného ukladania dotazov. Existujúci 5-minútový cache, offline fallback, obmedzenie 60 staníc/stranu, API limit a `cancelled()` zostávajú zachované.
+- Pri offline chybe nevytvára druhý pokus. Vyhľadávanie počas písania vo VirtualKeyBoard zatiaľ neimplementované, aby sa nespôsobilo spomalenie na SF8008 bez natívneho testu.
+- Regresie: normálny jedno-volací dopyt, diakritika/interpunkcia, krajina, kategória, strany 60+, prázdny výsledok aj offline chyba. [CI PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43817714884), [OLED testy PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43817715047): kompilácia, plná unit sada, replay OpenPLi/OpenATV, izolovaný `opkg` upgrade zo stabilnej 0.1.9.4 a validácia IPK.
+- Artefakt `radio-browser-receiver-test`: `enigma2-plugin-extensions-radio-warder-evolution_0.2.0-test13_all.ipk`, **2 925 384 B**, SHA-256 `bff251495580e4bbc9a3c12dbb97f2561038a819338e68a5e8c219ebc4caa143`; lokálne rozbalenie ZIP, `testzip()`, porovnanie `SHA256SUMS` a `build.json` PASS. Fyzické overenie na GigaBlue / SF8008 stále potrebné pred ostrým vydaním.
+
+
 ## 16. 11. 2026 – jednoduchšie Domov, bez pripínania (0.2.0-test12)
 
 - **Rozhodnutie vlastníka:** funkciu `Pripnúť/Odopnúť stanicu na Domov` úplne odstrániť. V Obľúbených už je všetko potrebné; ďalšia paralelná kolekcia a hviezdičky zbytočne komplikovali ovládanie.
