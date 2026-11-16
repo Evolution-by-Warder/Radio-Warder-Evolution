@@ -232,6 +232,136 @@ def premium_details():
     album_frame()
     album_masks()
 
+
+def dashboard_overlay():
+    """Render the ACTUAL static dashboard skin once at IPK build-time.
+
+    Enigma2 still owns every live label, station list, cover and remote action.
+    Render soft highlights into one compressed PNG rather than dozens of
+    layered widgets/shaders repainting on SF8008.
+    """
+    from PIL import Image, ImageDraw, ImageFilter
+    width, height = 1920, 1080
+    canvas = Image.new('RGBA', (width, height))
+    glow = Image.new('RGBA', (width, height))
+    gd = ImageDraw.Draw(glow)
+    cards = ((32, 204, 440, 790), (500, 204, 680, 790),
+             (1200, 204, 688, 790), (32, 1000, 1856, 68))
+    for x, y, w, h in cards:
+        gd.rounded_rectangle((x, y, x+w, y+h), radius=28,
+                             outline=(0, 198, 255, 165), width=5)
+    canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(14)))
+    for x, y, w, h in cards:
+        # Smooth navy/teal fill is masked once per card. No full-screen photo.
+        region = Image.new('RGBA', (w, h))
+        rg = ImageDraw.Draw(region)
+        for yy in range(h):
+            t = yy / max(1, h - 1)
+            shimmer = max(0.0, 1.0-t/0.40)
+            rg.line((0, yy, w, yy), fill=(5, int(28+15*shimmer+5*t),
+                    int(45+24*shimmer+6*t), int(245-13*t)))
+        mask = Image.new('L', (w, h))
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, w-1, h-1),
+                                                radius=26, fill=255)
+        region.putalpha(mask)
+        canvas.alpha_composite(region, (x, y))
+    draw = ImageDraw.Draw(canvas, 'RGBA')
+    for x, y, w, h in cards:
+        draw.rounded_rectangle((x, y, x+w-1, y+h-1), radius=26,
+                               outline=(37, 181, 211, 215), width=2)
+        draw.arc((x+7, y+5, x+w-7, y+42), 190, 350,
+                 fill=(104, 241, 255, 75), width=2)
+        draw.line((x+30, y+7, x+w-30, y+7),
+                  fill=(74, 231, 255, 78), width=1)
+    # A single translucent information ribbon below the original Warder header.
+    draw.rounded_rectangle((33, 141, 1885, 183), radius=21,
+                           fill=(3, 24, 42, 218), outline=(25, 120, 160, 168),
+                           width=1)
+    # Left country selector: understated glass, no bright rectangular stripe.
+    draw.rounded_rectangle((49, 214, 451, 280), radius=20,
+                           fill=(7, 43, 64, 220), outline=(21, 118, 158, 154),
+                           width=2)
+    draw.line((79, 218, 418, 218), fill=(75, 229, 244, 75), width=1)
+    # Subtle divisions behind navigation rows, never opaque text blocks.
+    for y in (361, 425, 489, 553, 617, 681):
+        draw.line((62, y, 444, y), fill=(35, 107, 128, 52), width=1)
+    # Rounded spectrum recess (actual animated widget is still on top).
+    draw.rounded_rectangle((55, 832, 447, 984), radius=19,
+                           fill=(2, 26, 43, 215), outline=(19, 92, 125, 135),
+                           width=1)
+    # Consistent headlines across Home, Subscriptions and Now Playing.
+    for x,y,w,h in ((513,210,650,49),(1220,210,648,49)):
+        draw.rounded_rectangle((x,y,x+w,y+h),radius=20,
+                              fill=(6, 40, 64, 213),outline=(22,133,176,120),
+                              width=1)
+        draw.line((x+30,y+h-6,x+w-30,y+h-6),
+                  fill=(18,174,216,102),width=1)
+        draw.rounded_rectangle((x+16,y+12,x+21,y+h-13),
+                               radius=3,fill=(4,215,246,240))
+    # Right panel: subtle dynamic-album backing and reflective vinyl.
+    cx, cy, radius = 1735, 500, 195
+    draw.ellipse((cx-radius-7, cy-radius-7, cx+radius+7, cy+radius+7),
+                 fill=(1, 11, 25, 249), outline=(26,163,206,174), width=3)
+    for r in range(26, radius, 8):
+        luminance = 19 + (r % 23)
+        draw.ellipse((cx-r,cy-r,cx+r,cy+r),
+                     outline=(luminance, luminance+13, luminance+24, 100),
+                     width=1)
+    draw.ellipse((cx-37,cy-37,cx+37,cy+37),
+                 fill=(10,47,73,255),outline=(20,164,207,165),width=2)
+    # Source and station-info footer, each live text label stays dynamic.
+    draw.rounded_rectangle((1450,739,1635,770),radius=14,
+                           fill=(7,42,64,240),outline=(28,126,166,145))
+    draw.rounded_rectangle((1228,932,1855,987),radius=22,
+                           fill=(5,42,63,225),outline=(23,129,164,170),
+                           width=1)
+    # Minimal signal/wave accents; no new equalizer timer or heavy raster art.
+    for n in range(30):
+        x=1330+n*16
+        h=8 + ((n*17 + 5*n*n) % 29)
+        draw.rounded_rectangle((x,926-h,x+7,925),radius=3,
+                               fill=(7,154+((n*3)%75),224,95))
+    # Footer pills: dark depth, colored identity, crisp neon underlines.
+    colors=((242,63,79),(46,218,120),(240,185,43),(26,146,249))
+    for i, (x, rgb) in enumerate(zip((40,510,980,1450),colors)):
+        draw.rounded_rectangle((x,1009,x+430,1061),radius=23,
+                               fill=(9,37,58,247),
+                               outline=(28,132,164,145), width=1)
+        draw.rounded_rectangle((x+14,1021,x+61,1047),radius=13,
+                               fill=rgb+(245,),outline=(255,255,255,65),width=1)
+        draw.rounded_rectangle((x+115,1053,x+312,1056),radius=2,
+                               fill=rgb+(160,))
+    # A faint floor reflection connects the three panels without hiding content.
+    shimmer=Image.new('RGBA', (width,height))
+    sd=ImageDraw.Draw(shimmer)
+    for x,y,w,h in cards[:3]:
+        sd.line((x+49,y+h-4,x+w-49,y+h-4),
+                fill=(8,204,246,133),width=2)
+    canvas.alpha_composite(shimmer.filter(ImageFilter.GaussianBlur(6)))
+    out=OUT/'dashboard-overlay.png'
+    canvas.save(out, optimize=True, compress_level=9)
+    return out
+
+
+def active_menu_surface():
+    """Single persistent selected-section capsule, shown even when focus is in list."""
+    from PIL import Image, ImageDraw, ImageFilter
+    w,h=378,62
+    base=Image.new('RGBA',(w,h))
+    glow=Image.new('RGBA',(w,h))
+    d=ImageDraw.Draw(glow)
+    d.rounded_rectangle((7,7,w-8,h-8),radius=19,
+                        outline=(0,227,255,255),width=5)
+    base.alpha_composite(glow.filter(ImageFilter.GaussianBlur(6)))
+    d=ImageDraw.Draw(base,'RGBA')
+    d.rounded_rectangle((5,7,w-6,h-8),radius=18,
+                        fill=(4,111,147,188),outline=(20,228,255,245),
+                        width=2)
+    d.line((25,11,w-25,11),fill=(97,251,255,172),width=1)
+    out=OUT/'active-menu.png'
+    base.save(out,optimize=True,compress_level=9)
+    return out
+
 def main():
     corners()
     selection('select-stations.png', 620, 88, 19)
@@ -240,9 +370,11 @@ def main():
     selection('chip-selected.png', 145, 48, 13)
     icons()
     premium_details()
+    dashboard_overlay()
+    active_menu_surface()
     result = list(OUT.glob('*.png'))
     total = sum(path.stat().st_size for path in result)
-    assert len(result) == 34 and total < 320 * 1024, (len(result), total)
+    assert len(result) == 36 and total < 750 * 1024, (len(result), total)
     print('Warder lightweight UI assets: %d PNG, %d bytes' % (len(result), total))
 
 
