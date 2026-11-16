@@ -86,12 +86,33 @@ class RadioList(MenuList):
         self.l.setBuildFunc(self.build)
         self.logo = None
         self.icy_supported = None
+        # Cached native Enigma2 pixmaps live in the list rows themselves:
+        # no static overlay can hide the selected menu background or text.
+        self.menu_icons = {}
+        if functions:
+            for key, name in (('group', 'country'), ('radio', 'home'),
+                              ('subscriptions', 'subscriptions'),
+                              ('favourites', 'favourites'), ('history', 'history'),
+                              ('recordings', 'recordings'), ('settings', 'settings'),
+                              ('plugin-update', 'update')):
+                path = os.path.join(ROOT, 'artwork', 'menu', name + '.png')
+                if os.path.isfile(path):
+                    self.menu_icons[key] = LoadPixmap(path=path)
 
     def build(self, item, key=None):
         def n(value):
             return max(1, round(value * self.ui_scale))
         flags = (getattr(enigma, 'RT_HALIGN_RIGHT', enigma.RT_HALIGN_LEFT) if self.functions and rtl() else enigma.RT_HALIGN_LEFT) | enigma.RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0)
         if self.functions:
+            icon = self.menu_icons.get(key)
+            prefix = [None]
+            if icon is not None:
+                prefix.append(MultiContentEntryPixmapAlphaBlend(
+                    pos=(n(8), n(4)), size=(n(56), n(56)),
+                    png=icon, flags=(enigma.BT_SCALE |
+                                     enigma.BT_KEEP_ASPECT_RATIO |
+                                     enigma.BT_HALIGN_CENTER |
+                                     enigma.BT_VALIGN_CENTER)))
             if key == 'group':
                 caption = t('Choose country') + ' – '
                 country = item[len(caption):]
@@ -102,7 +123,7 @@ class RadioList(MenuList):
                 # Reserve room for the localized country name and dropdown.
                 text_start = 76
                 caption_width = min(198, max(158, len(caption) * 10 + 8))
-                return [None,
+                return prefix + [
                         MultiContentEntryText(pos=(n(text_start), n(0)),
                                               size=(n(caption_width), n(58)),
                                               font=2, flags=flags, text=caption),
@@ -110,7 +131,7 @@ class RadioList(MenuList):
                                               size=(n(382 - text_start - caption_width), n(58)),
                                               font=2, flags=flags, text=country,
                                               color=0x00ceff, color_sel=0x00ceff)]
-            return [None, MultiContentEntryText(pos=(n(76), n(6)),
+            return prefix + [MultiContentEntryText(pos=(n(76), n(6)),
                                                size=(n(302), n(52)),
                                                font=0, flags=flags, text=item)]
         pixmap = self.logo(item) if self.logo else None
