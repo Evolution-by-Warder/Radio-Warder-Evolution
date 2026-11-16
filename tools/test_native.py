@@ -2000,7 +2000,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['navtitle'].getText(), '')
         self.assertIsNone(root.find("widget[@name='heading']"))
         self.assertIsNone(root.find("widget[@name='countrycaption']"))
-        self.assertIn(radio.t('Country') + ' – ', screen['functions'].l.rows[0][0])
+        self.assertIn(radio.t('Country') + ': ', screen['functions'].l.rows[0][0])
         self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
         screen.play()
         playing = session.nav.current
@@ -2258,7 +2258,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(len(first), 4)
         self.assertEqual(first[1][2:4], (4, 56))  # icon top=4, width=56
         self.assertEqual(first[2][5], first[3][5])  # identical font ID
-        self.assertIn(radio.t('Country') + ' – ', screen['functions'].l.rows[0][0])
+        self.assertIn(radio.t('Country') + ': ', screen['functions'].l.rows[0][0])
         self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
         before = len(session.dialogs)
         screen.focus_country()
