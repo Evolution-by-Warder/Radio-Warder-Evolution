@@ -1,5 +1,16 @@
 # Warder Radio – prechod na online katalóg
 
+## 16. 11. 2026 – jednoduchšie Domov, bez pripínania (0.2.0-test12)
+
+- **Rozhodnutie vlastníka:** funkciu `Pripnúť/Odopnúť stanicu na Domov` úplne odstrániť. V Obľúbených už je všetko potrebné; ďalšia paralelná kolekcia a hviezdičky zbytočne komplikovali ovládanie.
+- **Pracovný [Draft PR #35](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/35)** vo vetve `fix/radio-search-name-ux-test12-20261116`, nadväzuje na hotový test11. Bez merge, produkčný `main` a ostré IPK 0.1.9.4 nezmenené.
+- **Odstránené:** menu pripínania, znak `★` v natívnom zozname, predsúvanie pinov na Domov, `Store.is_pinned`/`toggle_pin`/`pinned`, nepotrebné preklady pinovania zo všetkých 21 jazykov a staré regresné testy. Existujúci kľúč `pinned` v starom `state.json` zostáva iba inertnou kompatibilnou hodnotou; nie je čítaný alebo zapisovaný špeciálne a stará inštalácia môže byť bezpečne obnovená.
+- **Zachované:** Obľúbené, presúvanie poradia Obľúbených cez MENU, história, Odbery, ICY, logá, nahrávanie, aktualizácie, diagnostika, šetrič a aktuálny prehrávač **Enigma2 služba 4097 bez akejkoľvek zmeny**.
+- **Issue #20:** jednotný viditeľný názov `Radio – Warder Evolution` v Plugins, Extensions a voliteľnej položke hlavného menu; interné ID `warder_radio_mainmenu` nemeníme.
+- **Automatická verifikácia:** [Radio PR validation PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43816543556), [OLED saver CI PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/43816543585) vrátane kontroly kompilácie, prekladov, unit testov, natívnych OpenPLi/OpenATV replayov, izolovaného `opkg` upgradu zo stabilnej 0.1.9.4 a overenia balíka. Po dokumentačnom commite znovu overiť výsledok CI pre finálnu hlavu.
+- **Ďalší krok:** na GigaBlue a SF8008 overiť jednoduché Domov bez pinov a funkčné poradie Obľúbených. Žiadny nový návrh prehrávača; pred ostrým vydaním potrebné schválenie majiteľa.
+
+
 ## 15. 11. 2026 – Elán / Kráľovná bielych tenisiek: opravený informačný lookup (0.2.0-test11)
 
 - **Používateľský prípad:** screenshoty GigaBlue v test10 ukázali `Interpret: Elan`, `Skladba: 10.Kralovna bielych tenisiek`, ale v oboch oknách `Nedostupné`. Externé dôkazy (Apple Music, Spotify, Wikipedia) potvrdzujú, že správne záznamy existujú: skladba na albume `Hodina slovenčiny` (1985), interpret slovenská pop-rocková kapela Elán.
