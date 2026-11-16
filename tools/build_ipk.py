@@ -24,7 +24,8 @@ assert 1 <= args.package_revision <= 1000
 assert args.package_revision == 1 or not (args.legacy_bridge or args.tester_bridge)
 PACKAGE_REVISION = args.package_revision
 TARGET_VERSION = (SOURCE / 'version.txt').read_text().strip()
-BRIDGE_VERSION = '0.1.9.1-test2' if TARGET_VERSION == '0.1.9.1' else '0.1.9-test3'
+BRIDGE_VERSION = ('0.2.0-test22' if TARGET_VERSION == '0.2.0' else
+                  '0.1.9.1-test2' if TARGET_VERSION == '0.1.9.1' else '0.1.9-test3')
 VERSION = ('0.1.0-test11' if args.legacy_bridge else BRIDGE_VERSION if args.tester_bridge
            else TARGET_VERSION)
 assert re.fullmatch(r'\d+\.\d+\.\d+(?:\.\d+)?(?:-test\d+)?', VERSION), VERSION
