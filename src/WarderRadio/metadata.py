@@ -7,7 +7,7 @@ import ssl
 import threading
 import time
 from urllib.request import Request, urlopen
-from .model import stream_url
+from .model import stream_url, search_key
 
 def clean(value):
     return " ".join(re.sub(r"[\x00-\x1f\x7f]", " ", html.unescape(value or "")).split())[:1024]
@@ -65,6 +65,25 @@ def repair_pair(artist,title):
     tagged=re.fullmatch(r'\d{1,3}_\s*(\S+(?:\s+\S+)+)',artist)
     if tagged:artist=tagged.group(1)
     return artist,title
+
+def align_icy_to_native(icy_artist, icy_title, native_artist='', native_title=''):
+    """Correct a reversed broadcaster pair only with two matching native tags.
+
+    Some stations send StreamTitle as 'Title - Artist', although the ordinary
+    convention is 'Artist - Title'. Guessing from punctuation or word counts
+    would corrupt legitimate data. A corroborated native pair is safe.
+    """
+    if not (icy_artist and icy_title and native_artist and native_title):
+        return icy_artist, icy_title
+    def key(value):
+        return search_key(clean(value))
+    if (key(icy_artist) == key(native_title)
+            and key(icy_title) == key(native_artist)
+            and not (key(icy_artist) == key(native_artist)
+                     and key(icy_title) == key(native_title))):
+        return icy_title, icy_artist
+    return icy_artist, icy_title
+
 
 def split_song(value):
     return split_stream(clean(value))
