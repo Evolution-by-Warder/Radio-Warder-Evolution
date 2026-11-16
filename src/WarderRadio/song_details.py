@@ -334,6 +334,116 @@ def audiodb_artist_bio(artist, opener=urlopen, timeout=2.5, language=None):
     return []
 
 
+
+# Only explicit song-credit syntax is split. Commas inside permanent band
+# names (Earth, Wind & Fire; Tyler, The Creator) are not split by default.
+_FEATURED_CREDIT = re.compile(r'\s+(?:feat(?:uring)?\.?|ft\.?)\s+', re.I)
+
+
+def credited_artist_names(credit):
+    """Return up to two individual artists when the radio states a collaboration.
+
+    Keep an unrecognized/ambiguous credit intact. Never split on a bare &,
+    slash, the word 'and', or a comma in an ordinary name.
+    """
+    credit = clean(credit, 240)
+    if not credit:
+        return []
+    featured = _FEATURED_CREDIT.split(credit, maxsplit=1)
+    if len(featured) == 2:
+        parts = featured
+    elif credit.count(',') == 1:
+        left, right = (part.strip() for part in credit.split(',', 1))
+        # Clear station credit such as "Sean Paul, INNA". An ordinary
+        # title-cased comma can be part of the name of a single act.
+        if (len(left.split()) >= 2 and 2 <= len(right) <= 45
+                and right.isupper() and right.replace(' ', '').isalpha()):
+            parts = [left, right]
+        else:
+            return [credit]
+    else:
+        return [credit]
+    parts = [clean(part, 120).strip(' .,') for part in parts]
+    if len(parts) != 2 or any(len(part) < 2 for part in parts):
+        return [credit]
+    if matches(parts[0], parts[1]):
+        return [parts[0]]
+    return parts
+
+
+def credited_profile_label(candidate, lines):
+    """Make it explicit which guest/lead the returned profile describes."""
+    if not lines:
+        return []
+    from .i18n import t
+    details = list(lines)
+    if details and matches(details[0], candidate):
+        details.pop(0)  # MusicBrainz already starts with the artist's name.
+    return [t('Artist') + ': ' + wiki_artist_name(candidate), ''] + details
+
+
+def combined_artist_profile(artist, track, opener=urlopen, clock=time.monotonic):
+    """Resolve explicitly credited performers without treating both as one act.
+
+    Query two performers only when the broadcaster uses an explicit pairing.
+    One shared lookup budget prevents multiple independent fallback chains
+    from keeping the user's screen on "Please wait…" for too long.
+    """
+    names = credited_artist_names(artist)
+    if len(names) != 2:
+        return []
+    deadline = clock() + 9.0
+    cache_key = search_key(clean(artist, 100))
+    use_cache = opener is urlopen
+    if use_cache:
+        hit = _ARTIST_BIO_CACHE.get(cache_key)
+        if hit and hit[0] > clock():
+            return list(hit[1])
+    def seconds(cap):
+        return max(0.0, min(cap, deadline - clock()))
+    def finish(name, lines):
+        result = credited_profile_label(name, lines)
+        if result and use_cache:
+            if len(_ARTIST_BIO_CACHE) >= _ARTIST_BIO_MAX:
+                _ARTIST_BIO_CACHE.pop(next(iter(_ARTIST_BIO_CACHE)))
+            _ARTIST_BIO_CACHE[cache_key] = (clock() + _ARTIST_BIO_TTL, tuple(result))
+        return result
+
+    # Try fast artist biographies for lead and guest first. A failed "NEBE"
+    # must not prevent the available profile of Katarína Knechtová.
+    for name in names:
+        timeout = seconds(1.8)
+        if timeout < 0.3:
+            return []
+        found = audiodb_artist_bio(name, opener, timeout=timeout)
+        if found:
+            return finish(name, found)
+    # A few requests are acceptable on this *manual* information screen;
+    # none run automatically as the listener scrolls station lists.
+    for name in names:
+        timeout = seconds(1.6)
+        if timeout < 0.3:
+            return []
+        found = artist_information(name, '', opener, timeout=timeout)
+        if found:
+            return finish(name, found)
+    for name in names:
+        timeout = seconds(1.2)
+        if timeout < 0.3:
+            return []
+        found = wikipedia_bio(name, opener, timeout=timeout, max_pages=2)
+        if found:
+            return finish(name, found)
+    for name in names:
+        timeout = seconds(1.2)
+        if timeout < 0.3:
+            return []
+        found = wikipedia_action_bio(name, opener, timeout=timeout)
+        if found:
+            return finish(name, found)
+    return []
+
+
 def artist_profile(artist, track, opener=urlopen):
     """Find a verified musician with quick fallback across independent APIs.
 
@@ -341,6 +451,9 @@ def artist_profile(artist, track, opener=urlopen):
     verbatim as case-sensitive Wikipedia article paths. These requests are
     on the existing background song-info worker, never the GUI thread.
     """
+    candidates = credited_artist_names(artist)
+    if len(candidates) == 2:
+        return combined_artist_profile(artist, track, opener)
     canonical = wiki_artist_name(artist)
     use_cache = opener is urlopen
     cache_key = search_key(clean(canonical, 100))
