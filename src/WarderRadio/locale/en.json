@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "No YouTube video could be found for the current song.",
   "Yes": "Yes",
   "No": "No",
-  "A new version is available. Do you want to install it?": "A new version is available. Do you want to install it?"
+  "A new version is available. Do you want to install it?": "A new version is available. Do you want to install it?",
+  "Home": "Home",
+  "Subscriptions": "Subscriptions",
+  "Choose category": "Choose category",
+  "Follow category": "Follow category",
+  "Unfollow category": "Unfollow category",
+  "All categories": "All categories",
+  "No subscriptions": "No subscriptions",
+  "Page": "Page",
+  "Offline catalogue": "Offline catalogue",
+  "Clear logo cache": "Clear logo cache",
+  "Clear cached station logos?": "Clear cached station logos?",
+  "Logo cache cleared": "Logo cache cleared",
+  "Cannot clear logo cache": "Cannot clear logo cache",
+  "Lyrics": "Lyrics",
+  "Artist information": "Artist information",
+  "Song information unavailable": "Song information unavailable"
 }

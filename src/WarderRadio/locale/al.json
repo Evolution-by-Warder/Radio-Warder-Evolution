@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Nuk u gjet video në YouTube për këngën aktuale.",
   "Yes": "Po",
   "No": "Jo",
-  "A new version is available. Do you want to install it?": "Një version i ri është i disponueshëm. Dëshironi ta instaloni?"
+  "A new version is available. Do you want to install it?": "Një version i ri është i disponueshëm. Dëshironi ta instaloni?",
+  "Home": "Kreu",
+  "Subscriptions": "Abonimet",
+  "Choose category": "Zgjidh kategorinë",
+  "Follow category": "Ndiq kategorinë",
+  "Unfollow category": "Mos e ndiq kategorinë",
+  "All categories": "Të gjitha kategoritë",
+  "No subscriptions": "Nuk ka abonime",
+  "Page": "Faqja",
+  "Offline catalogue": "Katalogu jashtë linje",
+  "Clear logo cache": "Pastro memorien e logove",
+  "Clear cached station logos?": "Të pastrohen logot e ruajtura?",
+  "Logo cache cleared": "Memoria e logove u pastrua",
+  "Cannot clear logo cache": "Nuk mund të pastrohet memoria e logove",
+  "Lyrics": "Teksti i këngës",
+  "Artist information": "Informacion për artistin",
+  "Song information unavailable": "Informacioni i këngës nuk gjendet"
 }

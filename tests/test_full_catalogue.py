@@ -4,8 +4,8 @@ import json
 import tempfile
 import unittest
 from unittest.mock import patch
-from WarderRadio import model
-from WarderRadio.model import Catalogue, station
+from WarderRadio import legacy_catalogue as model
+from WarderRadio.legacy_catalogue import Catalogue, station
 
 
 def rows(count):

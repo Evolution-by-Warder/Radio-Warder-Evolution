@@ -1,0 +1,504 @@
+"""On-demand lyrics and artist information for the currently displayed song."""
+import json
+import re
+import time
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+from .model import clean, search_key
+from .radio_browser import USER_AGENT
+
+MAX_JSON = 512 * 1024
+LRCLIB = 'https://lrclib.net/api/search'
+MUSICBRAINZ = 'https://musicbrainz.org/ws/2/'
+AUDIODB = 'https://www.theaudiodb.com/api/v1/json/123/search.php'
+_ARTIST_BIO_CACHE = {}  # bounded positive-only memory cache; never stores missing data
+_ARTIST_BIO_TTL = 12 * 60 * 60
+_ARTIST_BIO_MAX = 80
+
+
+def read_response(url, params, opener, timeout=5):
+    request = Request(url + '?' + urlencode(params),
+                      headers={'User-Agent': USER_AGENT, 'Accept': 'application/json'})
+    with opener(request, timeout=timeout) as response:
+        data = response.read(MAX_JSON + 1)
+    if len(data) > MAX_JSON:
+        raise ValueError('Song information response too large')
+    return json.loads(data)
+
+
+def matches(value, expected):
+    return search_key(clean(value)) == search_key(clean(expected))
+
+
+_TRACK_NUMBER = re.compile(r'^\s*\d{1,3}[.)]\s*(?=[^\W\d_])', re.UNICODE)
+
+
+def title_options(track):
+    """Try original ICY title and, only as fallback, a numbered track label.
+
+    A prefix such as '10.Kralovna' is a playlist track number; titles that
+    begin with digits without a following dot/parenthesis are not changed.
+    """
+    raw = clean(track, 240)
+    unnumbered = _TRACK_NUMBER.sub('', raw).strip()
+    return list(dict.fromkeys(value for value in (raw, unnumbered) if value))
+
+
+def lyrics(artist, track, opener=urlopen):
+    rows = read_response(LRCLIB, {'artist_name': artist, 'track_name': track}, opener)
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict) or not matches(row.get('artistName'), artist) or not matches(row.get('trackName'), track):
+            continue
+        lines = row.get('plainLyrics')
+        if not lines and isinstance(row.get('syncedLyrics'), str):
+            lines = re.sub(r'^\[\d+:\d+(?:\.\d+)?\]\s*', '', row['syncedLyrics'], flags=re.MULTILINE)
+        if isinstance(lines, str) and lines.strip():
+            return [clean(line, 500) for line in lines.splitlines()[:250]] + ['', 'LRCLIB']
+    return []
+
+
+def artist_information(artist, track, opener=urlopen, timeout=5):
+    """Retrieve a confidently identified artist even if this song isn't indexed.
+
+    MusicBrainz recording credits are preferred; a unique exact artist-name
+    search is the fallback. Never guess between ambiguous artist identities.
+    """
+    def quote(value):
+        return '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
+
+    artist = clean(artist, 240)
+    track = title_options(track)[-1] if title_options(track) else ''
+    if not artist:
+        return []
+
+    identifier = ''
+    ambiguous = False
+    if track:
+        query = 'recording:' + quote(track) + ' AND artist:' + quote(artist)
+        try:
+            recordings = read_response(MUSICBRAINZ + 'recording',
+                                       {'query': query, 'fmt': 'json', 'limit': 12}, opener, timeout)
+        except (OSError, ValueError, TypeError):
+            recordings = {}
+        artists = set()
+        for recording in recordings.get('recordings', []) if isinstance(recordings, dict) else []:
+            if not isinstance(recording, dict) or not matches(recording.get('title'), track):
+                continue
+            for credit in recording.get('artist-credit', []):
+                if not isinstance(credit, dict):
+                    continue
+                entry = credit.get('artist') or {}
+                if not isinstance(entry, dict):
+                    continue
+                value = entry.get('id', '')
+                if matches(entry.get('name'), artist) and re.fullmatch(r'[a-f0-9-]{36}', value):
+                    artists.add(value)
+        if len(artists) == 1:
+            identifier = next(iter(artists))
+        elif len(artists) > 1:
+            ambiguous = True
+
+    if not identifier and not ambiguous:
+        # Direct artist search still works when a station's track is missing
+        # from MusicBrainz (live shows, new singles and remixes).
+        candidates = [artist]
+        # Explicit guest credits are not part of the main performer's name.
+        main = re.split(r'\s+(?:feat\.?|ft\.?|featuring|x|vs\.?)\s+', artist,
+                        maxsplit=1, flags=re.I)[0]
+        if main != artist:
+            candidates.append(main)
+        # Some ICY servers list several guests with commas; look up the
+        # first credited performer only if the combined name is not indexed.
+        if artist.count(',') >= 2:
+            first = artist.split(',', 1)[0].strip()
+            if first and first not in candidates:
+                candidates.append(first)
+        for name in candidates:
+            try:
+                rows = read_response(MUSICBRAINZ + 'artist',
+                                     {'query': 'artist:' + quote(name), 'fmt': 'json', 'limit': 12}, opener, timeout)
+            except (OSError, ValueError, TypeError):
+                continue
+            found = {row.get('id') for row in rows.get('artists', [])
+                     if isinstance(row, dict) and matches(row.get('name'), name)
+                     and isinstance(row.get('id'), str)
+                     and re.fullmatch(r'[a-f0-9-]{36}', row['id'])}
+            if len(found) == 1:
+                identifier = next(iter(found))
+                break
+            if len(found) > 1:
+                break
+    if not identifier:
+        return []
+    try:
+        row = read_response(MUSICBRAINZ + 'artist/' + identifier, {'fmt': 'json', 'inc': 'genres'}, opener, timeout)
+    except (OSError, ValueError, TypeError):
+        return []
+    if not isinstance(row, dict):
+        return []
+    area = row.get('area') or row.get('begin-area') or {}
+    lifespan = row.get('life-span') or {}
+    genres = ', '.join(clean(genre.get('name')) for genre in (row.get('genres') or [])[:5]
+                       if isinstance(genre, dict))
+    years = ' – '.join(clean(lifespan[key])[:4] for key in ('begin', 'end')
+                       if isinstance(lifespan, dict) and lifespan.get(key))
+    return [clean(value) for value in (row.get('name'), row.get('disambiguation'),
+                                       area.get('name') if isinstance(area, dict) else '',
+                                       years, genres) if value] + ['', 'MusicBrainz']
+
+def song_information(artist, track, opener=urlopen):
+    """Verified album, original release year and genre from iTunes.
+
+    Fallback strips *only* explicit track-list numbers such as '10.Kralovna'.
+    Never changes the song displayed by the radio or guesses an album.
+    """
+    artist = clean(artist, 240)
+    titles = title_options(track)
+    if not artist or not titles:
+        return []
+    from .covers import cover_rank
+    # Prefer the listener's original title, then a track-list-number fallback.
+    # Use a small bounded number of catalogue calls, not a whole-world scan.
+    plans = [('SK', titles[0])]
+    if len(titles) > 1:
+        plans.append(('SK', titles[-1]))
+    plans.extend((country, titles[-1]) for country in ('US', 'CZ'))
+    found = []
+    for country, title in list(dict.fromkeys(plans)):
+        try:
+            rows = read_response('https://itunes.apple.com/search',
+                                 {'term': artist + ' ' + title, 'entity': 'song',
+                                  'media': 'music', 'country': country, 'limit': 25}, opener)
+        except (OSError, ValueError, TypeError):
+            continue
+        for row in (rows.get('results') or []) if isinstance(rows, dict) else []:
+            if not isinstance(row, dict):
+                continue
+            score = cover_rank(row, artist, title)
+            if score:
+                found.append((score, row))
+        if found:
+            break
+    if not found:
+        return []
+    found.sort(key=lambda pair: (-pair[0], pair[1].get('releaseDate') or '9999'))
+    item = found[0][1]
+    values = []
+    album = clean(item.get('collectionName'))
+    year = clean(item.get('releaseDate'))[:4]
+    genre = clean(item.get('primaryGenreName'))
+    if album:
+        values.append('Album: ' + album)
+    if year and year.isdigit():
+        values.append('Year: ' + year)
+    if genre:
+        values.append('Genre: ' + genre)
+    return values + ['', 'iTunes'] if values else []
+
+
+def wiki_artist_name(artist):
+    """Normalize all-caps broadcaster tags for case-sensitive wiki titles.
+
+    Preserve branded acronyms such as ABBA and slash-names such as AC/DC.
+    This never changes the artist as shown in the player's metadata.
+    """
+    value = clean(artist, 100)
+    if (value.isupper() and len(value.split()) >= 2
+            and not any(character in value for character in ('/', '&', '(', ')'))):
+        return value.title()
+    return value
+
+
+def wikipedia_bio(artist, opener=urlopen, timeout=3, max_pages=5, skip_first=False):
+    """Find an exact music biography, including verified band disambiguations.
+
+    Avoid generic pages (for example "elan" means enthusiasm) and unrelated
+    performers with the same name. Local-language summaries take priority.
+    """
+    artist = wiki_artist_name(artist)
+    if not artist or '/' in artist or len(artist) > 90:
+        return []
+    from urllib.parse import quote
+    pages = [
+        ('sk', artist),
+        ('en', artist),
+        ('en', artist + ' (band)'),
+        ('sk', artist + ' (hudobná skupina)'),
+        ('cs', artist + ' (hudební skupina)'),
+    ]
+    music_markers = (
+        'singer', 'band', 'musician', 'rapper', 'dj', 'music',
+        'songwriter', 'composer', 'producer', 'vocalist', 'guitarist',
+        'skupina', 'spevak', 'spevák', 'hudobn', 'poprock',
+        'zpěvák', 'hudebn', 'rockov', 'kapela',
+    )
+    start = 1 if skip_first else 0
+    for locale, title in pages[start:start + max_pages]:
+        url = ('https://' + locale + '.wikipedia.org/api/rest_v1/page/summary/' +
+               quote(title.replace(' ', '_'), safe=''))
+        request = Request(url, headers={'User-Agent': USER_AGENT, 'Accept': 'application/json'})
+        try:
+            with opener(request, timeout=timeout) as response:
+                body = response.read(24 * 1024 + 1)
+            if len(body) > 24 * 1024:
+                continue
+            info = json.loads(body)
+        except (OSError, ValueError, TypeError):
+            continue
+        if not isinstance(info, dict) or info.get('type') != 'standard':
+            continue
+        actual = clean(info.get('title'))
+        if not matches(actual, title):
+            # Some Wikimedia summaries display the base artist name despite
+            # a parenthesized band title; allow this only for music-band pages.
+            if not (title != artist and matches(actual, artist)):
+                continue
+        descriptor = clean(info.get('description')).casefold()
+        if not any(marker in descriptor for marker in music_markers):
+            continue
+        summary = clean(info.get('extract'), 700)
+        if summary:
+            return ['Biography: ' + summary, '', 'Wikipedia (' + locale.upper() + ')']
+    return []
+
+
+def wikipedia_action_bio(artist, opener=urlopen, timeout=2):
+    """Independent Wikipedia Action API fallback when REST summaries fail.
+
+    Check the resolved article title and the text's music context. This uses
+    the site's public query API, never a guessed person/artist identity.
+    """
+    artist = wiki_artist_name(artist)
+    if not artist or '/' in artist or len(artist) > 90:
+        return []
+    music_markers = ('spevák', 'speváčka', 'hudobn', 'skupina', 'gitarist',
+                     'singer', 'musician', 'band', 'songwriter', 'composer',
+                     'guitarist', 'vocalist', 'rapper', 'rocková', 'kapela')
+    for locale in ('sk', 'en'):
+        try:
+            info = read_response('https://' + locale + '.wikipedia.org/w/api.php',
+                {'action': 'query', 'format': 'json', 'formatversion': 2,
+                 'prop': 'extracts', 'exintro': 1, 'explaintext': 1,
+                 'redirects': 1, 'titles': artist}, opener, timeout)
+        except (OSError, ValueError, TypeError):
+            continue
+        pages = ((info.get('query') or {}).get('pages') or []) if isinstance(info, dict) else []
+        for page in pages if isinstance(pages, list) else []:
+            if not isinstance(page, dict) or page.get('missing') or not matches(page.get('title'), artist):
+                continue
+            intro = clean(page.get('extract'), 700)
+            if intro and any(token in intro.casefold() for token in music_markers):
+                return ['Biography: ' + intro, '', 'Wikipedia (' + locale.upper() + ')']
+    return []
+
+
+def audiodb_artist_bio(artist, opener=urlopen, timeout=2.5, language=None):
+    """One bounded, exact-name TheAudioDB request for an on-demand biography.
+
+    The shared API endpoint can return no result, multiple results, or 429.
+    A valid biography is shown only for an unambiguous exact artist identity.
+    Never scrape web pages or expose links supplied by catalogue records.
+    """
+    artist = clean(artist, 100)
+    if not artist:
+        return []
+    from .i18n import language_code
+    locale = language_code(language).upper()
+    prefer = {
+        'SK': ('SK', 'CZ', 'EN'),
+        'CS': ('CZ', 'SK', 'EN'),
+    }.get(locale, (locale, 'EN'))
+    try:
+        rows = read_response(AUDIODB, {'s': artist}, opener, timeout)
+    except (OSError, ValueError, TypeError, KeyError):
+        return []
+    records = rows.get('artists') if isinstance(rows, dict) else None
+    if not isinstance(records, list):
+        return []
+    exact = [item for item in records if isinstance(item, dict)
+             and matches(item.get('strArtist'), artist)]
+    identifiers = {clean(item.get('idArtist')) for item in exact}
+    if len(identifiers) != 1 or not identifiers or '' in identifiers:
+        return []
+    item = exact[0]
+    for code in dict.fromkeys(prefer):
+        # TheAudioDB uses either strBiographyEN or the plain strBiography.
+        fields = ('strBiographyEN', 'strBiography') if code == 'EN' else ('strBiography' + code,)
+        for field in fields:
+            value = item.get(field)
+            if isinstance(value, str):
+                text = clean(value, 700)
+                if len(text) >= 35:
+                    return ['Biography: ' + text, '', 'TheAudioDB']
+    return []
+
+
+
+# Only explicit song-credit syntax is split. Commas inside permanent band
+# names (Earth, Wind & Fire; Tyler, The Creator) are not split by default.
+_FEATURED_CREDIT = re.compile(r'\s+(?:feat(?:uring)?\.?|ft\.?)\s+', re.I)
+
+
+def credited_artist_names(credit):
+    """Return up to two individual artists when the radio states a collaboration.
+
+    Keep an unrecognized/ambiguous credit intact. Split explicit feat./ft.
+    pairings and a conservative two-full-name & credit; never split a bare
+    slash, the word 'and', or a comma in an ordinary band name.
+    """
+    credit = clean(credit, 240)
+    if not credit:
+        return []
+    featured = _FEATURED_CREDIT.split(credit, maxsplit=1)
+    if len(featured) == 2:
+        parts = featured
+    elif credit.count('&') == 1 and ',' not in credit:
+        left, right = (part.strip() for part in credit.split('&', 1))
+        # Two full stage names, e.g. "Emma Llure & Peter Pann".
+        # Keep most permanent bands ("Simon & Garfunkel", "Earth, Wind
+        # & Fire") intact; never guess a name from a single word.
+        if (len(left.split()) >= 2 and len(right.split()) >= 2
+                and right.split()[0].casefold() not in ('the', 'a', 'an')
+                and len(left) <= 60 and len(right) <= 60):
+            parts = [left, right]
+        else:
+            return [credit]
+    elif credit.count(',') == 1:
+        left, right = (part.strip() for part in credit.split(',', 1))
+        # Clear station credit such as "Sean Paul, INNA". An ordinary
+        # title-cased comma can be part of the name of a single act.
+        if (len(left.split()) >= 2 and 2 <= len(right) <= 45
+                and right.isupper() and right.replace(' ', '').isalpha()):
+            parts = [left, right]
+        else:
+            return [credit]
+    else:
+        return [credit]
+    parts = [clean(part, 120).strip(' .,') for part in parts]
+    if len(parts) != 2 or any(len(part) < 2 for part in parts):
+        return [credit]
+    if matches(parts[0], parts[1]):
+        return [parts[0]]
+    return parts
+
+
+def credited_profile_label(candidate, lines):
+    """Make it explicit which guest/lead the returned profile describes."""
+    if not lines:
+        return []
+    from .i18n import t
+    details = list(lines)
+    if details and matches(details[0], candidate):
+        details.pop(0)  # MusicBrainz already starts with the artist's name.
+    return [t('Artist') + ': ' + wiki_artist_name(candidate), ''] + details
+
+
+def combined_artist_profile(artist, track, opener=urlopen, clock=time.monotonic):
+    """Resolve explicitly credited performers without treating both as one act.
+
+    Query two performers only when the broadcaster uses an explicit pairing.
+    One shared lookup budget prevents multiple independent fallback chains
+    from keeping the user's screen on "Please wait…" for too long.
+    """
+    names = credited_artist_names(artist)
+    if len(names) != 2:
+        return []
+    deadline = clock() + 9.0
+    cache_key = search_key(clean(artist, 100))
+    use_cache = opener is urlopen
+    if use_cache:
+        hit = _ARTIST_BIO_CACHE.get(cache_key)
+        if hit and hit[0] > clock():
+            return list(hit[1])
+    def seconds(cap):
+        return max(0.0, min(cap, deadline - clock()))
+    def finish(name, lines):
+        result = credited_profile_label(name, lines)
+        if result and use_cache:
+            if len(_ARTIST_BIO_CACHE) >= _ARTIST_BIO_MAX:
+                _ARTIST_BIO_CACHE.pop(next(iter(_ARTIST_BIO_CACHE)))
+            _ARTIST_BIO_CACHE[cache_key] = (clock() + _ARTIST_BIO_TTL, tuple(result))
+        return result
+
+    # Try fast artist biographies for lead and guest first. A failed "NEBE"
+    # must not prevent the available profile of Katarína Knechtová.
+    for name in names:
+        timeout = seconds(1.8)
+        if timeout < 0.3:
+            return []
+        found = audiodb_artist_bio(name, opener, timeout=timeout)
+        if found:
+            return finish(name, found)
+    # A few requests are acceptable on this *manual* information screen;
+    # none run automatically as the listener scrolls station lists.
+    for name in names:
+        timeout = seconds(1.6)
+        if timeout < 0.3:
+            return []
+        found = artist_information(name, '', opener, timeout=timeout)
+        if found:
+            return finish(name, found)
+    for name in names:
+        timeout = seconds(1.2)
+        if timeout < 0.3:
+            return []
+        found = wikipedia_bio(name, opener, timeout=timeout, max_pages=2)
+        if found:
+            return finish(name, found)
+    for name in names:
+        timeout = seconds(1.2)
+        if timeout < 0.3:
+            return []
+        found = wikipedia_action_bio(name, opener, timeout=timeout)
+        if found:
+            return finish(name, found)
+    return []
+
+
+def artist_profile(artist, track, opener=urlopen):
+    """Find a verified musician with quick fallback across independent APIs.
+
+    All-caps ICY names (e.g. PAVOL HAMMEL, THE BEATLES) must not be sent
+    verbatim as case-sensitive Wikipedia article paths. These requests are
+    on the existing background song-info worker, never the GUI thread.
+    """
+    candidates = credited_artist_names(artist)
+    if len(candidates) == 2:
+        return combined_artist_profile(artist, track, opener)
+    canonical = wiki_artist_name(artist)
+    use_cache = opener is urlopen
+    cache_key = search_key(clean(canonical, 100))
+    if use_cache:
+        hit = _ARTIST_BIO_CACHE.get(cache_key)
+        if hit is not None:
+            expires, lines = hit
+            if expires > time.monotonic():
+                return list(lines)
+            _ARTIST_BIO_CACHE.pop(cache_key, None)
+    def finish(lines):
+        if lines and use_cache:
+            if len(_ARTIST_BIO_CACHE) >= _ARTIST_BIO_MAX:
+                _ARTIST_BIO_CACHE.pop(next(iter(_ARTIST_BIO_CACHE)))
+            _ARTIST_BIO_CACHE[cache_key] = (time.monotonic() + _ARTIST_BIO_TTL,
+                                            tuple(lines))
+        return lines
+
+    # Fast one-request source. No list browsing or background probing.
+    bio = audiodb_artist_bio(canonical, opener, timeout=2.5)
+    if bio:
+        return finish(bio)
+    uppercase_icy = canonical != clean(artist, 100)
+    if uppercase_icy:
+        # A single regional lookup often yields a biography immediately for
+        # Slovak/Czech broadcasters with uppercase metadata.
+        wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=1)
+        if wiki:
+            return finish(wiki)
+    information = artist_information(artist, '', opener, timeout=2.5)
+    if information:
+        return finish(information)
+    # Do not repeat the Slovak summary when uppercase tags already tried it.
+    wiki = wikipedia_bio(canonical, opener, timeout=2, max_pages=2,
+                          skip_first=uppercase_icy)
+    return finish(wiki or wikipedia_action_bio(canonical, opener, timeout=2))

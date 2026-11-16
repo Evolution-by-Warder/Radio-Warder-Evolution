@@ -14,8 +14,8 @@ class TranslationTests(unittest.TestCase):
                     'lt', 'nl', 'pl', 'pt', 'ro', 'ru', 'sk', 'tr', 'uk', 'zh'}
         self.assertEqual(set(i18n.SUPPORTED), expected)
         english = i18n.translations('en')
-        # Existing 159 reviewed keys + 7 shared OLED saver labels.
-        self.assertEqual(len(english), 166)
+        # Existing labels plus a translated OK-to-select hint for countries.
+        self.assertEqual(len(english), 189)
         for code in expected:
             with self.subTest(code=code):
                 translated = i18n.translations(code)
@@ -27,6 +27,8 @@ class TranslationTests(unittest.TestCase):
                 if code != 'en':
                     self.assertNotEqual(translated[hint], hint)
                 self.assertTrue(all(isinstance(s, str) and s.strip() for s in translated.values()))
+                self.assertIn('OK', translated['Press OK to select'])
+                self.assertLessEqual(len(translated['Press OK to select']), 30)
                 for key, value in english.items():
                     fields = lambda text: {name for _, name, _, _ in string.Formatter().parse(text) if name}
                     self.assertEqual(fields(translated[key]), fields(value), (code, key))
@@ -36,6 +38,11 @@ class TranslationTests(unittest.TestCase):
                 if code != 'en':
                     self.assertNotEqual(translated['Settings'], 'Settings')
                     self.assertNotEqual(translated['Update failed'], 'Update failed')
+
+    def test_country_confirm_hint_is_localized(self):
+        self.assertEqual(i18n.translations('sk')['Press OK to select'], 'Výber potvrď OK')
+        self.assertEqual(i18n.translations('cs')['Press OK to select'], 'Výběr potvrď OK')
+        self.assertEqual(i18n.translations('en')['Press OK to select'], 'Press OK to select')
 
     def test_language_aliases_and_regional_codes(self):
         for code, expected in [('sq_AL', 'al'), ('al_AL', 'al'), ('cs-CZ', 'cs'),

@@ -24,7 +24,8 @@ assert 1 <= args.package_revision <= 1000
 assert args.package_revision == 1 or not (args.legacy_bridge or args.tester_bridge)
 PACKAGE_REVISION = args.package_revision
 TARGET_VERSION = (SOURCE / 'version.txt').read_text().strip()
-BRIDGE_VERSION = '0.1.9.1-test2' if TARGET_VERSION == '0.1.9.1' else '0.1.9-test3'
+BRIDGE_VERSION = ('0.2.0-test22' if TARGET_VERSION == '0.2.0' else
+                  '0.1.9.1-test2' if TARGET_VERSION == '0.1.9.1' else '0.1.9-test3')
 VERSION = ('0.1.0-test11' if args.legacy_bridge else BRIDGE_VERSION if args.tester_bridge
            else TARGET_VERSION)
 assert re.fullmatch(r'\d+\.\d+\.\d+(?:\.\d+)?(?:-test\d+)?', VERSION), VERSION
@@ -33,11 +34,18 @@ PACKAGE = ('enigma2-plugin-extensions-warderradio' if args.legacy_bridge
            else 'enigma2-plugin-extensions-radio-warder-evolution')
 MIGRATION = ('' if args.legacy_bridge else
              'Replaces: enigma2-plugin-extensions-warderradio\nConflicts: enigma2-plugin-extensions-warderradio\n')
+# Historical inputs remain available to repository tools and regression tests.
+# Receiver packages contain only the online backend and the native player.
+LEGACY_RUNTIME = {
+    'legacy_catalogue.py', 'catalogue-source.json', 'country_catalogue.py',
+    'country-manifest.json', 'country-seed.json', 'seed.json',
+    'picon-countries.json', 'picon_catalogue.py', 'picon_download.py', 'picon_screen.py', 'picons.py',
+}
 FILES = {}
 for path in sorted(SOURCE.rglob('*')):
     if not path.is_file() or '__pycache__' in path.parts or path.suffix in ('.pyc', '.pyo'):
         continue
-    if path.name == 'warder-radio-logo.png':  # Original is kept in Git; the browser uses plugin.png.
+    if path.name in LEGACY_RUNTIME or path.name == 'warder-radio-logo.png':  # Original is kept in Git; the browser uses plugin.png.
         continue
     if path.suffix == '.py':
         ast.parse(path.read_text(), filename=str(path), feature_version=(3, 9))
@@ -54,24 +62,24 @@ Maintainer: Warder
 Section: extra
 Priority: optional
 License: GPL-2.0-or-later
-Depends: enigma2, python3-core, python3-compression, python3-crypt, python3-io, python3-json, python3-math, python3-netclient, python3-threading, python3-xml, python3-datetime, python3-email, python3-misc, streamripper
+Depends: enigma2, python3-core, python3-compression, python3-crypt, python3-io, python3-json, python3-math, python3-netclient, python3-threading, python3-xml, python3-pillow, python3-datetime, python3-email, python3-misc, streamripper
 {MIGRATION}Installed-Size: {installed}
 Description: Warder Radio - World of Radio Stations
- Native internet radio player for OpenPLi and OpenATV, with the Warder catalogue,
- favourites, history, picons and streamripper recording.
+ Native internet radio player for OpenPLi and OpenATV, with Radio Browser,
+ online station logos, favourites, history and streamripper recording.
 '''.encode()
 preinst = b'''#!/bin/sh
 set -eu
 [ -n "${IPKG_INSTROOT:-}" ] && exit 0
 echo "******************************************************************"
-echo "*                 Radio by Warder                                *"
+echo "*                 Radio Warder Evolution                                *"
 echo "******************************************************************"
 case "${1:-}" in
-    upgrade) echo "Preparing Radio by Warder upgrade or reinstall..." ;;
-    *) echo "Preparing Radio by Warder installation or reinstall..." ;;
+    upgrade) echo "Preparing Radio Warder Evolution upgrade or reinstall..." ;;
+    *) echo "Preparing Radio Warder Evolution installation or reinstall..." ;;
 esac
 python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' || {
-    echo "ERROR: Radio by Warder requires Python 3.9 or newer." >&2
+    echo "ERROR: Radio Warder Evolution requires Python 3.9 or newer." >&2
     exit 1
 }
 echo "Python compatibility: OK"
@@ -85,7 +93,7 @@ plugin_root=/usr/lib/enigma2/python/Plugins/Extensions/WarderRadio
 rm -f "$plugin_root"/__pycache__/*.pyc "$plugin_root"/__pycache__/*.pyo \\
       "$plugin_root"/*.pyc "$plugin_root"/*.pyo
 echo "******************************************************************"
-echo "Install/upgrade/reinstall finished: Radio by Warder"
+echo "Install/upgrade/reinstall finished: Radio Warder Evolution"
 echo "Existing radio settings, favourites, history and picons were preserved."
 echo "Please restart GUI to activate changes."
 echo "******************************************************************"
@@ -98,9 +106,9 @@ set -eu
 case "${1:-}" in
     remove|deconfigure)
         echo "******************************************************************"
-        echo "*                 Radio by Warder                                *"
+        echo "*                 Radio Warder Evolution                                *"
         echo "******************************************************************"
-        echo "Removing Radio by Warder plugin files..."
+        echo "Removing Radio Warder Evolution plugin files..."
         ;;
 esac
 exit 0
@@ -113,7 +121,7 @@ set -eu
 case "${1:-}" in
     remove|purge)
         echo "******************************************************************"
-        echo "Radio by Warder removal finished."
+        echo "Radio Warder Evolution removal finished."
         echo "Saved Enigma2 settings, favourites, history and picons were left intact."
         echo "Please restart GUI to activate changes."
         echo "******************************************************************"

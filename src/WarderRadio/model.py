@@ -1,24 +1,11 @@
-"""Catalogue, persistence and navigation ownership. No Enigma2 imports."""
-import gzip
+"""Radio station identity, user persistence and navigation ownership."""
 import hashlib
-import io
 import json
 import os
 import tempfile
-import threading
 import unicodedata
-from collections import OrderedDict
+from uuid import UUID
 from urllib.parse import urlsplit
-from urllib.request import Request, urlopen
-
-from . import ROOT, VERSION
-
-UPSTREAM = ('https://raw.githubusercontent.com/Evolution-by-Warder/'
-            'PiconHub-Warder-Evolution/main/picons/IPTV-SK-CZ/catalog/global/world-radio.receiver.json.gz')
-MAX_CATALOGUE = 32 * 1024 * 1024
-MAX_DOWNLOAD = 8 * 1024 * 1024
-MAX_STATIONS = 100000
-
 
 def clean(value, limit=240):
     return ''.join(c for c in str(value or '') if c >= ' ' and c != '\x7f')[:limit].strip()
@@ -53,42 +40,60 @@ def station(value):
             not field or any(c not in '0123456789abcdefABCDEF' for c in field)
             for field in ref.split(':')):
         ref = ''
-    identity = ref or url
-    return {'id': hashlib.sha256(identity.encode('utf-8')).hexdigest()[:24],
+    item = {'id': hashlib.sha256((ref or url).encode('utf-8')).hexdigest()[:24],
             'name': name, 'url': url, 'group': clean(value.get('group') or 'Other'),
             'reference': ref}
+    raw_uuid = value.get('stationuuid')
+    if raw_uuid:
+        try:
+            item['stationuuid'] = item['id'] = str(UUID(str(raw_uuid)))
+        except ValueError:
+            pass
+    if 'stationuuid' in item:
+        # Metadata from Radio Browser describes the advertised stream.
+        codec = clean(value.get('codec'), 24)
+        if codec and all(ch.isalnum() or ch in '+.-/' for ch in codec):
+            item['codec'] = codec.upper()
+        bitrate = value.get('bitrate')
+        if not isinstance(bitrate, bool):
+            try:
+                bitrate = int(bitrate)
+                if 1 <= bitrate <= 10000:
+                    item['bitrate'] = bitrate
+            except (TypeError, ValueError, OverflowError):
+                pass
+        for key in ('favicon', 'original_url', 'homepage'):
+            try:
+                item[key] = stream_url(value.get(key))
+            except ValueError:
+                pass
+        code = value.get('countrycode')
+        if isinstance(code, str) and len(code) == 2 and code.isalpha():
+            item['countrycode'] = code.upper()
+    return item
 
 
-def parse_bouquet(text):
-    """Keep upstream group order, references and URLs; remove exact duplicates."""
-    if not isinstance(text, str) or len(text.encode('utf-8')) > MAX_CATALOGUE:
-        raise ValueError('Catalogue too large')
-    result, seen, group, pending = [], set(), 'Other', None
-    for line in text.splitlines():
-        if line.startswith('#SERVICE '):
-            fields = line[9:].split(':', 10)
-            pending = None
-            if len(fields) >= 2 and fields[1].lower() == '64':
-                pending = ('group', None)
-            elif len(fields) == 11 and fields[0] in ('4097', '5001', '5002'):
-                pending = (':'.join(fields[:10]), fields[10].replace('%3a', ':').replace('%3A', ':'))
-        elif line.startswith('#DESCRIPTION ') and pending:
-            if pending[0] == 'group':
-                group = clean(line[13:]) or 'Other'
-            else:
-                try:
-                    item = station({'name': line[13:], 'url': pending[1],
-                                    'reference': pending[0], 'group': group})
-                except ValueError:
-                    pending = None
-                    continue
-                if item['id'] not in seen:
-                    result.append(item)
-                    seen.add(item['id'])
-            pending = None
-    if not result:
-        raise ValueError('No playable stations in catalogue')
-    return result
+def station_quality(item):
+    """Codec / bitrate advertised by the online catalogue, not estimated."""
+    codec = item.get('codec') if isinstance(item, dict) else None
+    bitrate = item.get('bitrate') if isinstance(item, dict) else None
+    result = []
+    if isinstance(codec, str) and codec:
+        result.append(codec)
+    if isinstance(bitrate, int) and not isinstance(bitrate, bool) and bitrate > 0:
+        result.append('%d kbps' % bitrate)
+    return ' · '.join(result)
+
+
+def same_station(first, second):
+    if first['id'] == second['id']:
+        return True
+    # UUIDs are authoritative for online rows. For an older saved row the
+    # previously stored stream URL is the only exact online match we can make.
+    if bool(first.get('stationuuid')) == bool(second.get('stationuuid')):
+        return False
+    online, legacy = (first, second) if first.get('stationuuid') else (second, first)
+    return legacy.get('group') != 'Custom' and legacy['url'] in (online['url'], online.get('original_url'))
 
 
 def atomic_json(path, data):
@@ -106,7 +111,7 @@ def atomic_json(path, data):
             os.unlink(temporary)
 
 
-def read_json(path, fallback, maximum=MAX_CATALOGUE):
+def read_json(path, fallback, maximum=32 * 1024 * 1024):
     try:
         with open(path, 'rb') as handle:
             data = handle.read(maximum + 1)
@@ -121,13 +126,21 @@ class Store:
     def __init__(self, directory='/etc/enigma2/warder-radio'):
         self.directory = directory
         self.path = os.path.join(directory, 'state.json')
-        data = read_json(self.path, {}, 512 * 1024)
+        data = read_json(self.path, {}, 16 * 1024 * 1024)
         if not isinstance(data, dict):
             data = {}
+        self.data = data
+        tags = data.get('radio_subscriptions', [])
+        self.subscriptions = list(dict.fromkeys(clean(tag, 60) for tag in tags[:80]
+                                  if isinstance(tag, str) and clean(tag, 60))) if isinstance(tags, list) else []
+        self.home_category = clean(data.get('radio_home_category'), 60)
+        category = clean(data.get('radio_subscription_category'), 60)
+        self.subscription_category = category if category in self.subscriptions else next(iter(self.subscriptions), '')
         self.favourites = self._items(data.get('favourites'), 1000)
         self.history = self._items(data.get('history'), 100)
         self.custom = self._items(data.get('custom'), 1000)
         self.group = clean(data.get('group', 'Slovensko'))
+        self.online_country = clean(data.get('online_country', self.group))
         self.show_main_menu = data.get('show_main_menu') is True
         setting = data.get('screensaver_delay', 0)
         self.screensaver_delay = setting if type(setting) is int and setting in (0, 10, 20, 30, 60) else 0
@@ -148,13 +161,16 @@ class Store:
         return result
 
     def save(self):
-        atomic_json(self.path, {'schema': 1, 'favourites': self.favourites,
-                    'history': self.history, 'custom': self.custom, 'group': self.group,
-                    'show_main_menu': self.show_main_menu,
-                    'screensaver_delay': self.screensaver_delay})
+        data = dict(self.data, schema=self.data.get('schema', 1), favourites=self.favourites,
+                    history=self.history, custom=self.custom, group=self.group,
+                    show_main_menu=self.show_main_menu, screensaver_delay=self.screensaver_delay,
+                    online_country=self.online_country, radio_subscriptions=self.subscriptions,
+                    radio_home_category=self.home_category, radio_subscription_category=self.subscription_category)
+        atomic_json(self.path, data)
+        self.data = data
 
     def is_favourite(self, item):
-        return any(row['id'] == item['id'] for row in self.favourites)
+        return any(same_station(row, item) for row in self.favourites)
 
     def toggle(self, item):
         old = list(self.favourites)
@@ -162,7 +178,7 @@ class Store:
         if adding:
             self.favourites.append(station(item))
         else:
-            self.favourites = [row for row in self.favourites if row['id'] != item['id']]
+            self.favourites = [row for row in self.favourites if not same_station(row, item)]
         try:
             self.save()
         except OSError:
@@ -170,9 +186,26 @@ class Store:
             raise
         return adding
 
+    def move_favourite(self, item, direction):
+        """Reorder a favourite while retaining stable station objects."""
+        index = next((i for i, row in enumerate(self.favourites)
+                      if same_station(row, item)), -1)
+        next_index = index + direction
+        if index < 0 or not 0 <= next_index < len(self.favourites):
+            return -1
+        self.favourites[index], self.favourites[next_index] = (
+            self.favourites[next_index], self.favourites[index])
+        try:
+            self.save()
+        except OSError:
+            self.favourites[index], self.favourites[next_index] = (
+                self.favourites[next_index], self.favourites[index])
+            raise
+        return next_index
+
     def played(self, item):
         old = list(self.history)
-        self.history = [station(item)] + [row for row in self.history if row['id'] != item['id']]
+        self.history = [station(item)] + [row for row in self.history if not same_station(row, item)]
         self.history = self.history[:100]
         try:
             self.save()
@@ -183,108 +216,13 @@ class Store:
     def add(self, name, url):
         item = station({'name': name, 'url': url, 'group': 'Custom'})
         old = list(self.custom)
-        self.custom = [row for row in self.custom if row['id'] != item['id']] + [item]
+        self.custom = [row for row in self.custom if not same_station(row, item)] + [item]
         try:
             self.save()
         except OSError:
             self.custom = old
             raise
         return item
-
-
-class Catalogue:
-    _snapshots = OrderedDict()
-    _snapshot_lock = threading.Lock()
-
-    def __init__(self, directory, load=True):
-        self.cache = os.path.join(directory, 'catalogue.json')
-        self.items = []
-        if load:
-            self.items = self._read_items(self.cache) or self._read_items(os.path.join(ROOT, 'seed.json'))
-        if load and not self.items:
-            raise ValueError('Missing bundled radio catalogue')
-
-    @staticmethod
-    def _stamp(path):
-        details = os.stat(path)
-        return (details.st_dev, details.st_ino, details.st_size,
-                details.st_mtime_ns, details.st_ctime_ns)
-
-    @classmethod
-    def _read_items(cls, path):
-        """Reuse at most two validated file snapshots; each caller owns its rows."""
-        path = os.path.abspath(path)
-        try:
-            stamp = cls._stamp(path)
-        except OSError:
-            return []
-        with cls._snapshot_lock:
-            cached = cls._snapshots.get(path)
-            if cached is not None and cached[0] == stamp:
-                cls._snapshots.move_to_end(path)
-                return [dict(item) for item in cached[1]]
-            data = read_json(path, None)
-            try:
-                items = catalogue_items(data)
-            except (ValueError, TypeError):
-                items = []
-            try:
-                unchanged = cls._stamp(path) == stamp
-            except OSError:
-                unchanged = False
-            if unchanged:
-                cls._snapshots[path] = (stamp, tuple(items))
-                cls._snapshots.move_to_end(path)
-                while len(cls._snapshots) > 2:
-                    cls._snapshots.popitem(last=False)
-            return [dict(item) for item in items]
-
-    def groups(self):
-        return list(dict.fromkeys(item['group'] for item in self.items))
-
-    def search(self, text='', group=None, custom=()):
-        needle = search_key(text)
-        return [item for item in list(self.items) + list(custom)
-                if (not group or item['group'] == group)
-                and (not needle or needle in search_key(item['name']))]
-
-    @staticmethod
-    def fetch(opener=urlopen):
-        request = Request(UPSTREAM, headers={'User-Agent': 'WarderRadio/' + VERSION,
-                                           'Accept': 'application/gzip'})
-        with opener(request, timeout=25) as response:
-            body = response.read(MAX_DOWNLOAD + 1)
-        if len(body) > MAX_DOWNLOAD:
-            raise ValueError('Catalogue download too large')
-        try:
-            with gzip.GzipFile(fileobj=io.BytesIO(body)) as compressed:
-                decoded = compressed.read(MAX_CATALOGUE + 1)
-            if len(decoded) > MAX_CATALOGUE:
-                raise ValueError('Catalogue too large')
-            data = json.loads(decoded.decode('utf-8'))
-        except (OSError, EOFError, UnicodeError) as error:
-            raise ValueError('Invalid compressed catalogue') from error
-        return catalogue_items(data, minimum=100)
-
-    def replace(self, items):
-        # Reject incomplete/oversized data instead of silently truncating it.
-        validated = catalogue_items(items, minimum=100)
-        size = 2 + sum(len(json.dumps(row, ensure_ascii=False, separators=(',', ':')).encode('utf-8')) + 1
-                       for row in validated)
-        if size > MAX_CATALOGUE:
-            raise ValueError('Catalogue cache too large')
-        atomic_json(self.cache, validated)
-        self.items = validated
-
-
-def catalogue_items(data, minimum=0):
-    """Validate the whole catalogue, preserving all rows and stable references."""
-    if not isinstance(data, list) or not minimum <= len(data) <= MAX_STATIONS:
-        raise ValueError('Incomplete or oversized catalogue')
-    result = Store._items(data, MAX_STATIONS)
-    if len(result) != len(data):
-        raise ValueError('Invalid or duplicate catalogue station')
-    return result
 
 
 class Playback:

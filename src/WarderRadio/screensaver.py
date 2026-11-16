@@ -96,5 +96,5 @@ def bounded_motion(offset, direction, step=(7, 5), limit=(90, 60)):
 
 def allow_auto_saver(delay, playing, owns, mode, video, installing, closed):
     return (delay in (10, 20, 30, 60) and playing and owns and
-            mode in ('radio', 'favourites', 'history') and
+            mode in ('radio', 'subscriptions', 'favourites', 'history') and
             not video and not installing and not closed)

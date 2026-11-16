@@ -25,8 +25,8 @@ args, extra = parser.parse_known_args()
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 sys.path.insert(0, str(ROOT / 'tests'))
-from country_support import Backend, country_fixture, rows as country_rows
-from WarderRadio.picon_download import PiconSettings
+from uuid import uuid5, NAMESPACE_URL
+from WarderRadio.radio_browser import PAGE_SIZE, Page, Facets
 UP = args.upstream
 
 
@@ -128,14 +128,18 @@ class Widget:
 class Content:
     TYPE_TEXT = 0
     TYPE_PIXMAP_ALPHABLEND = 4
-    def __init__(self): self.rows = []; self.index = 0; self.fonts = {}; self.height = 0
+    def __init__(self):
+        self.rows = []; self.index = 0; self.fonts = {}; self.height = 0
+        self.invalidated_entries = []
+        self.full_invalidations = 0
     def setList(self, rows): self.rows = rows; self.index = min(self.index, max(0, len(rows) - 1))
     def setFont(self, index, font): self.fonts[index] = font
     def setItemHeight(self, height): self.height = height
     def setBuildFunc(self, func): self.build = func
     def getCurrentSelection(self): return self.rows[self.index] if self.rows else None
     def getCurrentSelectionIndex(self): return self.index
-    def invalidate(self): pass
+    def invalidate(self): self.full_invalidations += 1
+    def invalidateEntry(self, index): self.invalidated_entries.append(index)
 
 
 class Reference:
@@ -293,9 +297,8 @@ exec(compile(ast.fix_missing_locations(ast.Module(body=[classic_class],type_igno
 ClassicMoviePlayer=movie_scope['MoviePlayer']
 infobar.MoviePlayer=ClassicMoviePlayer
 from WarderRadio import screen as radio
-from WarderRadio import picon_screen
 from WarderRadio import plugin
-from WarderRadio.model import Store
+from WarderRadio.model import Store, station, search_key
 from WarderRadio.metadata import IcyMonitor
 from WarderRadio.skin import make_skin, PANEL_BACKGROUND
 
@@ -324,14 +327,28 @@ class NativeTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        manifest, files = country_fixture(json.loads((ROOT / 'src/WarderRadio/seed.json').read_text()))
-        cache = Path(self.tmp.name, 'countries'); cache.mkdir()
-        (cache / 'manifest.json').write_bytes(files['country-manifest.json'])
-        for entry in manifest['countries'][:2]:
-            (cache / (entry['id'] + '-' + entry['sha256'] + '.json.gz')).write_bytes(files[entry['path']])
-        self.country_backend = Backend(files)
-        self.country_patch = patch('WarderRadio.country_catalogue.urlopen', self.country_backend)
-        self.country_patch.start(); self.addCleanup(self.country_patch.stop)
+        self.browser_calls = []
+        seed = json.loads((ROOT / 'src/WarderRadio/seed.json').read_text())
+        source = {'SK': [], 'CZ': []}
+        for row in seed:
+            code = {'Slovensko': 'SK', 'Čechy': 'CZ'}.get(row['group'])
+            if code:
+                item = station(dict(row, stationuuid=str(uuid5(NAMESPACE_URL, row['url'])),
+                                    favicon='https://logo.example/' + str(len(source[code]))))
+                source[code].append(item)
+        self.online_rows = source
+
+        def page(country, name='', category='', offset=0, force=False, cancelled=lambda: False):
+            self.browser_calls.append((country, name, category, offset, force))
+            rows = source['SK'] + source['CZ'] if country == 'ALL' else source.get(country, [])
+            matches = [row for row in rows if search_key(name) in search_key(row['name'])]
+            return Page(matches[offset:offset + PAGE_SIZE], len(matches) > offset + PAGE_SIZE, False)
+
+        self.browser_fixture = NS(page=page, facets=lambda *a: Facets(['SK', 'CZ', 'DE'], ['news', 'rock'], False))
+        browser_patch = patch.object(radio, 'RadioBrowser', return_value=self.browser_fixture)
+        browser_patch.start(); self.addCleanup(browser_patch.stop)
+        logo_patch = patch('WarderRadio.station_logos.StationLogos.get', return_value=None)
+        logo_patch.start(); self.addCleanup(logo_patch.stop)
         self.patch = patch.object(radio, 'Store', lambda: Store(self.tmp.name))
         self.patch.start(); self.addCleanup(self.patch.stop)
         self.update_patch = patch.object(radio, 'check_release', return_value=None)
@@ -359,11 +376,12 @@ class NativeTests(unittest.TestCase):
         return screen, session, root
 
     def wait_for_catalogue(self, screen):
+        self.wait_for_country(screen)
         deadline = time.monotonic() + 2
-        while screen.starting and time.monotonic() < deadline:
+        while not screen.categories and time.monotonic() < deadline:
             screen.poll()
             time.sleep(0.001)
-        self.assertFalse(screen.starting, 'Catalogue worker did not finish')
+        self.assertEqual(screen.categories, ['news', 'rock'])
 
     def wait_for_country(self, screen):
         deadline = time.monotonic() + 2
@@ -371,72 +389,404 @@ class NativeTests(unittest.TestCase):
             screen.poll(); time.sleep(.001)
         self.assertFalse(screen.updating, 'Country worker did not finish')
 
-    def test_picons_main_menu_replaces_both_panels_and_keeps_playback(self):
+
+    def settings_action(self, screen, key):
+        options = screen['settings_options']
+        options.moveToIndex(next(i for i, row in enumerate(options.list) if row[1] == key))
+        screen.ok()
+
+    def test_home_and_subscriptions_reuse_player_and_own_categories(self):
         screen, session, root = self.new()
-        screen['stations'].moveToIndex(3)
         screen.play()
         playing = session.nav.current
-        self.assertEqual(screen['functions'].list[1:3], [(radio.t('Radio stations'),'radio'), (radio.t('Picon downloads'),'picons')])
-        before = len(session.dialogs)
-        screen['functions'].moveToIndex(2); screen.set_focus('functions'); screen.ok()
-        self.assertEqual(screen.mode, 'picons')
-        self.assertEqual(screen.focus, 'picon_form')
-        self.assertEqual(len(session.dialogs), before)
-        self.assertTrue(screen['picon_panel'].instance.isVisible())
-        self.assertFalse(screen['stations'].instance.isVisible())
-        self.assertFalse(screen['art'].instance.isVisible())
-        self.assertEqual([row[2] for row in screen['picon_form'].list], ['countries','style','location'])
-        screen.ok();self.assertEqual(screen.focus,'picon_options')
-        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(screen['picon_options'].list) if row[1]=='DE'));screen.ok();screen.green_pressed()
-        self.assertEqual(screen.picon_form.settings.countries,['SK','CZ','DE'])
-        screen['picon_form'].moveToIndex(1);screen.ok()
-        screen['picon_options'].moveToIndex(1);screen.ok();screen.green_pressed()
-        self.assertEqual(screen.picon_form.settings.style,'white')
-        self.assertEqual(session.nav.current, playing)
-        screen['picon_form'].moveToIndex(0);screen.ok()
-        for index in [i for i,row in enumerate(screen['picon_options'].list) if row[1] in ('SK','CZ','DE')]:
-            screen['picon_options'].moveToIndex(index);screen.ok()
-        screen.green_pressed();screen.green_pressed()
-        self.assertEqual(screen['picon_status'].getText(),radio.t('Select at least one country'))
-        screen.left();self.assertEqual(screen.focus,'functions')
-        screen.right();self.assertEqual(screen.focus,'picon_form')
+        screen.select_mode('subscriptions')
+        self.wait_for_country(screen)
+        self.assertEqual(screen.focus, 'subscription_tabs')
+        self.assertIn(radio.t('Add first subscription'), str(screen['subscription_tabs'].l.build(0)))
+        self.assertEqual(screen['green'].getText(), radio.t('Add subscription'))
+        self.assertIn('OK', screen['hint'].getText())
+        self.assertTrue(screen['subscription_tabs'].instance.isVisible())
+        self.assertEqual(Store(self.tmp.name).subscriptions, [])
+        # One OK on the top Add chip opens all genres (not only subscribed).
+        screen.ok()
+        self.assertEqual(screen.settings_form.view, 'subscription-add')
+        self.assertEqual([row[1] for row in screen['settings_options'].list], ['news', 'rock'])
+        screen.green_pressed()
+        self.wait_for_country(screen)
+        self.assertEqual(screen.mode, 'subscriptions')
+        self.assertEqual(screen.focus, 'subscription_tabs')
+        self.assertEqual(screen.subscription_category, 'news')
+        self.assertEqual(Store(self.tmp.name).subscriptions, ['news'])
+        self.assertIn('news', screen['section'].getText())
+        self.assertIn(radio.t('Add subscription'), str(screen['subscription_tabs'].l.build(0)))
+        # Another category can be added without returning to Home or using MENU.
+        screen['subscription_tabs'].move_cursor(1)
+        screen.ok()
+        self.assertEqual(screen.settings_form.view, 'subscription-add')
+        self.assertEqual([row[1] for row in screen['settings_options'].list], ['rock'])
+        screen.green_pressed()
+        self.wait_for_country(screen)
+        self.assertEqual(Store(self.tmp.name).subscriptions, ['news', 'rock'])
+        self.assertEqual(screen.subscription_category, 'rock')
+        # Selecting a different saved category switches the existing radio list.
+        screen['subscription_tabs'].move_cursor(-1)
+        screen.ok()
+        self.wait_for_country(screen)
+        self.assertEqual(screen.subscription_category, 'news')
+        # Remove via MENU, without touching stations or the playing stream.
+        screen.options()
+        self.settings_action(screen, 'subscription-remove')
+        self.wait_for_country(screen)
+        self.assertEqual(Store(self.tmp.name).subscriptions, ['rock'])
+        self.assertEqual(screen.subscription_category, 'rock')
+        self.assertIs(session.nav.current, playing)
+        self.assertIsNotNone(root.find("widget[@name='subscription_tabs']"))
+        self.assertIsNotNone(root.find("widget[@name='section']"))
+
+    def test_green_directly_opens_add_subscription_from_empty_odbery(self):
+        screen, _, _ = self.new()
+        screen.select_mode('subscriptions')
+        self.assertEqual(screen.focus, 'subscription_tabs')
+        screen.green_pressed()
+        self.assertEqual(screen.settings_form.view, 'subscription-add')
+        self.assertEqual([row[1] for row in screen['settings_options'].list], ['news', 'rock'])
         screen.exit()
-        self.assertEqual(screen.mode,'radio')
-        self.assertEqual(screen['stations'].getSelectionIndex(),3)
-        self.assertFalse(screen['picon_panel'].instance.isVisible())
-        self.assertTrue(screen['stations'].instance.isVisible())
-        self.assertTrue(screen['art'].instance.isVisible())
-        self.assertEqual(session.nav.current,playing)
+        self.assertEqual(screen.mode, 'settings')
+        screen.exit()
+        self.assertEqual(screen.mode, 'subscriptions')
+        self.assertEqual(screen.store.subscriptions, [])
 
-    def test_picon_form_green_starts_existing_line_log_and_late_art_stays_hidden(self):
-        screen,session,_=self.new();screen.play();screen.open_picons()
-        screen.cover_loaded(screen.cover_generation, (str(ROOT/'src/WarderRadio/plugin.png'),'iTunes'),None)
-        self.assertFalse(screen['art'].instance.isVisible())
-        screen.reset_artwork()
-        self.assertFalse(screen['art'].instance.isVisible())
-        screen['actions'].actions['green']()
-        self.assertIsInstance(screen.picon_form.progress,picon_screen.PiconProgress)
-        self.assertEqual(screen.focus,'picon_log')
-        self.assertEqual(session.dialogs,[])
-        screen.picon_form.progress.cleanup()
-        screen['functions'].moveToIndex(3);screen.set_focus('functions');screen.ok()
-        self.assertEqual(screen.mode,'favourites')
-        self.assertFalse(screen['picon_form'].instance.isVisible())
-        self.assertTrue(screen['stations'].instance.isVisible())
+    def test_artist_info_shows_real_stream_tags_even_when_musicbrainz_has_no_record(self):
+        screen, _, _ = self.new()
+        screen.play()
+        artist = screen['artist'].getText()
+        track = screen['track'].getText()
+        self.assertTrue(artist and track)
+        screen.options()
+        with patch.object(screen.song_jobs, 'replace', return_value=True):
+            screen.open_song_details('artist-information')
+            self.assertEqual(screen.settings_form.view, 'song')
+            self.assertIn(radio.t('Artist') + ': ' + artist, screen.settings_form.song_lines)
+            self.assertIn(radio.t('Song') + ': ' + track, screen.settings_form.song_lines)
+            identity = ((screen.playback.current or {}).get('id'), artist, track)
+            screen.song_details_loaded('Artist information', identity, [], None)
+            self.assertIn(radio.t('Unavailable'), screen.settings_form.song_lines)
+            self.assertIn(radio.t('Artist') + ': ' + artist, screen.settings_form.song_lines)
+            # A successful lookup adds useful facts while retaining source tags.
+            details = [artist, 'Czechia', '1995', 'rock', '', 'MusicBrainz']
+            screen.song_details_loaded('Artist information', identity, details, None)
+            self.assertIn('Czechia', screen.settings_form.song_lines)
+            self.assertIn('MusicBrainz', screen.settings_form.song_lines)
 
-    def test_spectrum_resumes_on_return_and_stays_visible_in_picon_form(self):
-        screen,session,_=self.new();screen.show();screen.play()
-        screen.spectrum.tick()
-        self.assertTrue(screen['activity'].instance.isVisible())
-        screen.hide();self.assertFalse(screen.spectrum.running)
-        screen.show();self.assertTrue(screen.spectrum.running)
-        screen.spectrum.tick();self.assertIn('frame-',screen['activity'].instance.pixmap)
-        screen.open_picons();screen.spectrum.tick()
-        self.assertTrue(screen['activity'].instance.isVisible())
-        self.assertEqual(screen['activity'].instance.attributes['position'],'77,840')
-        screen.spectrum.pause();screen.tick()
-        self.assertTrue(screen.spectrum.running)
-        screen.hide();screen.tick();self.assertFalse(screen.spectrum.running)
+    def test_artist_info_without_track_still_shows_artist_and_requests_lookup(self):
+        screen, _, _ = self.new()
+        screen.play()
+        screen['artist'].setText('Harlej')
+        screen['track'].setText(radio.t('No track information'))
+        screen.options()
+        with patch.object(screen.song_jobs, 'replace', return_value=True) as request:
+            screen.open_song_details('artist-information')
+            self.assertEqual(screen.settings_form.view, 'song')
+            self.assertIn(radio.t('Artist') + ': Harlej', screen.settings_form.song_lines)
+            request.assert_called_once()
+
+    def test_subscription_tabs_are_native_and_only_shrink_subscriptions(self):
+        screen, _, root = self.new()
+        stations = screen['stations'].instance
+        self.assertEqual(stations.size().height(), screen['stations'].l.height * 8)
+        screen.select_mode('subscriptions')
+        self.assertEqual(stations.size().height(), screen['stations'].l.height * 7)
+        self.assertEqual(stations.position().y(), round(320 * screen.ui_scale))
+        self.assertEqual(screen.focus, 'subscription_tabs')
+        self.assertNotIn('subscription', [row[1] for row in screen.settings_form.choices()])
+        screen.down()
+        self.assertEqual(screen.focus, 'stations')
+        screen.up()
+        self.assertEqual(screen.focus, 'subscription_tabs')
+        screen.select_mode('radio')
+        self.assertEqual(stations.size().height(), screen['stations'].l.height * 8)
+        self.assertFalse(screen['subscription_tabs'].instance.isVisible())
+
+    def test_subscription_seven_visible_rows_do_not_probe_hidden_eighth(self):
+        screen, _, _ = self.new()
+        screen.store.subscriptions = ['news']
+        screen.subscription_category = screen.store.subscription_category = 'news'
+        screen.select_mode('subscriptions')
+        self.wait_for_country(screen)
+        screen.show()
+        self.assertGreaterEqual(len(screen.rows), 8)
+        screen['stations'].moveToIndex(0)
+        visible = screen.visible_logo_items()
+        self.assertEqual(visible, screen.rows[:7])
+        self.assertNotIn(screen.rows[7], visible)
+        # The Home layout still displays eight station entries.
+        screen.select_mode('radio')
+        self.wait_for_country(screen)
+        self.assertEqual(screen.visible_logo_items(), screen.rows[:8])
+
+    def test_logo_and_icy_redraw_only_visible_station_not_the_entire_list(self):
+        screen, _, _ = self.new()
+        screen.show()
+        listbox = screen['stations'].l
+        first, far = screen.rows[2], screen.rows[22]
+        before = listbox.full_invalidations
+        screen.mark_icy_supported(first)
+        self.assertEqual(listbox.invalidated_entries[-1], 2)
+        self.assertEqual(listbox.full_invalidations, before)
+        seen = list(listbox.invalidated_entries)
+        screen.mark_icy_supported(far)
+        self.assertEqual(listbox.invalidated_entries, seen,
+                         'Offscreen ICY badges must not redraw the current list')
+        with patch.object(radio, 'LoadPixmap', return_value='PIXMAP'):
+            screen.logo_loaded(radio.logo_key(first), '/tmp/known-logo.png', 0)
+            self.assertEqual(listbox.invalidated_entries[-1], 2)
+            seen = list(listbox.invalidated_entries)
+            screen.logo_loaded(radio.logo_key(far), '/tmp/other-logo.png', 1)
+            self.assertEqual(listbox.invalidated_entries, seen)
+        self.assertEqual(listbox.full_invalidations, before)
+        # The older Enigma2 path has only a full-list invalidator. It still
+        # runs only for one visible changed station, never for an offscreen one.
+        listbox.invalidateEntry = None
+        screen.invalidate_visible_station(lambda row: row['id'] == first['id'])
+        self.assertEqual(listbox.full_invalidations, before + 1)
+        screen.invalidate_visible_station(lambda row: row['id'] == far['id'])
+        self.assertEqual(listbox.full_invalidations, before + 1)
+
+    def test_logo_queue_only_visits_viewport_and_uses_placeholder(self):
+        screen, _, _ = self.new(wait_ready=False)
+        screen.logo_paused = True
+        screen.finish_startup()
+        self.wait_for_catalogue(screen)
+        screen.show()
+        screen.logo_paused = False
+        expected = [row['favicon'] for row in screen.rows[8:16]]
+        screen['stations'].moveToIndex(8)
+        self.assertEqual(screen.visible_logo_urls(), expected)
+        # A row outside the viewport can be measured by some Enigma2 builds.
+        hidden = screen.rows[26]
+        self.assertTrue(screen.row_logo(hidden).endswith('plugin.png'))
+        screen.logo_jobs.submit = lambda key, work, callback: (work(), True)[1]
+        for worker in screen.logo_extra_jobs:
+            worker.submit = lambda key, work, callback: False
+        with patch.object(screen.logo_cache, 'get', return_value=None) as fetch:
+            screen.poll_logos()
+            fetch.assert_called_once_with(screen.rows[8])
+        screen.options()
+        self.assertEqual(screen.visible_logo_urls(), [])
+
+    def test_slow_logo_worker_does_not_block_or_fetch_rows_left_behind(self):
+        screen, _, _ = self.new(wait_ready=False)
+        screen.logo_paused = True
+        screen.finish_startup()
+        self.wait_for_catalogue(screen)
+        screen.show()
+        screen.logo_paused = False
+        self.assertFalse(screen.logo_busy)
+        first = screen.rows[0]
+        viewport = screen.rows[16:24]
+        entered, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        caller = threading.get_ident()
+        requests = []
+
+        def fetch(url):
+            requests.append((url, threading.get_ident()))
+            if url == first:
+                entered.set()
+                release.wait(2)
+            return None
+
+        with patch.object(screen.logo_cache, 'get', fetch):
+            screen.poll_logos()
+            self.assertTrue(entered.wait(1))
+            self.assertNotEqual(requests[0][1], caller)
+            self.assertLessEqual(len(screen.logo_slots), 3)
+            screen['stations'].moveToIndex(16)
+            self.assertEqual(screen.current(), viewport[0])
+            deadline = time.monotonic() + 2
+            while not any(item == viewport[0] for item, _ in requests) and time.monotonic() < deadline:
+                screen.poll_logos()
+                time.sleep(0.002)
+            self.assertTrue(any(item == viewport[0] for item, _ in requests),
+                            'A slow old logo must not block the newly visible viewport')
+            self.assertTrue(all(thread != caller for _, thread in requests))
+            release.set()
+
+    def test_stream_quality_is_shown_only_when_radio_browser_supplies_it(self):
+        screen, _, _ = self.new()
+        first = dict(screen.rows[0], codec='MP3', bitrate=128)
+        entries = screen['stations'].l.build(first)
+        self.assertIn('MP3 · 128 kbps', str(entries))
+        plain = screen['stations'].l.build(screen.rows[0])
+        self.assertNotIn('128 kbps', str(plain))
+
+    def test_icy_badge_only_appears_for_confirmed_stream_song_metadata(self):
+        screen, _, _ = self.new()
+        first = screen.rows[0]
+        second = screen.rows[1]
+        self.assertNotIn("'ICY'", str(screen['stations'].l.build(first)))
+        screen.play()
+        screen.metadata_monitor.song = lambda *args, **kwargs: ('Test artist', 'Test track')
+        screen.metadata()
+        self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
+        self.assertNotIn("'ICY'", str(screen['stations'].l.build(second)))
+        # Confirmation is idempotent and survives a list redraw.
+        screen.mark_icy_supported(first)
+        screen.refresh_rows()
+        self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
+        self.assertEqual(len(screen.icy_known), 1)
+
+    def test_cached_icy_badge_shows_before_playback_and_probe_only_visible(self):
+        screen, _, _ = self.new()
+        first = screen.rows[0]
+        self.assertNotIn("'ICY'", str(screen['stations'].l.build(first)))
+        screen.icy_cache.confirm(first)
+        self.assertIn("'ICY'", str(screen['stations'].l.build(first)))
+        self.assertFalse(screen.playback.owns())
+
+        # The worker is scheduled only for a visible online station; never
+        # for an arbitrary saved custom stream, nor for hidden catalogue pages.
+        probe_item = dict(screen.rows[1], countrycode='SK')
+        screen.rows[1] = probe_item
+        screen['stations'].setList([(row,) for row in screen.rows])
+        seen = []
+        screen.icy_cache.probe = lambda item: seen.append(item['id']) or True
+        screen.logo_paused = False
+        screen.logo_slots.clear()
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        deadline = time.monotonic() + 2
+        while screen.icy_probe_busy and time.monotonic() < deadline:
+            screen.poll_icy_badges()
+            time.sleep(0.002)
+        self.assertFalse(screen.icy_probe_busy)
+        self.assertIn(probe_item['id'], seen)
+        self.assertIn("'ICY'", str(screen['stations'].l.build(probe_item)))
+        screen.select_mode('favourites')
+        screen.icy_probe_next = 0
+        before = list(seen)
+        screen.poll_icy_badges()
+        self.assertEqual(seen, before)
+
+    def test_icy_prioritizes_selected_station_and_never_probes_during_saver(self):
+        screen, _, _ = self.new()
+        screen.show()
+        screen.logo_slots.clear()
+        screen.logo_paused = False
+        screen['stations'].moveToIndex(5)
+        selected = screen.rows[5]
+        probed = []
+        screen.icy_cache.probe = lambda item: probed.append(item) or False
+        # Isolate prioritization rather than persistent positive/negative cache.
+        screen.icy_cache.should_probe = lambda item: True
+        screen.icy_cache.reject = lambda item: None
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        deadline = time.monotonic() + 2
+        while screen.icy_probe_busy and time.monotonic() < deadline:
+            screen.poll_icy_badges()
+            time.sleep(.002)
+        self.assertFalse(screen.icy_probe_busy)
+        self.assertEqual(probed[0], selected)
+
+        # For an actively playing selected station, the normal metadata
+        # monitor is already open: a second background stream is redundant.
+        screen.play()
+        self.assertTrue(screen.playback.owns())
+        probed[:] = []
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        deadline = time.monotonic() + 2
+        while screen.icy_probe_busy and time.monotonic() < deadline:
+            screen.poll_icy_badges()
+            time.sleep(.002)
+        self.assertTrue(probed)
+        self.assertNotIn(selected, probed)
+
+        screen.saver_active = True
+        probed[:] = []
+        screen.icy_probe_next = 0
+        screen.poll_icy_badges()
+        self.assertEqual(probed, [], 'OLED saver must not trigger hidden probes')
+        screen.saver_active = False
+
+    def test_quality_has_visible_independent_right_column(self):
+        screen, _, _ = self.new()
+        sample = dict(screen.rows[0], codec='MP3', bitrate=128)
+        rendered = screen['stations'].l.build(sample)
+        # Full radio label stays in its own title field.
+        self.assertIn(sample['name'], str(rendered[2]))
+        self.assertIn('Slovensko', str(rendered[3]))
+        self.assertIn('MP3 · 128 kbps', str(rendered[4]))
+        self.assertEqual(rendered[4][1], 350)
+        self.assertEqual(rendered[4][3], 236)
+        self.assertLessEqual(rendered[4][1] + rendered[4][3], 620)
+        blank = screen['stations'].l.build(screen.rows[0])
+        self.assertIn('—', str(blank[4]))
+        # The indicator for verified ICY data remains in its own title row.
+        screen.mark_icy_supported(screen.rows[0])
+        marked = screen['stations'].l.build(sample)
+        self.assertIn('ICY', str(marked))
+        self.assertIn('MP3 · 128 kbps', str(marked[4]))
+
+    def test_failed_stream_keeps_station_list_and_allows_next_station(self):
+        screen, _, _ = self.new()
+        screen.play()
+        screen.failed()
+        self.assertFalse(screen.playing)
+        self.assertEqual(screen['track'].getText(), radio.t('Cannot play station'))
+        screen.down()
+        selected = screen.current()
+        screen.play()
+        self.assertTrue(screen.playing)
+        self.assertEqual(screen.playback.current['id'], selected['id'])
+
+    def test_slow_catalogue_never_blocks_navigation_and_late_pages_are_ignored(self):
+        screen, session, _ = self.new()
+        screen.play()
+        playing = session.nav.current
+        entered, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        worker_threads = []
+        normal = screen.browser.page
+
+        def delayed(country, *args):
+            worker_threads.append(threading.get_ident())
+            if country == 'CZ':
+                entered.set()
+                release.wait(2)
+            return normal(country, *args)
+
+        with patch.object(screen.browser, 'page', delayed):
+            screen.group_done(('Czechia', 'CZ'))
+            self.assertTrue(entered.wait(1))
+            self.assertNotEqual(worker_threads[0], threading.get_ident())
+            screen.select_mode('history')
+            self.assertEqual(screen.current()['id'], screen.playback.current['id'])
+            screen.group_done(('Slovakia', 'SK'))
+            release.set()
+            self.wait_for_country(screen)
+        self.assertEqual(screen.active_group, 'SK')
+        self.assertTrue(all(row['group'] == 'Slovensko' for row in screen.rows))
+        self.assertIs(session.nav.current, playing)
+
+    def test_offline_cached_page_and_uncached_search_error_keep_playback_usable(self):
+        screen, session, _ = self.new()
+        screen.play()
+        playing = session.nav.current
+        initial = list(screen.rows)
+        with patch.object(screen.browser, 'page', return_value=Page(initial, True, True)):
+            screen.update_catalogue()
+            self.wait_for_country(screen)
+            self.assertEqual(screen.rows, initial)
+            self.assertEqual(screen['status'].getText(), radio.t('Offline catalogue'))
+        with patch.object(screen.browser, 'page', side_effect=OSError('offline')):
+            screen.search_done('never cached')
+            self.wait_for_country(screen)
+            self.assertEqual(screen['status'].getText(), radio.t('Cannot update catalogue'))
+            self.assertFalse(screen.rows)
+        self.assertIs(session.nav.current, playing)
+        self.assertEqual(session.dialogs, [])
 
     def test_black_saver_full_native_mount_keeps_radio_playing(self):
         screen, session, _ = self.new()
@@ -525,12 +875,12 @@ class NativeTests(unittest.TestCase):
         self.assertFalse(screen['art'].instance.isVisible())
         self.assertEqual(screen['hint'].getText(),'')
         self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-        self.assertEqual(len(screen['settings_options'].list),10)
+        self.assertIn((radio.t('Choose category'), 'category', None), screen['settings_options'].list)
         screen.ok()
-        screen['settings_options'].moveToIndex(1);screen.ok()
-        self.assertEqual(screen.active_group,'Slovensko')
+        self.assertEqual(screen.active_group,'SK')
         screen.exit();self.assertEqual(screen.settings_form.view,'menu')
-        screen['settings_options'].moveToIndex(9);screen.ok()
+        options = screen['settings_options']
+        options.moveToIndex(next(i for i, row in enumerate(options.list) if row[1] == 'about'));screen.ok()
         self.assertEqual(screen.settings_form.view,'about')
         self.assertIn('Warder Radio',screen['settings_text'].getText())
         screen.green_pressed();self.assertEqual(screen.settings_form.view,'menu')
@@ -548,11 +898,10 @@ class NativeTests(unittest.TestCase):
         screen, _, _ = self.new()
         screen.options()
         self.assertFalse(screen.store.show_main_menu)
-        self.assertEqual(screen['settings_options'].list[7][1], 'main-menu-toggle')
-        self.assertEqual(screen['settings_options'].list[8][1], 'saver-delay')
-        self.assertEqual(screen['settings_options'].list[9][1], 'about')
-        screen['settings_options'].moveToIndex(7)
-        screen.ok()
+        self.assertIn('main-menu-toggle', [row[1] for row in screen['settings_options'].list])
+        self.assertIn('saver-delay', [row[1] for row in screen['settings_options'].list])
+        self.assertIn('about', [row[1] for row in screen['settings_options'].list])
+        self.settings_action(screen, 'main-menu-toggle')
         self.assertEqual(screen.settings_form.view, 'main-menu')
         self.assertEqual(len(screen['settings_options'].list), 2)
         self.assertEqual(screen['settings_options'].list[0][0], radio.t('Yes'))
@@ -579,9 +928,8 @@ class NativeTests(unittest.TestCase):
         screen, _, _ = self.new()
         screen.options()
         self.assertEqual(screen.store.screensaver_delay, 0)
-        self.assertEqual(screen['settings_options'].list[8][1], 'saver-delay')
-        screen['settings_options'].moveToIndex(8)
-        screen.ok()
+        self.assertIn('saver-delay', [row[1] for row in screen['settings_options'].list])
+        self.settings_action(screen, 'saver-delay')
         self.assertEqual(screen.settings_form.view, 'saver-delay')
         self.assertEqual([r[1] for r in screen['settings_options'].list],
                          [0, 10, 20, 30, 60])
@@ -599,7 +947,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.settings_form.view, 'menu')
         self.assertEqual(screen['settings_status'].getText(),
                          radio.t('Screensaver setting saved'))
-        self.assertIn('10 s', screen['settings_options'].list[8][0])
+        self.assertIn('10 s', next(row[0] for row in screen['settings_options'].list if row[1] == 'saver-delay'))
         screen.ok()
         screen['settings_options'].moveToIndex(0)
         screen.green_pressed()
@@ -617,7 +965,7 @@ class NativeTests(unittest.TestCase):
 
     def test_custom_station_keyboard_validation_and_retry_never_open_external_windows(self):
         screen,session,_=self.new();screen.play();playing=session.nav.current
-        screen.options();screen['settings_options'].moveToIndex(3);screen.ok()
+        screen.options();self.settings_action(screen, 'add')
         self.assertEqual(screen.focus,'settings_keys')
         self.assertTrue(screen['settings_keys'].instance.isVisible())
         for row in screen['settings_keys'].keys:
@@ -680,54 +1028,6 @@ class NativeTests(unittest.TestCase):
         screen.update_checked(NS(version='0.1.8'),None)
         self.assertEqual(len(session.dialogs),before)
 
-    def test_picon_country_arrows_page_visible_rows_without_changing_selection(self):
-        for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
-            DESKTOP[:]=width,height
-            screen,session,root=self.new()
-            screen.open_picons()
-            form=screen.picon_form
-            form.country_jobs.replace=lambda *args:True
-            form.settings.countries=['SK','CZ','DE'];form.settings.save()
-            saved=Path(form.settings.path).read_bytes()
-            screen.ok()
-            options=screen['picon_options']
-            pending=set(form.pending_countries)
-            page=options.instance.size().height()//options.l.height
-            self.assertEqual(page,8)
-            self.assertEqual(len(options.list),219)
-            original=list(options.list)
-            screen.right();self.assertEqual(options.getSelectionIndex(),page)
-            screen.down();self.assertEqual(options.getSelectionIndex(),page+1)
-            screen.up();self.assertEqual(options.getSelectionIndex(),page)
-            screen.right();self.assertEqual(options.getSelectionIndex(),page*2)
-            screen.left();self.assertEqual(options.getSelectionIndex(),page)
-            screen.left();self.assertEqual(options.getSelectionIndex(),0)
-            self.assertEqual(form.view,'countries')
-            self.assertEqual(form.pending_countries,pending)
-            self.assertEqual(options.list,original)
-            self.assertEqual(Path(form.settings.path).read_bytes(),saved)
-            screen.left();self.assertEqual(form.view,'form')
-            self.assertEqual(form.settings.countries,['SK','CZ','DE'])
-            screen.cleanup()
-
-    def test_picon_country_ok_toggles_and_page_boundaries_keep_pending_countries(self):
-        screen,_,_=self.new();screen.open_picons()
-        form=screen.picon_form;form.country_jobs.replace=lambda *args:True
-        screen.ok();options=screen['picon_options']
-        before=set(form.pending_countries)
-        screen.ok();self.assertEqual(form.pending_countries,before ^ {'SK'})
-        screen.ok();self.assertEqual(form.pending_countries,before)
-        for index in (1,7,8,210,218):
-            options.moveToIndex(index)
-            screen.right();self.assertEqual(form.view,'countries')
-            screen.left();self.assertEqual(form.view,'countries')
-            self.assertEqual(form.pending_countries,before)
-        options.moveToIndex(1);screen.left()
-        self.assertEqual(options.getSelectionIndex(),0)
-        self.assertEqual(form.view,'countries')
-        form.pending_countries.add('DE')
-        screen.right();screen.green_pressed()
-        self.assertIn('DE',PiconSettings(self.tmp.name).countries)
 
     def test_manual_update_results_are_modal_and_ok_exit_never_install(self):
         for state,release,error,key in (
@@ -888,23 +1188,16 @@ class NativeTests(unittest.TestCase):
 
     def test_settings_catalogue_update_and_errors_do_not_leave_the_panel(self):
         screen,session,_=self.new();screen.options()
-        screen.option_done(('','update'));self.wait_for_country(screen)
+        self.assertNotIn('update', [key for text, key in screen.settings_form.choices()])
+        screen.update_catalogue();self.wait_for_country(screen)
         self.assertEqual(screen.mode,'settings')
         self.assertEqual(screen['settings_status'].getText(),radio.t('Catalogue updated'))
         screen.notify(radio.t('Recording failed'),True)
         self.assertEqual(screen['settings_status'].getText(),radio.t('Recording failed'))
         self.assertEqual(session.dialogs,[])
-        screen.open_picons()
-        self.assertTrue(screen['picon_panel'].instance.isVisible())
-        self.assertFalse(screen['settings_panel'].instance.isVisible())
-        self.assertFalse(screen['art'].instance.isVisible())
-        screen.options()
         self.assertTrue(screen['settings_panel'].instance.isVisible())
-        self.assertFalse(screen['picon_panel'].instance.isVisible())
-        self.assertFalse(screen['art'].instance.isVisible())
-        screen.exit();self.assertEqual(screen.mode,'radio')
-        screen.open_picons();screen.options();screen.exit()
-        self.assertEqual(screen.mode,'radio')
+        screen.exit()
+        self.assertEqual(screen.mode, 'radio')
 
     def test_settings_panel_keyboard_and_options_fit_all_native_resolutions(self):
         for width,height in ((1280,720),(1920,1080),(2560,1440),(3840,2160)):
@@ -924,289 +1217,25 @@ class NativeTests(unittest.TestCase):
             screen.cleanup()
 
 
-    def test_picon_country_multiselect_confirm_and_cancel_stay_inside_main_window(self):
-        screen,session,_=self.new();screen.open_picons()
-        screen.picon_form.settings.countries=['SK'];screen.picon_form.refresh()
-        dialogs=len(session.dialogs)
-        screen.ok();screen['picon_options'].moveToIndex(1);screen.ok()
-        self.assertEqual(screen.picon_form.pending_countries,{'SK','CZ'})
-        self.assertEqual(screen.picon_form.settings.countries,['SK'])
-        self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-        self.assertTrue(screen['picon_options'].instance.isVisible())
-        self.assertFalse(screen['picon_form'].instance.isVisible())
-        screen.exit()
-        self.assertEqual(screen.mode,'picons');self.assertEqual(screen.picon_form.view,'form')
-        self.assertEqual(screen.picon_form.settings.countries,['SK'])
-        screen.ok();screen['picon_options'].moveToIndex(1);screen.ok();screen.green_pressed()
-        self.assertEqual(screen.picon_form.settings.countries,['SK','CZ'])
-        self.assertEqual(len(session.dialogs),dialogs)
-        self.assertEqual(PiconSettings(self.tmp.name).countries,['SK','CZ'])
-
-    def test_background_picker_requires_green_and_back_discards_changes(self):
-        screen,session,_=self.new();screen.open_picons();dialogs=len(session.dialogs)
-        screen['picon_form'].moveToIndex(1);screen.ok()
-        self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-        screen['picon_options'].moveToIndex(0);screen.ok()
-        self.assertEqual(screen.picon_form.view,'style')
-        self.assertEqual(screen.picon_form.settings.style,'black')
-        screen.exit();self.assertEqual(screen.picon_form.settings.style,'black')
-        screen.ok();screen['picon_options'].moveToIndex(1);screen.ok()
-        self.assertEqual(screen.picon_form.settings.style,'black')
-        screen.green_pressed()
-        self.assertEqual(screen.picon_form.view,'form')
-        self.assertEqual(screen.picon_form.settings.style,'white')
-        self.assertEqual(screen['picon_form'].getSelectionIndex(),1)
-        self.assertEqual(PiconSettings(self.tmp.name).style,'white')
-        self.assertEqual(len(session.dialogs),dialogs)
-
-    def test_all_picon_countries_are_visible_and_unavailable_country_cannot_be_added(self):
-        screen,session,_=self.new();screen.open_picons()
-        calls=[]
-        screen.picon_form.country_jobs.replace=lambda key,work,callback:calls.append((work,callback)) or True
-        screen.ok()
-        rows=screen['picon_options'].list
-        self.assertEqual(len(rows),219)
-        self.assertEqual({row[1] for row in rows},{row[0] for row in screen.picon_form.country_index.countries})
-        index=next(i for i,row in enumerate(rows) if row[1]=='FR')
-        self.assertFalse(rows[index][3])
-        self.assertIn(radio.t('Unavailable'),rows[index][0])
-        screen['picon_options'].moveToIndex(index);screen.ok()
-        self.assertNotIn('FR',screen.picon_form.pending_countries)
-        self.assertEqual(screen['picon_status'].getText(),radio.t('Unavailable'))
-        self.assertEqual(len(calls),1)
-
-    def test_online_picon_availability_enables_country_without_ipk_and_keeps_selection(self):
-        import copy
-        screen,session,_=self.new();screen.open_picons()
-        callbacks=[]
-        screen.picon_form.country_jobs.replace=lambda key,work,callback:callbacks.append(callback) or True
-        screen.ok()
-        form=screen.picon_form
-        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(screen['picon_options'].list) if row[1]=='FR'))
-        value=copy.deepcopy(form.country_index.document)
-        row=next(row for row in value['countries'] if row['id']=='FR')
-        row.update(status='partial',picons=12,release={'test':'GUI only; backend validates real descriptors'})
-        callbacks[0]({'document':value,'online':True},None)
-        self.assertEqual(screen['picon_options'].getCurrent()[1],'FR')
-        self.assertTrue(screen['picon_options'].getCurrent()[3])
-        screen.ok();screen.green_pressed()
-        self.assertIn('FR',PiconSettings(self.tmp.name).countries)
-        self.assertEqual(form.view,'form')
-
-    def test_leaving_country_picker_cancels_refresh_and_ignores_late_result(self):
-        screen,session,_=self.new();screen.open_picons()
-        callbacks=[]
-        screen.picon_form.country_jobs.replace=lambda key,work,callback:callbacks.append(callback) or True
-        screen.ok();form=screen.picon_form;task=form.country_task
-        old=form.country_index.document
-        screen.exit()
-        self.assertTrue(task.cancelled.is_set())
-        callbacks[0]({'document':{'bad':'late'},'online':True},None)
-        self.assertIs(form.country_index.document,old)
-        self.assertEqual(form.view,'form')
-
-    def wait_for_folders(self,screen):
-        deadline=time.monotonic()+2
-        while not screen.picon_form.browser_ready and time.monotonic()<deadline:
-            screen.poll();time.sleep(.001)
-        self.assertTrue(screen.picon_form.browser_ready)
-
-    def test_folder_browser_has_no_keyboard_and_commits_selected_location_with_green(self):
-        from WarderRadio.picon_download import radio_location
-        screen,session,_=self.new();screen.open_picons();dialogs=len(session.dialogs)
-        screen['picon_form'].moveToIndex(2);screen.ok()
-        options=screen['picon_options'].list
-        self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-        for path in ['/usr/share/enigma2/picon/warderradio','/media/hdd/picon/warderradio',
-                     '/media/usb/picon/warderradio','/media/sdcard/picon/warderradio',
-                     '/media/mmc/picon/warderradio','/picon/warderradio','custom']:
-            self.assertIn(path,[row[1] for row in options])
-        previous=screen.picon_form.settings.location
-        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(options) if row[1]=='/media/usb/picon/warderradio'))
-        screen.ok();self.assertEqual(screen.picon_form.settings.location,previous)
-        with patch('WarderRadio.picon_download.os.path.ismount',return_value=False):screen.green_pressed()
-        self.assertEqual(screen.picon_form.view,'location')
-        self.assertEqual(screen['picon_status'].getText(),radio.t('Storage is not mounted'))
-        screen['picon_options'].moveToIndex(next(i for i,row in enumerate(options) if row[1]=='custom'));screen.ok()
-        self.wait_for_folders(screen)
-        self.assertEqual(screen.picon_form.view,'browser')
-        self.assertEqual(screen['green'].getText(),radio.t('Use folder'))
-        self.assertEqual(len(session.dialogs),dialogs)
-        base=Path(self.tmp.name,'storage');base.mkdir();(base/'child').mkdir();(base/'file.txt').write_text('not a directory')
-        screen.picon_form.browse(str(base));self.wait_for_folders(screen)
-        names=[row[0] for row in screen['picon_options'].list]
-        self.assertEqual(names,['..','child'])
-        self.assertEqual(screen['picon_title'].getText(),radio.t('Folder: {path}').format(path=base))
-        screen['picon_options'].moveToIndex(1);screen.ok();self.wait_for_folders(screen)
-        self.assertEqual(screen.picon_form.browser_path,str(base/'child'))
-        screen['picon_options'].moveToIndex(0);screen.ok();self.wait_for_folders(screen)
-        self.assertEqual(screen.picon_form.browser_path,str(base))
-        screen.green_pressed()
-        expected=radio_location(str(base))
-        self.assertEqual(screen.picon_form.settings.location,expected)
-        self.assertEqual(PiconSettings(self.tmp.name).location,expected)
-        self.assertEqual(screen['stations'].picon_library.location,expected)
-        self.assertEqual(screen.picon_form.view,'form')
-        self.assertEqual(screen['picon_form'].getSelectionIndex(),2)
-        self.assertFalse(Path(expected).exists())
-        self.assertEqual(len(session.dialogs),dialogs)
-
-    def test_picon_picker_hints_are_empty_and_every_picker_has_green_confirmation(self):
-        screen,session,_=self.new();screen.open_picons()
-        for index,view in [(0,'countries'),(1,'style'),(2,'location')]:
-            screen['picon_form'].moveToIndex(index);screen.ok()
-            self.assertEqual(screen.picon_form.view,view)
-            self.assertEqual(screen['green'].getText(),radio.t('Confirm selection'))
-            for name in ['hint','picon_description','picon_help']:
-                self.assertEqual(screen[name].getText(),'')
-            screen.exit()
-            self.assertEqual(screen.picon_form.view,'form')
-
-    def test_folder_browser_cancel_and_stale_results_never_change_location(self):
-        screen,session,_=self.new();screen.open_picons()
-        screen['picon_form'].moveToIndex(2);screen.ok()
-        previous=screen.picon_form.settings.location
-        callbacks=[]
-        screen.picon_form.browser_jobs.replace=lambda key,work,cb:callbacks.append(cb) or True
-        screen.picon_form.browse('/')
-        screen.exit();self.assertEqual(screen.picon_form.view,'location')
-        callbacks[0]({'path':'/','entries':[('late','/late')]},None)
-        self.assertEqual(screen.picon_form.view,'location')
-        self.assertEqual(screen.picon_form.settings.location,previous)
-        screen.exit();self.assertEqual(screen.picon_form.view,'form')
-        screen.cleanup();callbacks[0]({'path':'/','entries':[]},None)
-        self.assertTrue(screen.picon_form.browser_jobs.closed.is_set())
-
-    def test_selected_library_is_used_immediately_without_system_picon_fallback(self):
-        from WarderRadio.picon_download import radio_location
-        screen,session,_=self.new();item=screen.current();screen.open_picons()
-        base=Path(self.tmp.name,'selected');base.mkdir()
-        target=Path(radio_location(str(base)));target.mkdir(parents=True)
-        name=item['reference'].replace(':','_')+'.png'
-        (target/name).write_bytes((ROOT/'src/WarderRadio/plugin.png').read_bytes())
-        screen['picon_form'].moveToIndex(2);screen.ok()
-        screen.picon_form.browse(str(base));self.wait_for_folders(screen);screen.green_pressed()
-        self.assertEqual(radio.path_for(item,screen['stations'].picon_library),str(target/name))
-        missing=dict(item,reference='4097:0:2:FFFF:FFFF:ED:0:0:0:0')
-        self.assertEqual(radio.path_for(missing,screen['stations'].picon_library),str(ROOT/'src/WarderRadio/plugin.png'))
-
     def inline_progress(self):
         screen,session,root=self.new();screen.open_picons()
         screen.picon_form.settings.location=str(Path(self.tmp.name,'picons'))
         screen.green_pressed()
         return screen,session,root,screen.picon_form.progress
 
-    def test_picon_log_keeps_order_scrolls_and_finishes_without_restart(self):
-        screen,session,root,window=self.inline_progress()
-        self.assertEqual(session.dialogs,[])
-        self.assertEqual(screen.focus,'picon_log')
-        self.assertTrue(screen['picon_panel'].instance.isVisible())
-        self.assertTrue(screen['picon_log'].instance.isVisible())
-        self.assertTrue(screen['picon_bar'].instance.isVisible())
-        self.assertFalse(screen['picon_form'].instance.isVisible())
-        self.assertIsNone(window.jobs.thread)  # Content is visible before work starts.
-        window.task.log('Checking picons: {country}', country='Slovakia')
-        window.task.log('Downloading picons: {country}', country='Slovakia')
-        window.task.log('Saved picon: {name}', name='Radio One')
-        window.drain()
-        self.assertEqual(window.lines[-1], radio.t('Saved picon: {name}').format(name='Radio One'))
-        self.assertEqual(window['list'].getSelectionIndex(), 2)
-        screen.up();self.assertEqual(window['list'].getSelectionIndex(), 1)
-        window.task.log('Saved picon: {name}', name='Radio Two');window.drain()
-        self.assertEqual(window['list'].getSelectionIndex(),1)
-        result=dict(added=2,updated=0,unchanged=0,preserved=0,missing=1,failed=0)
-        window.done(result,None)
-        self.assertTrue(window.finished);self.assertEqual(window['bar'].value,100)
-        self.assertEqual(screen['green'].getText(),radio.t('Close'))
-        self.assertNotIn('restart',window['status'].getText().lower())
-        screen.green_pressed()
-        self.assertEqual(screen.picon_form.view,'form')
-        self.assertFalse(screen['picon_log'].instance.isVisible())
-        self.assertFalse(screen['picon_bar'].instance.isVisible())
-        self.assertTrue(screen['picon_form'].instance.isVisible())
-        self.assertEqual(session.dialogs,[])
-
-    def test_picon_cancel_stops_worker_and_ignores_late_gui_callbacks(self):
-        screen,session,root,window=self.inline_progress()
-        screen.exit()
-        self.assertEqual(screen.mode,'picons')
-        self.assertEqual(screen.picon_form.view,'progress')
-        self.assertTrue(window.task.cancelled.is_set())
-        self.assertEqual(window['status'].getText(),radio.t('Cancelling picon download…'))
-        window.done(None,'Cancelled')
-        self.assertEqual(window['status'].getText(),radio.t('Picon download cancelled'))
-        screen.exit();self.assertEqual(screen.picon_form.view,'form')
-        window.cleanup();window.poll()
-        self.assertTrue(window.jobs.closed.is_set())
-        before=screen['picon_status'].getText()
-        window.done(None,'late error')
-        self.assertEqual(screen['picon_status'].getText(),before)
-        self.assertEqual(session.dialogs,[])
-
-    def test_picon_worker_log_is_delivered_by_gui_timer(self):
-        threads=[]
-        def work(directory,chosen,task):
-            threads.append(threading.get_ident())
-            task.log('Saved picon: {name}',name='Radio Worker')
-            return dict(added=1,updated=0,unchanged=0,preserved=0,missing=0,failed=0)
-        with patch.object(picon_screen,'install',side_effect=work):
-            screen,session,root,window=self.inline_progress()
-            deadline=time.monotonic()+2
-            while not window.finished and time.monotonic()<deadline:
-                screen.poll();time.sleep(.001)
-        self.assertTrue(window.finished)
-        self.assertNotEqual(threads,[threading.get_ident()])
-        self.assertIn(radio.t('Saved picon: {name}').format(name='Radio Worker'),window.lines)
-        self.assertEqual(session.dialogs,[])
-
-    def test_picon_windows_fit_each_native_resolution_with_complete_log_rows(self):
-        for width,height in [(1280,720),(1920,1080),(2560,1440),(3840,2160)]:
-            DESKTOP[:]=width,height
-            screen,session,root,window=self.inline_progress()
-            def box(name):
-                node=root.find("widget[@name='%s']"%name)
-                return tuple(map(int,(node.get('position')+','+node.get('size')).split(',')))
-            x,y,w,h=box('picon_panel')
-            for name in ('picon_log','picon_bar','picon_status','picon_description'):
-                cx,cy,cw,ch=box(name)
-                self.assertGreaterEqual(cx,x);self.assertGreaterEqual(cy,y)
-                self.assertLessEqual(cx+cw,x+w);self.assertLessEqual(cy+ch,y+h)
-            lx,ly,lw,lh=box('picon_log')
-            self.assertEqual(lh//screen['picon_log'].l.height,12)
-            self.assertLessEqual(ly+lh,box('picon_bar')[1])
-            self.assertLessEqual(box('picon_bar')[1]+box('picon_bar')[3],box('picon_status')[1])
-            self.assertEqual(len(window['list'].build('Rendered after native skin scaling')),2)
-            self.assertEqual(session.dialogs,[])
-
-    def test_picon_progress_queue_rejection_and_leaving_panel_are_safe(self):
-        screen,session,root,window=self.inline_progress()
-        snapshot=list(window.settings.countries)
-        screen.picon_form.settings.countries.append('DE')
-        self.assertEqual(window.settings.countries,snapshot)
-        window.jobs.submit=lambda *args:False
-        screen.poll();self.assertTrue(window.finished)
-        self.assertIn(radio.t('Update failed'),window['status'].getText())
-        screen.green_pressed();screen.green_pressed()
-        running=screen.picon_form.progress
-        self.assertIsNot(running,window);self.assertTrue(window.disposed)
-        screen.options()
-        self.assertTrue(running.task.cancelled.is_set())
-        self.assertFalse(screen['picon_log'].instance.isVisible())
-        screen.cleanup();running.done(None,'late callback')
-        self.assertTrue(running.disposed);self.assertTrue(running.jobs.closed.is_set())
-        self.assertEqual(session.dialogs,[])
 
     def test_favourite_action_names_follow_station_state_and_recover_from_save_failure(self):
         screen,session,_=self.new();screen.options()
         def label():return next(text for text,key,*_ in screen['settings_options'].list if key=='favourite')
         self.assertEqual(label(),radio.t('Add station to favourites'))
-        self.assertIn((radio.t('Update radio catalogue'),'update'),screen.settings_form.choices())
-        screen['settings_options'].moveToIndex(2);screen.ok()
+        self.assertNotIn((radio.t('Update radio catalogue'),'update'), screen.settings_form.choices())
+        self.assertIn('plugin-update', [key for text, key in screen.settings_form.choices()])
+        self.settings_action(screen, 'favourite')
         self.assertEqual(label(),radio.t('Remove station from favourites'))
         with patch.object(screen.store,'save',side_effect=PermissionError):screen.ok()
         self.assertEqual(label(),radio.t('Remove station from favourites'))
         screen.ok();self.assertEqual(label(),radio.t('Add station to favourites'))
-        self.assertEqual(screen['settings_options'].getSelectionIndex(),2)
+        self.assertEqual(screen['settings_options'].getCurrent()[1], 'favourite')
         screen.exit();screen['stations'].moveToIndex(1);screen.options()
         self.assertEqual(label(),radio.t('Add station to favourites'))
         self.assertEqual(session.dialogs,[])
@@ -1218,12 +1247,12 @@ class NativeTests(unittest.TestCase):
         screen.options()
         def label():return next(text for text,key,*_ in screen['settings_options'].list if key=='stop')
         self.assertEqual(label(),radio.t('Stop radio playback'))
-        screen['settings_options'].moveToIndex(6);screen.green_pressed()
+        self.settings_action(screen, 'stop')
         self.assertEqual(label(),radio.t('Start radio playback'))
         self.assertIsNone(screen.playback.current);self.assertIs(session.nav.current,original)
         screen.exit();screen['stations'].moveToIndex(4)
         selected=screen.current();self.assertNotEqual(selected['id'],stopped['id'])
-        screen.options();screen['settings_options'].moveToIndex(6);screen.green_pressed()
+        screen.options();self.settings_action(screen, 'stop')
         self.assertEqual(screen.playback.current,stopped)
         self.assertEqual(screen.current(),selected)
         self.assertEqual(label(),radio.t('Stop radio playback'))
@@ -1239,18 +1268,18 @@ class NativeTests(unittest.TestCase):
 
     def test_settings_radio_start_first_use_retry_and_recording_preserve_radio_identity(self):
         screen,session,_=self.new();screen.options()
-        self.assertEqual(screen.settings_form.choices()[6][0],radio.t('Start radio playback'))
-        screen['settings_options'].moveToIndex(6);screen.ok()
+        self.assertEqual(next(text for text, key in screen.settings_form.choices() if key == 'stop'),radio.t('Start radio playback'))
+        self.settings_action(screen, 'stop')
         station=dict(screen.playback.current)
         self.assertEqual(screen.store.history[0],station)
         screen.stop()
         with patch.object(screen.playback,'play',side_effect=RuntimeError('offline')):screen.ok()
         self.assertEqual(screen.last_radio_station,station)
         self.assertFalse(screen.radio_running())
-        self.assertEqual(screen.settings_form.choices()[6][0],radio.t('Start radio playback'))
+        self.assertEqual(next(text for text, key in screen.settings_form.choices() if key == 'stop'),radio.t('Start radio playback'))
         screen.ok();self.assertEqual(screen.playback.current,station)
         screen.ended()
-        self.assertEqual(screen.settings_form.choices()[6][0],radio.t('Start radio playback'))
+        self.assertEqual(next(text for text, key in screen.settings_form.choices() if key == 'stop'),radio.t('Start radio playback'))
         screen.exit();self.recordings(screen);screen.play()
         self.assertIn('path',screen.playback.current)
         screen.options()
@@ -1260,52 +1289,18 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.radio_running())
         self.assertEqual(session.dialogs,[])
 
-    def test_startup_paints_before_catalogue_work_and_close_cancels_late_results(self):
-        original = radio.Catalogue
-        entered, release = threading.Event(), threading.Event()
-        caller = threading.get_ident()
-        workers = []
-        def catalogue(directory, load=True, **kwargs):
-            if load:
-                workers.append(threading.get_ident())
-                entered.set()
-                release.wait(2)
-            return original(directory, load=load, **kwargs)
-        with patch.object(radio, 'Catalogue', side_effect=catalogue):
-            screen, session, root = self.new(wait_ready=False)
-            self.assertTrue(root.findall('widget'))
-            self.assertTrue(screen.starting)
-            self.assertEqual(screen.rows, [])
-            self.assertEqual(screen['count'].getText(), radio.t('Please wait…'))
-            self.assertEqual(session.nav.calls, [])
-            self.assertEqual(workers, [])
-            self.assertIsNone(screen.cover_jobs.thread)
-            self.assertIsNone(screen.video_jobs.thread)
-            screen.finish_startup()
-            self.assertTrue(entered.wait(1))
-            self.assertNotEqual(workers[0], caller)
-            screen.ready(); screen.finish_startup()
-            self.assertEqual(len(workers), 1)
-            screen.cleanup()
-            release.set()
-            screen.startup_loaded(original(self.tmp.name), None)
-            screen.finish_startup()
-            self.assertEqual(screen.rows, [])
-            self.assertEqual(session.nav.calls, [])
-            self.assertFalse(screen.startup_timer.timer.active)
 
     def test_startup_user_navigation_and_external_service_prevent_late_autoplay(self):
-        from WarderRadio.model import Catalogue
-        item = Catalogue(self.tmp.name).search(group='Čechy')[7]
+        item = self.online_rows['CZ'][7]
         store = Store(self.tmp.name); store.played(item)
         for navigate in (True, False):
             screen, session, _ = self.new(wait_ready=False)
-            screen.finish_startup()
             if navigate:
                 screen.left(); screen['functions'].moveToIndex(3); screen.ok()
             else:
                 session.nav.current = Reference('externally selected TV')
             current = session.nav.current
+            screen.finish_startup()
             self.wait_for_catalogue(screen)
             screen.finish_startup()
             self.assertIs(session.nav.current, current)
@@ -1314,17 +1309,6 @@ class NativeTests(unittest.TestCase):
                 self.assertEqual(screen.mode, 'favourites')
             screen.cleanup()
 
-    def test_startup_error_remains_closable_and_does_not_check_network_before_catalogue(self):
-        screen, session, _ = self.new(wait_ready=False)
-        with patch.object(screen, 'check_updates') as check:
-            screen.ready()
-            check.assert_not_called()
-        screen.startup_loaded(None, 'unreadable catalogue')
-        self.assertEqual(screen['status'].getText(), radio.t('Cannot update catalogue'))
-        self.assertEqual(session.nav.calls, [])
-        screen.execing = True
-        screen.exit()
-        self.assertTrue(screen.closed)
 
     def test_real_native_widgets_bind_and_open_at_every_resolution_without_partial_rows(self):
         for width, height in [(1280, 720), (1920, 1080), (2560, 1440), (3840, 2160)]:
@@ -1377,89 +1361,6 @@ class NativeTests(unittest.TestCase):
         screen.ended(); self.assertFalse(screen.playing)
         screen.cleanup(); self.assertIs(session.nav.current, original)
 
-    def test_country_custom_lazy_world_search_and_failed_catalogue_keep_screen_usable(self):
-        screen, session, _ = self.new()
-        self.assertEqual(self.country_backend.requests, [])
-        screen.group_done(('Slovensko', 'Slovensko'))
-        self.wait_for_country(screen)
-        self.assertEqual(len(screen.rows), 88)
-        screen.search_done('radio expres')
-        self.wait_for_country(screen)
-        self.assertTrue(screen.rows)
-        self.assertEqual(len(self.country_backend.requests), 1)
-        self.assertTrue(self.country_backend.requests[0].startswith('search/'))
-        screen.search_done('unfindable-zzzzzzzz')
-        self.wait_for_country(screen)
-        self.assertFalse(screen.rows)
-        screen.play(); screen.favourite(); screen.down(); screen.up()
-        screen.new_station_name = 'My radio'
-        screen.add_url_done('https://example.org/radio')
-        self.assertEqual(screen.current()['name'], 'My radio')
-        previous = screen.catalogue.items
-        screen.catalogue_loaded(None, 'network offline')
-        self.assertIs(screen.catalogue.items, previous)
-        self.assertTrue(session.dialogs)
-        screen.stop()
-        self.assertIsNone(screen.playback.current)
-
-    def test_catalogue_update_rehomes_removed_provider_group_without_stopping_audio(self):
-        screen, session, _ = self.new()
-        screen.play()
-        playing = session.nav.current
-        selected = screen.playback.current
-        screen.active_group = 'Previous provider group'
-        changed = [dict(row, group='Germany') for row in screen.catalogue.items]
-        self.assertTrue(any(row['id'] == selected['id'] for row in changed))
-        prepared = radio.Catalogue(self.tmp.name,load=False)
-        prepared.manifest, _ = country_fixture(country_rows('Slovensko',1,60000) +
-                                               country_rows('Čechy',1,60001) + changed)
-        prepared.items, prepared.group = changed, 'Germany'
-        with patch('WarderRadio.model.catalogue_items',side_effect=AssertionError('GUI validation')):
-            screen.catalogue_loaded(prepared, None)
-        self.assertEqual(screen.active_group, 'Germany')
-        self.assertEqual(Store(self.tmp.name).group, 'Germany')
-        self.assertTrue(screen.rows)
-        self.assertIs(session.nav.current, playing)
-        screen.cleanup()
-
-    def test_country_switch_is_background_cancellable_and_latest_selection_wins(self):
-        screen, session, _ = self.new()
-        screen.play(); playing = session.nav.current
-        entered, release = threading.Event(), threading.Event()
-        original = screen.catalogue.prepare_country
-        caller = threading.get_ident(); workers = []
-        def delayed(group, task):
-            workers.append(threading.get_ident())
-            if group == 'Čechy':
-                entered.set();release.wait(1)
-            return original(group, task)
-        with patch.object(screen.catalogue, 'prepare_country', side_effect=delayed):
-            screen.group_done(('Čechy','Čechy'))
-            self.assertTrue(entered.wait(1))
-            self.assertEqual(screen.active_group,'Slovensko')
-            screen.left();screen['functions'].moveToIndex(3);screen.ok()
-            self.assertEqual(screen.mode,'favourites')
-            self.assertIs(session.nav.current,playing)
-            screen.group_done(('Slovensko','Slovensko'))
-            release.set();self.wait_for_country(screen)
-        self.assertEqual(screen.active_group,'Slovensko')
-        self.assertTrue(all(worker != caller for worker in workers))
-        self.assertIs(session.nav.current,playing)
-
-    def test_country_close_discards_late_worker_callback(self):
-        screen, session, _ = self.new()
-        entered, release = threading.Event(), threading.Event()
-        previous = screen.catalogue
-        def delayed(task):
-            entered.set();release.wait(1);return previous
-        screen.queue_catalogue(delayed,'update')
-        self.assertTrue(entered.wait(1))
-        task = screen.catalogue_task
-        screen.cleanup();release.set()
-        screen.catalogue_loaded(previous,None,task,'update')
-        self.assertTrue(screen.closed)
-        self.assertTrue(task.cancelled.is_set())
-        self.assertFalse(screen.poll_timer.timer.active)
 
     def test_native_plugin_descriptor_has_approved_icon_and_lazy_main(self):
         descriptors = plugin.Plugins()
@@ -1469,8 +1370,36 @@ class NativeTests(unittest.TestCase):
         icon = getattr(descriptor, 'iconstr', None) or getattr(descriptor, 'iconString', None)
         self.assertEqual(icon, 'plugin.png')
         self.assertTrue(Path(ROOT, 'src/WarderRadio', icon).is_file())
-        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors[:2]))
+        self.assertTrue(all(item.name == 'Radio Warder Evolution' for item in descriptors))
         self.assertEqual(descriptors[2].where, [PluginDescriptor.WHERE_MENU])
+        with patch('WarderRadio.model.read_json', return_value={'show_main_menu': True}):
+            rows = plugin.main_menu('mainmenu')
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][0], 'Radio Warder Evolution')
+        self.assertEqual(rows[0][2], 'warder_radio_mainmenu')
+
+    def test_home_remains_catalogue_not_pinned_and_favourite_reordering_remains(self):
+        screen, _, _ = self.new()
+        self.assertFalse(hasattr(screen.store, 'pinned'))
+        self.assertFalse(hasattr(screen.store, 'toggle_pin'))
+        self.assertNotIn('pin-toggle', [key for name, key in screen.settings_form.choices()])
+        self.assertFalse(hasattr(screen['stations'], 'pinned'))
+        first = screen.rows[0]
+        rendered = screen['stations'].l.build(first)
+        self.assertIn(first['name'], str(rendered))
+        self.assertNotIn('★', str(rendered))
+        screen.play()
+        screen.favourite()
+        screen['stations'].moveToIndex(1)
+        screen.play()
+        screen.favourite()
+        screen.select_mode('favourites')
+        self.assertEqual(len(screen.rows), 2)
+        screen['stations'].moveToIndex(1)
+        screen.options()
+        actions = [key for name, key in screen.settings_form.choices()]
+        self.assertIn('favourite-up', actions)
+        self.assertNotIn('pin-toggle', actions)
 
     def test_remote_context_is_private_and_each_action_is_bound(self):
         screen, _, _ = self.new()
@@ -1948,7 +1877,6 @@ class NativeTests(unittest.TestCase):
 
     def test_update_modal_opens_before_io_shows_real_progress_and_restarts_after_success_only(self):
         screen, session, _ = self.new()
-        self.assertTrue(screen.update_pending)
         screen.update_checked(NS(version='0.1.1'), None)
         self.assertIn('0.1.1', session.current_dialog['version'].getText())
         screen.update_answered(False)
@@ -2068,7 +1996,7 @@ class NativeTests(unittest.TestCase):
         self.assertIsNone(root.find("widget[@name='heading']"))
         self.assertIsNone(root.find("widget[@name='countrycaption']"))
         self.assertIn(radio.t('Choose country'), screen['functions'].l.rows[0][0])
-        self.assertIn(radio.group_label(screen.active_group), screen['functions'].l.rows[0][0])
+        self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
         screen.play()
         playing = session.nav.current
         dialogs = len(session.dialogs)
@@ -2082,16 +2010,32 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen['settings_title'].getText(), radio.t('Choose country'))
         self.assertEqual(screen['settings_options'].getCurrent()[1], screen.active_group)
         choices=screen['settings_options'].list
-        screen['settings_options'].moveToIndex(next(i for i,row in enumerate(choices) if row[1]=='Čechy'))
-        screen.ok();self.assertNotEqual(screen.active_group,'Čechy')
-        screen.green_pressed()
+        self.assertEqual(screen['green'].getText(), radio.t('Press OK to select'))
+        screen['settings_options'].moveToIndex(next(i for i,row in enumerate(choices) if row[1]=='CZ'))
+        screen.ok()
+        self.assertEqual(screen.active_group, 'CZ')
         self.assertEqual(screen.focus, 'stations')
         self.wait_for_country(screen)
-        self.assertEqual(screen.active_group, 'Čechy')
+        self.assertEqual(screen.active_group, 'CZ')
         self.assertTrue(all(item['group'] == 'Čechy' for item in screen.rows))
         self.assertIn(radio.group_label('Čechy'), screen['functions'].l.rows[0][0])
-        self.assertEqual(Store(self.tmp.name).group, 'Čechy')
+        self.assertEqual(Store(self.tmp.name).online_country, 'CZ')
         self.assertIs(session.nav.current, playing)
+
+    def test_country_green_remains_optional_and_other_settings_keep_confirmation(self):
+        screen, session, _ = self.new()
+        screen.focus_country(); screen.ok()
+        self.assertEqual(screen['green'].getText(), radio.t('Press OK to select'))
+        countries = screen['settings_options'].list
+        screen['settings_options'].moveToIndex(
+            next(i for i, row in enumerate(countries) if row[1] == 'CZ'))
+        screen.green_pressed()
+        self.wait_for_country(screen)
+        self.assertEqual(screen.active_group, 'CZ')
+        screen.options()
+        self.assertEqual(screen['green'].getText(), radio.t('Confirm selection'))
+        screen.exit()
+        self.assertEqual(screen.mode, 'radio')
 
     def test_country_menu_cancel_preserves_station_selection_and_other_section(self):
         screen, session, root = self.new()
@@ -2112,7 +2056,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.current(), before)
         screen.mode = 'history'; screen.refresh_rows()
         self.assertEqual(screen['section'].getText(), radio.t('History'))
-        self.assertIn(radio.group_label(screen.active_group), screen['functions'].l.rows[0][0])
+        self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
         screen.focus_country(); screen.right()
         self.assertEqual(screen.focus, 'stations')
 
@@ -2131,8 +2075,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(screen.focus, 'stations')
 
     def test_reopening_resumes_last_played_station_and_restores_previous_tv_on_exit(self):
-        from WarderRadio.model import Catalogue
-        item = Catalogue(self.tmp.name).search(group='Čechy')[7]
+        item = self.online_rows['CZ'][7]
         store = Store(self.tmp.name)
         store.played(item)
         screen, session, _ = self.new()
@@ -2140,7 +2083,7 @@ class NativeTests(unittest.TestCase):
         self.assertTrue(screen.playback.owns())
         self.assertEqual(screen.playback.current['id'], item['id'])
         self.assertEqual(screen.current()['id'], item['id'])
-        self.assertEqual(screen.active_group, 'Čechy')
+        self.assertEqual(screen.active_group, 'CZ')
         self.assertEqual(len(Store(self.tmp.name).history), 1)
         original = screen.playback.previous
         screen.cleanup()
@@ -2241,7 +2184,7 @@ class NativeTests(unittest.TestCase):
             self.assertEqual(screen['functions'].getSelectionIndex(), 0)
             self.assertFalse(screen['stations'].instance.selectionEnabled)
             self.assertEqual(screen['stations'].getSelectionIndex(), index)
-            self.assertIn(radio.group_label(screen.active_group), screen['functions'].l.rows[0][0])
+            self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
             screen.right()
             self.assertEqual(screen.focus, 'stations')
             self.assertEqual(screen.current(), selected)
@@ -2260,24 +2203,35 @@ class NativeTests(unittest.TestCase):
         screen, session, _ = self.new()
         screen.play(); playing = session.nav.current
         before = len(session.dialogs)
-        for index in (0, 18, len(screen.rows)-1):
+        for index in (0, 15):
             screen['stations'].moveToIndex(index)
-            with patch.object(screen['stations'], 'pageDown', wraps=screen['stations'].pageDown) as page:
-                screen.right()
-                page.assert_called_once_with()
-            current = screen['stations'].getSelectionIndex()
-            self.assertEqual(screen.focus, 'stations')
-            self.assertTrue(screen['stations'].instance.selectionEnabled)
-            self.assertTrue(0 <= current < len(screen.rows))
-            if index < len(screen.rows)-6:
-                self.assertGreater(current, index+1)
-            self.assertEqual(screen['count'].getText(), '%d / %d' % (current+1,len(screen.rows)))
-            self.assertEqual(len(session.dialogs), before)
-            self.assertIs(session.nav.current, playing)
-        selected = screen.current()
-        screen.left(); screen.right()
-        self.assertEqual(screen.focus, 'stations')
-        self.assertEqual(screen.current(), selected)
+            screen.right()
+            self.assertGreater(screen['stations'].getSelectionIndex(), index)
+            self.assertEqual(screen.page_offset, 0)
+        screen['stations'].moveToIndex(len(screen.rows) - 1)
+        screen.right()
+        self.wait_for_country(screen)
+        self.assertEqual(screen.page_offset, PAGE_SIZE)
+        self.assertGreater(len(screen.rows), PAGE_SIZE)
+        self.assertIn('/ %d' % len(screen.rows), screen['count'].getText())
+        screen.left()
+        self.assertEqual(screen.page_offset, PAGE_SIZE)
+        self.assertEqual(len(session.dialogs), before)
+        self.assertIs(session.nav.current, playing)
+
+    def test_down_at_end_loads_next_batch_without_replacing_old_stations(self):
+        screen, session, _ = self.new()
+        self.wait_for_country(screen)
+        original = [row['id'] for row in screen.rows]
+        self.assertEqual(len(original), PAGE_SIZE)
+        screen['stations'].moveToIndex(len(original) - 1)
+        screen.down()
+        self.wait_for_country(screen)
+        self.assertEqual(screen.page_offset, PAGE_SIZE)
+        self.assertGreater(len(screen.rows), len(original))
+        self.assertEqual([row['id'] for row in screen.rows[:len(original)]], original)
+        self.assertEqual(screen['stations'].getSelectionIndex(), len(original))
+        self.assertEqual(len({row['id'] for row in screen.rows}), len(screen.rows))
 
     def test_navigation_hint_follows_receiver_language_for_station_focus(self):
         screen, _, _ = self.new()
@@ -2297,7 +2251,7 @@ class NativeTests(unittest.TestCase):
         first = screen['functions'].l.build(*screen['functions'].l.rows[0])
         self.assertEqual(len(first), 3)
         self.assertIn(radio.t('Choose country'), screen['functions'].l.rows[0][0])
-        self.assertIn(radio.group_label(screen.active_group), screen['functions'].l.rows[0][0])
+        self.assertIn(radio.group_label(radio.country_name(screen.active_group)), screen['functions'].l.rows[0][0])
         before = len(session.dialogs)
         screen.focus_country()
         self.assertEqual(screen['functions'].getSelectionIndex(), 0)

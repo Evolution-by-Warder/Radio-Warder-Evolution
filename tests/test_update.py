@@ -124,6 +124,53 @@ class UpdateTests(unittest.TestCase):
         self.assertIsNone(update.check_release('0.1.0-test2', opener))
         self.assertTrue(calls[0].endswith('/update/v2/testing.json'))
 
+    def test_0200_test21_to_bridge_to_stable_exact_release_path(self):
+        # opkg treats 0.2.0-test21 as newer than 0.2.0. A small verified
+        # test22 bridge must be installed first; only it can request
+        # force-downgrade for the authenticated exact 0.2.0 stable package.
+        self.assertEqual(VERSION, '0.2.0')
+        self.assertEqual(update.release_channel('0.2.0-test21'), 'testing')
+        self.assertEqual(update.release_channel('0.2.0-test22'), 'stable')
+        self.assertEqual(update.TESTER_MIGRATIONS['0.2.0-test22'], '0.2.0')
+        self.assertLess(update.version_key('0.2.0-test21'), update.version_key('0.2.0-test22'))
+        self.assertLess(update.version_key('0.2.0-test22'), update.version_key('0.2.0'))
+        self.assertEqual(update.parse_release(
+            json.dumps(manifest('0.2.0-test22', 'testing')),
+            '0.2.0-test21').version, '0.2.0-test22')
+        self.assertEqual(update.parse_release(
+            json.dumps(manifest('0.2.0', 'stable')),
+            '0.2.0-test22').version, '0.2.0')
+        import shutil
+        import subprocess
+        if shutil.which('dpkg'):
+            self.assertEqual(subprocess.run(['dpkg', '--compare-versions',
+                '0.2.0-test22-1', 'gt', '0.2.0-test21-1']).returncode, 0)
+            self.assertEqual(subprocess.run(['dpkg', '--compare-versions',
+                '0.2.0-1', 'lt', '0.2.0-test22-1']).returncode, 0)
+
+    def test_0200_only_exact_verified_bridge_may_use_force_downgrade(self):
+        from unittest.mock import patch
+        root = Path(__file__).resolve().parents[1]
+        build = json.loads((root / 'dist/build.json').read_text())
+        body = (root / 'dist' / build['file']).read_bytes()
+        release = update.Release('0.2.0', '', hashlib.sha256(body).hexdigest(), len(body))
+        commands = []
+        def runner(command, **kwargs):
+            commands.append(command)
+            return Mock(returncode=0, stdout='ok')
+        def verifier(version, **kwargs):
+            self.assertEqual(version, '0.2.0')
+        for installed, forced in [('0.2.0-test21', False),
+                                  ('0.2.0-test22', True),
+                                  ('0.1.9.4', False)]:
+            commands.clear()
+            with patch.object(update, 'verify_payload', return_value=installed):
+                actual = update.install_release(release, opener=lambda *a, **k: io.BytesIO(body),
+                    runner=runner, verifier=verifier)
+            self.assertEqual(actual, '0.2.0')
+            self.assertEqual(commands[0][:2], ['opkg', '--force-downgrade']
+                             if forced else ['opkg', 'install'])
+
     def test_failed_hash_removes_staged_file_and_does_not_invoke_opkg(self):
         release = update.parse_release(json.dumps(manifest()), '0.1.0-test2')
         runner = Mock()

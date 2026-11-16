@@ -254,7 +254,6 @@ class SaverTests(unittest.TestCase):
         obj.saver_timer_armed = False
         obj.starting = False
         obj.saver_offset, obj.saver_direction = (0, 0), (1, 1)
-        obj.saver_picon_id = None
         obj.saver_text_cache = {}
         obj.saver_modal_suspended = False
         obj.playing = True
@@ -275,13 +274,13 @@ class SaverTests(unittest.TestCase):
         obj.spectrum, obj.saver_spectrum = normal_spectrum, saver_spectrum
         obj.saver_picon, obj.saver_cover, obj.cover_display = picon, cover, parent_cover
         obj.radio_running = lambda: True
+        obj.show_saver_logo = lambda url: picon.show('/tmp/picon.png')
         obj.sync_spectrum = lambda: None  # Bound on real Screen; stub for GUI-free fixture
         env = dict(allow_auto_saver=allow_auto_saver,
                    make_saver_widgets=make_saver_widgets,
                    bounded_motion=bounded_motion,
                    clock_text=lambda: ('Streda', '11.11.2026', '20:17', ':21'),
                    t=lambda text:text, group_label=lambda name:name,
-                   path_for=lambda station, library: '/tmp/picon.png',
                    ePoint=lambda x,y:(x,y))
         for name in ('_arm_saver', '_saver_auto_restore', '_saver_start', '_saver_refresh',
                      '_saver_set_text', '_saver_modal_open', '_saver_move',
@@ -291,6 +290,8 @@ class SaverTests(unittest.TestCase):
         self.assertEqual(obj.saver_timer.started[-1], (10000, True))
         obj._saver_start()
         self.assertTrue(obj.saver_active)
+        self.assertEqual(obj.saver_motion_timer.started[-1], (1000, True),
+                         'OLED saver should update its bounded position every second')
         self.assertEqual(cover.path, '/tmp/song-cover.jpg')
         self.assertEqual(picon.path, '/tmp/picon.png')
         self.assertEqual(fields['saver_artist'].getText(), 'Linkin Park')
@@ -311,6 +312,7 @@ class SaverTests(unittest.TestCase):
         self.assertEqual(fields['saver_artist'].set_count,
                          before_refresh['saver_artist'])
         obj._saver_move()
+        self.assertEqual(obj.saver_motion_timer.started[-1], (1000, True))
         self.assertTrue(fields['saver_artist'].moves)
         saved_moves = len(fields['saver_artist'].moves)
         obj.session.current_dialog = object()

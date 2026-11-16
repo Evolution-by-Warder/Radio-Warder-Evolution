@@ -50,7 +50,7 @@ def make_skin(width, height):
               label('version_caption', 1680, 25, 210, 36, 25, '#00ceff', 'center'),
               label('version', 1680, 70, 210, 36, 24, '#00ceff', 'center'),
               label('navtitle', 62, 220, 1, 1, 1, '#00ceff'),
-              label('section', 530, 204, 1, 1, 1, '#a6bed1'),
+              label('section', 530, 211, 620, 36, 23, '#a6bed1'),
               label('nowlabel', 1230, 744, 620, 18, 14, '#87a4b9', 'center'),
               label('station', 1230, 768, 620, 30, 24, '#a6bed1', 'center'),
               label('artist', 1230, 806, 620, 40, 28, '#00ceff', 'center'),
@@ -63,13 +63,20 @@ def make_skin(width, height):
     for x in (1392, 1664):
         parts.append('<eLabel zPosition="3" %s backgroundColor="#0019c9ff" />'
                      % rect(x, 25, 2, 84))
-    row_h = n(94)
+    row_h = n(88)
+    # Native subscription chip row is shown only in Odbery, above its station list.
+    # The screen shifts the station widget down to 7 rows in that mode only.
+    parts.append('<widget name="subscription_tabs" zPosition="2" position="%d,%d" size="%d,%d" '
+                 'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
+                 'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
+                 'transparent="1" scrollbarMode="showNever" enableWrapAround="0" />'
+                 % (n(530), n(252), n(620), n(64)))
     # Height is derived from the actual scaled row height, never rounded separately.
     parts.append('<widget name="stations" zPosition="2" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
                  'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                 % (n(530), n(210), n(620), row_h * 8))
+                 % (n(530), n(252), n(620), row_h * 8))
     parts.append('<widget name="functions" zPosition="2" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
@@ -77,39 +84,6 @@ def make_skin(width, height):
                  % (n(55), n(232), n(390), n(64) * 8))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
-    # One main-window form replaces both content panels in Picons mode.
-    # Its opaque base covers the old central seam; every form widget is hidden
-    # in radio mode, so the original three-panel artwork is retained.
-    parts.append('<widget name="picon_panel" zPosition="4" %s backgroundColor="#00091b30" />'
-                 % rect(500, 204, 1388, 790))
-    for key, box in [('top', (500,204,1388,2)), ('bottom', (500,992,1388,2)),
-                     ('left', (500,204,2,790)), ('right', (1886,204,2,790))]:
-        parts.append('<widget name="picon_edge_%s" zPosition="5" %s backgroundColor="#0045c7e6" />'
-                     % (key, rect(*box)))
-    for key, box, font, color in [
-            ('title', (534,228,1300,56), 34, '#00ceff'),
-            ('description', (534,292,1300,44), 25, '#a6bed1'),
-            ('help', (534,860,1300,44), 25, '#a6bed1'),
-            ('status', (534,940,1300,40), 25, '#00ceff')]:
-        parts.append(label('picon_' + key, *box, font, color).replace('zPosition="2"', 'zPosition="6"'))
-    parts.append('<widget name="picon_form" zPosition="6" position="%d,%d" size="%d,%d" '
-                 'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
-                 'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
-                 'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (n(520),n(310),n(1348),n(130)*3))
-    parts.append('<widget name="picon_options" zPosition="6" position="%d,%d" size="%d,%d" '
-                 'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
-                 'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
-                 'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                 % (n(520),n(310),n(1348),n(60)*8))
-    parts.append('<widget name="picon_log" zPosition="6" position="%d,%d" size="%d,%d" '
-                 'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
-                 'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
-                 'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                 % (n(520),n(350),n(1348),n(46)*12))
-    parts.append('<widget name="picon_bar" zPosition="6" %s borderWidth="1" '
-                 'foregroundColor="#0000ceff" backgroundColor="#00132134" />'
-                 % rect(534,916,1300,16))
     # Settings and every nested choice stay in the same combined content area.
     parts.append('<widget name="settings_panel" zPosition="4" %s backgroundColor="#00091b30" />'
                  % rect(500, 204, 1388, 790))

@@ -56,7 +56,7 @@ class MainMenuTests(unittest.TestCase):
             self.assertEqual(self.plugin.main_menu("system"), [])
             entries = self.plugin.main_menu("mainmenu")
         self.assertEqual(len(entries), 1)
-        self.assertEqual(entries[0][0], "Radio by Warder")
+        self.assertEqual(entries[0][0], "Radio Warder Evolution")
         self.assertIs(entries[0][1], self.plugin.main)
         self.assertEqual(entries[0][2], "warder_radio_mainmenu")
         self.assertEqual(len(entries[0]), 4)

@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "未能在 YouTube 上找到当前歌曲的视频。",
   "Yes": "是",
   "No": "否",
-  "A new version is available. Do you want to install it?": "有新版本可用。是否安装？"
+  "A new version is available. Do you want to install it?": "有新版本可用。是否安装？",
+  "Home": "首页",
+  "Subscriptions": "订阅",
+  "Choose category": "选择类别",
+  "Follow category": "订阅类别",
+  "Unfollow category": "取消订阅类别",
+  "All categories": "所有类别",
+  "No subscriptions": "暂无订阅",
+  "Page": "页",
+  "Offline catalogue": "离线电台目录",
+  "Clear logo cache": "清除台标缓存",
+  "Clear cached station logos?": "清除已保存的电台标志？",
+  "Logo cache cleared": "已清除台标缓存",
+  "Cannot clear logo cache": "无法清除台标缓存",
+  "Lyrics": "歌词",
+  "Artist information": "艺人信息",
+  "Song information unavailable": "暂无歌曲信息"
 }

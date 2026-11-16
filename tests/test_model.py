@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from WarderRadio.model import (Store, Catalogue, Playback, atomic_json, parse_bouquet,
-                               stream_url, station, read_json)
+from WarderRadio.model import Store, Playback, atomic_json, stream_url, station, read_json
+from WarderRadio.legacy_catalogue import Catalogue, parse_bouquet
 from WarderRadio.jobs import Jobs
 from WarderRadio.recording import Recording
 

@@ -311,6 +311,81 @@ _SAVER_TEXT = {
 }
 
 
+_SUBSCRIPTION_TEXT = {
+    "al": {"Add subscription": "Shto abonim", "Add first subscription": "Shto abonimin e parë"},
+    "cs": {"Add subscription": "Přidat odběr", "Add first subscription": "Přidat první odběr"},
+    "de": {"Add subscription": "Abo hinzufügen", "Add first subscription": "Erstes Abo hinzufügen"},
+    "el": {"Add subscription": "Προσθήκη συνδρομής", "Add first subscription": "Προσθήκη πρώτης συνδρομής"},
+    "en": {"Add subscription": "Add subscription", "Add first subscription": "Add first subscription"},
+    "es": {"Add subscription": "Añadir suscripción", "Add first subscription": "Añadir primera suscripción"},
+    "et": {"Add subscription": "Lisa tellimus", "Add first subscription": "Lisa esimene tellimus"},
+    "fa": {"Add subscription": "افزودن اشتراک", "Add first subscription": "افزودن اولین اشتراک"},
+    "fr": {"Add subscription": "Ajouter un abonnement", "Add first subscription": "Ajouter un premier abonnement"},
+    "hu": {"Add subscription": "Feliratkozás hozzáadása", "Add first subscription": "Első feliratkozás hozzáadása"},
+    "it": {"Add subscription": "Aggiungi abbonamento", "Add first subscription": "Aggiungi primo abbonamento"},
+    "lt": {"Add subscription": "Pridėti prenumeratą", "Add first subscription": "Pridėti pirmą prenumeratą"},
+    "nl": {"Add subscription": "Abonnement toevoegen", "Add first subscription": "Eerste abonnement toevoegen"},
+    "pl": {"Add subscription": "Dodaj subskrypcję", "Add first subscription": "Dodaj pierwszą subskrypcję"},
+    "pt": {"Add subscription": "Adicionar subscrição", "Add first subscription": "Adicionar primeira subscrição"},
+    "ro": {"Add subscription": "Adaugă abonament", "Add first subscription": "Adaugă primul abonament"},
+    "ru": {"Add subscription": "Добавить подписку", "Add first subscription": "Добавить первую подписку"},
+    "sk": {"Add subscription": "Pridať odber", "Add first subscription": "Pridať prvý odber", "Unfollow category": "Odstrániť odber"},
+    "tr": {"Add subscription": "Abonelik ekle", "Add first subscription": "İlk aboneliği ekle"},
+    "uk": {"Add subscription": "Додати підписку", "Add first subscription": "Додати першу підписку"},
+    "zh": {"Add subscription": "添加订阅", "Add first subscription": "添加首个订阅"}
+}
+
+
+_RADIO_ENHANCEMENT_TEXT = {
+    "al": {"Move station up": "Lëvize lart", "Move station down": "Lëvize poshtë", "Song information": "Informacion për këngën", "Diagnostics": "Diagnostikë"},
+    "cs": {"Move station up": "Posunout stanici nahoru", "Move station down": "Posunout stanici dolů", "Song information": "Informace o skladbě", "Diagnostics": "Diagnostika"},
+    "de": {"Move station up": "Sender nach oben", "Move station down": "Sender nach unten", "Song information": "Songinformationen", "Diagnostics": "Diagnose"},
+    "el": {"Move station up": "Μετακίνηση πάνω", "Move station down": "Μετακίνηση κάτω", "Song information": "Πληροφορίες τραγουδιού", "Diagnostics": "Διαγνωστικά"},
+    "en": {"Move station up": "Move station up", "Move station down": "Move station down", "Song information": "Song information", "Diagnostics": "Diagnostics"},
+    "es": {"Move station up": "Subir emisora", "Move station down": "Bajar emisora", "Song information": "Información de la canción", "Diagnostics": "Diagnóstico"},
+    "et": {"Move station up": "Liiguta jaama üles", "Move station down": "Liiguta jaama alla", "Song information": "Laulu teave", "Diagnostics": "Diagnostika"},
+    "fa": {"Move station up": "انتقال ایستگاه به بالا", "Move station down": "انتقال ایستگاه به پایین", "Song information": "اطلاعات آهنگ", "Diagnostics": "عیب‌یابی"},
+    "fr": {"Move station up": "Monter la radio", "Move station down": "Descendre la radio", "Song information": "Infos sur le morceau", "Diagnostics": "Diagnostic"},
+    "hu": {"Move station up": "Állomás feljebb", "Move station down": "Állomás lejjebb", "Song information": "Dal információi", "Diagnostics": "Diagnosztika"},
+    "it": {"Move station up": "Sposta radio su", "Move station down": "Sposta radio giù", "Song information": "Info sul brano", "Diagnostics": "Diagnostica"},
+    "lt": {"Move station up": "Perkelti stotį aukštyn", "Move station down": "Perkelti stotį žemyn", "Song information": "Dainos informacija", "Diagnostics": "Diagnostika"},
+    "nl": {"Move station up": "Zender omhoog", "Move station down": "Zender omlaag", "Song information": "Nummerinformatie", "Diagnostics": "Diagnostiek"},
+    "pl": {"Move station up": "Przesuń stację w górę", "Move station down": "Przesuń stację w dół", "Song information": "Informacje o utworze", "Diagnostics": "Diagnostyka"},
+    "pt": {"Move station up": "Mover estação para cima", "Move station down": "Mover estação para baixo", "Song information": "Informações da música", "Diagnostics": "Diagnóstico"},
+    "ro": {"Move station up": "Mută postul în sus", "Move station down": "Mută postul în jos", "Song information": "Informații despre melodie", "Diagnostics": "Diagnostic"},
+    "ru": {"Move station up": "Переместить выше", "Move station down": "Переместить ниже", "Song information": "О композиции", "Diagnostics": "Диагностика"},
+    "sk": {"Move station up": "Posunúť stanicu vyššie", "Move station down": "Posunúť stanicu nižšie", "Song information": "Informácie o skladbe", "Diagnostics": "Diagnostika"},
+    "tr": {"Move station up": "İstasyonu yukarı taşı", "Move station down": "İstasyonu aşağı taşı", "Song information": "Şarkı bilgisi", "Diagnostics": "Tanılama"},
+    "uk": {"Move station up": "Перемістити вище", "Move station down": "Перемістити нижче", "Song information": "Інформація про пісню", "Diagnostics": "Діагностика"},
+    "zh": {"Move station up": "上移电台", "Move station down": "下移电台", "Song information": "歌曲信息", "Diagnostics": "诊断"},
+}
+
+
+_COUNTRY_OK_TEXT = {
+    "al": {"Press OK to select": "Zgjidh me OK"},
+    "cs": {"Press OK to select": "Výběr potvrď OK"},
+    "de": {"Press OK to select": "Mit OK auswählen"},
+    "el": {"Press OK to select": "Επιλογή με OK"},
+    "en": {"Press OK to select": "Press OK to select"},
+    "es": {"Press OK to select": "Selecciona con OK"},
+    "et": {"Press OK to select": "Vali nupuga OK"},
+    "fa": {"Press OK to select": "انتخاب با OK"},
+    "fr": {"Press OK to select": "Choisir avec OK"},
+    "hu": {"Press OK to select": "Kiválasztás: OK"},
+    "it": {"Press OK to select": "Seleziona con OK"},
+    "lt": {"Press OK to select": "Pasirinkite su OK"},
+    "nl": {"Press OK to select": "Kies met OK"},
+    "pl": {"Press OK to select": "Wybierz przyciskiem OK"},
+    "pt": {"Press OK to select": "Selecionar com OK"},
+    "ro": {"Press OK to select": "Selectează cu OK"},
+    "ru": {"Press OK to select": "Выберите кнопкой OK"},
+    "sk": {"Press OK to select": "Výber potvrď OK"},
+    "tr": {"Press OK to select": "OK ile seç"},
+    "uk": {"Press OK to select": "Вибрати кнопкою OK"},
+    "zh": {"Press OK to select": "按 OK 选择"},
+}
+
+
 def language_code(value=None):
     if value is None:
         try:
@@ -330,6 +405,9 @@ def translations(code):
             _CACHE[code] = json.load(handle)
         _CACHE[code].update(_MAIN_MENU_TEXT[code])
         _CACHE[code].update(_SAVER_TEXT.get(code, {}))
+        _CACHE[code].update(_SUBSCRIPTION_TEXT.get(code, {}))
+        _CACHE[code].update(_RADIO_ENHANCEMENT_TEXT.get(code, {}))
+        _CACHE[code].update(_COUNTRY_OK_TEXT[code])
     return _CACHE[code]
 
 

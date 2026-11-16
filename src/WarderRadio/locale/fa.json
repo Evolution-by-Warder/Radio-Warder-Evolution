@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "برای آهنگ فعلی ویدیویی در یوتیوب پیدا نشد.",
   "Yes": "بله",
   "No": "خیر",
-  "A new version is available. Do you want to install it?": "نسخهٔ جدیدی در دسترس است. آیا می‌خواهید آن را نصب کنید؟"
+  "A new version is available. Do you want to install it?": "نسخهٔ جدیدی در دسترس است. آیا می‌خواهید آن را نصب کنید؟",
+  "Home": "خانه",
+  "Subscriptions": "اشتراک‌ها",
+  "Choose category": "انتخاب دسته",
+  "Follow category": "دنبال کردن دسته",
+  "Unfollow category": "لغو دنبال کردن دسته",
+  "All categories": "همه دسته‌ها",
+  "No subscriptions": "بدون اشتراک",
+  "Page": "صفحه",
+  "Offline catalogue": "فهرست آفلاین",
+  "Clear logo cache": "پاک کردن حافظهٔ نشان‌ها",
+  "Clear cached station logos?": "نشان‌های ذخیره‌شدهٔ ایستگاه‌ها پاک شوند؟",
+  "Logo cache cleared": "حافظهٔ نشان‌ها پاک شد",
+  "Cannot clear logo cache": "پاک کردن حافظهٔ نشان‌ها ممکن نیست",
+  "Lyrics": "متن ترانه",
+  "Artist information": "اطلاعات هنرمند",
+  "Song information unavailable": "اطلاعات آهنگ در دسترس نیست"
 }

@@ -11,7 +11,8 @@ import time
 from urllib.request import Request, urlopen
 
 from . import ROOT, VERSION
-from .model import catalogue_items, search_key
+from .legacy_catalogue import catalogue_items
+from .model import search_key
 
 BASE = ('https://raw.githubusercontent.com/Evolution-by-Warder/'
         'PiconHub-Warder-Evolution/main/picons/IPTV-SK-CZ/catalog/global/')

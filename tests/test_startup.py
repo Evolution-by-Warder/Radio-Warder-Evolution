@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from WarderRadio import model
-from WarderRadio.model import Catalogue, atomic_json
+from WarderRadio import legacy_catalogue as model
+from WarderRadio.legacy_catalogue import Catalogue, atomic_json
 
 
 class StartupCatalogueTests(unittest.TestCase):

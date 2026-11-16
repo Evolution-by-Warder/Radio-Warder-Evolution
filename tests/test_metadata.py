@@ -2,7 +2,7 @@ import io
 import threading
 import time
 import unittest
-from WarderRadio.metadata import IcyMonitor, fetch_icy, parse_icy, split_song, repair_legacy_pair, station_charset
+from WarderRadio.metadata import IcyMonitor, fetch_icy, parse_icy, split_song, repair_legacy_pair, station_charset, align_icy_to_native, align_icy_to_catalogue
 
 
 class Response(io.BytesIO):
@@ -82,6 +82,47 @@ class MetadataTests(unittest.TestCase):
         self.assertEqual(split_song('21 - Track name - Singer'), ('Singer', 'Track name'))
         self.assertEqual(parse_icy(b'StreamUrl=\'https://example.com\';'), ('', ''))
         self.assertEqual(parse_icy(b"StreamTitle='Artist &amp; Guest - Song';"), ('Artist & Guest', 'Song'))
+
+    def test_corroborated_reversed_stream_tags_are_corrected_without_guessing(self):
+        # Broadcaster transmits Song - Artist, but Enigma2's separate tags
+        # identify the correct performer and the specific track.
+        self.assertEqual(
+            align_icy_to_native('Šťastná planeta', 'Dorota BAROVÁ',
+                                'Dorota Barová', 'Stastna planeta'),
+            ('Dorota BAROVÁ', 'Šťastná planeta'))
+        self.assertEqual(
+            align_icy_to_native('Dorota BAROVÁ', 'Šťastná planeta',
+                                'Dorota Barová', 'Stastna planeta'),
+            ('Dorota BAROVÁ', 'Šťastná planeta'))
+        # Do not infer orientation from an unverified or stale single tag.
+        self.assertEqual(
+            align_icy_to_native('Šťastná planeta', 'Dorota BAROVÁ', '', ''),
+            ('Šťastná planeta', 'Dorota BAROVÁ'))
+        self.assertEqual(
+            align_icy_to_native('Šťastná planeta', 'Dorota BAROVÁ',
+                                'Dorota Barová', 'Different track'),
+            ('Šťastná planeta', 'Dorota BAROVÁ'))
+        self.assertEqual(
+            align_icy_to_native('', 'News update', 'Presenter', 'News update'),
+            ('', 'News update'))
+
+    def test_catalogue_can_confirm_reversed_tags_without_network_requests(self):
+        self.assertEqual(
+            align_icy_to_catalogue('Šťastná planeta', 'Dorota BAROVÁ',
+                                   'Dorota Barová', 'Šťastná planeta'),
+            ('Dorota BAROVÁ', 'Šťastná planeta'))
+        self.assertEqual(
+            align_icy_to_catalogue('Dorota BAROVÁ', 'Šťastná planeta',
+                                   'Dorota Barová', 'Šťastná planeta'),
+            ('Dorota BAROVÁ', 'Šťastná planeta'))
+        # A mismatching or partial catalogue result must not alter the radio.
+        self.assertEqual(
+            align_icy_to_catalogue('Odd Song', 'Odd Artist',
+                                   'Other Artist', 'Different Song'),
+            ('Odd Song', 'Odd Artist'))
+        self.assertEqual(
+            align_icy_to_catalogue('Odd Song', 'Odd Artist', '', ''),
+            ('Odd Song', 'Odd Artist'))
 
     def test_fragmented_icy_reads_send_metadata_header_and_stop_after_first_block(self):
         opened = []

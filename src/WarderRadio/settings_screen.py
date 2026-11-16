@@ -1,4 +1,6 @@
 """Settings, choices and text entry inside the Radio window."""
+import textwrap
+
 import enigma
 from enigma import eListboxPythonMultiContent, gFont
 from Components.Label import Label
@@ -7,7 +9,27 @@ from Components.MultiContent import MultiContentEntryText
 
 from . import VERSION
 from .i18n import t, group_label
-from .picon_screen import PiconOptions, PiconForm
+from .radio_browser import country_name
+
+
+class SettingsOptions(MenuList):
+    def __init__(self, scale):
+        self.ui_scale = scale
+        super().__init__([], True, eListboxPythonMultiContent)
+        self.l.setItemHeight(round(60 * scale))
+        self.l.setFont(0, gFont('Regular', round(29 * scale)))
+        self.l.setBuildFunc(self.build)
+
+    def build(self, text, key=None, selected=None):
+        def n(value):
+            return round(value * self.ui_scale)
+        flags = enigma.RT_HALIGN_LEFT | enigma.RT_VALIGN_CENTER | getattr(enigma, 'RT_ELLIPSIS', 0)
+        mark = '' if selected is None else '✓' if selected else '○'
+        return [None,
+                MultiContentEntryText(pos=(n(16), 0), size=(n(42), n(58)), font=0,
+                                      flags=flags, text=mark, color=0x00ceff, color_sel=0x00ceff),
+                MultiContentEntryText(pos=(n(16 if selected is None else 78), 0),
+                                      size=(n(1220), n(58)), font=0, flags=flags, text=text)]
 
 
 class SettingsKeyboard(MenuList):
@@ -58,6 +80,8 @@ class SettingsForm:
                'settings_text', 'settings_input', 'settings_status',
                'settings_options', 'settings_keys')
 
+    player_widgets = ('stations', 'section', 'count', 'art', 'nowlabel', 'station', 'artist', 'track', 'details')
+
     def __init__(self, host, scale):
         self.host, self.visible, self.view = host, False, 'menu'
         self.menu_index, self.pending_country = 0, None
@@ -66,8 +90,9 @@ class SettingsForm:
         self.text, self.cursor, self.station_name = '', 0, ''
         self.message_text, self.confirm_callback = '', None
         self.country_from_menu = True
+        self.song_title, self.song_lines = '', []
         for name in self.widgets:
-            host[name] = (PiconOptions(scale) if name == 'settings_options' else
+            host[name] = (SettingsOptions(scale) if name == 'settings_options' else
                           SettingsKeyboard(scale) if name == 'settings_keys' else Label(''))
 
     @property
@@ -78,7 +103,7 @@ class SettingsForm:
         changed = self.visible != visible
         self.visible = visible
         if changed:
-            for name in PiconForm.player_widgets:
+            for name in self.player_widgets:
                 (self.host[name].hide if visible else self.host[name].show)()
         if visible:
             self.refresh()
@@ -90,9 +115,9 @@ class SettingsForm:
     def choices(self):
         host = self.host
         item = host.current()
-        favourite = ('Remove station from favourites' if item and host.store.is_favourite(item)
+        favourite = ('Remove station from favourites' if item and item.get('url') and host.store.is_favourite(item)
                      else 'Add station to favourites')
-        choices = [(t('Choose country'), 'group'), (t('Update radio catalogue'), 'update'),
+        choices = [(t('Choose country'), 'group'),
                    (t(favourite), 'favourite'), (t('Add station'), 'add'),
                    (t('Check for updates'), 'plugin-update'),
                    (t('Stop recording' if host.recording.running() else 'Start recording'), 'record'),
@@ -101,7 +126,24 @@ class SettingsForm:
                     t('Yes' if host.store.show_main_menu else 'No'), 'main-menu-toggle'),
                    (t('Screensaver after') + ': ' +
                     (t('Off') if host.store.screensaver_delay == 0 else str(host.store.screensaver_delay) + ' s'), 'saver-delay'),
+                   (t('Clear logo cache'), 'clear-logos'), (t('Diagnostics'), 'diagnostics'),
                    (t('About'), 'about')]
+        mode = host.settings_return[0]
+        if item and item.get('url') and mode == 'favourites':
+            i = next((i for i, row in enumerate(host.store.favourites)
+                      if row['id'] == item['id']), -1)
+            if i > 0:
+                choices.insert(2, (t('Move station up'), 'favourite-up'))
+            if 0 <= i < len(host.store.favourites) - 1:
+                choices.insert(3, (t('Move station down'), 'favourite-down'))
+        if mode == 'subscriptions':
+            if host.subscription_category in host.store.subscriptions:
+                choices.insert(1, (t('Unfollow category'), 'subscription-remove'))
+        elif mode == 'radio' and host.active_group != 'Custom':
+            choices.insert(1, (t('Choose category'), 'category'))
+        if host.radio_running() and host['artist'].getText():
+            choices.extend([(t('Lyrics'), 'lyrics'), (t('Song information'), 'song-information'),
+                            (t('Artist information'), 'artist-information')])
         if host.settings_return[0] == 'recordings':
             choices.insert(0, (t('Delete'), 'delete-recording'))
         return choices
@@ -126,7 +168,8 @@ class SettingsForm:
         title = {'menu': 'Settings', 'countries': 'Choose country', 'name': 'Station name',
                  'url': 'Stream URL', 'about': 'About', 'confirm': 'Information',
                  'main-menu': 'Show in Enigma2 main menu',
-                 'saver-delay': 'Screensaver after'}[self.view]
+                 'saver-delay': 'Screensaver after', 'categories': 'Choose category',
+                 'subscription-add': 'Add subscription', 'song': self.song_title}[self.view]
         host['settings_title'].setText(t(title))
         options = host['settings_options']; index = options.getSelectionIndex()
         if self.view == 'menu':
@@ -139,10 +182,30 @@ class SettingsForm:
                      seconds == self.pending_saver_delay)
                     for seconds in (0, 10, 20, 30, 60)]
         elif self.view == 'countries':
-            rows = [(group_label(group), group, group == self.pending_country)
-                    for group in host.catalogue.groups()]
+            rows = [(group_label(country_name(code)) +
+                     ('  (%d)' % host.country_counts[code] if code in host.country_counts else ''),
+                     code, code == self.pending_country)
+                    for code in host.countries]
+            rows.insert(2, (t('All groups'), 'ALL', self.pending_country == 'ALL'))
             if host.store.custom:
-                rows.append((t('Custom'), 'Custom', self.pending_country == 'Custom'))
+                rows.insert(3, (t('Custom'), 'Custom', self.pending_country == 'Custom'))
+        elif self.view == 'categories':
+            mode = host.settings_return[0]
+            selected = host.current_category(mode)
+            if mode == 'subscriptions':
+                rows = [(category, category, category == selected) for category in host.store.subscriptions]
+            else:
+                rows = [(t('All categories'), '', not selected)]
+                rows.extend((category, category, category == selected) for category in host.categories)
+            if not rows:
+                rows = [(t('No subscriptions'), None, None)]
+        elif self.view == 'subscription-add':
+            rows = [(category, category, None) for category in host.categories
+                    if category not in host.store.subscriptions]
+            if not rows:
+                rows = [(t('No stations'), None, None)]
+        elif self.view == 'song':
+            rows = [(line, None, None) for line in self.song_lines]
         else:
             rows = []
         options.setList(rows); options.moveToIndex(index)
@@ -152,7 +215,9 @@ class SettingsForm:
         host['settings_text'].setText(self.message_text)
         host['hint'].setText('')
         host['red'].setText(t('Back'))
-        host['green'].setText(t('Close') if self.view == 'about' else t('Confirm selection'))
+        host['green'].setText(t('Close') if self.view == 'about' else
+                              t('Press OK to select') if self.view == 'countries' else
+                              t('Confirm selection'))
         host['yellow'].setText('⌫' if editing else '')
         host['blue'].setText('a/A' if editing else '')
 
@@ -171,6 +236,28 @@ class SettingsForm:
                                                         if row[1] == self.pending_country), 0))
         self.host.set_focus(self.focus_name)
 
+    def song(self, title, lines):
+        self.view, self.song_title = 'song', title
+        self.song_lines = [part for line in lines for part in (textwrap.wrap(line, width=68) or [' '])]
+        self.host['settings_status'].setText('')
+        self.refresh()
+        self.host['settings_options'].moveToIndex(0)
+        self.host.set_focus(self.focus_name)
+
+    def choose_category(self):
+        self.view = 'categories'
+        self.refresh()
+        rows = self.host['settings_options'].list
+        self.host['settings_options'].moveToIndex(next((i for i, row in enumerate(rows) if row[2]), 0))
+        self.host.set_focus(self.focus_name)
+
+    def add_subscription(self):
+        self.view = 'subscription-add'
+        self.host['settings_status'].setText('')
+        self.refresh()
+        self.host['settings_options'].moveToIndex(0)
+        self.host.set_focus(self.focus_name)
+
     def choose(self):
         if self.host.closed or self.host.installing:
             return
@@ -180,7 +267,18 @@ class SettingsForm:
                 self.menu_index = self.host['settings_options'].getSelectionIndex()
                 self.host.option_done(row)
         elif self.view == 'countries':
-            self.cursor_changed()
+            # Selecting a country navigates immediately. No second green
+            # confirmation is needed; green remains a compatible shortcut.
+            row = self.host['settings_options'].getCurrent()
+            if row:
+                self.host.group_done(row)
+        elif self.view in ('categories', 'subscription-add'):
+            row = self.host['settings_options'].getCurrent()
+            if row and row[1] is not None:
+                if self.view == 'subscription-add':
+                    self.host.subscription_add_done(row[1])
+                else:
+                    self.host.category_done(row[1])
         elif self.view == 'main-menu':
             row = self.host['settings_options'].getCurrent()
             if row:
@@ -323,7 +421,7 @@ class SettingsForm:
     def about(self):
         self.view = 'about'
         self.message_text = ('Warder Radio ' + VERSION + '\nWorld of Radio Stations\n\n'
-                'OpenPLi / OpenATV\n' + str(self.host.catalogue.total_stations()) + ' stations · PiconHub\n\n'
+                'OpenPLi / OpenATV\nRadio Browser\n\n'
                 + t('Recordings folder') + ':\n' + self.host.recording.directory)
         self.refresh(); self.host.set_focus(self.focus_name)
 

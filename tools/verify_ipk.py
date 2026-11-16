@@ -45,7 +45,12 @@ with tarfile.open(fileobj=io.BytesIO(parts['data.tar.gz']), mode='r:gz') as tar:
             assert data == (ROOT / 'src/WarderRadio' / relative).read_bytes(), name
 assert len(files) == manifest['files']
 base = 'usr/lib/enigma2/python/Plugins/Extensions/WarderRadio/'
-assert len(json.loads(files[base + 'seed.json'])) == 5444
+for name in ('seed.json', 'country-seed.json', 'country-manifest.json', 'catalogue-source.json',
+             'legacy_catalogue.py', 'country_catalogue.py', 'picon-countries.json',
+             'picon_catalogue.py', 'picon_download.py', 'picon_screen.py', 'picons.py'):
+    assert base + name not in files, name
+for name in ('radio_browser.py', 'station_logos.py', 'song_details.py', 'country-names.json'):
+    assert base + name in files, name
 assert len([name for name in files if name.startswith(base + 'locale/') and name.endswith('.json')]) == 21
 assert files[base + 'plugin.png'] == (ROOT / 'src/WarderRadio/artwork/warder-radio-logo.png').read_bytes()
 assert files[base + 'version.txt'].decode().strip() == VERSION
@@ -62,7 +67,7 @@ with tempfile.TemporaryDirectory() as tmp:
         assert 'Conflicts: enigma2-plugin-extensions-warderradio\n' in control
         assert 'Architecture: all\n' in control
         dependencies = next(line for line in control.splitlines() if line.startswith('Depends: '))
-        assert 'streamripper' in [value.strip() for value in dependencies[9:].split(',')]
+        assert {'python3-pillow', 'streamripper'} <= {value.strip() for value in dependencies[9:].split(',')}
         assert 'Suggests: streamripper' not in control
         for script in ('preinst', 'postinst', 'prerm', 'postrm'):
             body = tar.extractfile('./' + script).read()
@@ -73,14 +78,14 @@ with tempfile.TemporaryDirectory() as tmp:
         scripts = {name: tar.extractfile('./' + name).read().decode()
                    for name in ('preinst', 'postinst', 'prerm', 'postrm')}
         for name in ('preinst', 'postinst', 'prerm', 'postrm'):
-            assert 'Radio by Warder' in scripts[name], name
+            assert 'Radio Warder Evolution' in scripts[name], name
         assert 'remove|purge' in scripts['postrm']
         assert '/etc/enigma2/warder-radio' in scripts['postrm']
         for name, event, expected in (
-                ('preinst', 'install', 'Preparing Radio by Warder installation'),
-                ('preinst', 'upgrade', 'Preparing Radio by Warder upgrade'),
-                ('prerm', 'remove', 'Removing Radio by Warder'),
-                ('postrm', 'remove', 'Radio by Warder removal finished')):
+                ('preinst', 'install', 'Preparing Radio Warder Evolution installation'),
+                ('preinst', 'upgrade', 'Preparing Radio Warder Evolution upgrade'),
+                ('prerm', 'remove', 'Removing Radio Warder Evolution'),
+                ('postrm', 'remove', 'Radio Warder Evolution removal finished')):
             result = subprocess.run(['sh', str(Path(tmp, name)), event],
                                     check=True, capture_output=True, text=True)
             assert expected in result.stdout, (name, event, result.stdout)
@@ -88,5 +93,5 @@ with tempfile.TemporaryDirectory() as tmp:
             result = subprocess.run(['sh', str(Path(tmp, name)), 'upgrade'],
                                     check=True, capture_output=True, text=True)
             assert 'remov' not in result.stdout.lower(), (name, result.stdout)
-print('IPK payload, Python 3.9 grammar, owned paths, version, picon and offline scripts: PASS')
+print('IPK payload, Python 3.9 grammar, owned paths, version, online payload and offline scripts: PASS')
 print(manifest['file'], manifest['sha256'])

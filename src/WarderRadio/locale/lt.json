@@ -154,5 +154,21 @@
   "No YouTube video could be found for the current song.": "Dabartinei dainai „YouTube“ vaizdo įrašo rasti nepavyko.",
   "Yes": "Taip",
   "No": "Ne",
-  "A new version is available. Do you want to install it?": "Yra nauja versija. Ar norite ją įdiegti?"
+  "A new version is available. Do you want to install it?": "Yra nauja versija. Ar norite ją įdiegti?",
+  "Home": "Pradžia",
+  "Subscriptions": "Prenumeratos",
+  "Choose category": "Pasirinkti kategoriją",
+  "Follow category": "Sekti kategoriją",
+  "Unfollow category": "Nebesekti kategorijos",
+  "All categories": "Visos kategorijos",
+  "No subscriptions": "Prenumeratų nėra",
+  "Page": "Puslapis",
+  "Offline catalogue": "Katalogas neprisijungus",
+  "Clear logo cache": "Išvalyti logotipų talpyklą",
+  "Clear cached station logos?": "Ištrinti išsaugotus stočių logotipus?",
+  "Logo cache cleared": "Logotipų talpykla išvalyta",
+  "Cannot clear logo cache": "Nepavyko išvalyti logotipų talpyklos",
+  "Lyrics": "Dainos žodžiai",
+  "Artist information": "Atlikėjo informacija",
+  "Song information unavailable": "Dainos informacija nepasiekiama"
 }
