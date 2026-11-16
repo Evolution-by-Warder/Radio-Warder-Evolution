@@ -62,12 +62,15 @@ def selection(name, width, height, radius):
         d = rounded_distance(x, y, width, height, radius)
         fill = coverage(.5 - d)
         border = max(0., min(fill, coverage(d + 2.)))
-        halo = coverage(4. - d) * coverage(d + .5) * 16
+        glow = coverage(6. - abs(d + 0.5)) * .26
         fraction = y / max(1, height - 1)
-        return (int(8 + 17 * fraction + 34 * border),
-                int(64 + 21 * fraction + 151 * border),
-                int(min(255, 98 + 22 * fraction + 137 * border)),
-                int(min(255, (200 - 12 * fraction) * fill + 35 * border + halo)))
+        # Distinct luminous selected-row capsule, not the dark flat highlight
+        # seen on the receiver in test1/test2. All pixels are still static.
+        sheen = max(0., (0.50 - fraction) * 1.25)
+        return (int(6 + 12 * fraction + 14 * sheen + 22 * border),
+                int(min(255, 82 + 27 * sheen + 130 * border)),
+                int(min(255, 121 + 19 * sheen + 111 * border)),
+                int(min(255, (209 + 12 * sheen) * fill + 48 * border + 42 * glow)))
     png(OUT / name, width, height, sample)
 
 
@@ -299,7 +302,7 @@ def dashboard_overlay():
         draw.rounded_rectangle((x+16,y+12,x+21,y+h-13),
                                radius=3,fill=(4,215,246,240))
     # Right panel: subtle dynamic-album backing and reflective vinyl.
-    cx, cy, radius = 1735, 500, 195
+    cx, cy, radius = 1690, 500, 175
     draw.ellipse((cx-radius-7, cy-radius-7, cx+radius+7, cy+radius+7),
                  fill=(1, 11, 25, 249), outline=(26,163,206,174), width=3)
     for r in range(26, radius, 8):
@@ -315,12 +318,8 @@ def dashboard_overlay():
     draw.rounded_rectangle((1228,932,1855,987),radius=22,
                            fill=(5,42,63,225),outline=(23,129,164,170),
                            width=1)
-    # Minimal signal/wave accents; no new equalizer timer or heavy raster art.
-    for n in range(30):
-        x=1330+n*16
-        h=8 + ((n*17 + 5*n*n) % 29)
-        draw.rounded_rectangle((x,926-h,x+7,925),radius=3,
-                               fill=(7,154+((n*3)%75),224,95))
+    # Keep the real track text area clean. The actual animated spectrum stays
+    # in the left panel; a decorative equalizer here would overlap live text.
     # Footer pills: dark depth, colored identity, crisp neon underlines.
     colors=((242,63,79),(46,218,120),(240,185,43),(26,146,249))
     for i, (x, rgb) in enumerate(zip((40,510,980,1450),colors)):
