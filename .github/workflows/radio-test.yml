@@ -123,8 +123,15 @@ jobs:
               # Re-runs after feed-publishing failures must not alter a release.
               mkdir -p dist/published
               gh release download "$tag" --pattern "*.ipk" --dir dist/published --clobber
-              cmp "dist/enigma2-plugin-extensions-radio-warder-evolution_${RADIO_VERSION}_all.ipk" \
-                  "dist/published/enigma2-plugin-extensions-radio-warder-evolution_${RADIO_VERSION}_all.ipk"
+              if ! cmp "dist/enigma2-plugin-extensions-radio-warder-evolution_${RADIO_VERSION}_all.ipk" \
+                       "dist/published/enigma2-plugin-extensions-radio-warder-evolution_${RADIO_VERSION}_all.ipk"; then
+                # A cleanup commit may change source files without creating a
+                # new release version. Never replace an immutable stable IPK,
+                # and never rewrite its already verified update-feed entries.
+                echo "::notice::Stable $RADIO_VERSION already published; retaining immutable release after source-only cleanup."
+                echo "SKIP_EXISTING_STABLE=1" >> "$GITHUB_ENV"
+                exit 0
+              fi
             fi
           else
             if [[ "$RADIO_VERSION" == *-test* ]]; then
@@ -164,6 +171,7 @@ jobs:
             gh release upload "$bridge_tag" dist/legacy/*.ipk dist/legacy/SHA256SUMS dist/legacy/build.json
           fi
       - name: Verify public download and advance correct update feeds
+        if: env.SKIP_EXISTING_STABLE != '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
