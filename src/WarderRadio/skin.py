@@ -99,22 +99,45 @@ def make_skin(width, height):
     parts.append('<widget name="stations" zPosition="2" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
-                 'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                 % (n(530), n(252), n(620), row_h * 8))
+                 'selectionPixmap="%s/select-stations.png" transparent="1" '
+                 'scrollbarMode="showOnDemand" enableWrapAround="1" />'
+                 % (ui_path, n(530), n(252), n(620), row_h * 8))
     parts.append('<widget name="functions" zPosition="2" position="%d,%d" size="%d,%d" '
                  'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                  'backgroundColorSelected="#004461" foregroundColorSelected="#ffffff" '
-                 'transparent="1" scrollbarMode="showNever" enableWrapAround="1" />'
-                 % (n(55), n(232), n(390), n(64) * 8))
+                 'selectionPixmap="%s/select-menu.png" transparent="1" '
+                 'scrollbarMode="showNever" enableWrapAround="1" />'
+                 % (ui_path, n(55), n(232), n(390), n(64) * 8))
     parts.append('<widget name="art" zPosition="2" %s alphatest="blend" scale="1" />' % rect(1284, 220, 520, 520))
     parts.append('<widget name="activity" zPosition="2" %s alphatest="blend" scale="1" />' % rect(77, 840, 350, 126))
-    # Settings and every nested choice stay in the same combined content area.
-    parts.append('<widget name="settings_panel" zPosition="4" %s backgroundColor="#00091b30" />'
-                 % rect(500, 204, 1388, 790))
-    for key, box in [('top', (500,204,1388,2)), ('bottom', (500,992,1388,2)),
-                     ('left', (500,204,2,790)), ('right', (1886,204,2,790))]:
-        parts.append('<widget name="settings_edge_%s" zPosition="5" %s backgroundColor="#0045c7e6" />'
-                     % (key, rect(*box)))
+    # Settings hides every named part together; the panel's rounded geometry
+    # is the same as the permanent cards. No static box over Home/Subscriptions.
+    sx, sy, sw, sh, rad = n(500), n(204), n(1388), n(790), n(26)
+    parts.append('<widget name="settings_panel" zPosition="4" '
+                 'position="%d,%d" size="%d,%d" backgroundColor="#ff000000" />'
+                 % (sx, sy, sw, sh))
+    for name, bx, by, bw, bh in [
+            ('middle', sx + rad, sy, sw - 2 * rad, sh),
+            ('left', sx, sy + rad, rad, sh - 2 * rad),
+            ('right', sx + sw - rad, sy + rad, rad, sh - 2 * rad)]:
+        parts.append('<widget name="settings_fill_%s" zPosition="4" '
+                     'position="%d,%d" size="%d,%d" backgroundColor="#00091b30" />'
+                     % (name, bx, by, bw, bh))
+    for name, bx, by in [
+            ('tl', sx, sy), ('tr', sx + sw - rad, sy),
+            ('bl', sx, sy + sh - rad), ('br', sx + sw - rad, sy + sh - rad)]:
+        parts.append('<widget name="settings_corner_%s" zPosition="5" '
+                     'position="%d,%d" size="%d,%d" '
+                     'pixmap="%s/corner-%s.png" alphatest="blend" scale="1" />'
+                     % (name, bx, by, rad, rad, ui_path, name))
+    for name, bx, by, bw, bh in [
+            ('top', sx + rad, sy, sw - 2 * rad, n(2)),
+            ('bottom', sx + rad, sy + sh - n(2), sw - 2 * rad, n(2)),
+            ('left', sx, sy + rad, n(2), sh - 2 * rad),
+            ('right', sx + sw - n(2), sy + rad, n(2), sh - 2 * rad)]:
+        parts.append('<widget name="settings_edge_%s" zPosition="5" '
+                     'position="%d,%d" size="%d,%d" backgroundColor="#0045c7e6" />'
+                     % (name, bx, by, bw, bh))
     for key, box, font, color, wrap in [
             ('title', (534,228,1300,56), 34, '#00ceff', False),
             ('text', (534,310,1300,540), 27, '#d9e6ef', True),
@@ -127,8 +150,9 @@ def make_skin(width, height):
         parts.append('<widget name="settings_%s" zPosition="6" position="%d,%d" size="%d,%d" '
                      'backgroundColor="#ff000000" foregroundColor="#d9e6ef" '
                      'backgroundColorSelected="#002b70a8" foregroundColorSelected="#ffffff" '
-                     'transparent="1" scrollbarMode="showOnDemand" enableWrapAround="1" />'
-                     % (name,n(520),n(y),n(1348),n(60)*rows))
+                     'selectionPixmap="%s/select-settings.png" transparent="1" '
+                     'scrollbarMode="showOnDemand" enableWrapAround="1" />'
+                     % (ui_path, name,n(520),n(y),n(1348),n(60)*rows))
     rounded_card(32, 1000, 1856, 68, color='#16091b30')
     for name, x, color in [('red', 40, '#ff3b37'), ('green', 510, '#4bc951'),
                            ('yellow', 980, '#e4c83d'), ('blue', 1450, '#00a5ff')]:
