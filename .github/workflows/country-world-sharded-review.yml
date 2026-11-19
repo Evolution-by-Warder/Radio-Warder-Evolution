@@ -31,7 +31,7 @@ jobs:
           else
             python3 -B tools/build_country_radio_packages.py --list-countries > /tmp/countries.json
             python3 -c 'import json; x=json.load(open("/tmp/countries.json")); assert 2 <= len(x["countries"]) <= 250' 
-            echo "codes=$(python3 -c 'import json; print(json.dumps(json.load(open("/tmp/countries.json"))["countries"],separators=(",",":")))')" >> "$GITHUB_OUTPUT"
+            echo "codes=$(jq -c '.countries' /tmp/countries.json)" >> "$GITHUB_OUTPUT"
             echo 'sample=0' >> "$GITHUB_OUTPUT"
           fi
   build:
