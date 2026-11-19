@@ -1,0 +1,81 @@
+name: Radio country priority batch — full new bouquets and original logos
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-priority-country-batch.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: radio-country-priority-batch
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 -B tests/test_country_radio_packages.py
+          python3 -B tests/test_country_snapshot_bundle.py
+
+  countries:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - {code: AT, mode: full}
+          - {code: HU, mode: full}
+          - {code: PL, mode: full}
+          - {code: GB, mode: full}
+          - {code: IT, mode: full}
+          - {code: FR, mode: full}
+          - {code: DE, mode: bouquet-only}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install image decoding
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Prepare genuine Radio Browser snapshot
+        shell: bash
+        env:
+          COUNTRY: ${{ matrix.code }}
+          MODE: ${{ matrix.mode }}
+        run: |
+          set -euo pipefail
+          args=(--countries "$COUNTRY" --out build/radio-country --workers 8)
+          if [ "$MODE" = bouquet-only ]; then args+=(--catalogue-only); fi
+          python3 -B tools/build_country_radio_packages.py "${args[@]}"
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,zipfile
+          root=pathlib.Path('build/radio-country')
+          all=json.loads((root/'manifest.json').read_text())
+          assert len(all['countries'])==1
+          state=all['countries'][0]
+          assert state['country']==os.environ['COUNTRY']
+          assert state['catalogue_complete'] and state['stations']>0
+          assert state['logo_attempted']==state['stations'] if os.environ['MODE']=='full' else state['logo_attempted']==0
+          assert state['logo_package_complete'] if os.environ['MODE']=='full' else not state['logo_package_complete']
+          for path,entry in state['files'].items():
+              raw=(root/path).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==entry['sha256']
+              assert len(raw)==entry['bytes']
+          with zipfile.ZipFile(root/'logos'/(state['country']+'.zip')) as archive:
+              assert len(archive.namelist())==state['logos_found']
+          print('FULL CATALOGUE PASS',state['country'],state['stations'],'stations,',state['logos_found'],'original PNG logos,',state['logos_missing'],'missing')
+          PY
+      - name: Preserve only review artifacts — never publish a release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-country-${{ matrix.code }}-priority-REVIEW-ONLY
+          path: build/radio-country/
+          retention-days: 30
+          if-no-files-found: error
