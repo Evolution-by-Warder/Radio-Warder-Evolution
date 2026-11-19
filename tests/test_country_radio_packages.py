@@ -65,6 +65,14 @@ class Tests(unittest.TestCase):
         self.cache = Logos(self.root / 'cache')
         self.out = self.root / 'out'
 
+    def test_140_char_station_name_never_leaves_trailing_space(self):
+        source=item('DE', 1)
+        source['name']='X'*139+' '+'Z'*20
+        row=pkg.normalized(source,'DE',self.valid_url)
+        self.assertEqual(row['name'],'X'*139)
+        self.assertEqual(row['name'],row['name'].rstrip(' '))
+        self.assertEqual(row['stationuuid'],source['stationuuid'])
+
     def test_matches_skin_uuid_service_reference(self):
         u = item('SK', 1)['stationuuid']
         h = hashlib.sha256(u.encode('ascii')).hexdigest().upper()
