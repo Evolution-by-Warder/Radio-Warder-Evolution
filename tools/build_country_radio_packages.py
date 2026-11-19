@@ -45,7 +45,7 @@ def stem(uuid):
 def normalized(item, country, validator):
     try:
         uuid = str(UUID(str(item['stationuuid'])))
-        name = ' '.join(item['name'].split())[:140]
+        name = ' '.join(item['name'].split())[:140].rstrip(' ')
         url = validator(item['url'])
         if not name:
             return None
