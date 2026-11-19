@@ -89,6 +89,7 @@ jobs:
           set -euo pipefail
           python3 -B tools/build_country_radio_packages.py \
             --countries ET --out build/ethiopia-full --workers 4
+          python3 -B tools/build_country_radio_packages.py --list-countries > build/ethiopia-full/available-countries.json
           python3 - <<'PY'
           import hashlib, json, pathlib, zipfile
           root = pathlib.Path('build/ethiopia-full')
@@ -112,5 +113,35 @@ jobs:
         with:
           name: warder-country-ET-full-candidate-NOT-PRODUCTION
           path: build/ethiopia-full/
+          if-no-files-found: error
+          retention-days: 30
+
+  full-france-bouquet:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install plugin image decoder
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Build complete French station catalogue, sample original logos
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_country_radio_packages.py --countries FR --max-logos 8 --out build/france-full
+          python3 - <<'PY'
+          import json,pathlib,hashlib
+          p=pathlib.Path('build/france-full')
+          m=json.loads((p/'manifest.json').read_text())
+          d=m['countries'][0]
+          assert d['country']=='FR' and d['catalogue_complete'],d
+          assert d['logo_attempted']==8 and not d['logo_package_complete']
+          for rel,meta in d['files'].items():
+              assert hashlib.sha256((p/rel).read_bytes()).hexdigest()==meta['sha256'],rel
+          print('FULL FR catalogue:',d['stations'],'stations; sample',d['logos_found'],'logos')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warder-radio-FR-full-bouquet-logo-sample-NOT-PRODUCTION
+          path: build/france-full/
           if-no-files-found: error
           retention-days: 30
