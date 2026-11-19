@@ -181,11 +181,21 @@ def save(path, raw):
 
 
 def build(code, browser, names, store, validator, target, max_stations=None,
-          max_logos=None, workers=4):
+          max_logos=None, workers=4, catalogue_only=False):
     rows, status = catalogue(browser, code, validator, preview=max_stations)
     label = names(code)
     data = bouquet(code, label, rows)
-    zipped, coverage = logos(rows, store, max_logos, workers)
+    if catalogue_only:
+        # Complete all-country bouquet inventory without spending time on
+        # unavailable logos; the empty ZIP is expressly NOT an approved logo pack.
+        with io.BytesIO() as empty:
+            with ZipFile(empty, mode='w', compression=ZIP_STORED):
+                pass
+            zipped = empty.getvalue()
+        coverage = {'logo_attempted': 0, 'logos_found': 0,
+                    'logos_missing': len(rows), 'logo_package_complete': False}
+    else:
+        zipped, coverage = logos(rows, store, max_logos, workers)
     mapping = {'schema': 1, 'country': code, 'name': label, 'stations': rows,
                'catalogue_complete': status['catalogue_complete']}
     payloads = {f'bouquets/{code}.radio': data, f'logos/{code}.zip': zipped,
@@ -210,6 +220,8 @@ def main():
     p.add_argument('--max-logos', type=int, default=0, help='Preview only; 0 means ALL')
     p.add_argument('--workers', type=int, default=4)
     p.add_argument('--list-countries', action='store_true')
+    p.add_argument('--catalogue-only', action='store_true',
+                   help='Build every station but do NOT download logos; marked incomplete')
     args = p.parse_args()
     RadioBrowser, country_name, StationLogos, stream_url = engine(args.plugin_src)
     with tempfile.TemporaryDirectory(prefix='warder-country-source-') as temporary:
@@ -228,7 +240,8 @@ def main():
         for code in countries:
             info = build(code, browser, country_name, source, stream_url, args.out,
                          max_stations=args.max_stations or None,
-                         max_logos=args.max_logos or None, workers=args.workers)
+                         max_logos=args.max_logos or None, workers=args.workers,
+                         catalogue_only=args.catalogue_only)
             result.append(info)
             print(json.dumps({'country': code, 'stations': info['stations'],
                               'logos_found': info['logos_found'],
