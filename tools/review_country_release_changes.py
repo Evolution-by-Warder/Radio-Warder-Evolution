@@ -38,8 +38,12 @@ def validate(data):
                 type(item.get('logos_found')) is not int or item['logos_found']<0 or
                 type(item.get('logos_missing')) is not int or item['logos_missing']<0 or
                 type(item.get('logo_attempted')) is not int or
-                item['logo_attempted'] != item['logos_found']+item['logos_missing'] or
-                item['logo_attempted'] > item['stations']):
+                item['logo_attempted'] > item['stations'] or
+                not (
+                    item['logo_attempted']==item['logos_found']+item['logos_missing'] or
+                    (item['logo_attempted']==0 and item['logos_found']==0 and
+                     item['logos_missing']==item['stations'] and
+                     item.get('logo_package_complete') is False))):
             raise ValueError('Invalid per-country verified source asset')
     return data
 
