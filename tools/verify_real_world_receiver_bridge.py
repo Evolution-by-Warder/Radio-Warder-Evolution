@@ -55,7 +55,7 @@ def main():
         original=(etc/'bouquets.radio').read_bytes()
         index=json.loads((paths/'radio-world/index.json').read_text())
         timings={}
-        for code in ('SK','CZ','FR','DE','GB','IT','ET'):
+        for code in ('SK','CZ','FR','DE','US','GB','IT','ET'):
             start=perf_counter()
             result=world.activate_from_world(paths,code,etc)
             timings[code]=round(1000*(perf_counter()-start),2)
