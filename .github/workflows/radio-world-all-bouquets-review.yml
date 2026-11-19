@@ -7,6 +7,10 @@ on:
       - tools/build_world_radio_inventory_shard.py
       - tests/test_world_radio_inventory_shard.py
       - .github/workflows/radio-world-all-bouquets-review.yml
+  workflow_dispatch:
+  # Runs only on default branch, once a user-approved merge has happened.
+  schedule:
+    - cron: '23 3 1,15 * *'
 
 permissions:
   contents: read
@@ -16,7 +20,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-source:
+    # Never rerun all 224 country downloads on an ordinary feature push.
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 -m py_compile tools/build_world_radio_inventory_shard.py
+          python3 -B tests/test_world_radio_inventory_shard.py
+
   inventory:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
