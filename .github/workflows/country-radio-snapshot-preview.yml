@@ -74,3 +74,43 @@ jobs:
           path: build/country-radio/
           if-no-files-found: error
           retention-days: 14
+
+  full-ethiopia:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Warder Radio image codec
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Build ALL Ethiopian stations and attempt ALL original logos
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_country_radio_packages.py \
+            --countries ET --out build/ethiopia-full --workers 4
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          root = pathlib.Path('build/ethiopia-full')
+          manifest = json.loads((root/'manifest.json').read_text())
+          assert manifest['complete'], 'Complete country scan and all logo attempts are required'
+          assert len(manifest['countries']) == 1
+          detail = manifest['countries'][0]
+          assert detail['country'] == 'ET'
+          assert detail['catalogue_complete']
+          assert detail['logo_package_complete']
+          assert detail['logo_attempted'] == detail['stations']
+          for path, v in detail['files'].items():
+              assert hashlib.sha256((root/path).read_bytes()).hexdigest() == v['sha256']
+          with zipfile.ZipFile(root/'logos/ET.zip') as logos:
+              assert len(logos.namelist()) == detail['logos_found']
+          print('FULL ET country and original logo scan PASS:', detail['stations'],
+                'stations,', detail['logos_found'], 'logos')
+          PY
+      - name: Upload verified full Ethiopian sample for review (NOT production)
+        uses: actions/upload-artifact@v4
+        with:
+          name: warder-country-ET-full-candidate-NOT-PRODUCTION
+          path: build/ethiopia-full/
+          if-no-files-found: error
+          retention-days: 30
