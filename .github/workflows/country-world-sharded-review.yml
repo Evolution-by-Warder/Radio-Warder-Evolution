@@ -2,7 +2,7 @@ name: Warder Radio worldwide country snapshot - staged review
 on:
   push:
     branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
-    paths: [tools/build_country_radio_packages.py, tests/test_country_radio_packages.py, .github/workflows/country-world-sharded-review.yml]
+    paths: [tools/build_country_radio_packages.py, tests/test_country_radio_packages.py, tools/assemble_country_radio_snapshots.py, tests/test_country_snapshot_bundle.py, .github/workflows/country-world-sharded-review.yml]
   workflow_dispatch:
   # Runs on default branch only AFTER explicit approval and merge.
   schedule:
@@ -25,6 +25,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -B tests/test_country_radio_packages.py
+          python3 -B tests/test_country_snapshot_bundle.py
           if [ "$EVENT" = push ]; then
             echo 'codes=["ET","FR"]' >> "$GITHUB_OUTPUT"
             echo 'sample=1' >> "$GITHUB_OUTPUT"
@@ -61,5 +62,31 @@ jobs:
         with:
           name: radio-country-${{ matrix.code }}-REVIEW-NOT-PRODUCTION
           path: build/radio-world/
+          if-no-files-found: error
+          retention-days: 30
+
+  assemble:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: radio-country-*-REVIEW-NOT-PRODUCTION
+          path: build/shards
+          merge-multiple: false
+      - name: Build deterministic compact initial-download bouquet ZIP
+        run: |
+          set -euo pipefail
+          python3 -B tests/test_country_snapshot_bundle.py
+          python3 -B tools/assemble_country_radio_snapshots.py \
+            --input build/shards --out build/complete-bouquets
+          cd build/complete-bouquets
+          sha256sum -c radio-countries-bouquets.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warder-radio-world-initial-bouquets-REVIEW-NOT-PRODUCTION
+          path: build/complete-bouquets/
           if-no-files-found: error
           retention-days: 30
