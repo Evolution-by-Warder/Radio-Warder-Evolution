@@ -1,0 +1,176 @@
+name: Generate original country logos from pinned 224-country world snapshot — review-only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-world-all-original-logos-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: radio-all-original-logos-review
+  cancel-in-progress: false
+
+env:
+  SOURCE_RUN: '44580650930'
+  SOURCE_SHA: '9e600636cf38bb874bed4b984a8dffccb0a50e76f50349770eac19b703501029'
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      batches: ${{ steps.codes.outputs.batches }}
+      expected: ${{ steps.codes.outputs.expected }}
+      station_count: ${{ steps.codes.outputs.station_count }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -B tests/test_world_country_original_logos.py
+      - name: Retrieve the EXACT completed source world snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: radio-world-ALL-BOUQUETS-NO-LOGOS-NOT-PRODUCTION
+          run-id: 44580650930
+          github-token: ${{ github.token }}
+          path: build/world-source
+      - id: codes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          p=pathlib.Path('build/world-source/radio-countries-bouquets.zip')
+          digest=hashlib.sha256(p.read_bytes()).hexdigest()
+          assert digest=='9e600636cf38bb874bed4b984a8dffccb0a50e76f50349770eac19b703501029'
+          with zipfile.ZipFile(p) as z:
+              data=json.loads(z.read('index.json'))
+          codes=sorted(data['countries'])
+          assert len(codes)==224 and data['country_count']==224 and data['station_count']==48219
+          shards=[{'id':f'{i//8:02d}','codes':','.join(codes[i:i+8])} for i in range(0,len(codes),8)]
+          pathlib.Path('/tmp/batches.json').write_text(json.dumps(shards,separators=(',',':')))
+          print('Pinned source:',len(codes),'countries,',data['station_count'],'stations,',len(shards),'logo shards')
+          PY
+          echo "batches=$(cat /tmp/batches.json)" >> "$GITHUB_OUTPUT"
+          echo 'expected=224' >> "$GITHUB_OUTPUT"
+          echo 'station_count=48219' >> "$GITHUB_OUTPUT"
+
+  logos:
+    needs: index
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        batch: ${{ fromJSON(needs.index.outputs.batches) }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install 'Pillow>=10,<13'
+      - uses: actions/download-artifact@v4
+        with:
+          name: radio-world-ALL-BOUQUETS-NO-LOGOS-NOT-PRODUCTION
+          run-id: 44580650930
+          github-token: ${{ github.token }}
+          path: build/world-source
+      - name: Fetch only original images of the pinned UUID catalogues
+        shell: bash
+        env:
+          COUNTRIES: ${{ matrix.batch.codes }}
+        run: |
+          set -euo pipefail
+          python3 -B tools/complete_world_country_original_logos.py \
+            --world build/world-source/radio-countries-bouquets.zip \
+            --world-sha256 9e600636cf38bb874bed4b984a8dffccb0a50e76f50349770eac19b703501029 \
+            --countries "$COUNTRIES" --workers 4 --out build/finished-logos
+          python3 - <<'PY'
+          import json,pathlib,zipfile,hashlib
+          root=pathlib.Path('build/finished-logos')
+          report=json.loads((root/'logo-results.json').read_text())
+          assert 1<=report['count']<=8
+          for c in report['countries']:
+              if c['status']=='complete':
+                  code=c['country']
+                  folder=root/f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+                  m=json.loads((folder/f'manifests/{code}.json').read_text())
+                  assert m['catalogue_complete'] and m['logo_package_complete']
+                  assert m['stations']==m['logo_attempted']==c['stations']
+                  for rel,v in m['files'].items():
+                      p=folder/rel
+                      assert hashlib.sha256(p.read_bytes()).hexdigest()==v['sha256']
+                  with zipfile.ZipFile(folder/f'logos/{code}.zip') as z:
+                      assert len(z.namelist())==c['logos_found']
+          print('Review batch:',report['count'],'countries,',sum(x['status']=='complete' for x in report['countries']),'full original-logo attempts')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-original-logos-batch-${{ matrix.batch.id }}-REVIEW
+          path: build/finished-logos/
+          if-no-files-found: error
+          retention-days: 30
+
+  summarize:
+    if: always() && needs.index.result == 'success' && needs.logos.result == 'success'
+    needs: [index, logos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: radio-original-logos-batch-*-REVIEW
+          path: build/received
+          merge-multiple: false
+      - name: Aggregate complete country snapshot shards and refuse any incomplete country
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,pathlib,shutil,sys
+          parent=pathlib.Path('build/received')
+          output=pathlib.Path('build/full-world-shards')
+          output.mkdir(parents=True,exist_ok=True)
+          seen={};errors=[];stations=0;logos=0
+          for shard in sorted(parent.glob('radio-original-logos-batch-*-REVIEW')):
+              report=json.loads((shard/'logo-results.json').read_text())
+              for item in report['countries']:
+                  code=item['country']
+                  if code in seen:
+                      errors.append('Duplicate '+code)
+                      continue
+                  seen[code]=item['status']
+                  if item['status']!='complete':
+                      errors.append(code+':'+item['reason'])
+                      continue
+                  folder=shard/f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+                  shutil.copytree(folder,output/folder.name)
+                  stations+=item['stations']
+                  logos+=item['logos_found']
+          summary={'processed':len(seen),'complete':sum(s=='complete' for s in seen.values()),
+                   'stations':stations,'logos_found':logos,'errors':errors,'published':False}
+          pathlib.Path('build/logo-world-results.json').write_text(json.dumps(summary,sort_keys=True,indent=2))
+          print('FULL ORIGINAL LOGO REVIEW',json.dumps(summary))
+          if len(seen)!=224 or stations!=48219 or errors:
+              sys.exit('Incomplete global country logo packages — preserve every successful review shard')
+          PY
+      - name: Rebuild worldwide bouquet ZIP with FINAL logo-manifest SHA identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tools/assemble_country_radio_snapshots.py \
+            --input build/full-world-shards --out build/world-candidate
+          cd build/world-candidate && sha256sum -c radio-countries-bouquets.zip.sha256 && cd ../..
+          python3 -B tools/prepare_country_release_index.py \
+            --world build/world-candidate/radio-countries-bouquets.zip \
+            --shards build/full-world-shards \
+            --out build/world-candidate/latest.json \
+            --tag radio-country-20261119 --production-candidate
+          python3 -c 'import json; d=json.load(open("build/world-candidate/latest.json")); assert d["complete"] and d["country_count"]==224; print("SOURCE CANDIDATE COMPLETE",d["country_count"])'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-with-original-logo-checks-REVIEW-ONLY
+          path: build/world-candidate/
+          if-no-files-found: error
+          retention-days: 30
