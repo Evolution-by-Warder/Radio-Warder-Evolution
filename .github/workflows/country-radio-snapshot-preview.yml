@@ -146,3 +146,43 @@ jobs:
           path: build/france-full/
           if-no-files-found: error
           retention-days: 30
+
+  full-slovak-czech:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install original Radio plugin image decoder
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Fetch EVERY Slovak and Czech station and try its original logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_country_radio_packages.py \
+            --countries SK,CZ --out build/sk-cz-full --workers 8
+          python3 - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          root=pathlib.Path('build/sk-cz-full')
+          report=json.loads((root/'manifest.json').read_text())
+          assert report['complete'] and len(report['countries'])==2,report
+          for c in report['countries']:
+              assert c['country'] in ('SK','CZ')
+              assert c['catalogue_complete'] and c['logo_package_complete']
+              assert c['logo_attempted']==c['stations']
+              for path,evidence in c['files'].items():
+                  assert hashlib.sha256((root/path).read_bytes()).hexdigest()==evidence['sha256']
+                  assert len((root/path).read_bytes())==evidence['bytes']
+              with zipfile.ZipFile(root/'logos'/(c['country']+'.zip')) as z:
+                  assert len(z.namelist())==c['logos_found']
+              print(c['country'],c['stations'],'stations,',
+                    c['logos_found'],'found logos,',c['logos_missing'],'unavailable')
+          print('FULL SK + CZ candidate PASS; review-only')
+          PY
+      - name: Upload verified complete Slovak and Czech country packages for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: warder-country-SK-CZ-complete-logo-attempts-REVIEW-NOT-PRODUCTION
+          path: build/sk-cz-full/
+          if-no-files-found: error
+          retention-days: 30
