@@ -72,10 +72,19 @@ def validate(root, code, require_complete=True):
         raise ValueError('Untrusted country metadata')
     if require_complete and not complete:
         raise ValueError('Cannot assemble incomplete country for release')
-    if info['logo_attempted'] + max(0, station_count-info['logo_attempted']) != station_count:
-        raise ValueError('Logo attempt count exceeds stations')
-    if info['logos_found'] + info['logos_missing'] != info['logo_attempted'] and info['logo_attempted']:
-        raise ValueError('Logo coverage is inconsistent')
+    attempted, found, missing = (info['logo_attempted'], info['logos_found'],
+                                 info['logos_missing'])
+    if any(value < 0 for value in (attempted, found, missing)) or attempted > station_count:
+        raise ValueError('Logo counters outside safe range')
+    # A "complete" package must have attempted every authoritative radio UUID,
+    # even when the original source offers no logo for some UUIDs.
+    if complete and attempted != station_count:
+        raise ValueError('Incomplete logo attempts falsely marked complete')
+    # Catalogue-only review mode explicitly reports all logos as missing and
+    # zero attempts. It must never pass production completeness.
+    if not (not attempted and not complete and missing == station_count):
+        if found + missing != attempted:
+            raise ValueError('Logo coverage is inconsistent')
     expected_names = (f'bouquets/{code}.radio',f'catalog/{code}.json',f'logos/{code}.zip')
     files = info.get('files')
     if not isinstance(files, dict) or set(files) != set(expected_names):
