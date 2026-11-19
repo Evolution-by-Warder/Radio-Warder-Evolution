@@ -1,0 +1,76 @@
+name: Warder Radio country bouquets and logo ZIPs (candidate)
+
+on:
+  push:
+    branches:
+      - feature/radio-browser-country-bouquets-and-logo-zips-20261119
+    paths:
+      - tools/build_country_radio_packages.py
+      - tests/test_country_radio_packages.py
+      - .github/workflows/country-radio-snapshot-preview.yml
+  workflow_dispatch:
+    inputs:
+      countries:
+        description: ISO country codes (ALL for complete inventory)
+        required: true
+        default: ET,FR
+        type: string
+      max_stations:
+        description: Preview station limit; 0 means no preview limit
+        default: '60'
+        type: string
+      max_logos:
+        description: Preview logo limit; 0 means all original plugin logos
+        default: '8'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: python3 -m py_compile tools/build_country_radio_packages.py tests/test_country_radio_packages.py
+      - name: Validate native service stems, country lists and original logos
+        run: python3 -B tests/test_country_radio_packages.py
+
+  live-preview:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable same image decoding as standalone Warder Radio
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Generate real Radio Browser per-country sample, without publishing
+        shell: bash
+        env:
+          COUNTRIES: ${{ inputs.countries || 'ET,FR' }}
+          STATIONS: ${{ inputs.max_stations || '60' }}
+          LOGOS: ${{ inputs.max_logos || '8' }}
+        run: |
+          set -euo pipefail
+          args=(--countries "$COUNTRIES" --out build/country-radio)
+          if [ "$STATIONS" != 0 ]; then args+=(--max-stations "$STATIONS"); fi
+          if [ "$LOGOS" != 0 ]; then args+=(--max-logos "$LOGOS"); fi
+          python3 -B tools/build_country_radio_packages.py "${args[@]}"
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          root = pathlib.Path('build/country-radio')
+          manifest = json.loads((root/'manifest.json').read_text())
+          for item in manifest['countries']:
+              for rel, evidence in item['files'].items():
+                  assert hashlib.sha256((root/rel).read_bytes()).hexdigest() == evidence['sha256'], rel
+          print('Sample file hashes verified:', len(manifest['countries']))
+          PY
+      - name: Upload partial review artifacts only (NOT a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: warder-radio-country-preview-NOT-PRODUCTION
+          path: build/country-radio/
+          if-no-files-found: error
+          retention-days: 14
