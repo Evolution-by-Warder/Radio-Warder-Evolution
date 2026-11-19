@@ -106,6 +106,25 @@ class Tests(unittest.TestCase):
             raise ValueError('Unsafe URL')
         return url
 
+    def test_catalogue_only_world_pass_preserves_all_stations_but_no_logo_claims(self):
+        browser = Browser('FR', 125)
+        class MustNotFetchLogo:
+            def get(self, _):
+                raise AssertionError('Do not download any logos in the catalogue-only pass')
+        result = pkg.build('FR', browser, lambda c: 'France', MustNotFetchLogo(),
+                           self.valid_url, self.out, catalogue_only=True)
+        self.assertEqual(result['stations'], 125)
+        self.assertTrue(result['catalogue_complete'])
+        self.assertFalse(result['logo_package_complete'])
+        self.assertEqual(result['logo_attempted'], 0)
+        self.assertEqual(result['logos_found'], 0)
+        self.assertEqual(result['logos_missing'], 125)
+        with ZipFile(self.out / 'logos/FR.zip') as archive:
+            self.assertEqual(archive.namelist(), [])
+        mapping = json.loads((self.out / 'catalog/FR.json').read_text())
+        self.assertEqual(len(mapping['stations']), 125)
+        self.assertEqual([v[1] for v in browser.calls], [0, 60, 120])
+
     def test_preview_is_explicitly_partial(self):
         data = pkg.build('FR', Browser('FR', 130), lambda c:'France', self.cache,
                          self.valid_url, self.out, max_stations=60, max_logos=8)
