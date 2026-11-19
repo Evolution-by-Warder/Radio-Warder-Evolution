@@ -104,10 +104,13 @@ def build(world_path, shards, tag, output, production_candidate=False):
                              type(attempted) is int and attempted==record['stations'])
                 found=manifest.get('logos_found')
                 missing=manifest.get('logos_missing')
+                catalogue_only=(attempted == 0 and found == 0
+                                and missing == record['stations']
+                                and manifest.get('logo_package_complete') is False)
                 if (type(found) is not int or type(missing) is not int
                         or found<0 or missing<0 or
                         type(attempted) is not int or attempted<0
-                        or found+missing!=attempted):
+                        or not (found+missing == attempted or catalogue_only)):
                     raise ValueError('Country original logo coverage mismatch')
                 result['countries'][code]={
                     'stations':record['stations'],
