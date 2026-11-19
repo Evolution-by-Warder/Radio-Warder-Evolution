@@ -1,0 +1,49 @@
+name: Real 224-country world ZIP receiver bridge — offline
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/verify_real_world_receiver_bridge.py
+      - .github/workflows/radio-real-world-skin-integration.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout exact reviewed FullHDGlass receiver source
+        uses: actions/checkout@v4
+        with:
+          repository: Evolution-by-Warder/FullHDGlass-Warder-Evolution
+          ref: 7ee08e33a7a8474e969b9d6149a7aa7db4d35f6e
+          path: skin
+          sparse-checkout: |
+            source/package-root/usr/lib/enigma2/python/Plugins/Extensions/setupGlass17/
+          sparse-checkout-cone-mode: false
+      - name: Download exact 224-country world snapshot from successful Actions run
+        uses: actions/download-artifact@v4
+        with:
+          name: radio-world-ALL-BOUQUETS-NO-LOGOS-NOT-PRODUCTION
+          run-id: 44580650930
+          github-token: ${{ github.token }}
+          path: build/world-source
+      - name: Download complete SK/CZ original logo country ZIPs
+        uses: actions/download-artifact@v4
+        with:
+          name: warder-country-SK-CZ-complete-logo-attempts-REVIEW-NOT-PRODUCTION
+          run-id: 44577435803
+          github-token: ${{ github.token }}
+          path: build/sk-cz-source
+      - name: Verify all 224 country switching and 313 real SK/CZ original logos without network
+        run: |
+          python3 -m py_compile tools/verify_real_world_receiver_bridge.py
+          python3 -B tools/verify_real_world_receiver_bridge.py \
+            --world build/world-source/radio-countries-bouquets.zip \
+            --sk-cz build/sk-cz-source \
+            --skin-runtime skin/source/package-root/usr/lib/enigma2/python
