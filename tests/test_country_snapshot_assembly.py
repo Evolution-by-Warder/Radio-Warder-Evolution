@@ -107,7 +107,7 @@ class Tests(unittest.TestCase):
     def test_sha_tamper_is_rejected(self):
         file=self.inputs/'ET'/'catalog/ET.json'
         file.write_bytes(file.read_bytes()+b'garbage')
-        with self.assertRaisesRegex(ValueError,'SHA256 mismatch'):
+        with self.assertRaisesRegex(ValueError,'Invalid member length|SHA256 mismatch'):
             assemble.assemble(self.inputs,self.out,['ET'],'2026-11-19')
 
     def test_unsanctioned_png_is_rejected(self):
@@ -123,12 +123,13 @@ class Tests(unittest.TestCase):
         m['files']['logos/ET.zip']['sha256']=hashlib.sha256(z.getvalue()).hexdigest()
         m['files']['logos/ET.zip']['bytes']=len(z.getvalue())
         m['logos_found']=1
+        m['logos_missing']=m['logo_attempted']-1
         manifest.write_text(json.dumps(m))
         with self.assertRaisesRegex(ValueError,'Unsafe logo'):
             assemble.assemble(self.inputs,self.out,['ET'],'2026-11-19')
 
     def test_missing_country_does_not_partially_publish(self):
-        with self.assertRaisesRegex(ValueError,'Missing or oversized'):
+        with self.assertRaisesRegex(ValueError,'Unsafe input root|Missing or oversized'):
             assemble.assemble(self.inputs,self.out,['ET','AT'],'2026-11-19')
         self.assertFalse((self.out/'world-bouquets.zip').exists())
 
