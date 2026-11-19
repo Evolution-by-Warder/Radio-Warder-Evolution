@@ -1,0 +1,145 @@
+name: Radio Browser worldwide bouquet inventory — review-only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/build_world_radio_inventory_shard.py
+      - tests/test_world_radio_inventory_shard.py
+      - .github/workflows/radio-world-all-bouquets-review.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: radio-world-all-bouquets-review
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      batches: ${{ steps.make.outputs.batches }}
+      expected: ${{ steps.make.outputs.expected }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 -B tests/test_country_radio_packages.py
+          python3 -B tests/test_world_radio_inventory_shard.py
+      - id: make
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_country_radio_packages.py --list-countries > /tmp/world-countries.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/world-countries.json'))['countries']
+          assert 2 <= len(x) <= 250 and len(x)==len(set(x))
+          parts=[{'id':f'{i//8:02d}','codes':','.join(x[i:i+8])} for i in range(0,len(x),8)]
+          with open('/tmp/world-batches.json','w') as f:
+              json.dump(parts,f,separators=(',',':'))
+          print('Online Radio Browser country count:',len(x),'across',len(parts),'shards')
+          with open('/tmp/world-expected.txt','w') as f:
+              f.write(str(len(x)))
+          PY
+          echo "batches=$(cat /tmp/world-batches.json)" >> "$GITHUB_OUTPUT"
+          echo "expected=$(cat /tmp/world-expected.txt)" >> "$GITHUB_OUTPUT"
+
+  scan:
+    needs: inventory
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        batch: ${{ fromJSON(needs.inventory.outputs.batches) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download ALL stations for this shard, never download logos here
+        shell: bash
+        env:
+          COUNTRIES: ${{ matrix.batch.codes }}
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_world_radio_inventory_shard.py \
+            --countries "$COUNTRIES" --out build/shard
+          python3 - <<'PY'
+          import json,pathlib
+          root=pathlib.Path('build/shard')
+          x=json.loads((root/'results.json').read_text())
+          assert x['processed'] >= 1
+          for item in x['countries']:
+              if item['status']=='complete':
+                  c=item['country']
+                  p=root/f'radio-country-{c}-REVIEW-NOT-PRODUCTION'
+                  assert (p/f'bouquets/{c}.radio').exists()
+                  assert (p/f'manifests/{c}.json').exists()
+          print('Shard processed',x['processed'],'complete',sum(a['status']=='complete' for a in x['countries']))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-batch-${{ matrix.batch.id }}-REVIEW
+          path: build/shard/
+          if-no-files-found: error
+          retention-days: 30
+
+  assemble:
+    if: always() && needs.inventory.result == 'success' && needs.scan.result == 'success'
+    needs: [inventory, scan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: radio-world-batch-*-REVIEW
+          path: build/collected
+          merge-multiple: false
+      - name: Count every country and prepare only verified complete bouquets
+        shell: bash
+        env:
+          EXPECTED: ${{ needs.inventory.outputs.expected }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,pathlib,shutil,sys
+          folders=sorted(pathlib.Path('build/collected').glob('radio-world-batch-*-REVIEW'))
+          expected=int(os.environ['EXPECTED'])
+          seen={};errors=[];stations=0
+          output=pathlib.Path('build/collected-country-snapshots')
+          output.mkdir(parents=True,exist_ok=True)
+          for folder in folders:
+              result=json.loads((folder/'results.json').read_text())
+              for entry in result['countries']:
+                  code=entry['country']
+                  if code in seen:
+                      errors.append('Duplicate '+code)
+                      continue
+                  seen[code]=entry['status']
+                  if entry['status']!='complete':
+                      errors.append(code+':'+entry['reason'])
+                      continue
+                  source=folder/f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+                  shutil.copytree(source,output/source.name)
+                  stations+=entry['stations']
+          report={'expected':expected,'scanned':len(seen),'ready':sum(x=='complete' for x in seen.values()),
+                  'failed':errors,'stations':stations,'release_ready':False}
+          pathlib.Path('build/world-scan-status.json').write_text(json.dumps(report,indent=2,sort_keys=True))
+          print('WORLD REVIEW:',json.dumps(report))
+          if len(seen)!=expected or errors:
+              sys.exit('Full world scan incomplete: all successful shards remain available as artifacts')
+          PY
+      - name: Assemble compact world bouquet ZIP, NEVER publish
+        run: |
+          python3 -B tools/assemble_country_radio_snapshots.py \
+            --input build/collected-country-snapshots --out build/world-only-review
+          cd build/world-only-review
+          sha256sum -c radio-countries-bouquets.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-ALL-BOUQUETS-NO-LOGOS-NOT-PRODUCTION
+          path: build/world-only-review/
+          if-no-files-found: error
+          retention-days: 30
