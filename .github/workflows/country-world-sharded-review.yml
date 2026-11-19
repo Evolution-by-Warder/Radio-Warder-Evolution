@@ -2,7 +2,7 @@ name: Warder Radio worldwide country snapshot - staged review
 on:
   push:
     branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
-    paths: [tools/build_country_radio_packages.py, tests/test_country_radio_packages.py, tools/assemble_country_radio_snapshots.py, tests/test_country_snapshot_bundle.py, .github/workflows/country-world-sharded-review.yml]
+    paths: [tools/build_country_radio_packages.py, tests/test_country_radio_packages.py, tools/assemble_country_radio_snapshots.py, tests/test_country_snapshot_bundle.py, tools/prepare_country_release_index.py, tests/test_country_release_index.py, .github/workflows/country-world-sharded-review.yml]
   workflow_dispatch:
   # Runs on default branch only AFTER explicit approval and merge.
   schedule:
@@ -26,6 +26,7 @@ jobs:
           set -euo pipefail
           python3 -B tests/test_country_radio_packages.py
           python3 -B tests/test_country_snapshot_bundle.py
+          python3 -B tests/test_country_release_index.py
           if [ "$EVENT" = push ]; then
             echo 'codes=["ET","FR"]' >> "$GITHUB_OUTPUT"
             echo 'sample=1' >> "$GITHUB_OUTPUT"
@@ -80,8 +81,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 -B tests/test_country_snapshot_bundle.py
+          python3 -B tests/test_country_release_index.py
           python3 -B tools/assemble_country_radio_snapshots.py \
             --input build/shards --out build/complete-bouquets
+          python3 -B tools/prepare_country_release_index.py \
+            --world build/complete-bouquets/radio-countries-bouquets.zip \
+            --shards build/shards \
+            --tag radio-country-20261119 \
+            --out build/complete-bouquets/latest.json
+          python3 -c 'import json; a=json.load(open("build/complete-bouquets/latest.json")); assert a["complete"] is False, "Review must never claim production completeness"; print("Draft release feed: review-only")'
           cd build/complete-bouquets
           sha256sum -c radio-countries-bouquets.zip.sha256
       - uses: actions/upload-artifact@v4
