@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Evolution-by-Warder/FullHDGlass-Warder-Evolution
-          ref: 4ca6c95571ce04596c63caba394b87892dec60fa
+          ref: e33c39a4b12f55687a358c444d90529698b0e7dd
           path: skin
           sparse-checkout: |
             source/package-root/usr/lib/enigma2/python/Plugins/Extensions/setupGlass17/
