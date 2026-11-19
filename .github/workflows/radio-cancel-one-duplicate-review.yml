@@ -1,0 +1,39 @@
+name: Stop ONLY redundant duplicate world-logo review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-cancel-one-duplicate-review.yml
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel-redundant-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Stop queued duplicate without touching primary world review
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repo='Evolution-by-Warder/Radio-Warder-Evolution'
+          primary='44583128017'
+          duplicate='44595965243'
+          if [ "$duplicate" = "$primary" ]; then
+            echo 'Safety guard: never cancel original run' >&2
+            exit 1
+          fi
+          status="$(gh api "repos/$repo/actions/runs/$duplicate" --jq '.status')"
+          echo "Only redundant run $duplicate: $status"
+          case "$status" in
+            completed) echo 'Already finished; nothing to do' ;;
+            queued|pending|waiting|in_progress)
+              gh api --method POST "repos/$repo/actions/runs/$duplicate/cancel" >/dev/null
+              echo 'Redundant world review cancellation requested' ;;
+            *) echo "Unexpected state: $status" >&2; exit 1 ;;
+          esac
