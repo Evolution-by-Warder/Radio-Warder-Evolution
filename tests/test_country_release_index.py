@@ -67,6 +67,43 @@ class Tests(unittest.TestCase):
                 (self.shards/('radio-country-'+code+'-REVIEW-NOT-PRODUCTION')/
                  'logos'/(code+'.zip')).read_bytes()).hexdigest())
 
+    def test_second_snapshot_reuses_only_exact_sha_matched_original_logo_zip_tags(self):
+        old=publisher.build(self.world,self.shards,'radio-country-20261119',self.out)
+        old['complete']=True  # approved immutable baseline fixture
+        newer=publisher.build(self.world,self.shards,'radio-country-20261203',
+                              self.out,previous_index=old)
+        for code in ('ET','FR'):
+            self.assertEqual(newer['countries'][code]['logos']['asset_tag'],
+                             'radio-country-20261119')
+        self.assertEqual(newer['release_tag'],'radio-country-20261203')
+
+    def test_legacy_previous_tag_reuse_and_changed_country_is_uploaded_only_once(self):
+        old=publisher.build(self.world,self.shards,'radio-country-20261119',self.out)
+        old['complete']=True
+        old['countries']['ET']['logos'].pop('asset_tag')
+        old['countries']['FR']['logos']['sha256']='f'*64
+        newer=publisher.build(self.world,self.shards,'radio-country-20261203',
+                              self.out,previous_index=old)
+        self.assertEqual(newer['countries']['ET']['logos']['asset_tag'],
+                         'radio-country-20261119')
+        self.assertEqual(newer['countries']['FR']['logos']['asset_tag'],
+                         'radio-country-20261203')
+
+    def test_malformed_or_incomplete_previous_reference_cannot_be_reused(self):
+        old=publisher.build(self.world,self.shards,'radio-country-20261119',self.out)
+        old['complete']=False
+        self.out.unlink()
+        with self.assertRaisesRegex(ValueError,'Untrusted previous published'):
+            publisher.build(self.world,self.shards,'radio-country-20261203',
+                            self.out,previous_index=old)
+        self.assertFalse(self.out.exists())
+        old['complete']=True
+        old['countries']['FR']['logos']['asset_tag']='../../unsafe'
+        with self.assertRaisesRegex(ValueError,'Untrusted previous country logo'):
+            publisher.build(self.world,self.shards,'radio-country-20261203',
+                            self.out,previous_index=old)
+        self.assertFalse(self.out.exists())
+
     def test_reject_release_when_world_is_just_a_preview(self):
         with self.assertRaisesRegex(ValueError,'omit 200'):
             publisher.build(self.world,self.shards,'radio-country-20261119',
