@@ -1,3 +1,14 @@
+## 19. 11. 2026 — SK + CZ, celé nové bouquety a všetky dostupné originálne logá
+
+- **Výsledok úplného online zberu:** [GitHub Actions #44577435803 – full-slovak-czech SUCCESS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44577435803), commit [`9814b71`](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/commit/9814b7145c0fad1bf12b85baccdbc929f8fbf25a).
+- **Slovensko:** kompletný bouquet **123/123** platných streamovaných staníc, original `WarderRadio.station_logos` PNG **111 úspešných** a **12 nedostupných** (pokus o všetkých 123).
+- **Česko:** kompletný bouquet **229/229** platných staníc, PNG **202 úspešných** a **27 nedostupných** (pokus o všetkých 229).
+- **Spolu:** **352 staníc**, **313 log**, **39 chýbajúcich log**. `catalogue_complete=true`, `logo_package_complete=true` (znamená všetky **pokusy**, nie že každá stanica má logo), SHA-256 kontrola country bouquetov, ZIP, manifestov a presných referencií PASS. [Review-only artifact #14556504575](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44577435803), GitHub artifact ZIP **3 244 604 B**, digest `sha256:6dafe590a8b751eac94f44f388e892ab67655b6e3395723b1a5ae716bdeb4045`.
+- **Schválenie:** iba zdrojový pilot, nešlo o produkčné vydanie balíkov, dočasné artifacty sa nesmú zameniť za trvalé Release. Francúzsko zostáva overené ako **2476 kompletných staníc**, logá zatiaľ iba 6 z 8 skúšobných; Etiópia **22 staníc, 18 log**.
+- **Ďalší krok:** vytvoriť ďalšie krajiny, zhromaždiť všetkých 224 kompletných country snapshotov, až potom schválené nemenné GitHub Release + `assets/radio-country/latest.json`. Zdrojovo má skin [PR #129](https://github.com/Evolution-by-Warder/FullHDGlass-Warder-Evolution/pull/129) lokálny world downloader, prvú krajinu z jazyka a per-country original ZIP; fyzicky neodskúšané. Pred verejnou redistribúciou log riešiť podmienky použitia pôvodných obrázkov.
+
+---
+
 ## 19. 11. 2026 — Overený centrálny index s SHA-256 pre nový Radio Live
 
 - **Zdroj:** výhradne aktuálny `WarderRadio.radio_browser.RadioBrowser` a `WarderRadio.station_logos.StationLogos` na pracovnej vetve PR [#52](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/52). Nijaký starý 6 741-staničný world bouquet sa neimportoval.
