@@ -1,0 +1,65 @@
+name: Warder Radio worldwide country snapshot - staged review
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [tools/build_country_radio_packages.py, tests/test_country_radio_packages.py, .github/workflows/country-world-sharded-review.yml]
+  workflow_dispatch:
+  # Runs on default branch only AFTER explicit approval and merge.
+  schedule:
+    - cron: '23 3 1,15 * *'
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      codes: ${{ steps.select.outputs.codes }}
+      sample: ${{ steps.select.outputs.sample }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: select
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          python3 -B tests/test_country_radio_packages.py
+          if [ "$EVENT" = push ]; then
+            echo 'codes=["ET","FR"]' >> "$GITHUB_OUTPUT"
+            echo 'sample=1' >> "$GITHUB_OUTPUT"
+          else
+            python3 -B tools/build_country_radio_packages.py --list-countries > /tmp/countries.json
+            python3 -c 'import json; x=json.load(open("/tmp/countries.json")); assert 2 <= len(x["countries"]) <= 250' 
+            echo "codes=$(python3 -c 'import json; print(json.dumps(json.load(open("/tmp/countries.json"))["countries"],separators=(",",":")))')" >> "$GITHUB_OUTPUT"
+            echo 'sample=0' >> "$GITHUB_OUTPUT"
+          fi
+  build:
+    needs: inventory
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        code: ${{ fromJSON(needs.inventory.outputs.codes) }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Prepare exact Radio Browser country and original plugin logo ZIP
+        shell: bash
+        env:
+          CODE: ${{ matrix.code }}
+          SAMPLE: ${{ needs.inventory.outputs.sample }}
+        run: |
+          set -euo pipefail
+          args=(--countries "$CODE" --out build/radio-world --workers 6)
+          if [ "$SAMPLE" = 1 ]; then args+=(--catalogue-only); fi
+          python3 -B tools/build_country_radio_packages.py "${args[@]}"
+          python3 -c 'import hashlib,json,pathlib; p=pathlib.Path("build/radio-world"); m=json.loads((p/"manifest.json").read_text()); assert len(m["countries"])==1 and m["countries"][0]["catalogue_complete"]; assert all(hashlib.sha256((p/k).read_bytes()).hexdigest()==v["sha256"] for k,v in m["countries"][0]["files"].items()); print("Country SHA verified:",m["countries"][0]["country"])'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-country-${{ matrix.code }}-REVIEW-NOT-PRODUCTION
+          path: build/radio-world/
+          if-no-files-found: error
+          retention-days: 30
