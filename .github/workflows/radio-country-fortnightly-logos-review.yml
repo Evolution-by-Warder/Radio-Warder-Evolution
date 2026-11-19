@@ -191,12 +191,28 @@ jobs:
           python3 -B tools/assemble_country_radio_snapshots.py \
             --input build/full-world-shards --out build/world-candidate
           cd build/world-candidate && sha256sum -c radio-countries-bouquets.zip.sha256 && cd ../..
+          # Fetch the last approved manifest only once for the whole review.
+          # An unchanged logo SHA reuses that manifest's immutable release tag.
+          args=(--world build/world-candidate/radio-countries-bouquets.zip
+                --shards build/full-world-shards
+                --out build/world-candidate/latest.json
+                --production-candidate)
+          url="https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/assets/radio-country/latest.json"
+          if status=$(curl -sSL --connect-timeout 5 --max-time 25 -w '%{http_code}' -o /tmp/radio-prior.json "$url"); then
+            if [ "$status" = 200 ]; then
+              args+=(--previous-index /tmp/radio-prior.json)
+            elif [ "$status" = 404 ]; then
+              rm -f /tmp/radio-prior.json
+            else
+              echo "Unexpected remote previous snapshot response: $status" >&2
+              exit 1
+            fi
+          else
+            echo "Unable to verify previous country release; keep prior assets unchanged" >&2
+            exit 1
+          fi
           tag="radio-country-$(date -u +%Y%m%d)"
-          python3 -B tools/prepare_country_release_index.py \
-            --world build/world-candidate/radio-countries-bouquets.zip \
-            --shards build/full-world-shards \
-            --out build/world-candidate/latest.json \
-            --tag "$tag" --production-candidate
+          python3 -B tools/prepare_country_release_index.py "${args[@]}" --tag "$tag"
           python3 -c 'import json,os; d=json.load(open("build/world-candidate/latest.json")); assert d["complete"] and d["country_count"]==int(os.environ["EXPECTED_COUNTRIES"]); print("SOURCE CANDIDATE COMPLETE",d["country_count"])'
       - name: Independent final audit of every country and logo ZIP
         shell: bash
@@ -212,17 +228,8 @@ jobs:
           set -euo pipefail
           args=(--current build/world-candidate/latest.json
                 --output build/world-candidate/changes.json)
-          url="https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/assets/radio-country/latest.json"
-          if status=$(curl -sSL --connect-timeout 5 --max-time 25 -w '%{http_code}' -o /tmp/radio-prior.json "$url"); then
-            if [ "$status" = 200 ]; then
-              args+=(--previous /tmp/radio-prior.json)
-            elif [ "$status" != 404 ]; then
-              echo "Unexpected remote previous snapshot response: $status" >&2
-              exit 1
-            fi
-          else
-            echo "Unable to verify previous country release; preserve old state" >&2
-            exit 1
+          if [ -s /tmp/radio-prior.json ]; then
+            args+=(--previous /tmp/radio-prior.json)
           fi
           python3 -B tools/review_country_release_changes.py "${args[@]}"
           python3 - <<'PY'
