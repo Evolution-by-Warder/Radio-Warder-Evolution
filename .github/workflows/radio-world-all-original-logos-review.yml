@@ -1,10 +1,9 @@
 name: Generate original country logos from pinned 224-country world snapshot — review-only
 
 on:
-  push:
-    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
-    paths:
-      - .github/workflows/radio-world-all-original-logos-review.yml
+  # Expensive pinned one-off scan; start manually only.
+  # Fortnightly automatic scans use radio-country-fortnightly-logos-review.yml.
+  workflow_dispatch:
 
 permissions:
   contents: read
