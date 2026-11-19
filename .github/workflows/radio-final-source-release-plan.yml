@@ -1,0 +1,49 @@
+name: Exact 224-country first release upload plan - no publication
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-final-source-release-plan.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  prepare-plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: radio-world-224-with-original-logo-checks-REVIEW-ONLY
+          run-id: 44583128017
+          github-token: ${{ github.token }}
+          path: build/final-review
+      - name: Compute exact source-only release plan with no upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tests/test_radio_country_release_asset_plan.py
+          python3 -B tools/plan_radio_country_release_assets.py \
+            --current build/final-review/latest.json \
+            --output build/final-review/release-plan.json
+          python3 - <<'PY'
+          import json
+          p=json.load(open('build/final-review/release-plan.json'))
+          assert p['countries']==224 and len(p['country_logo_zip_uploads'])==224
+          assert p['new_logo_zip_bytes']==768799760,p
+          assert p['world_bytes']==6664463,p
+          assert p['requires_explicit_release_approval']
+          print('REAL FIRST RELEASE REVIEW PASS: 224 country ZIPs,',
+                p['new_logo_zip_bytes'],'bytes of original station logos.',
+                'No publication')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-first-release-plan-224-countries-REVIEW-ONLY
+          path: build/final-review/release-plan.json
+          if-no-files-found: error
+          retention-days: 30
