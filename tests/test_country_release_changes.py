@@ -88,6 +88,15 @@ class Tests(unittest.TestCase):
         r=review.diff(old,current)
         self.assertFalse(r['eligible_for_manual_release_review'])
 
+    def test_catalogue_only_world_review_can_be_compared_but_never_published(self):
+        current=snapshot(ready=False)
+        current['countries']['ET'].update(
+            logo_attempted=0,logos_found=0,logos_missing=10,
+            logo_package_complete=False)
+        result=review.diff(None,current)
+        self.assertFalse(result['eligible_for_manual_release_review'])
+        self.assertEqual(result['countries_new'],['ET'])
+
     def test_untrusted_hash_or_station_count_is_refused(self):
         data=snapshot()
         data['countries']['ET']['catalog_sha256']='notsha'
