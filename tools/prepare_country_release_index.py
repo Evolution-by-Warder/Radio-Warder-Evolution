@@ -28,10 +28,48 @@ def digest(path):
     return result.hexdigest()
 
 
-def build(world_path, shards, tag, output, production_candidate=False):
+def _previous_country_logos(index):
+    """Reuse an immutable published logo ZIP ONLY when its byte hash matches.
+
+    A candidate can never borrow a file from an unapproved/incomplete index.
+    """
+    if index is None:
+        return {}
+    if (not isinstance(index, dict) or index.get('schema') != 1 or
+            index.get('complete') is not True or
+            index.get('source') != 'WarderRadio.RadioBrowser' or
+            not isinstance(index.get('release_tag'), str) or
+            not TAG.fullmatch(index['release_tag']) or
+            not isinstance(index.get('countries'), dict) or
+            type(index.get('country_count')) is not int or
+            index['country_count'] != len(index['countries'])):
+        raise ValueError('Untrusted previous published country release')
+    selected = {}
+    for code, entry in index['countries'].items():
+        if not CODE.fullmatch(code) or not isinstance(entry, dict) or (
+                entry.get('logo_package_complete') is not True):
+            raise ValueError('Incomplete previous country logo reference')
+        logo = entry.get('logos')
+        if not isinstance(logo, dict):
+            raise ValueError('Invalid previous logo source')
+        label = logo.get('asset_tag', index['release_tag'])
+        if (logo.get('file') != code + '.zip' or
+                type(logo.get('bytes')) is not int or
+                not 0 < logo['bytes'] <= MAX_LOGO or
+                not isinstance(logo.get('sha256'), str) or
+                not SHA.fullmatch(logo['sha256']) or
+                not isinstance(label, str) or not TAG.fullmatch(label)):
+            raise ValueError('Untrusted previous country logo asset')
+        selected[code] = (logo['sha256'], logo['bytes'], label)
+    return selected
+
+
+def build(world_path, shards, tag, output, production_candidate=False,
+          previous_index=None):
     world_path,shards,output=map(Path,(world_path,shards,output))
     if not TAG.fullmatch(tag):
         raise ValueError('Invalid immutable release tag')
+    old_logo = _previous_country_logos(previous_index)
     if (world_path.is_symlink() or not world_path.is_file() or
             not 0<world_path.stat().st_size<=MAX_WORLD or
             shards.is_symlink() or not shards.is_dir()):
@@ -112,6 +150,9 @@ def build(world_path, shards, tag, output, production_candidate=False):
                         type(attempted) is not int or attempted<0
                         or not (found+missing == attempted or catalogue_only)):
                     raise ValueError('Country original logo coverage mismatch')
+                old = old_logo.get(code)
+                logo_tag = (old[2] if old is not None and
+                            old[:2] == (item['sha256'], item['bytes']) else tag)
                 result['countries'][code]={
                     'stations':record['stations'],
                     'bouquet_sha256':record['bouquet_sha256'],
@@ -120,7 +161,7 @@ def build(world_path, shards, tag, output, production_candidate=False):
                     'logos_found':found, 'logos_missing':missing,
                     'logo_attempted':attempted,
                     'logos':{'file':code+'.zip','bytes':item['bytes'],
-                             'sha256':item['sha256']}}
+                             'sha256':item['sha256'],'asset_tag':logo_tag}}
     except (BadZipFile,KeyError,TypeError,json.JSONDecodeError):
         raise ValueError('Invalid world snapshot archive structure')
     result['country_count']=len(result['countries'])
@@ -145,7 +186,11 @@ if __name__=='__main__':
     p.add_argument('--tag',required=True)
     p.add_argument('--production-candidate',action='store_true',
                    help='Validate full 200+ country publication candidate, but do not publish')
+    p.add_argument('--previous-index',type=Path,
+                   help='Previously approved latest.json for SHA-exact immutable logo ZIP reuse')
     a=p.parse_args()
-    result=build(a.world,a.shards,a.tag,a.out,a.production_candidate)
+    prior=json.loads(a.previous_index.read_text(encoding='utf-8')) if a.previous_index else None
+    result=build(a.world,a.shards,a.tag,a.out,a.production_candidate,
+                 previous_index=prior)
     print(json.dumps({'countries':result['country_count'],
                       'complete':result['complete'],'world_sha256':result['world']['sha256']}))
