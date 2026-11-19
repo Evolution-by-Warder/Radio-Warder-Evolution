@@ -90,10 +90,32 @@ def build(world_path, shards, tag, output, production_candidate=False):
                                 entry.filename not in known or
                                 entry.file_size>MAX_PNG):
                             raise ValueError('Foreign original logo in ZIP')
+                own=manifest.get('files',{})
+                bouquet_info=own.get(f'bouquets/{code}.radio') if isinstance(own,dict) else None
+                catalog_info=own.get(f'catalog/{code}.json') if isinstance(own,dict) else None
+                if (not isinstance(bouquet_info,dict) or not isinstance(catalog_info,dict)
+                        or bouquet_info.get('sha256')!=record.get('bouquet_sha256')
+                        or catalog_info.get('sha256')!=record.get('catalog_sha256')
+                        or not isinstance(record.get('bouquet_sha256'),str)
+                        or not isinstance(record.get('catalog_sha256'),str)):
+                    raise ValueError('Per-country world and original inventory SHA mismatch')
                 attempted=manifest.get('logo_attempted')
                 is_complete=(manifest.get('logo_package_complete') is True and
                              type(attempted) is int and attempted==record['stations'])
-                result['countries'][code]={'logo_package_complete':is_complete,
+                found=manifest.get('logos_found')
+                missing=manifest.get('logos_missing')
+                if (type(found) is not int or type(missing) is not int
+                        or found<0 or missing<0 or
+                        type(attempted) is not int or attempted<0
+                        or found+missing!=attempted):
+                    raise ValueError('Country original logo coverage mismatch')
+                result['countries'][code]={
+                    'stations':record['stations'],
+                    'bouquet_sha256':record['bouquet_sha256'],
+                    'catalog_sha256':record['catalog_sha256'],
+                    'logo_package_complete':is_complete,
+                    'logos_found':found, 'logos_missing':missing,
+                    'logo_attempted':attempted,
                     'logos':{'file':code+'.zip','bytes':item['bytes'],
                              'sha256':item['sha256']}}
     except (BadZipFile,KeyError,TypeError,json.JSONDecodeError):
