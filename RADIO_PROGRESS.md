@@ -1,3 +1,12 @@
+## 19. 11. 2026 — 96 krajín a 20 818 originálnych PNG, test najväčšieho US bouquetu
+
+- **Celosvetové originálne logá:** [Actions #44583128017](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44583128017) má pri poslednom odčítaní **12 úspešných country logo dávok**, teda **96/224 krajín**, **25 322** aktualizovaných staníc z presne podpísaného pôvodného 48 219 staničného world snapshotu a **20 818 originálnych PNG**. V týchto 96 krajinách je **4504** streamov bez dostupného loga. **0 krajinských chýb** medzi potvrdenými dávkami. Ostatné batch jobs sú stále queued/in_progress, kompletný source kandidát ešte **nie je pripravený**.
+- **Menu Radio Mode a diagnostika:** [FullHDGlass PR #129](https://github.com/Evolution-by-Warder/FullHDGlass-Warder-Evolution/pull/129) má `warderRadioWorld.available_countries()`, ktoré pri nainštalovanom 224-country indexe ponúka **presne všetkých 224 lokálnych krajín**, namiesto starého pluginového zoznamu. Read-only `--diagnose-world PATHS` kontroluje SHA a vlastníctvo world+radio PNG, aktuálny výber, počty staníc a dátum 14-dňového update. [Reálny bridge CI #44589730030 PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44589730030): 224 natívnych country menu volieb, world owner integrity PASS, CZ 202 aktuálnych piconov PASS, TV/SAT bez zásahu.
+- **Záťažový test:** v [`verify_real_world_receiver_bridge.py`](tools/verify_real_world_receiver_bridge.py) pribudla najväčšia aktuálna krajina **US 6749 staníc** k existujúcim SK, CZ, FR, DE, GB, IT, ET. Test bol práve odoslaný na CI; fyzický čas na GigaBlue zatiaľ nemáme.
+- **Produkcia:** zatiaľ iba GitHub review kandidáty a bezpečné pracovné vetvy. Nepublikovali sme `main/assets/radio-country/latest.json` ani žiadnu novú ostrú či testovaciu IPK; nedokončený 224-country PNG zber nesmie predstierať finálne vydanie.
+
+---
+
 ## 19. 11. 2026 — Samočinná 14-dňová nadväzná kontrola bouquetov a log (bez publikovania)
 
 - **Zmena:** Na pracovnej vetve [PR #52](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/pull/52) je dvojstupňový plánovaný kontrolný proces. [`radio-world-all-bouquets-review.yml`](.github/workflows/radio-world-all-bouquets-review.yml) má cron `23 3 1,15 * *`, `workflow_dispatch` a kontrolu pri push bez opätovného 224-krajinského zberu. **Cron sa aktivuje iba na default vetve po schválenom merge; teraz na feature nebeží.**
