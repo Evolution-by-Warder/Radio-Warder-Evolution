@@ -11,6 +11,7 @@ from pathlib import Path
 import sys
 import tempfile
 from time import perf_counter
+from unittest.mock import patch
 
 WORLD_SHA='9e600636cf38bb874bed4b984a8dffccb0a50e76f50349770eac19b703501029'
 
@@ -44,6 +45,13 @@ def main():
         intro=world.install_world(args.world,WORLD_SHA,paths,require_external=False)
         assert intro['changed'] and intro['countries']==224 and intro['stations']==48219, intro
         assert country.bootstrap(etc)['country']=='SK'
+        with patch.object(live, '_radio_world_root', return_value=paths):
+            choices = country.country_options()
+        assert len(choices) == 224, ('Radio Mode omitted world countries', len(choices))
+        assert len({code for _, code in choices}) == 224
+        assert all(code in dict(choices).values() for code in ('SK', 'CZ', 'FR', 'DE'))
+        print(json.dumps({'native_radio_country_menu_entries':len(choices),
+                          'source':'installed world index, not online station API'}))
         original=(etc/'bouquets.radio').read_bytes()
         index=json.loads((paths/'radio-world/index.json').read_text())
         timings={}
@@ -78,8 +86,19 @@ def main():
             assert (picon/'SAT-TV-stay-untouched.png').read_bytes()==b'satellite-test-fixture'
             print(json.dumps({'country':code,'installed_original_logos':found,
                               'tv_sat_picons_preserved':True}))
+        health = world.diagnose(paths, etc)
+        assert health['world_present'] and health['world_owned_integrity_valid']
+        assert health['world_countries']==224 and health['world_stations']==48219
+        assert health['radio_picons_owned_integrity_valid']
+        assert health['radio_logo_country']=='CZ' and health['radio_png_count']==202
+        assert health['active_country']=='CZ' and health['mapped_stations']==229
+        print(json.dumps({'real_world_read_only_diagnostics':'PASS',
+                          'country':health['active_country'],
+                          'world_countries':health['world_countries'],
+                          'radio_png_count':health['radio_png_count']}))
         print(json.dumps({'result':'PASS','world_countries':224,
-                          'world_stations':48219,'local_switch_ms':timings,
+                          'world_stations':48219,'country_menu_entries':len(choices),
+                          'local_switch_ms':timings,
                           'receiver_physical_speed_not_measured':True}))
 
 
