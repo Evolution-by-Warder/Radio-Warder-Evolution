@@ -239,6 +239,12 @@ jobs:
               raise SystemExit('Country/logo regression or incomplete source: publication held')
           print('Validated country and original-logo changes. No change:',d['no_change'])
           PY
+          plan=(--current build/world-candidate/latest.json
+                --output build/world-candidate/release-plan.json)
+          if [ -s /tmp/radio-prior.json ]; then
+            plan+=(--previous /tmp/radio-prior.json)
+          fi
+          python3 -B tools/plan_radio_country_release_assets.py "${plan[@]}"
       - uses: actions/upload-artifact@v4
         with:
           name: radio-world-fortnightly-with-original-logo-checks-REVIEW-ONLY
