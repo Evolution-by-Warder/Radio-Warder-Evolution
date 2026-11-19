@@ -198,6 +198,32 @@ jobs:
             --out build/world-candidate/latest.json \
             --tag "$tag" --production-candidate
           python3 -c 'import json,os; d=json.load(open("build/world-candidate/latest.json")); assert d["complete"] and d["country_count"]==int(os.environ["EXPECTED_COUNTRIES"]); print("SOURCE CANDIDATE COMPLETE",d["country_count"])'
+      - name: Compare with last official country release and hold coverage regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--current build/world-candidate/latest.json
+                --output build/world-candidate/changes.json)
+          url="https://raw.githubusercontent.com/Evolution-by-Warder/Radio-Warder-Evolution/main/assets/radio-country/latest.json"
+          if status=$(curl -sSL --connect-timeout 5 --max-time 25 -w '%{http_code}' -o /tmp/radio-prior.json "$url"); then
+            if [ "$status" = 200 ]; then
+              args+=(--previous /tmp/radio-prior.json)
+            elif [ "$status" != 404 ]; then
+              echo "Unexpected remote previous snapshot response: $status" >&2
+              exit 1
+            fi
+          else
+            echo "Unable to verify previous country release; preserve old state" >&2
+            exit 1
+          fi
+          python3 -B tools/review_country_release_changes.py "${args[@]}"
+          python3 - <<'PY'
+          import json
+          d=json.load(open('build/world-candidate/changes.json'))
+          if not d['eligible_for_manual_release_review']:
+              raise SystemExit('Country/logo regression or incomplete source: publication held')
+          print('Validated country and original-logo changes. No change:',d['no_change'])
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: radio-world-fortnightly-with-original-logo-checks-REVIEW-ONLY
