@@ -168,6 +168,14 @@ jobs:
             --out build/world-candidate/latest.json \
             --tag radio-country-20261119 --production-candidate
           python3 -c 'import json; d=json.load(open("build/world-candidate/latest.json")); assert d["complete"] and d["country_count"]==224; print("SOURCE CANDIDATE COMPLETE",d["country_count"])'
+      - name: Independent final audit of every country and logo ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tools/audit_radio_country_release_assets.py \
+            --world build/world-candidate/radio-countries-bouquets.zip \
+            --shards build/full-world-shards \
+            --index build/world-candidate/latest.json
       - uses: actions/upload-artifact@v4
         with:
           name: radio-world-224-with-original-logo-checks-REVIEW-ONLY
