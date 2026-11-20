@@ -11,7 +11,9 @@ import json
 from pathlib import Path
 import tempfile
 from urllib.parse import urlsplit
-from uuid import UUID
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))
+from WarderRadio.curated_station_logos import SK_SOURCE, validated_source
 
 from complete_world_country_original_logos import engine, verify_source
 from recover_missing_radio_logos import recover_country
@@ -27,86 +29,6 @@ PINNED_WORLD_SHA = '669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94
 # https://www.radia.sk/radia/bela
 # https://www.radia.sk/radia/x-metal
 # https://www.radia.sk/radia/litera
-SK_SOURCE = {
-    '7ee66666-7361-468c-ace4-1f7a357b58f6': {
-        'name': 'Rádio Topoľčany',
-        'homepage': 'radiotopolcany.sk',
-        'profile': 'https://www.radia.sk/radia/topolcany',
-        'logo': 'https://www.radia.sk/_radia/loga/coverflow/topolcany.png',
-    },
-    '913b7498-8e2d-420b-8c3b-dbacdf9597c4': {
-        'name': 'Rádio Jazz',
-        'homepage': 'radiojazz.sk',
-        'profile': 'https://www.radia.sk/radia/jazz',
-        'logo': 'https://cdn.radia.sk/_radia/loga/coverflow/jazz.png',
-    },
-    # This actual heading logo is linked from the verified Radia.sk profile.
-    '8e94c1a0-d37c-4f3a-aa1a-0911a57fbc30': {
-        'name': 'Party Radio',
-        'homepage': 'partyradio.sk',
-        'profile': 'https://www.radia.sk/radia/party',
-        'logo': 'https://cdn.radia.sk/_radia/loga/nadpis/party.png?v=1',
-    },
-    '12e9aa8b-996e-4cf0-aace-3a8addf4dd57': {
-        'name':'Radio Bela',
-        'homepage':'radiobela.zanet.sk',
-        'profile':'https://www.radia.sk/radia/bela',
-        'logo':'https://www.radia.sk/_radia/loga/coverflow/bela.png',
-    },
-    'b141d7a8-81a2-4e96-8b3d-23e7938193fa': {
-        'name':'Radio X Metal',
-        'homepage':'stream.radiox.sk',
-        'profile':'https://www.radia.sk/radia/x-metal',
-        'logo':'https://cdn.radia.sk/_radia/loga/nadpis/x-metal.png?v=2',
-    },
-    '6102c39e-1f26-47d0-9223-e70987841a3d': {
-        'name':'RTVS Litera256',
-        'homepage':'live.slovakradio.sk',
-        'homepage_path':'/Litera',
-        'homepage_port':8000,
-        'profile':'https://www.radia.sk/radia/litera',
-        'logo':'https://www.radia.sk/_radia/loga/coverflow/litera.png',
-    },
-}
-SAFE_IMAGE_HOSTS = frozenset(('www.radia.sk', 'cdn.radia.sk'))
-
-
-def validated_source(row, source=SK_SOURCE):
-    """Allow a known logo URL only for its exact, canonical UUID + brand."""
-    if not isinstance(row, dict):
-        return None
-    uuid = row.get('stationuuid')
-    record = source.get(uuid)
-    if not record or uuid != str(UUID(uuid)) or row.get('countrycode') != 'SK':
-        return None
-    if row.get('name') != record['name']:
-        return None
-    try:
-        homepage = urlsplit(row.get('homepage') or '')
-        host = (homepage.hostname or '').lower().removeprefix('www.')
-        logo = urlsplit(record['logo'])
-        profile = urlsplit(record['profile'])
-    except (AttributeError, TypeError, ValueError):
-        return None
-    if (homepage.scheme not in ('http', 'https') or
-            host != record['homepage'] or
-            (record.get('homepage_path') is not None and
-             homepage.path != record['homepage_path']) or
-            (record.get('homepage_port') is not None and
-             homepage.port != record['homepage_port']) or
-            logo.scheme != 'https' or
-            logo.hostname not in SAFE_IMAGE_HOSTS or
-            not logo.path.startswith(('/_radia/loga/coverflow/',
-                                      '/_radia/loga/nadpis/')) or
-            not logo.path.endswith('.png') or
-            logo.query not in ('', 'v=1', 'v=2', 'v=4') or
-            logo.fragment or logo.username or logo.password or
-            profile.scheme != 'https' or profile.hostname != 'www.radia.sk' or
-            not profile.path.startswith('/radia/')):
-        return None
-    return record
-
-
 class VerifiedStationSources:
     """Only these exact UUIDs can request an actual third-party image."""
     def __init__(self, directory, download=None, normalize=None, records=SK_SOURCE):
