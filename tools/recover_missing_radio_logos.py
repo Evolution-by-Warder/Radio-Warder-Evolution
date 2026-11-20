@@ -21,6 +21,10 @@ CODE = re.compile(r'^[A-Z]{2}$')
 PNG = re.compile(r'^4097_0_2_(?:[0-9A-F]{1,8}_){6}[0-9A-F]{1,8}\.png$')
 HASH = re.compile(r'^[0-9a-f]{64}$')
 # A site-wide social/media icon is not necessarily the broadcaster's logo.
+# Verified data conflict: this SK-coded UUID advertises Ukrainian Radio Relax
+# imagery, but its stream belongs to Estonia's distinct Relax International.
+# Never install the Ukrainian image as a guessed SK logo.
+QUARANTINED_UUIDS = frozenset(('648e9e34-640d-4c9c-acc8-32d72063c44f',))
 SHARED_HOSTS = frozenset((
     'facebook.com', 'instagram.com', 'youtube.com', 'youtu.be',
     'x.com', 'twitter.com', 'tiktok.com', 'linktr.ee', 'soundcloud.com',
@@ -148,6 +152,8 @@ def recover_country(world_path, world_index, code, old_root, store, validator, o
             good[filename] = png_by_sha[next(iter(hashes))]
             cloned += 1
     missing = [r for r in rows if r['stem'] + '.png' not in good]
+    quarantined = [r for r in missing if r['stationuuid'] in QUARANTINED_UUIDS]
+    missing = [r for r in missing if r['stationuuid'] not in QUARANTINED_UUIDS]
     if max_network is not None and (type(max_network) is not int or max_network < 0):
         raise ValueError('Invalid network station limit')
     if max_network is not None:
@@ -175,6 +181,7 @@ def recover_country(world_path, world_index, code, old_root, store, validator, o
         'original_logos': len(original), 'cloned_exact': cloned,
         'new_downloads': coverage['logos_found'],
         'network_attempts': len(selected),
+        'quarantined_conflicting_identity': len(quarantined),
         'recovered_total': gained, 'logos_found': len(good),
         'logos_missing': len(rows) - len(good),
         'source_world_sha256': world_index.get('_source_sha256', ''),
