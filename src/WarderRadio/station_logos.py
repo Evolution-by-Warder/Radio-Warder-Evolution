@@ -127,6 +127,9 @@ def website_icons(item):
         return []
     return [
         'https://' + domain + '/apple-touch-icon.png',
+        # Try the station's own standard favicon before generic icon proxies.
+        # Strict public-IP and image size checks still apply in request_logo().
+        'https://' + domain + '/favicon.ico',
         'https://www.google.com/s2/favicons?domain=' + quote(domain, safe='') + '&sz=128',
         'https://icons.duckduckgo.com/ip3/' + quote(domain, safe='') + '.ico',
     ]
