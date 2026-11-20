@@ -36,7 +36,7 @@ jobs:
             --user-agent 'WarderRadioLogoReview/0.1 (https://github.com/Evolution-by-Warder/Radio-Warder-Evolution)' \
             'https://raw.githubusercontent.com/iprd-org/iprd/bbfff7fcfd1b29b39f6d8b0ec3c874737e00e478/docs/site_data/metadata/catalog.json' \
             -o "$ROOT/source/catalog.json"
-          echo 'bfa3a4399301c6f21519a57b8a44c61de13c129618e697cd67e1423510ca283e  ' "$ROOT/source/catalog.json" | sha256sum --check -
+          printf '%s  %s\n' 'bfa3a4399301c6f21519a57b8a44c61de13c129618e697cd67e1423510ca283e' "$ROOT/source/catalog.json" | sha256sum --check -
       - name: Read current verified 39150 original world and only three original country ZIPs
         run: |
           set -euo pipefail
