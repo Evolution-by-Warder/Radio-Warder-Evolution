@@ -136,11 +136,16 @@ def website_icons(item):
 
 
 class StationLogos:
-    def __init__(self, directory, download=request_logo, clock=time.time, alternatives=None):
+    def __init__(self, directory, download=request_logo, clock=time.time,
+                 alternatives=None, bulk_mode=False):
         self.directory = os.path.join(directory, 'station-logo-cache')
         self.download, self.clock = download, clock
         self.alternatives = alternatives or self.find_alternatives
         self.catalogue_root = directory
+        # The offline 224-country builder has several readers at once. Do not
+        # prune another worker's returned PNG before it enters the country ZIP.
+        # Normal receiver/plugin caching stays strictly bounded by default.
+        self.bulk_mode = bool(bulk_mode)
 
     def find_alternatives(self, item):
         """Only exact name and country matches from the public Radio Browser API."""
@@ -213,12 +218,14 @@ class StationLogos:
                 write_atomic(path, best)
                 if os.path.isfile(miss):
                     os.unlink(miss)
-                prune(self.directory, PATTERN, 128, 4 * 1024 * 1024, keep=(path,))
+                if not self.bulk_mode:
+                    prune(self.directory, PATTERN, 128, 4 * 1024 * 1024, keep=(path,))
                 return path
             if not present:
                 os.makedirs(self.directory, exist_ok=True, mode=0o700)
                 write_atomic(miss, b'')
-                prune(self.directory, MISS_PATTERN, 128, 1024 * 1024)
+                if not self.bulk_mode:
+                    prune(self.directory, MISS_PATTERN, 128, 1024 * 1024)
         except OSError:
             pass
         return path if present else None
