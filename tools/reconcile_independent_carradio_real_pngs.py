@@ -20,7 +20,7 @@ from audit_independent_carradio_world import WORLD_SHA, SOURCE_COMMIT, norm,safe
 
 def expected_country_codes(source):
     evidence=source.get("source_evidence")
-    if not isinstance(evidence,dict):
+    if not isinstance(evidence,dict) or not evidence:
         raise ValueError("Missing independently matched source evidence")
     countries=set()
     for uuid,match in evidence.items():
