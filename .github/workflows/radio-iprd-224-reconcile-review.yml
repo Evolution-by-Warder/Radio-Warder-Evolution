@@ -1,0 +1,157 @@
+name: Reconcile 28 IPRD image shards with 21 previously verified SVG PNGs - review ONLY
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iprd-224-reconcile-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-iprd-224-reconciliation
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test exact SVG overlap deduplication and wrong artwork quarantine
+        run: |
+          python3 -B tests/test_reconcile_iprd_svg_world.py
+          python3 -B tests/test_assemble_recovered_radio_world.py
+          python3 -B tests/test_iprd_radio_logo_recovery.py
+      - name: Download only previously audited immutable world and original logo assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/original-batches" "$ROOT/svg" \
+                   "$ROOT/over-sk" "$ROOT/over-cz" "$ROOT/over-de" \
+                   "$ROOT/iprd-batches" "$ROOT/iprd-reports" "$ROOT/old" "$ROOT/iprd-staged"
+          gh run download 44781162459 \
+            -n radio-world-224-39150-station-originals-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44583128017 \
+            -p 'radio-original-logos-batch-*-REVIEW' -D "$ROOT/original-batches"
+          gh run download 44780198931 \
+            -n radio-world-224-recovered-all-direct-SVG-REVIEW-ONLY -D "$ROOT/svg"
+          gh run download 44780870898 \
+            -n radio-SK-curated-six-profiles-REVIEW-ONLY -D "$ROOT/over-sk"
+          gh run download 44762776607 \
+            -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/over-cz"
+          gh run download 44776112474 \
+            -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/over-de"
+      - name: Retrieve all 28 independent source archive candidates and matching small evidence reports
+        run: |
+          set -euo pipefail
+          gh run download 44790307518 \
+            -p 'radio-iprd-original-logos-*-REVIEW' -D "$ROOT/iprd-batches"
+          gh run download 44790307518 \
+            -p 'radio-iprd-report-*-REVIEW' -D "$ROOT/iprd-reports"
+      - name: Reconstruct the exact 39,150-logo source base, not the older 39,129 subset
+        run: |
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          orig=list((root/'original-batches').rglob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          if len(orig)!=224:
+              raise SystemExit('Missing original 224 complete source archives: '+str(len(orig)))
+          seen=set()
+          for item in orig:
+              code=item.name.split('-')[2]
+              if code in seen or item.is_symlink() or not item.is_dir():
+                  raise SystemExit('Duplicate source country')
+              seen.add(code)
+              shutil.move(str(item),str(root/'old'/item.name))
+          # Ten SVG countries contribute 21 previously verified station logos
+          # that the IPRD source jobs originally did not have in their cache.
+          guarded=('BG','BR','CA','ES','FR','IN','NL','RU','TW','US')
+          for code in guarded:
+              folder='radio-country-'+code+'-REVIEW-NOT-PRODUCTION'
+              source=root/'svg'/'candidates'/folder
+              if not source.is_dir() or source.is_symlink():
+                  raise SystemExit('Missing reviewed SVG original: '+code)
+              shutil.rmtree(root/'old'/folder)
+              shutil.copytree(source,root/'old'/folder)
+          for code,key in (('SK','over-sk'),('CZ','over-cz'),('DE','over-de')):
+              folder='radio-country-'+code+'-REVIEW-NOT-PRODUCTION'
+              source=root/key/folder
+              if not source.is_dir() or source.is_symlink():
+                  raise SystemExit('Missing reviewed source original: '+code)
+              shutil.rmtree(root/'old'/folder)
+              shutil.copytree(source,root/'old'/folder)
+          from pathlib import Path
+          import json
+          originals=sorted((root/'old').glob('radio-country-??-REVIEW-NOT-PRODUCTION/manifests/??.json'))
+          assert len(originals)==224
+          number=sum(json.loads(x.read_text())['logos_found'] for x in originals)
+          assert number==39150, 'Original reviewed PNG count regressed: '+str(number)
+          print('Reconstructed unchanged 39150 original PNGs across 224 countries')
+          PY
+      - name: Stage ONLY new independent IPRD ZIP candidates
+        run: |
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          source=list((root/'iprd-batches').rglob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          seen=set()
+          for folder in source:
+              code=folder.name.split('-')[2]
+              if code in seen or folder.is_symlink() or not folder.is_dir():
+                  raise SystemExit('Duplicated or symlinked IPRD candidate: '+code)
+              seen.add(code)
+              shutil.move(str(folder),str(root/'iprd-staged'/folder.name))
+          if not 20 <= len(seen) <= 224:
+              raise SystemExit('Unexpected number of changed IPRD country ZIPs')
+          print('Staged changed IPRD source-country candidates',len(seen))
+          PY
+      - name: Reconcile all 224 immutable station maps and independently reviewed images
+        run: |
+          set -euo pipefail
+          python3 -B tools/reconcile_iprd_svg_world.py \
+            --world "$ROOT/world/new-world/radio-countries-bouquets.zip" \
+            --old-root "$ROOT/old" \
+            --iprd-candidates "$ROOT/iprd-staged" \
+            --reports "$ROOT/iprd-reports" \
+            --svg-report "$ROOT/svg/recovered/all-world-direct-svg-review.json" \
+            --out "$ROOT/reconciled"
+      - name: Independently validate worldwide output SHA and no lost radio stations
+        run: |
+          python3 - <<'PY'
+          import json,os,sys,hashlib
+          from pathlib import Path
+          from zipfile import ZipFile
+          sys.path.insert(0,str(Path.cwd()/'tools'))
+          from complete_world_country_original_logos import verify_source
+          root=Path(os.environ['ROOT'])/'reconciled'
+          report=json.loads((root/'reconciliation.json').read_text())
+          assert report['review_only'] is True
+          assert report['countries']==224 and report['stations']==48219
+          assert report['original_png_count']==39150
+          assert report['iprd_png_downloaded']==510
+          assert report['already_verified_svg_overlap']==1
+          assert report['quarantined_generic_png']==8
+          assert report['actual_new_png']==501
+          assert report['logo_count']==39651 and report['missing_logos']==8568
+          file=root/'new-world/radio-countries-bouquets.zip'
+          digest=hashlib.sha256(file.read_bytes()).hexdigest()
+          assert digest==report['new_world_sha256']
+          index=verify_source(file,digest)
+          assert index['station_count']==48219 and index['country_count']==224
+          assert sum(x['logos_found'] for x in index['countries'].values())==39651
+          print('FINAL COMPLETE 224-COUNTRY RADIO REVIEW: 39651 ORIGINAL LOGOS',json.dumps({
+              k:v for k,v in report.items() if k not in
+              ('country_source_reviews','changed_countries')
+          },sort_keys=True))
+          PY
+      - name: Archive only verified new world and changed country original-logo packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-IPRD-39651-authentic-logo-candidate-REVIEW-ONLY
+          path: /tmp/warder-iprd-224-reconciliation/reconciled/
+          if-no-files-found: error
+          retention-days: 30
