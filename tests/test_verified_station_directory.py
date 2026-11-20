@@ -13,6 +13,9 @@ from recover_verified_station_directory import (
 TOP = '7ee66666-7361-468c-ace4-1f7a357b58f6'
 JAZZ = '913b7498-8e2d-420b-8c3b-dbacdf9597c4'
 PARTY = '8e94c1a0-d37c-4f3a-aa1a-0911a57fbc30'
+BELA = '12e9aa8b-996e-4cf0-aace-3a8addf4dd57'
+METAL = 'b141d7a8-81a2-4e96-8b3d-23e7938193fa'
+LITERA = '6102c39e-1f26-47d0-9223-e70987841a3d'
 
 
 def row(uuid=TOP, name='Rádio Topoľčany',
@@ -28,6 +31,13 @@ class Tests(unittest.TestCase):
             row(JAZZ,'Rádio Jazz','https://radiojazz.sk/'))['name'],'Rádio Jazz')
         self.assertEqual(validated_source(
             row(PARTY,'Party Radio','https://www.partyradio.sk/'))['name'],'Party Radio')
+        self.assertEqual(validated_source(
+            row(BELA,'Radio Bela','https://www.radiobela.zanet.sk/'))['name'],'Radio Bela')
+        self.assertEqual(validated_source(
+            row(METAL,'Radio X Metal','https://stream.radiox.sk/'))['name'],'Radio X Metal')
+        self.assertEqual(validated_source(
+            row(LITERA,'RTVS Litera256','http://live.slovakradio.sk:8000/Litera'))['name'],
+                         'RTVS Litera256')
         self.assertTrue(all(x['logo'].startswith('https://')
                             for x in SK_SOURCE.values()))
 
@@ -39,6 +49,11 @@ class Tests(unittest.TestCase):
             row(homepage='https://unrelated-radio.sk/'),
             row(homepage='http://127.0.0.1/private'),
             row(uuid='648e9e34-640d-4c9c-acc8-32d72063c44f'),
+            row(LITERA, 'RTVS Litera256',
+                'http://live.slovakradio.sk:8000/AnotherStream'),
+            row(LITERA, 'RTVS Litera256',
+                'http://live.slovakradio.sk:8001/Litera'),
+            row(METAL, 'Radio X Metal', 'https://random-radiox.com/'),
         ]
         self.assertTrue(all(validated_source(x) is None for x in variants))
 
