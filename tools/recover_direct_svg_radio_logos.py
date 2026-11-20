@@ -12,11 +12,15 @@ import json
 from pathlib import Path
 import re
 import tempfile
+import sys
 from urllib.parse import urlsplit
 
 from build_country_radio_packages import save
 from complete_world_country_original_logos import engine, verify_source
 from recover_missing_radio_logos import recover_country
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+from WarderRadio.logo_source_guard import mismatched_source
 
 WORLD_SHA = '669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38'
 SVG_URL = re.compile(r'\.svg(?:[?#]|$)', re.I)
@@ -24,7 +28,8 @@ SVG_URL = re.compile(r'\.svg(?:[?#]|$)', re.I)
 
 def svg_source(row):
     """No invented link, exact station favicon URI and public HTTPS only."""
-    if not isinstance(row, dict) or not isinstance(row.get('favicon'), str):
+    if (not isinstance(row, dict) or not isinstance(row.get('favicon'), str)
+            or mismatched_source(row) is not None):
         return None
     value = row['favicon'].strip()
     if not SVG_URL.search(value):
@@ -56,8 +61,16 @@ class DirectSVGStore:
         self.successes = {}
         self.failures = Counter()
         self.attempted = 0
+        self.branding_quarantine = {}
 
     def get(self, row):
+        bad = mismatched_source(row)
+        if bad is not None:
+            self.branding_quarantine[row['stationuuid']] = {
+                'country': row.get('countrycode'),
+                'station': row.get('name'),
+                'rejected_source': bad}
+            return None
         link = svg_source(row)
         if link is None:
             return None
@@ -112,7 +125,7 @@ def run(world_path, old_root, output, cache_root=None):
         # The country generator also supplies non-HTTPS SVG URLs to get().
         # Our strict source gate skips them without any network request;
         # they are accounted for as rejected candidates, not lost attempts.
-        if loader.attempted > selected_svg_candidates:
+        if loader.attempted + len(loader.branding_quarantine) > selected_svg_candidates:
             raise ValueError('Unrecorded SVG acquisition attempt')
         if len(loader.successes) != sum(r['new_downloads'] for r in results):
             raise ValueError('Unrecorded SVG acquisition success')
@@ -124,7 +137,10 @@ def run(world_path, old_root, output, cache_root=None):
             'remaining_missing':sum(r['logos_missing'] for r in results),
             'svg_candidates_checked':selected_svg_candidates,
             'svg_network_attempts':loader.attempted,
-            'svg_rejected_non_https_or_unsafe':selected_svg_candidates-loader.attempted,
+            'svg_rejected_non_https_or_unsafe': (
+                selected_svg_candidates-loader.attempted-len(loader.branding_quarantine)),
+            'svg_branding_mismatch_quarantined':len(loader.branding_quarantine),
+            'branding_quarantine':loader.branding_quarantine,
             'svg_download_successes':len(loader.successes),
             'errors':dict(loader.failures),
             'changed_countries':[r for r in results if r['recovered_total']],
