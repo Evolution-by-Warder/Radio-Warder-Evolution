@@ -30,7 +30,7 @@ jobs:
           mkdir -p "$ROOT/world" "$ROOT/wiki" "$ROOT/city" "$ROOT/original" "$ROOT/candidates"
           gh run download 44794574890 \
             -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY -D "$ROOT/world"
-          gh run download 44802012033 \
+          gh run download 44802350286 \
             -n radio-new-independent-city-logos-US-CA-REVIEW-ONLY -D "$ROOT/city"
           for shard in 06 08 18 25; do
             mkdir -p "$ROOT/wiki/$shard"
@@ -91,6 +91,7 @@ jobs:
                   assert len(new_sources)==delta[code]
                   print('NEW EXACT STATION LOGOS',code,json.dumps(new_sources,ensure_ascii=False,sort_keys=True))
           assert not (root/'candidates/radio-country-US-REVIEW-NOT-PRODUCTION').exists()
+          assert not (root/'city/radio-country-US-REVIEW-NOT-PRODUCTION').exists(), 'Known wrong USA branding was not quarantined'
           print('ORIGINAL WORLD SHA PRESERVED; 12 source images in 5 countries; mismatched Bust.club EXCLUDED')
           PY
       - name: Assemble and SHA-verify NEW world with precisely 39655 original radio PNGs
