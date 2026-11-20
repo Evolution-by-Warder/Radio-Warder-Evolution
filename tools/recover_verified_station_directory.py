@@ -37,6 +37,13 @@ SK_SOURCE = {
         'profile': 'https://www.radia.sk/radia/jazz',
         'logo': 'https://cdn.radia.sk/_radia/loga/coverflow/jazz.png',
     },
+    # This actual heading logo is linked from the verified Radia.sk profile.
+    '8e94c1a0-d37c-4f3a-aa1a-0911a57fbc30': {
+        'name': 'Party Radio',
+        'homepage': 'partyradio.sk',
+        'profile': 'https://www.radia.sk/radia/party',
+        'logo': 'https://cdn.radia.sk/_radia/loga/nadpis/party.png?v=1',
+    },
 }
 SAFE_IMAGE_HOSTS = frozenset(('www.radia.sk', 'cdn.radia.sk'))
 
@@ -62,9 +69,11 @@ def validated_source(row, source=SK_SOURCE):
             host != record['homepage'] or
             logo.scheme != 'https' or
             logo.hostname not in SAFE_IMAGE_HOSTS or
-            not logo.path.startswith('/_radia/loga/coverflow/') or
+            not logo.path.startswith(('/_radia/loga/coverflow/',
+                                      '/_radia/loga/nadpis/')) or
             not logo.path.endswith('.png') or
-            logo.query or logo.fragment or logo.username or logo.password or
+            logo.query not in ('', 'v=1') or
+            logo.fragment or logo.username or logo.password or
             profile.scheme != 'https' or profile.hostname != 'www.radia.sk' or
             not profile.path.startswith('/radia/')):
         return None
