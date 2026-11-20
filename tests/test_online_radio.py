@@ -355,6 +355,32 @@ class LogoTests(unittest.TestCase):
             self.assertEqual(logo_key(station_item), 'test-uuid')
 
     @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_missing_api_logo_tries_exact_public_homepage_favicon(self):
+        body = io.BytesIO()
+        Image.new('RGBA', (128, 128), (30, 120, 200, 255)).save(body, 'PNG')
+        calls = []
+
+        def retrieve(url):
+            calls.append(url)
+            if url == 'https://radio.example/favicon.ico':
+                return body.getvalue()
+            raise OSError('No icon on this source')
+
+        with tempfile.TemporaryDirectory() as temporary:
+            item = {'stationuuid': 'offline-test-uuid', 'name': 'Radio Example',
+                    'countrycode': 'SK', 'favicon': '',
+                    'homepage': 'https://radio.example/schedule'}
+            logos = StationLogos(temporary, download=retrieve,
+                                alternatives=lambda station: [])
+            path = logos.get(item)
+            self.assertIsNotNone(path)
+            self.assertEqual(calls, ['https://radio.example/apple-touch-icon.png',
+                                     'https://radio.example/favicon.ico'])
+            with Image.open(path) as image:
+                self.assertEqual(image.size, (128, 128))
+            self.assertEqual(logos.get(item), path)
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
     def test_missing_favicon_uses_checked_alternative_station_record(self):
         with tempfile.TemporaryDirectory() as temporary:
             data = io.BytesIO()
