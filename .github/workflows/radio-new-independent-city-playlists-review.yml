@@ -38,6 +38,7 @@ jobs:
               -o "$ROOT/csv/$file"
           done
           gh run download 44794574890 -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY -D "$ROOT/world"
+          test "$(gh run view 44801652426 --json conclusion -q '.conclusion')" = success
           gh run download 44801652426 -n radio-canonical-39643-country-shard-04-REVIEW -D "$ROOT/ca"
           gh run download 44801652426 -n radio-canonical-39643-country-shard-25-REVIEW -D "$ROOT/us"
           cp -a "$ROOT/ca/radio-country-CA-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
