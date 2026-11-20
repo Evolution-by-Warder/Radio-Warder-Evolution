@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Import exactly identified missing radio logos from separately checked sources.
 
-The two Radia.sk broadcaster profiles independently identify the exact SK
+Independent Radia.sk broadcaster profiles identify the exact SK
 station name and homepage. Never infer a logo from a similar station or a
 search result alone.  This is review-only, no release and no main mutation.
 """
@@ -24,6 +24,9 @@ PINNED_WORLD_SHA = '669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94
 # Page evidence:
 # https://www.radia.sk/radia/topolcany
 # https://www.radia.sk/radia/jazz
+# https://www.radia.sk/radia/bela
+# https://www.radia.sk/radia/x-metal
+# https://www.radia.sk/radia/litera
 SK_SOURCE = {
     '7ee66666-7361-468c-ace4-1f7a357b58f6': {
         'name': 'Rádio Topoľčany',
@@ -43,6 +46,26 @@ SK_SOURCE = {
         'homepage': 'partyradio.sk',
         'profile': 'https://www.radia.sk/radia/party',
         'logo': 'https://cdn.radia.sk/_radia/loga/nadpis/party.png?v=1',
+    },
+    '12e9aa8b-996e-4cf0-aace-3a8addf4dd57': {
+        'name':'Radio Bela',
+        'homepage':'radiobela.zanet.sk',
+        'profile':'https://www.radia.sk/radia/bela',
+        'logo':'https://www.radia.sk/_radia/loga/coverflow/bela.png',
+    },
+    'b141d7a8-81a2-4e96-8b3d-23e7938193fa': {
+        'name':'Radio X Metal',
+        'homepage':'stream.radiox.sk',
+        'profile':'https://www.radia.sk/radia/x-metal',
+        'logo':'https://cdn.radia.sk/_radia/loga/nadpis/x-metal.png?v=2',
+    },
+    '6102c39e-1f26-47d0-9223-e70987841a3d': {
+        'name':'RTVS Litera256',
+        'homepage':'live.slovakradio.sk',
+        'homepage_path':'/Litera',
+        'homepage_port':8000,
+        'profile':'https://www.radia.sk/radia/litera',
+        'logo':'https://www.radia.sk/_radia/loga/coverflow/litera.png',
     },
 }
 SAFE_IMAGE_HOSTS = frozenset(('www.radia.sk', 'cdn.radia.sk'))
@@ -67,12 +90,16 @@ def validated_source(row, source=SK_SOURCE):
         return None
     if (homepage.scheme not in ('http', 'https') or
             host != record['homepage'] or
+            (record.get('homepage_path') is not None and
+             homepage.path != record['homepage_path']) or
+            (record.get('homepage_port') is not None and
+             homepage.port != record['homepage_port']) or
             logo.scheme != 'https' or
             logo.hostname not in SAFE_IMAGE_HOSTS or
             not logo.path.startswith(('/_radia/loga/coverflow/',
                                       '/_radia/loga/nadpis/')) or
             not logo.path.endswith('.png') or
-            logo.query not in ('', 'v=1') or
+            logo.query not in ('', 'v=1', 'v=2', 'v=4') or
             logo.fragment or logo.username or logo.password or
             profile.scheme != 'https' or profile.hostname != 'www.radia.sk' or
             not profile.path.startswith('/radia/')):
