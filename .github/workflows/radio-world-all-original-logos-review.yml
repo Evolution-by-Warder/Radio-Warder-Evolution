@@ -67,7 +67,7 @@ jobs:
         batch: ${{ fromJSON(needs.index.outputs.batches) }}
     steps:
       - uses: actions/checkout@v4
-      - run: python3 -m pip install 'Pillow>=10,<13'
+      - run: python3 -m pip install 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
       - uses: actions/download-artifact@v4
         with:
           name: radio-world-ALL-BOUQUETS-NO-LOGOS-NOT-PRODUCTION
