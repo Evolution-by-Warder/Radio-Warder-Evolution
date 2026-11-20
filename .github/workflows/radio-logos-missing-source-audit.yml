@@ -17,7 +17,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
-      REVIEW_DIR: ${{ runner.temp }}/warder-missing-original-logos
+      REVIEW_DIR: /tmp/warder-missing-original-logos
     steps:
       - uses: actions/checkout@v4
       - name: Validate audit code offline
