@@ -1,0 +1,168 @@
+name: Reconcile all 510 independent IPRD radio logo candidates with 39150 verified originals
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iprd-39150-safe-merge-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  independent-candidate-merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-iprd-39150-source-merge
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source matching and strict preservation rules without network
+        run: |
+          PYTHONPATH=src python3 -B tests/test_reconcile_iprd_224_world.py
+          PYTHONPATH=src python3 -B tests/test_iprd_radio_logo_recovery.py
+          PYTHONPATH=src python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Download ONLY signed existing 224-country world and 28 IPRD reports
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/reports" "$ROOT/originalshards" \
+                   "$ROOT/svg-current" "$ROOT/sk" "$ROOT/base" "$ROOT/iprd-candidates"
+          gh run download 44781162459 \
+            -n radio-world-224-39150-station-originals-REVIEW-ONLY \
+            -D "$ROOT/world"
+          gh run download 44790307518 \
+            -p 'radio-iprd-report-*-REVIEW' -D "$ROOT/reports"
+          python3 - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          sys.path.insert(0,str(Path.cwd()/'tools'))
+          from reconcile_iprd_224_world import read_reports
+          from complete_world_country_original_logos import verify_source
+          world=root/'world/new-world/radio-countries-bouquets.zip'
+          index=verify_source(world,'a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74')
+          rows,totals=read_reports(root/'reports',index)
+          assert len(rows)==224 and totals=={'stations':48219,'prior':39129,'new':510}
+          print('EXACT IPRD SOURCE COUNTS:',totals)
+          PY
+      - name: Retrieve prior signed country archives and all 21 guarded original SVG additions
+        run: |
+          set -euo pipefail
+          gh run download 44583128017 \
+            -p 'radio-original-logos-batch-*-REVIEW' -D "$ROOT/originalshards"
+          gh run download 44780198931 \
+            -n radio-world-224-recovered-all-direct-SVG-REVIEW-ONLY \
+            -D "$ROOT/svg-current"
+          gh run download 44780870898 \
+            -n radio-SK-curated-six-profiles-REVIEW-ONLY -D "$ROOT/sk"
+      - name: Construct correct 39150-logo baseline using existing originals, no downloads
+        run: |
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          base=root/'base'
+          original=sorted((root/'originalshards').rglob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          if len(original)!=224:
+              raise SystemExit('Missing original 224 radio country directories')
+          codes=set()
+          for folder in original:
+              code=folder.name.split('-')[2]
+              if code in codes or folder.is_symlink() or not folder.is_dir():
+                  raise SystemExit('Duplicate or unsafe country')
+              codes.add(code)
+              shutil.copytree(folder,base/folder.name,copy_function=os.link)
+          # These SVG archives contain 21 newer vetted station images, plus
+          # the CZ and DE originals that were verified after first publication.
+          guarded=sorted((root/'svg-current/candidates').glob(
+              'radio-country-??-REVIEW-NOT-PRODUCTION'))
+          assert guarded and len(guarded)<=30
+          for folder in guarded:
+              code=folder.name.split('-')[2]
+              assert code in codes and not folder.is_symlink()
+              target=base/folder.name
+              shutil.rmtree(target)
+              shutil.copytree(folder,target)
+          # The latest six curated Slovak logos supersede SVG-run SK 114/123.
+          sk=root/'sk/radio-country-SK-REVIEW-NOT-PRODUCTION'
+          assert sk.is_dir() and not sk.is_symlink()
+          target=base/sk.name
+          shutil.rmtree(target)
+          shutil.copytree(sk,target)
+          print('Reconstructed baseline with 224 countries; SVG overlays:',len(guarded))
+          PY
+          python3 - <<'PY'
+          import os,sys
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          sys.path.insert(0,str(Path.cwd()/'tools'))
+          from reconcile_iprd_224_world import verify_baseline
+          from complete_world_country_original_logos import verify_source
+          world=root/'world/new-world/radio-countries-bouquets.zip'
+          idx=verify_source(world,'a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74')
+          print('SIGNED CURRENT WORLD BASELINE:',verify_baseline(root/'base',idx))
+          PY
+      - name: Download ONLY the original 28 IPRD country source review ZIP shards
+        run: |
+          set -euo pipefail
+          gh run download 44790307518 \
+            -p 'radio-iprd-original-logos-*-REVIEW' -D "$ROOT/iprd-candidates"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          root=Path(os.environ['ROOT'])
+          shards=[x for x in (root/'iprd-candidates').iterdir() if x.is_dir()]
+          assert len(shards)==28
+          print('Exactly 28 source-country review batches with original saved PNG bytes')
+          PY
+      - name: Reconcile 510 candidate images, preserve 21 newer SVGs, quarantine generic site art
+        run: |
+          set -euo pipefail
+          python3 -B tools/reconcile_iprd_224_world.py \
+            --world "$ROOT/world/new-world/radio-countries-bouquets.zip" \
+            --base-root "$ROOT/base" \
+            --reports "$ROOT/reports" \
+            --iprd-assets "$ROOT/iprd-candidates" \
+            --out "$ROOT/reconciled"
+      - name: Independently verify net additions and all exact signed station identities
+        run: |
+          python3 - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          sys.path.insert(0,str(Path.cwd()/'tools'))
+          from complete_world_country_original_logos import verify_source
+          report=json.loads((root/'reconciled/iprd-224-reconciled-review.json').read_text())
+          assert report['review_only'] is True and report['country_count']==224
+          assert report['previous_logos']==39150 and report['source_candidates']==510
+          total=(report['logos_added']+len(report['already_approved_overlap'])+
+                 len(report['quarantined_unrelated_art']))
+          assert total==510
+          assert report['previous_svg_overlay_count']==21
+          assert report['logos_after']==39150+report['logos_added']
+          path=root/'reconciled/world/radio-countries-bouquets.zip'
+          world=verify_source(path,report['new_world_sha256'])
+          assert world['station_count']==48219 and world['country_count']==224
+          assert sum(v['logos_found'] for v in world['countries'].values())==report['logos_after']
+          print('WORLD VERIFIED',json.dumps({
+              'countries':224,'stations':48219,
+              'prior':39150,'net_new_original_logos':report['logos_added'],
+              'current':report['logos_after'],'remaining':report['remaining_missing'],
+              'overlap_preserved':len(report['already_approved_overlap']),
+              'wrong_art_quarantined':len(report['quarantined_unrelated_art']),
+              'world_sha256':report['new_world_sha256']
+          },sort_keys=True))
+          PY
+      - name: Publish ONLY SHA-signed review candidates; no GitHub release or live feed
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-iprd-reconciled-source-logos-REVIEW-ONLY
+          path: |
+            /tmp/warder-iprd-39150-source-merge/reconciled/world/
+            /tmp/warder-iprd-39150-source-merge/reconciled/iprd-224-reconciled-review.json
+            /tmp/warder-iprd-39150-source-merge/reconciled/candidates/
+          retention-days: 30
+          if-no-files-found: error
