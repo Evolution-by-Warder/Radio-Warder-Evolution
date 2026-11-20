@@ -1,3 +1,11 @@
+## 20. 11. 2026 — udržanie šiestich SK originálov aj pri budúcich 14-dňových aktualizáciách
+
+- **Trvalý overený zdroj:** nové `src/WarderRadio/curated_station_logos.py` obsahuje presne šesť ručne overených staníc s UUID, kanonickým názvom, kódom SK, doménou skutočného vysielateľa a konkrétnym Radia.sk originálnym PNG. Pre Litera256 sa kontroluje aj pôvodná cesta `/Litera` a port `8000`. Rovnaký jediný register používa cielený importer `tools/recover_verified_station_directory.py`.
+- **Budúci build bez regresie:** `StationLogos.get` v review `bulk_mode` vie pri chýbajúcom favicon zdroji skúsiť presne priradený a nezmenený originálny URL pred generickými favicon službami. Platí len pre izolovaný ZIP generátor na GitHub Actions; bežný Radio Warder plugin v prijímači pri neaktívnom `bulk_mode` nemá ani jednu novú HTTP požiadavku.
+- **Regresie:** nový test pre zachovanie zdroja cez ďalší build, pri ktorom bežný plugin nemá sieťový fallback, a celý Radio PR unit + štyri špecializované bezpečnostné CI PASS na commite `a90ccc1d002dfd9511b35c5b1863a3afab9e2736` ([unit run #44782187985](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44782187985)). Bez produkčného publikovania, bez IPK.
+
+---
+
 ## 20. 11. 2026 — dokončená QA obrázkov a nový 39 158-logo world kandidát
 
 - **SVG vizuálny audit:** 10 z prvých 31 automaticky spracovaných SVG bolo nesprávnych – ikona webového portálu, prehrávača alebo spoločná generická ikona pre rôzne stanice. Zavedená presná karanténa UUID + pôvodná URL, nie plošné blokovanie stanice. Iný preukázateľne správny odkaz sa prijíma. Súbor: src/WarderRadio/logo_source_guard.py.
