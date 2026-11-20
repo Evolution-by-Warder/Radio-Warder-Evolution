@@ -1,3 +1,12 @@
+## 20. 11. 2026 — 6 NOVÝCH nemeckých originálov z Media Broadcast DAB+ (39 661/48 219)
+
+- **Nový, nezávislý, originálny zdroj:** [Media Broadcast GmbH – DAB+ Logoservice](https://media-broadcast.squarespace.com/dab-logoservice), oficiálne programové logá nemeckého DAB+ operátora vo vlastnom Squarespace assets, **nie Radio Browser, IPRD ani Wikimedia**. Zdrojový HTML SHA-256 `c06ef0d76a2d3adf1c55c9e80c7812bbf582d83f1f92376872bbf9c544a967ff`; z HTML-encoded JSON položiek sa bezpečne páruje `description` = zobrazený názov stanice, `imageAltText` = názov značky a `image.assetUrl` = originálny obrázok **v jednom zázname**, nie odhad podľa vizuálneho poradia. 156 jedinečných validovaných názvov v samostatnom katalógu.
+- **Reálna DE recovery [GitHub Actions #44818364283 PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44818364283):** **6 presných kandidátov, 6 skutočne stiahnutých a prijatých PNG, 0 HTTP/image failures**. Jeden rovnaký názov s odlišnou doménou vysielateľa odmietnutý ako nejednoznačný. DE 4 863 staníc: **4 035 → 4 041 PNG**, chýbajúce DE **828 → 822**, všetky staré PNG bajtovo zachované. Samostatný review importer `tools/recover_media_broadcast_de_radio_logos.py`, 5 špecializovaných regresných testov `tests/test_media_broadcast_de_radio_logos.py`, plus 5 pôvodných regresných testov v CI.
+- **Úspešné zloženie iba review sveta:** 224 krajín / 48 219 staníc / **39 661 správnych PNG**, chýba **8 558**. Pôvodný súhrnný ZIP SHA `66a6e9ddf655c9030e0279abc5596be7728d9f397835720f1018f449927a7221`; nový SHA-256 `1b0c79812d988ac4aaa368033d966de117d11e3ef5c9db66331afc5c9c750c8b` (6 nových DE PNG, žiadne prepísanie existujúcich).
+- **Neopakovať nezmenený operátorský snapshot.** Ďalej skúmať ďalšie nezávislé databázy. Všetko výhradne v PR #52, `main`, produkčné ZIP-y, `latest.json`, Release a IPK bez zmeny.
+
+---
+
 ## 20. 11. 2026 — nové RadioDNS UK dáta preverované proti 39 655-logo svetu (0 čerstvých PNG)
 
 - **Nový nezávislý zdroj, nie Radio Browser ani IPRD:** `https://www.radiodns.uk/services.json` (Ofcom + RadioDNS broadcaster SPI). Zdroje serverovej schémy boli overené v `njh/radiodns-uk` (`views/services_index.yajl`, `views/services_show.yajl`); 515 služieb s explicitným oficiálnym webom a URL log. Testovací importer `tools/recover_radiodns_uk_radio_logos.py`, regresie `tests/test_radiodns_uk_radio_logos.py`, review CI [#44817108745 PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44817108745).
