@@ -1,0 +1,66 @@
+name: Focused German radio missing-logo HTML recovery (review-only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-de-missing-logo-focused-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  german-sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 27
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-german-logo-sample
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline identity checks
+        run: python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Original plugin image dependency
+        run: python3 -m pip install --quiet Pillow
+      - name: Pin original world and already recovered German logos
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/previous" "$ROOT/old" "$ROOT/recovered"
+          gh run download 44583128017 -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44764518185 -n radio-224-exact-original-logo-reuse-REVIEW-ONLY -D "$ROOT/previous"
+          cp -a "$ROOT/previous/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          python3 - <<'PY'
+          import os,hashlib
+          from pathlib import Path
+          f=Path(os.environ['ROOT'])/'old/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip'
+          assert hashlib.sha256(f.read_bytes()).hexdigest() == '36216cc217cc9dd8a3ab14882615e0df2e79383ff691cb9a2d3ba549fc86759f'
+          PY
+      - name: Try only 75 highest-priority original German website logo gaps
+        run: |
+          python3 -B tools/recover_missing_radio_logos.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --world-sha256 669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38 \
+            --old-root "$ROOT/old" \
+            --countries DE \
+            --max-network 75 \
+            --out "$ROOT/recovered" \
+            --workers 8
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['ROOT'])/'recovered/missing-logo-recovery-report.json').read_text())
+          row=report['results'][0]
+          assert row['country']=='DE' and row['original_logos']==3954 and row['stations']==4863
+          assert 0<=row['network_attempts']<=75 and row['unchanged_existing_pngs']
+          assert row['logos_found']>=3954 and row['logos_missing']<=909
+          print('Focused DE sample:',json.dumps(report,sort_keys=True))
+          PY
+      - name: Keep changed country ZIP in review only
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-DE-75-priority-missing-originals-REVIEW-ONLY
+          path: /tmp/warder-german-logo-sample/recovered/
+          retention-days: 30
+          if-no-files-found: error
