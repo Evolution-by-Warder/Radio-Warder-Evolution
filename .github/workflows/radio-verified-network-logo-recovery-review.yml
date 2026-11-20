@@ -1,0 +1,93 @@
+name: Verified RU Dorozhnoe + CL Bio Bio original network logo recovery (review-only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/recover_verified_network_radio_logos.py
+      - tests/test_verified_network_radio_logos.py
+      - .github/workflows/radio-verified-network-logo-recovery-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reuse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-verified-affiliate-logo-224
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prove no source downloads and exact network logo identity
+        run: |
+          python3 -B tests/test_verified_network_radio_logos.py
+          python3 -B tests/test_missing_radio_logo_recovery.py
+          python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Fetch only immutable reviewed source assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/current" "$ROOT/cl-old" "$ROOT/old"
+          gh run download 44780198931 \
+            -n radio-world-224-recovered-all-direct-SVG-REVIEW-ONLY \
+            -D "$ROOT/current"
+          gh run download 44583128017 \
+            -n radio-original-logos-batch-05-REVIEW \
+            -D "$ROOT/cl-old"
+          cp -a "$ROOT/current/candidates/radio-country-RU-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/cl-old/radio-country-CL-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,os
+          root=Path(os.environ['ROOT'])
+          path=root/'current/new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(path.read_bytes()).hexdigest()=='d9825300b54e98859117bfc860102e8ae48a7209c481dbded6efae3346cc24f0'
+          PY
+      - name: Reuse 2 authoritative broadcaster PNGs for 11 exact affiliate services
+        run: |
+          set -euo pipefail
+          python3 -B tools/recover_verified_network_radio_logos.py \
+            --world "$ROOT/current/new-world/radio-countries-bouquets.zip" \
+            --world-sha256 d9825300b54e98859117bfc860102e8ae48a7209c481dbded6efae3346cc24f0 \
+            --old-root "$ROOT/old" \
+            --out "$ROOT/new-countries"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'new-countries/verified-affiliate-logo-review.json').read_text())
+          assert report['added']==11 and report['network_downloads']==0
+          counts={r['country']:r['recovered_total'] for r in report['countries_changed']}
+          assert counts=={'RU':9,'CL':2}
+          print('AUTHENTIC NETWORK ORIGINALS:',json.dumps(report,sort_keys=True))
+          PY
+      - name: Reassemble 224 intact world bouquets with only RU and CL logo updates
+        run: |
+          python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/current/new-world/radio-countries-bouquets.zip" \
+            --world-sha256 d9825300b54e98859117bfc860102e8ae48a7209c481dbded6efae3346cc24f0 \
+            --old-root "$ROOT/old" \
+            --candidates "$ROOT/new-countries" \
+            --countries RU,CL \
+            --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert report['country_count']==224 and report['station_count']==48219
+          assert report['logos_added']==11 and report['review_only']
+          print('FINAL EXACT RADIO WORLD 39158 LOGOS',report['new_world_sha256'])
+          PY
+      - name: Archive review-only world source, only changed PNG ZIPs, and source evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-39158-exact-network-logos-REVIEW-ONLY
+          path: |
+            /tmp/warder-verified-affiliate-logo-224/new-world/
+            /tmp/warder-verified-affiliate-logo-224/new-countries/
+          if-no-files-found: error
+          retention-days: 30
