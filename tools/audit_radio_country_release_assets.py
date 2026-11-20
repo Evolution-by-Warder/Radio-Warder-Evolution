@@ -47,6 +47,28 @@ def owned_file(root, relative, expected_length, expected_sha, maximum):
     return target
 
 
+def classify_missing(rows, available):
+    """Source-metadata categories, not guesses about HTTP failure causes."""
+    values = {
+        'without_favicon_without_homepage': 0,
+        'without_favicon_with_homepage': 0,
+        'with_favicon_without_homepage': 0,
+        'with_favicon_with_homepage': 0,
+        'svg_favicon_candidates': 0,
+    }
+    for row in rows:
+        if row['stem'] + '.png' in available:
+            continue
+        has_favicon = isinstance(row.get('favicon'), str) and bool(row['favicon'].strip())
+        has_homepage = isinstance(row.get('homepage'), str) and bool(row['homepage'].strip())
+        key = ('with_favicon' if has_favicon else 'without_favicon')
+        key += '_with_homepage' if has_homepage else '_without_homepage'
+        values[key] += 1
+        if has_favicon and 'svg' in row['favicon'].lower():
+            values['svg_favicon_candidates'] += 1
+    return values
+
+
 def audit(world, shards, index_file):
     world, shards, index_file = Path(world), Path(shards), Path(index_file)
     if (index_file.is_symlink() or not index_file.is_file() or
@@ -76,7 +98,14 @@ def audit(world, shards, index_file):
     report = {'schema': 1, 'country_count': len(codes),
               'station_count': 0, 'logo_count': 0, 'logo_missing': 0,
               'total_logo_zip_bytes': 0, 'world_sha256': world_meta['sha256'],
-              'country_asset_paths': {}}
+              'country_asset_paths': {},
+              'missing_source_breakdown': {
+                  'without_favicon_without_homepage': 0,
+                  'without_favicon_with_homepage': 0,
+                  'with_favicon_without_homepage': 0,
+                  'with_favicon_with_homepage': 0,
+                  'svg_favicon_candidates': 0},
+              'missing_by_country': {}}
     with ZipFile(original_world) as z:
         source = json.loads(z.read('index.json'))
         if (source.get('country_count') != len(codes) or
@@ -149,6 +178,19 @@ def audit(world, shards, index_file):
                             raise ValueError('Foreign station logo: ' + code)
             except BadZipFile:
                 raise ValueError('Corrupt country logo ZIP: ' + code)
+            available = {entry.filename for entry in members}
+            missing_count = len(station_names - available)
+            if missing_count != item['logos_missing']:
+                raise ValueError('Country missing-logo identity count mismatch: ' + code)
+            classified = classify_missing(rows, available)
+            if sum(v for k, v in classified.items()
+                   if k != 'svg_favicon_candidates') != missing_count:
+                raise ValueError('Missing-logo classification mismatch: ' + code)
+            report['missing_by_country'][code] = {
+                'stations': item['stations'], 'missing': missing_count,
+                **classified}
+            for category, count in classified.items():
+                report['missing_source_breakdown'][category] += count
             report['country_asset_paths'][code] = str(path)
             report['station_count'] += item['stations']
             report['logo_count'] += item['logos_found']
