@@ -217,6 +217,14 @@ class StationLogos:
                 pass
 
         consider(station.get('favicon'))
+        if self.bulk_mode and quality < 64 and isinstance(item, dict):
+            # Six independently identified broadcaster logos also belong in
+            # future 14-day GitHub builds, not just the first curated ZIP.
+            # No additional network requests are introduced on the receiver.
+            from .curated_station_logos import verified_logo_url
+            source_url = verified_logo_url(item)
+            if source_url:
+                consider(source_url)
         if quality < 64 and isinstance(item, dict):
             website = website_icons(item)
             if self.bulk_mode:
