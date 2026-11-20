@@ -171,7 +171,9 @@ def candidates_for(rows, old_pngs, details):
             for name in item['names']:
                 indexed[(website, name)].append(item)
         for image in item['logos']:
-            image_brands[image].update(item['names'])
+            # Alternative short/medium/long names of ONE service are not
+            # different brands. Reject only a mark reused by other services.
+            image_brands[image].add(item['url'])
     chosen, review, tally = {}, {}, Counter()
     for row in rows:
         if row.get('stem', '') + '.png' in old_pngs:
