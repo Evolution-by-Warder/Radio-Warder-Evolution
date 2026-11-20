@@ -1,0 +1,82 @@
+name: Assemble recovered CZ/DE originals into a NEW pinned world (no release)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-verified-recovered-world-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-merged-candidate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test signed world reassembly without touching originals
+        run: |
+          python3 -B tests/test_assemble_recovered_radio_world.py
+          python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Fetch historical complete world and verified old country assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/old-batch" "$ROOT/cz-candidate" "$ROOT/de-candidate" "$ROOT/old" "$ROOT/candidates"
+          gh run download 44583128017 -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44583128017 -n radio-original-logos-batch-06-REVIEW -D "$ROOT/old-batch"
+          gh run download 44762776607 -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/cz-candidate"
+          gh run download 44764518185 -n radio-224-exact-original-logo-reuse-REVIEW-ONLY -D "$ROOT/de-candidate"
+          for code in CZ DE; do
+            cp -a "$ROOT/old-batch/radio-country-$code-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          done
+          cp -a "$ROOT/cz-candidate/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/candidates/"
+          cp -a "$ROOT/de-candidate/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/candidates/"
+      - name: Verify immutable candidate source identity before assembling
+        run: |
+          python3 - <<'PY'
+          import hashlib,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          checks={
+              'CZ':'6f5ce84eb73101e95b6b28d82e2c63a06616ab78df417bb06dcfc43475b1ada6',
+              'DE':'36216cc217cc9dd8a3ab14882615e0df2e79383ff691cb9a2d3ba549fc86759f',
+          }
+          for code,sha in checks.items():
+              path=root/f'candidates/radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              assert hashlib.sha256(path.read_bytes()).hexdigest()==sha
+          PY
+      - name: Build secure new 224-country bouquet+logo manifest snapshot
+        run: |
+          python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --world-sha256 669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38 \
+            --old-root "$ROOT/old" \
+            --candidates "$ROOT/candidates" \
+            --countries CZ,DE \
+            --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          summary=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert summary['country_count']==224 and summary['station_count']==48219
+          assert summary['logos_added']==4 and summary['review_only'] is True
+          assert summary['new_world_sha256']!=summary['original_world_sha256']
+          print('Verified changed world review:',json.dumps(summary,sort_keys=True))
+          PY
+      - name: Keep only a review snapshot, never release or production feed
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-CZ-DE-39114-logo-candidate-REVIEW-ONLY
+          path: |
+            /tmp/warder-merged-candidate/new-world/
+            /tmp/warder-merged-candidate/candidates/radio-country-CZ-REVIEW-NOT-PRODUCTION/logos/CZ.zip
+            /tmp/warder-merged-candidate/candidates/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip
+          if-no-files-found: error
+          retention-days: 30
