@@ -1,0 +1,68 @@
+name: Audit SVG radio logo branding and reject generic site icons - review only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/filter_svg_logo_review.py
+      - .github/workflows/radio-svg-brand-identity-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-original-svg-identity-review
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download ONLY the previously verified 224-country SVG candidate
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/candidate"
+          gh run download 44778059523 \
+            -n radio-world-224-recovered-all-direct-SVG-REVIEW-ONLY \
+            -D "$ROOT/candidate"
+      - name: Reject previously identified shared website thumbnails
+        run: |
+          set -euo pipefail
+          python3 -B tools/filter_svg_logo_review.py \
+            --candidate "$ROOT/candidate" --output "$ROOT/filtered"
+      - name: Independently verify all 224 world catalogue and unchanged station identities
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,sys
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          sys.path.insert(0,str(Path.cwd()/'tools'))
+          from complete_world_country_original_logos import verify_source
+          report=json.loads((root/'filtered/review-identity-filter.json').read_text())
+          world=root/'filtered/new-world/radio-countries-bouquets.zip'
+          digest=hashlib.sha256(world.read_bytes()).hexdigest()
+          assert digest == report['filtered_world_sha256']
+          index=verify_source(world,digest)
+          assert index['country_count']==224 and index['station_count']==48219
+          assert sum(row['logos_found'] for row in index['countries'].values())==39147
+          assert report['new_verified_svg_logos']==21
+          assert report['quarantined_generic_icons']==10
+          assert report['final_logo_count']==39147 and report['still_missing']==9072
+          assert set(report['countries_modified'])=={'CL','RU','UA','US'}
+          print('SVG BRAND IDENTITY PASS',json.dumps({
+            'world_sha256':digest,'countries':224,'stations':48219,
+            'originals':39126,'new_svg_verified':21,'generic_svg_rejected':10,
+            'new_total':39147,'remaining':9072
+          },sort_keys=True))
+          PY
+      - name: Upload revised country archives and audit (no source publish, no IPK)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-SVG-brand-filtered-39147-REVIEW-ONLY
+          path: /tmp/warder-original-svg-identity-review/filtered/
+          retention-days: 30
+          if-no-files-found: error
