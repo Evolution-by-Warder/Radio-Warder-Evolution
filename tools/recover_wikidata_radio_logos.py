@@ -10,6 +10,7 @@ Existing PNGs and pinned bouquets remain byte-for-byte unchanged.
 Review-only: creates neither a GitHub Release nor a production IPK.
 """
 import argparse
+import ipaddress
 from collections import Counter,defaultdict
 from difflib import SequenceMatcher
 import hashlib
@@ -44,8 +45,14 @@ def site_key(value):
         host=(p.hostname or '').encode('idna').decode().lower().removeprefix('www.')
         if (p.scheme not in ('http','https') or not host or
                 p.username or p.password or
-                any(host==x or host.endswith('.'+x) for x in IGNORE_HOSTS)):
+                any(host==x or host.endswith('.'+x) for x in IGNORE_HOSTS) or
+                host.endswith(('.localhost','.local','.internal','.test'))):
             return None
+        try:
+            ipaddress.ip_address(host)
+            return None
+        except ValueError:
+            pass
         return (host,None if p.port in (80,443) else p.port,
                 p.path.rstrip('/') or '/',p.query)
     except (ValueError,TypeError,AttributeError,UnicodeError):
