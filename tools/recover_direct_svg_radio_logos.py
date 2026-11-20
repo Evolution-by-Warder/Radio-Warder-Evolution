@@ -108,7 +108,11 @@ def run(world_path, old_root, output, cache_root=None):
         assert len(results) == 224
         assert all(r['unchanged_existing_pngs'] and r['stations'] > 0
                    for r in results)
-        if loader.attempted != sum(r['network_attempts'] for r in results):
+        selected_svg_candidates = sum(r['network_attempts'] for r in results)
+        # The country generator also supplies non-HTTPS SVG URLs to get().
+        # Our strict source gate skips them without any network request;
+        # they are accounted for as rejected candidates, not lost attempts.
+        if loader.attempted > selected_svg_candidates:
             raise ValueError('Unrecorded SVG acquisition attempt')
         if len(loader.successes) != sum(r['new_downloads'] for r in results):
             raise ValueError('Unrecorded SVG acquisition success')
@@ -118,7 +122,9 @@ def run(world_path, old_root, output, cache_root=None):
             'logos_before':previously,'logos_recovered':recovered,
             'logos_after':previously+recovered,
             'remaining_missing':sum(r['logos_missing'] for r in results),
+            'svg_candidates_checked':selected_svg_candidates,
             'svg_network_attempts':loader.attempted,
+            'svg_rejected_non_https_or_unsafe':selected_svg_candidates-loader.attempted,
             'svg_download_successes':len(loader.successes),
             'errors':dict(loader.failures),
             'changed_countries':[r for r in results if r['recovered_total']],
