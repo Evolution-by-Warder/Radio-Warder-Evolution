@@ -110,7 +110,7 @@ class RadioDNSProof(unittest.TestCase):
         bad=detail(links={'Social':'https://www.facebook.com/brand'})
         self.assertIsNone(read_detail(bad,RADIO+'.json'))
         self.assertFalse(station_names({'short_name':None,'long_name':''}))
-        self.assertIsNone(read_detail(detail(logos={'320x240':'http://127.0.0.1/logo.png'}),RADIO+'.json')) if False else None
+        self.assertIsNone(read_detail(detail(logos={'320x240':''}),RADIO+'.json'))
 
 
 if __name__ == '__main__':
