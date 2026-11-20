@@ -1,0 +1,138 @@
+name: Independent UK broadcaster RadioDNS original logo recovery (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-radiodns-uk-broadcaster-logos-review.yml
+      - tools/recover_radiodns_uk_radio_logos.py
+      - tests/test_radiodns_uk_radio_logos.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verified-uk-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 38
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radiodns-uk
+      WORLD_SHA: 66a6e9ddf655c9030e0279abc5596be7728d9f397835720f1018f449927a7221
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline exact-website/name tests, adversarial URLs and source-brand conflict checks
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_radiodns_uk_radio_logos.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install image decoding on isolated CI runner only
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Fetch ONLY final verified 39655 world and UNCHANGED UK country original asset
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/latest" "$ROOT/shards/08" "$ROOT/shards/09" "$ROOT/old" "$ROOT/source"
+          test "$(gh run view 44802603175 --json conclusion -q '.conclusion')" = success
+          gh run download 44802603175 \
+            -n radio-224-39655-independent-source-originals-REVIEW-ONLY \
+            -D "$ROOT/latest"
+          test "$(gh run view 44801652426 --json conclusion -q '.conclusion')" = success
+          for shard in 08 09; do
+            gh run download 44801652426 \
+              -n "radio-canonical-39643-country-shard-$shard-REVIEW" \
+              -D "$ROOT/shards/$shard"
+          done
+          mapfile -t found < <(find "$ROOT/shards" -type d -name 'radio-country-GB-REVIEW-NOT-PRODUCTION')
+          test "${#found[@]}" -eq 1
+          cp -a "${found[0]}" "$ROOT/old/"
+          mapfile -t world < <(find "$ROOT/latest" -type f -name 'radio-countries-bouquets.zip')
+          test "${#world[@]}" -eq 1
+          cp "${world[0]}" "$ROOT/source-world.zip"
+      - name: Verify pinned 224 countries / 48219 radio services / 39655 PNG and original GB digest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          world=root/'source-world.zip'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(world) as z:
+              index=json.loads(z.read('index.json'))
+              assert index['country_count']==224 and index['station_count']==48219
+              assert sum(x['logos_found'] for x in index['countries'].values())==39655
+              gb=index['countries']['GB']
+          old=root/'old/radio-country-GB-REVIEW-NOT-PRODUCTION/logos/GB.zip'
+          assert old.is_file() and hashlib.sha256(old.read_bytes()).hexdigest()==gb['logo_sha256']
+          print('GB SOURCE WORLD + EXISTING ORIGINAL LOGO SHA PASS:',gb['logos_found'],gb['stations'])
+          PY
+      - name: Download entirely NEW broadcaster RadioDNS UK station listing
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --compressed \
+            --retry 2 --connect-timeout 10 --max-time 50 \
+            --user-agent 'WarderRadioMetadataReview/0.1 (independent UK broadcaster logos)' \
+            'https://www.radiodns.uk/services.json' -o "$ROOT/source/services.json"
+          test -s "$ROOT/source/services.json"
+          sha256sum "$ROOT/source/services.json"
+      - name: Fetch only missing exact-name station details and recover only original broadcaster images
+        run: |
+          PYTHONPATH=src:tools python3 -B tools/recover_radiodns_uk_radio_logos.py \
+            --world "$ROOT/source-world.zip" \
+            --old-root "$ROOT/old" \
+            --index "$ROOT/source/services.json" \
+            --out "$ROOT/review" --workers 8
+      - name: Recheck EVERY old GB PNG is retained byte-identical
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,os
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'review/radiodns-uk-originals-review.json').read_text())
+          assert report['review_only'] and report['source_services']>=100
+          assert report['country']=='GB' and report['unchanged_existing_pngs']
+          assert report['new_downloads']==len(report['new_originals'])
+          assert report['recovered_total']==report['new_downloads']+report['cloned_exact']
+          old=root/'old/radio-country-GB-REVIEW-NOT-PRODUCTION/logos/GB.zip'
+          new=root/'review/radio-country-GB-REVIEW-NOT-PRODUCTION/logos/GB.zip'
+          if report['recovered_total']:
+              with ZipFile(old) as o, ZipFile(new) as n:
+                  assert all(o.read(name)==n.read(name) for name in o.namelist())
+                  assert len(n.namelist())-len(o.namelist())==report['recovered_total']
+          else:
+              assert not new.exists()
+          print('UK BROADCASTER ORIGINALS VERIFIED',json.dumps({
+              'source_services':report['source_services'],
+              'matching_details':report['valid_detail_services'],
+              'exact_candidates':report['exact_logo_candidates'],
+              'new_original_downloads':report['new_downloads'],
+              'exact_existing_clones':report['cloned_exact'],
+              'total_added':report['recovered_total'],
+              'still_missing_UK':report['logos_missing'],
+              'image_failures':report['image_failures'],
+              'detail_failures':report['detail_failures']
+          },sort_keys=True))
+          PY
+      - name: Assemble a NEW 224-country world only when UK gain is positive (no publication)
+        run: |
+          set -euo pipefail
+          if test -f "$ROOT/review/radio-country-GB-REVIEW-NOT-PRODUCTION/logos/GB.zip"; then
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/source-world.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries GB --out "$ROOT/new-world"
+          else
+            echo 'No new exact UK images: prior 39655 PNG world remains unchanged.'
+          fi
+      - name: Save GB provenance, changed assets and optional merged review world
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-RadioDNS-UK-broadcaster-originals-REVIEW-ONLY
+          path: |
+            /tmp/warder-radiodns-uk/source/services.json
+            /tmp/warder-radiodns-uk/review/
+            /tmp/warder-radiodns-uk/new-world/
+          if-no-files-found: error
+          retention-days: 30
