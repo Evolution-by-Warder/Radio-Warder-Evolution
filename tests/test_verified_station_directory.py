@@ -12,6 +12,7 @@ from recover_verified_station_directory import (
 
 TOP = '7ee66666-7361-468c-ace4-1f7a357b58f6'
 JAZZ = '913b7498-8e2d-420b-8c3b-dbacdf9597c4'
+PARTY = '8e94c1a0-d37c-4f3a-aa1a-0911a57fbc30'
 
 
 def row(uuid=TOP, name='Rádio Topoľčany',
@@ -25,6 +26,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(validated_source(row())['name'],'Rádio Topoľčany')
         self.assertEqual(validated_source(
             row(JAZZ,'Rádio Jazz','https://radiojazz.sk/'))['name'],'Rádio Jazz')
+        self.assertEqual(validated_source(
+            row(PARTY,'Party Radio','https://www.partyradio.sk/'))['name'],'Party Radio')
         self.assertTrue(all(x['logo'].startswith('https://')
                             for x in SK_SOURCE.values()))
 
