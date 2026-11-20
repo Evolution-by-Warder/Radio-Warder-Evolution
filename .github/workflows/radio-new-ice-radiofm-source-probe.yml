@@ -1,0 +1,78 @@
+name: Probe independent ice Radio FM broadcaster image/stream metadata (READ-ONLY)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-new-ice-radiofm-source-probe.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  new-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect only three candidate station catalog pages (no existing feeds)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/warder-new-source
+          for row in \
+            'station|https://ice.radio.fm/station/101-smooth-jazz' \
+            'country|https://ice.radio.fm/countries/germany' \
+            'search|https://ice.radio.fm/search?q=Slobodny%20Vysielac'; do
+            key="$(printf '%s' "$row" | cut -d '|' -f1)"
+            url="$(printf '%s' "$row" | cut -d '|' -f2-)"
+            curl -fLsS --compressed --retry 1 --connect-timeout 8 --max-time 35 \
+              --user-agent 'WarderRadioReview/0.1 (radio metadata source audit)' \
+              "$url" -o "/tmp/warder-new-source/$key.html" || true
+          done
+      - name: Parse inline metadata and discover whether source exposes original branding
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Reader(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.scripts=[];self.img=[];self.links=[];self.elements=[];self._script=False;self._text=''
+              def handle_starttag(self,tag,attrs):
+                  d=dict(attrs)
+                  if tag=='script' and d.get('type') in ('application/json','application/ld+json'):
+                      self._script=True;self._text=''
+                  if tag=='img':
+                      self.img.append({k:v for k,v in d.items() if k in ('src','alt','data-src')})
+                  if tag=='a' and len(self.links)<15:
+                      self.links.append({k:v for k,v in d.items() if k in ('href','title')})
+                  if len(self.elements)<6 and any(k.startswith('data-') for k in d):
+                      self.elements.append({'tag':tag,'data':{k:v for k,v in d.items() if k.startswith('data-')}})
+              def handle_endtag(self,tag):
+                  if tag=='script' and self._script:
+                      self._script=False;self.scripts.append(self._text[:3000])
+              def handle_data(self,value):
+                  if self._script:self._text+=value
+          results={}
+          for p in sorted(Path('/tmp/warder-new-source').glob('*.html')):
+              data=p.read_text(errors='replace')
+              doc=Reader();doc.feed(data)
+              result={'bytes':len(data),
+                      'title':re.search(r'<title[^>]*>(.*?)</title>',data,re.I|re.S).group(1)[:200] if re.search(r'<title[^>]*>(.*?)</title>',data,re.I|re.S) else '',
+                      'image_count':len(doc.img),'images':doc.img[:12],
+                      'example_links':doc.links[:12],
+                      'json_scripts':doc.scripts[:2],
+                      'data_elements':doc.elements,
+                      'media_matches':re.findall(r'<meta[^>]+(?:og:image|twitter:image)[^>]*>',data,re.I)[:4],
+                      'contains_stream_url':bool(re.search(r'(https?://[^" ]+(?:\.mp3|\.aac|\.m3u8|\.pls))',data,re.I))}
+              results[p.stem]=result
+              print('ICE RADIOFM NEW SOURCE',p.stem,json.dumps(result,ensure_ascii=False)[:7500])
+          Path('/tmp/warder-new-source/probe.json').write_text(json.dumps(results,indent=2,ensure_ascii=False)+'\n')
+          PY
+      - name: Keep only read-only diagnostic report, no logo downloads or release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-ice-radiofm-metadata-probe-REVIEW-ONLY
+          path: /tmp/warder-new-source/probe.json
+          if-no-files-found: error
+          retention-days: 15
