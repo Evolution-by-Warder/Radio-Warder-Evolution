@@ -49,8 +49,15 @@ def candidate(row,gap,raw,key):
             gap['name']!=name or gap['country']!=code):
         return None,'UUID_NAME_OR_SOURCE_STEM_MISMATCH'
     page,domain=SITES[key]
-    if canonical_host(row.get('homepage'))!=domain:
-        return None,'PINNED_HOMEPAGE_NOT_BROADCASTER_OWNED'
+    # Some Radio Browser entries store the broadcaster's actual audio stream
+    # as homepage (or omit homepage). Exact stream host under the broadcaster's
+    # OWN DNS zone is independent identity evidence when the FULL station name
+    # and first-party page artwork are also verified. Do not match other hosts.
+    audiohost=canonical_host(row.get('url'))
+    homepage=canonical_host(row.get('homepage'))
+    same_owner=lambda host: bool(host and (host==domain or host.endswith('.'+domain)))
+    if not (same_owner(homepage) or same_owner(audiohost)):
+        return None,'NEITHER_HOMEPAGE_NOR_EXACT_STREAM_ON_BROADCASTER_DOMAIN'
     view=official_candidates(raw,page,domain,name)
     if name.casefold() not in view['page_title'].casefold():
         return None,'CURRENT_BROADCASTER_PAGE_NOT_STATION_TITLE'
