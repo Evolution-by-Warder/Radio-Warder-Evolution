@@ -5,6 +5,8 @@ on:
     branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
     paths:
       - .github/workflows/radio-iprd-hztv-quality-gate.yml
+      - tools/quarantine_iprd_wrong_hztv.py
+      - tests/test_reconcile_iprd_224_world.py
 
 permissions:
   contents: read
