@@ -1,0 +1,143 @@
+name: Stage one SHA-consistent 224-country original-radio-logo baseline for NEW sources (REVIEW ONLY)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-canonical-current-country-assets-review.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  canonical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-39643-canonical-country-sources
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download existing original 224-country source and verified change assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/batches" "$ROOT/guarded" "$ROOT/sk" "$ROOT/cz" "$ROOT/de" \
+                   "$ROOT/reconciled" "$ROOT/corrected" "$ROOT/canonical"
+          gh run download 44583128017 -p 'radio-original-logos-batch-*-REVIEW' -D "$ROOT/batches"
+          gh run download 44780198931 \
+            -n radio-world-224-recovered-all-direct-SVG-REVIEW-ONLY -D "$ROOT/guarded"
+          gh run download 44780870898 \
+            -n radio-SK-curated-six-profiles-REVIEW-ONLY -D "$ROOT/sk"
+          gh run download 44762776607 \
+            -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/cz"
+          gh run download 44776112474 \
+            -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/de"
+          gh run download 44792849587 \
+            -n radio-world-224-iprd-reconciled-source-logos-REVIEW-ONLY -D "$ROOT/reconciled"
+          gh run download 44794574890 \
+            -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY -D "$ROOT/corrected"
+      - name: Assemble all source revisions in chronological order
+        run: |
+          python3 - <<'PY'
+          import json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          canonical=root/'canonical'
+          source=sorted((root/'batches').rglob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          if len(source)!=224:
+              raise SystemExit('Original country shards incomplete')
+          unique=set()
+          for folder in source:
+              code=folder.name.split('-')[2]
+              if folder.is_symlink() or code in unique or len(code)!=2:
+                  raise SystemExit('Duplicate/unsafe country source folder')
+              unique.add(code)
+              shutil.move(str(folder),str(canonical/folder.name))
+          for folder in sorted((root/'guarded/candidates').glob('radio-country-??-REVIEW-NOT-PRODUCTION')):
+              dest=canonical/folder.name
+              if not dest.is_dir() or folder.is_symlink():
+                  raise SystemExit('Malformed SVG source')
+              shutil.rmtree(dest)
+              shutil.copytree(folder,dest)
+          for code,subdir in (('SK','sk'),('CZ','cz'),('DE','de')):
+              folder=root/subdir/f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+              dest=canonical/folder.name
+              if folder.is_symlink() or not folder.is_dir():
+                  raise SystemExit('Missing pinned country image: '+code)
+              shutil.rmtree(dest)
+              shutil.copytree(folder,dest)
+          totals=lambda:sum(json.loads(p.read_text())['logos_found']
+             for p in canonical.glob('radio-country-??-REVIEW-NOT-PRODUCTION/manifests/??.json'))
+          if totals()!=39150: raise SystemExit('Reconstructed base not 39150: '+str(totals()))
+          changed=sorted((root/'reconciled/candidates').glob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          if not 45<=len(changed)<=100:
+              raise SystemExit('Unexpected number of independently reconciled source countries')
+          for folder in changed:
+              if folder.is_symlink():
+                  raise SystemExit('Untrusted reconciled country asset')
+              dest=canonical/folder.name
+              if not dest.is_dir():
+                  raise SystemExit('Unexpected source country image')
+              shutil.rmtree(dest)
+              shutil.copytree(folder,dest)
+          if totals()!=39646: raise SystemExit('Reconciled base not 39646: '+str(totals()))
+          cn=canonical/'radio-country-CN-REVIEW-NOT-PRODUCTION'
+          corrected=root/'corrected'
+          with ZipFile(corrected/'radio-countries-bouquets.zip') as world:
+              actual=json.loads(world.read('index.json'))
+              (cn/'manifests/CN.json').write_bytes(world.read('manifests/CN.json'))
+          shutil.copyfile(corrected/'CN.zip',cn/'logos/CN.zip')
+          if totals()!=39643:
+              raise SystemExit('Corrected original logo total incorrect: '+str(totals()))
+          print('Exact baseline revisions: 39110 -> 39150 -> 39646 -> 39643')
+          PY
+      - name: Validate EVERY country original ZIP against the signed corrected world
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,os,re
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          world=root/'corrected/radio-countries-bouquets.zip'
+          expected='5b93b00032c4eec5e4934be24945604f49eaf89fd2f31900c8e46fe2b971ea84'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==expected
+          with ZipFile(world) as z:
+              index=json.loads(z.read('index.json'))
+              assert index['country_count']==224 and index['station_count']==48219
+              assert sum(c['logos_found'] for c in index['countries'].values())==39643
+              countries=index['countries']
+              logos=0
+              for code,meta in sorted(countries.items()):
+                  source=root/'canonical'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+                  archive=source/'logos'/f'{code}.zip'
+                  manifest=source/'manifests'/f'{code}.json'
+                  assert archive.is_file() and manifest.is_file()
+                  info=json.loads(manifest.read_text())
+                  data=archive.read_bytes()
+                  sha=hashlib.sha256(data).hexdigest()
+                  assert sha==meta['logo_sha256'],(code,'logo_sha',sha,meta['logo_sha256'])
+                  assert info['files'][f'logos/{code}.zip']=={
+                      'sha256':sha,'bytes':len(data)},(code,'manifest')
+                  assert info['logos_found']==meta['logos_found'],(code,'count')
+                  assert hashlib.sha256(manifest.read_bytes()).hexdigest()==hashlib.sha256(
+                      z.read(f'manifests/{code}.json')).hexdigest(),(code,'world_manifest')
+                  assert info['stations']==meta['stations']
+                  logos+=info['logos_found']
+              assert logos==39643
+          (root/'canonical/current-world-provenance.json').write_text(json.dumps({
+              'schema':1,'countries':224,'stations':48219,'logos':39643,
+              'world_sha256':expected,'review_only':True,
+              'note':'All source country ZIPs SHA-matched against corrected 39,643 world'},indent=2)+'\n')
+          print('CANONICAL VERIFIED ORIGINALS',224,48219,39643,expected)
+          PY
+      - name: Archive canonical signed 224 country ZIPs for further NEW source checks only
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-224-country-39643-logos-REVIEW-ONLY
+          path: /tmp/warder-39643-canonical-country-sources/canonical/
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
