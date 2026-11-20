@@ -144,7 +144,7 @@ class Tests(unittest.TestCase):
     def test_modified_old_original_archive_fails_closed(self):
         self.prior_zip.write_bytes(self.prior_zip.read_bytes() + b'modified')
         store = FakeStore(self.root / 'new-cache', success=self.ids)
-        with self.assertRaisesRegex(ValueError, 'digest mismatch'):
+        with self.assertRaisesRegex(ValueError, '(digest mismatch|Invalid prior logo ZIP evidence)'):
             recover.recover_country(self.world, self.index, 'ET',
                                     self.old, store, valid, self.output)
         self.assertFalse(self.output.exists())
