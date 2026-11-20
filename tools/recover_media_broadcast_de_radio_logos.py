@@ -11,6 +11,7 @@ import argparse
 from collections import Counter,defaultdict
 import hashlib
 from html.parser import HTMLParser
+from html import unescape
 import json
 from pathlib import Path
 import re
@@ -107,6 +108,35 @@ def parse_page(raw):
     names=defaultdict(set)
     for brand,image in parser.images:
         names[normalize(brand)].add(image)
+    # Live Squarespace list-item images have empty <img alt="">. Their
+    # authoritative station label, original imageAltText and assetUrl are in
+    # one HTML-entity-encoded list-item JSON object. Never match by image order.
+    markup=unescape(raw.decode('utf-8',errors='replace'))
+    pairs=re.compile(
+        r'"imageAltText"\\s*:\\s*"(?P<alt>[^"]{3,150})"'
+        r'(?:(?!"imageAltText"\\s*:).){0,2600}?'
+        r'"assetUrl"\\s*:\\s*"(?P<image>[^"]{15,1500})"',re.S)
+    descriptions=re.compile(
+        r'"description"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"',re.S)
+    for match in pairs.finditer(markup):
+        name=titled_alt(match.group('alt'))
+        image=original_image_url(match.group('image'))
+        if not name or not image:
+            continue
+        # The independently displayed list entry caption must corroborate alt,
+        # so a descriptive alt on a different piece of artwork cannot be used.
+        before=markup[max(0,match.start()-2600):match.start()]
+        found=descriptions.findall(before)
+        if not found:
+            continue
+        try:
+            caption=json.loads('"'+found[-1]+'"')
+        except (ValueError,TypeError):
+            continue
+        caption=unescape(re.sub(r'<[^>]+>',' ',caption))
+        if normalize(caption)!=normalize(name):
+            continue
+        names[normalize(name)].add(image)
     if len(names)<60 or len(names)>250:
         raise ValueError('Unexpected operator DAB+ HTML schema: '+str({'images':parser.tag_count,'branded':parser.title_count,'valid':len(names),
               'markup_context':raw.decode('utf-8',errors='replace')[max(0,raw.decode('utf-8',errors='replace').find('1219_A_BELLA')-450):raw.decode('utf-8',errors='replace').find('1219_A_BELLA')+1850]}))
