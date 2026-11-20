@@ -38,11 +38,11 @@ jobs:
               -o "$ROOT/csv/$file"
           done
           gh run download 44794574890 -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY -D "$ROOT/world"
-          gh run download 44790307518 -n radio-iprd-original-logos-04-REVIEW -D "$ROOT/ca"
-          gh run download 44790307518 -n radio-iprd-original-logos-25-REVIEW -D "$ROOT/us"
+          gh run download 44801652426 -n radio-canonical-39643-country-shard-04-REVIEW -D "$ROOT/ca"
+          gh run download 44801652426 -n radio-canonical-39643-country-shard-25-REVIEW -D "$ROOT/us"
           cp -a "$ROOT/ca/radio-country-CA-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
           cp -a "$ROOT/us/radio-country-US-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
-      - name: Verify original 39643-logo world ZIP and both unchanged country asset SHA values
+      - name: Verify canonical 39643-logo world and both new-source country SHA checks
         run: |
           python3 - <<'PY'
           import hashlib,json,os
