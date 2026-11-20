@@ -93,48 +93,46 @@ jobs:
       - name: Get signed world, pin Wikidata source SHA and old country PNG assets
         run: |
           set -euo pipefail
-          mkdir -p "$ROOT/world" "$ROOT/wiki" "$ROOT/old" "$ROOT/iprd"
+          mkdir -p "$ROOT/world" "$ROOT/wiki" "$ROOT/old"
           gh run download 44794574890 \
             -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY \
             -D "$ROOT/world"
           gh run download 44797858126 \
             -n radio-new-Wikidata-Commons-official-branding-REVIEW-ONLY \
             -D "$ROOT/wiki"
-          gh run download 44583128017 \
-            -n "radio-original-logos-batch-$GROUP_ID-REVIEW" \
+          gh run download 44801652426 \
+            -n "radio-canonical-39643-country-shard-$GROUP_ID-REVIEW" \
             -D "$ROOT/old"
-          gh run download 44790307518 \
-            -n "radio-iprd-original-logos-$GROUP_ID-REVIEW" \
-            -D "$ROOT/iprd"
-      - name: Overlay only previously audited IPRD country deltas and corrected CN
+      - name: Verify exactly eight original logo ZIPs from new canonical 39643-logo source
         run: |
           python3 - <<'PY'
-          import hashlib,json,os,shutil
+          import hashlib,json,os
           from pathlib import Path
           from zipfile import ZipFile
           root=Path(os.environ['ROOT'])
           source=root/'world/radio-countries-bouquets.zip'
           assert hashlib.sha256(source.read_bytes()).hexdigest()=='5b93b00032c4eec5e4934be24945604f49eaf89fd2f31900c8e46fe2b971ea84'
+          codes=os.environ['CODES'].split(',')
           with ZipFile(source) as archive:
               index=json.loads(archive.read('index.json'))
-              for country in os.environ['CODES'].split(','):
-                  folder='radio-country-'+country+'-REVIEW-NOT-PRODUCTION'
-                  old=root/'old'/folder
-                  incoming=root/'iprd'/folder
-                  if incoming.is_dir():
-                      if not old.is_dir():raise SystemExit('Missing original source country')
-                      shutil.rmtree(old)
-                      shutil.copytree(incoming,old)
-                  if country=='CN':
-                      replacement=root/'world/CN.zip'
-                      assert replacement.is_file()
-                      shutil.copyfile(replacement,old/'logos/CN.zip')
-                      (old/'manifests/CN.json').write_bytes(archive.read('manifests/CN.json'))
-                  z=old/'logos'/(country+'.zip')
-                  expected=index['countries'][country]['logo_sha256']
-                  if not old.is_dir() or hashlib.sha256(z.read_bytes()).hexdigest()!=expected:
-                      raise SystemExit('Current original country ZIP mismatch '+country)
-          print('Verified exact old-logo SHA for countries',os.environ['CODES'])
+              assert index['country_count']==224 and index['station_count']==48219
+              actual=set()
+              for old in root.joinpath('old').glob('radio-country-??-REVIEW-NOT-PRODUCTION'):
+                  code=old.name.split('-')[2]
+                  assert not old.is_symlink() and code not in actual
+                  actual.add(code)
+                  path=old/'logos'/(code+'.zip')
+                  manifest=old/'manifests'/(code+'.json')
+                  meta=index['countries'][code]
+                  data=path.read_bytes()
+                  sha=hashlib.sha256(data).hexdigest()
+                  proof=json.loads(manifest.read_text())
+                  assert sha==meta['logo_sha256'],(code,'sha')
+                  assert proof['files'][f'logos/{code}.zip']=={'sha256':sha,'bytes':len(data)}
+                  assert proof['logos_found']==meta['logos_found']
+                  assert manifest.read_bytes()==archive.read(f'manifests/{code}.json')
+              assert actual==set(codes) and len(actual)==8
+          print('New-source review: 8 exact SHA-verified countries:',codes)
           PY
       - name: Fetch ONLY newly proven Wikimedia broadcaster logos, no generic homepage favicons
         run: |
