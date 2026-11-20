@@ -34,7 +34,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$ROOT/world" "$ROOT/batches" "$ROOT/over-sk" "$ROOT/over-cz" \
-                   "$ROOT/over-de" "$ROOT/original" "$ROOT/current" "$ROOT/recovered" \
+                   "$ROOT/over-de" "$ROOT/original" "$ROOT/current" \
                    "$ROOT/candidates"
           gh run download 44583128017 \
             -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$ROOT/world"
