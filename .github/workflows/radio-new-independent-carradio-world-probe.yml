@@ -1,0 +1,85 @@
+name: New independent archived CarRadio station logos world metadata (224-country review)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-independent-carradio-world-probe.yml
+      - tools/audit_independent_carradio_world.py
+      - tests/test_independent_carradio_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compare-224-countries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-independent-carradio
+      REV: b9b6c2a039e8266736ecf48500e1fbf4d8a7ff00
+      WORLD_SHA: 1b0c79812d988ac4aaa368033d966de117d11e3ef5c9db66331afc5c9c750c8b
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline matching and source integrity regression tests
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_independent_carradio_world.py
+      - name: Download ONLY existing verified 39661 worldwide index (NO PNG redownload)
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/previous" "$ROOT/directory"
+          test "$(gh run view 44818364283 --json conclusion -q '.conclusion')" = success
+          gh run download 44818364283 \
+            -n radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY \
+            -D "$ROOT/previous"
+          mapfile -t archive < <(find "$ROOT/previous" -type f -name radio-countries-bouquets.zip)
+          test "${#archive[@]}" -eq 1
+          cp "${archive[0]}" "$ROOT/world-39661.zip"
+          echo "$WORLD_SHA  $ROOT/world-39661.zip" | sha256sum -c
+      - name: Retrieve only NEW non-Radio-Browser independently edited 27-country JSON source
+        run: |
+          set -euo pipefail
+          for code in AL AT BE CAQC CH CZ DE DK ES FI FR GB GR IE IT LT MY NL NO PL PT RO RU SE TR US ZA; do
+            mkdir -p "$ROOT/directory/$code"
+            curl --fail --silent --show-error --location --compressed \
+              --retry 2 --connect-timeout 10 --max-time 40 \
+              --user-agent 'WarderRadioSourceReview/0.1 (independent CarRadio metadata)' \
+              "https://raw.githubusercontent.com/Jellepepe/radiodb/$REV/$code/stations.json" \
+              -o "$ROOT/directory/$code/stations.json"
+          done
+      - name: Compare every one of 224 catalogues by exact stream and FULL station brand
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/audit_independent_carradio_world.py \
+            --world "$ROOT/world-39661.zip" \
+            --source-dir "$ROOT/directory" \
+            --out "$ROOT/review"
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path(os.environ['ROOT'])
+          x=json.loads((root/'review/carradio-new-source-world-metadata-review.json').read_text())
+          assert x['world_sha256']==os.environ['WORLD_SHA']
+          assert x['countries_checked']==224 and x['stations_checked']==48219
+          assert x['review_only'] and x['metadata_only'] and x['confirmed_new_pngs']==0
+          assert x['source_commit']==os.environ['REV']
+          assert len(x['source_files'])==27
+          assert x['exact_source_matches']==len(x['source_evidence'])
+          print('INDEPENDENT CARRADIO 224-COUNTRY PILOT PASS',json.dumps({
+              'source_files':len(x['source_files']),
+              'countries_checked':x['countries_checked'],
+              'exact_matches_including_existing':x['exact_source_matches'],
+              'countries_with_matches':sum(v['source_exact_matches']>0 for v in x['country_results']),
+              'confirmed_new_pngs':0
+          },sort_keys=True))
+          PY
+      - name: Retain small independent original logo source evidence, no user packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-independent-CarRadio-224-country-source-matches-REVIEW-ONLY
+          path: /tmp/warder-independent-carradio/review/
+          retention-days: 30
+          if-no-files-found: error
