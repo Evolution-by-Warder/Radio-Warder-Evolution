@@ -1,0 +1,217 @@
+name: New independent Wikidata Commons station-logo recovery across verified 224 countries (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-new-wikidata-commons-country-review.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    outputs:
+      groups: ${{ steps.matrix.outputs.groups }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test official website/name and Commons logo security guards
+        run: |
+          PYTHONPATH=src python3 -B tests/test_wikidata_radio_logos.py
+          PYTHONPATH=src python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Retrieve ONLY the new Wikidata source proof and signed current world
+        run: |
+          mkdir -p /tmp/warder-wiki/world /tmp/warder-wiki/wiki
+          gh run download 44794574890 \
+            -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY \
+            -D /tmp/warder-wiki/world
+          gh run download 44797858126 \
+            -n radio-new-Wikidata-Commons-official-branding-REVIEW-ONLY \
+            -D /tmp/warder-wiki/wiki
+      - name: Make 8-country matrix ONLY for new exact website matches
+        id: matrix
+        run: |
+          PYTHONPATH=src python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,os
+          from tools.recover_wikidata_radio_logos import bindings,plans,PINNED_WORLD
+          import hashlib
+          root=Path('/tmp/warder-wiki')
+          world=root/'world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==PINNED_WORLD
+          wiki=bindings(root/'wiki/wikidata-radios.json')
+          batches=[]
+          with ZipFile(world) as z:
+              index=json.loads(z.read('index.json'))
+              assert index['country_count']==224 and index['station_count']==48219
+              assert sum(x['logos_found'] for x in index['countries'].values())==39643
+              codes=sorted(index['countries'])
+              for start in range(0,len(codes),8):
+                  chunk=codes[start:start+8]
+                  total=0
+                  for code in chunk:
+                      rows=json.loads(z.read('catalog/'+code+'.json'))['stations']
+                      matches,_,_=plans(rows,set(),wiki)
+                      total+=len(matches)
+                  if total:
+                      batches.append({'id':f'{start//8:02d}','codes':','.join(chunk),
+                                      'preliminary_matches':total})
+          assert batches and len(batches)<=28
+          with open(os.environ['GITHUB_OUTPUT'],'a') as fp:
+              fp.write('groups='+json.dumps(batches,separators=(',',':'))+'\n')
+          print('WIKIDATA BRANDING SOURCE MATRIX',batches)
+          PY
+
+  countries:
+    needs: index
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        group: ${{ fromJSON(needs.index.outputs.groups) }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-wiki-originals
+      GROUP_ID: ${{ matrix.group.id }}
+      CODES: ${{ matrix.group.codes }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install independent Wikimedia PNG/SVG conversion in review runner only
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Get signed world, pin Wikidata source SHA and old country PNG assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/wiki" "$ROOT/old" "$ROOT/iprd"
+          gh run download 44794574890 \
+            -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY \
+            -D "$ROOT/world"
+          gh run download 44797858126 \
+            -n radio-new-Wikidata-Commons-official-branding-REVIEW-ONLY \
+            -D "$ROOT/wiki"
+          gh run download 44583128017 \
+            -n "radio-original-logos-batch-$GROUP_ID-REVIEW" \
+            -D "$ROOT/old"
+          gh run download 44790307518 \
+            -n "radio-iprd-original-logos-$GROUP_ID-REVIEW" \
+            -D "$ROOT/iprd"
+      - name: Overlay only previously audited IPRD country deltas and corrected CN
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          source=root/'world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(source.read_bytes()).hexdigest()=='5b93b00032c4eec5e4934be24945604f49eaf89fd2f31900c8e46fe2b971ea84'
+          with ZipFile(source) as archive:
+              index=json.loads(archive.read('index.json'))
+              for country in os.environ['CODES'].split(','):
+                  folder='radio-country-'+country+'-REVIEW-NOT-PRODUCTION'
+                  old=root/'old'/folder
+                  incoming=root/'iprd'/folder
+                  if incoming.is_dir():
+                      if not old.is_dir():raise SystemExit('Missing original source country')
+                      shutil.rmtree(old)
+                      shutil.copytree(incoming,old)
+                  if country=='CN':
+                      replacement=root/'world/CN.zip'
+                      assert replacement.is_file()
+                      shutil.copyfile(replacement,old/'logos/CN.zip')
+                      (old/'manifests/CN.json').write_bytes(archive.read('manifests/CN.json'))
+                  z=old/'logos'/(country+'.zip')
+                  expected=index['countries'][country]['logo_sha256']
+                  if not old.is_dir() or hashlib.sha256(z.read_bytes()).hexdigest()!=expected:
+                      raise SystemExit('Current original country ZIP mismatch '+country)
+          print('Verified exact old-logo SHA for countries',os.environ['CODES'])
+          PY
+      - name: Fetch ONLY newly proven Wikimedia broadcaster logos, no generic homepage favicons
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src python3 -B tools/recover_wikidata_radio_logos.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --source "$ROOT/wiki/wikidata-radios.json" \
+            --old-root "$ROOT/old" \
+            --countries "$CODES" \
+            --out "$ROOT/review" \
+            --workers 4
+      - name: Check every retained original PNG, country reference and independent source proof
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'review/wikidata-new-source-logo-review.json').read_text())
+          assert report['review_only'] and len(report['countries'])==len(os.environ['CODES'].split(','))
+          assert report['originals_before']+report['new_originals']==sum(x['logos_found'] for x in report['countries'])
+          for row in report['countries']:
+              assert row['unchanged_existing_pngs']
+              assert row['new_downloads']==len(row['new_wikimedia_originals'])
+              old=root/'old'/f"radio-country-{row['country']}-REVIEW-NOT-PRODUCTION/logos/{row['country']}.zip"
+              updated=root/'review'/f"radio-country-{row['country']}-REVIEW-NOT-PRODUCTION/logos/{row['country']}.zip"
+              if row['recovered_total']:
+                  with ZipFile(old) as o,ZipFile(updated) as n:
+                      for name in o.namelist():
+                          assert o.read(name)==n.read(name),name
+              else:
+                  assert not updated.exists()
+          print('WIKIDATA COUNTRY DELTA',os.environ['GROUP_ID'],report['source_candidates'],report['new_originals'])
+          PY
+      - name: Keep only changed country ZIPs and exact source evidence (no publication)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-Wikimedia-source-originals-${{ matrix.group.id }}-REVIEW
+          path: /tmp/warder-wiki-originals/review/
+          retention-days: 30
+          if-no-files-found: error
+
+  summary:
+    needs: [index,countries]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+    steps:
+      - name: Download completed candidate evidence only
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/warder-wiki-world-reports
+          gh run download ${{ github.run_id }} \
+            -p 'radio-new-Wikimedia-source-originals-*-REVIEW' \
+            -D /tmp/warder-wiki-world-reports
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          files=sorted(Path('/tmp/warder-wiki-world-reports').rglob('wikidata-new-source-logo-review.json'))
+          total={'groups':len(files),'stations':0,'source_candidates':0,
+                 'new_originals':0,'countries':0,'changed':[],'review_only':True}
+          for file in files:
+              r=json.loads(file.read_text())
+              assert r['review_only']
+              total['stations']+=r['stations']
+              total['source_candidates']+=r['source_candidates']
+              total['new_originals']+=r['new_originals']
+              total['countries']+=len(r['countries'])
+              total['changed']+= [(x['country'],x['recovered_total']) for x in r['countries'] if x['recovered_total']]
+          print('WIKIDATA NEW SOURCE GLOBAL RESULTS',json.dumps(total,sort_keys=True))
+          Path('/tmp/warder-wiki-new-source-summary.json').write_text(json.dumps(total,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-Wikidata-224-country-total-review
+          path: /tmp/warder-wiki-new-source-summary.json
+          retention-days: 30
+          if-no-files-found: error
