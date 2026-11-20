@@ -108,7 +108,8 @@ def parse_page(raw):
     for brand,image in parser.images:
         names[normalize(brand)].add(image)
     if len(names)<60 or len(names)>250:
-        raise ValueError('Unexpected operator DAB+ station-logo HTML schema: '+str({'images':parser.tag_count,'branded':parser.title_count,'valid':len(names),'examples':parser.illustrations}))
+        raise ValueError('Unexpected operator DAB+ HTML schema: '+str({'images':parser.tag_count,'branded':parser.title_count,'valid':len(names),
+              'markup_context':raw.decode('utf-8',errors='replace')[max(0,raw.decode('utf-8',errors='replace').find('1219_A_BELLA')-450):raw.decode('utf-8',errors='replace').find('1219_A_BELLA')+1850]}))
     return dict(names)
 
 
