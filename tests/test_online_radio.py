@@ -396,6 +396,25 @@ class LogoTests(unittest.TestCase):
             self.assertIsNotNone(logos.get(item))
             self.assertEqual(urls, ['https://station.example/alternate.png'])
 
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_offline_bulk_mode_does_not_prune_another_worker_png(self):
+        body = io.BytesIO()
+        Image.new('RGBA', (80, 80), (20, 120, 80, 255)).save(body, 'PNG')
+        with tempfile.TemporaryDirectory() as temporary:
+            with patch('WarderRadio.station_logos.prune') as prune:
+                bulk = StationLogos(temporary, download=lambda _: body.getvalue(),
+                                    alternatives=lambda station: [], bulk_mode=True)
+                first = bulk.get('https://images.example/first.png')
+                second = bulk.get('https://images.example/second.png')
+                self.assertNotEqual(first, second)
+                self.assertTrue(Path(first).is_file())
+                self.assertTrue(Path(second).is_file())
+                prune.assert_not_called()
+
+                standard = StationLogos(temporary, download=lambda _: body.getvalue())
+                standard.get('https://images.example/third.png')
+                self.assertTrue(prune.called)
+
     def test_bad_logo_caches_miss_and_never_uses_private_icon_domain(self):
         with tempfile.TemporaryDirectory() as temporary:
             calls = []
