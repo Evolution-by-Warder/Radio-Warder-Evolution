@@ -85,14 +85,12 @@ class ProgrammeLogos(HTMLParser):
             return
         d=dict(attrs)
         self.tag_count+=1
+        if len(self.illustrations)<5:
+            self.illustrations.append({k:str(v)[:180] for k,v in d.items()
+                                       if k in ('alt','data-src','data-image','src','class')})
         brand=titled_alt(d.get('alt'))
         if brand:
             self.title_count+=1
-            if len(self.illustrations)<5:
-                self.illustrations.append({'alt':str(d.get('alt'))[:80],
-                    'data_src':str(d.get('data-src'))[:160],
-                    'data_image':str(d.get('data-image'))[:160],
-                    'src':str(d.get('src'))[:160]})
         if not brand:
             return
         image=next((clean for value in (d.get('data-src'),d.get('data-image'),d.get('src'))
