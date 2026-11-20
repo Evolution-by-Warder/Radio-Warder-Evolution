@@ -77,11 +77,22 @@ class ProgrammeLogos(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.images=[]
+        self.tag_count=0
+        self.title_count=0
+        self.illustrations=[]
     def handle_starttag(self,tag,attrs):
         if tag!='img':
             return
         d=dict(attrs)
+        self.tag_count+=1
         brand=titled_alt(d.get('alt'))
+        if brand:
+            self.title_count+=1
+            if len(self.illustrations)<5:
+                self.illustrations.append({'alt':str(d.get('alt'))[:80],
+                    'data_src':str(d.get('data-src'))[:160],
+                    'data_image':str(d.get('data-image'))[:160],
+                    'src':str(d.get('src'))[:160]})
         if not brand:
             return
         image=next((clean for value in (d.get('data-src'),d.get('data-image'),d.get('src'))
@@ -99,7 +110,7 @@ def parse_page(raw):
     for brand,image in parser.images:
         names[normalize(brand)].add(image)
     if len(names)<60 or len(names)>250:
-        raise ValueError('Unexpected number of operator-uploaded DAB+ programme logos')
+        raise ValueError('Unexpected operator DAB+ station-logo HTML schema: '+str({'images':parser.tag_count,'branded':parser.title_count,'valid':len(names),'examples':parser.illustrations}))
     return dict(names)
 
 
