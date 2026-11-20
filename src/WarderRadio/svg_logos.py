@@ -3,6 +3,7 @@
 No added dependency on Enigma2 boxes. CairoSVG is installed on the GitHub
 review runner only. Reject any remote resources or scripting before rendering.
 """
+import math
 import re
 
 MAX_SOURCE = 512 * 1024
@@ -18,6 +19,39 @@ DISALLOWED = (
     re.compile(rb'@import|@font-face|javascript:|data:|externalresourcesrequired', re.I),
     re.compile(rb'\bon(?:load|click|error|mouseover|focus)\s*=', re.I),
 )
+
+
+def _safe_canvas(tree):
+    """Keep the SVG source aspect ratio, never stretch logos into a square."""
+    viewbox = tree.get('viewBox')
+    if viewbox is not None:
+        parts = re.split(r'[\s,]+', viewbox.strip())
+        if len(parts) != 4:
+            raise ValueError('Invalid SVG viewBox')
+        try:
+            x, y, width, height = (float(v) for v in parts)
+        except (ValueError, TypeError) as exc:
+            raise ValueError('Invalid SVG viewBox') from exc
+        if not all(math.isfinite(n) and abs(n) < 1000000
+                   for n in (x, y, width, height)):
+            raise ValueError('Invalid SVG coordinates')
+    else:
+        # Without viewBox, accept only explicit numeric pixel dimensions.
+        fields = [re.fullmatch(r'([0-9]+(?:\.[0-9]+)?)(?:px)?',
+                               (tree.get(k) or '').strip())
+                  for k in ('width', 'height')]
+        if any(field is None for field in fields):
+            raise ValueError('SVG proportions unavailable')
+        width, height = (float(field.group(1)) for field in fields)
+    if (not math.isfinite(width) or not math.isfinite(height) or
+            not 0 < width <= 1000000 or not 0 < height <= 1000000):
+        raise ValueError('Invalid SVG dimensions')
+    extent = max(width, height)
+    pixels = (max(1, round(PNG_SIZE * width / extent)),
+              max(1, round(PNG_SIZE * height / extent)))
+    if min(pixels) < 8:
+        raise ValueError('SVG proportions too extreme')
+    return pixels
 
 
 def render_svg(source):
@@ -46,16 +80,17 @@ def render_svg(source):
                 raise ValueError('External SVG reference')
             if local.startswith('on') and local in ('onload','onclick','onerror'):
                 raise ValueError('Executable SVG event')
+    target_width, target_height = _safe_canvas(tree)
     import cairosvg
     from PIL import Image
     from io import BytesIO
     try:
-        png = cairosvg.svg2png(bytestring=raw, output_width=PNG_SIZE,
-                              output_height=PNG_SIZE, unsafe=False)
+        png = cairosvg.svg2png(bytestring=raw, output_width=target_width,
+                              output_height=target_height, unsafe=False)
         if not png.startswith(b'\x89PNG\r\n\x1a\n') or len(png) > MAX_OUTPUT:
             raise ValueError('SVG render result exceeds PNG limit')
         with Image.open(BytesIO(png),formats=('PNG',)) as image:
-            if image.size != (PNG_SIZE,PNG_SIZE):
+            if image.size != (target_width,target_height):
                 raise ValueError('Unexpected SVG raster size')
             image.load()
         return png, PNG_SIZE
