@@ -28,6 +28,12 @@ COUNTRIES=frozenset(('US','CA'))
 CALLSIGN=re.compile(r'^[CKW][A-Z]{2,4}(?:-[A-Z]+)?$',re.I)
 CSV_LIMIT=400*1024
 SOURCE_COMMIT='6b2d87f2412fad5fd53d1efde7e0cc157eba4771'
+# Verified source-branding conflict: Bust.club is a distinct project from
+# Cum Town; the old playlist points at Cum Town's logo. Leave that UUID empty.
+MISMATCHED_ARTWORK = frozenset((
+    ('54ef321a-b595-4a76-b198-cb9c66a188e3',
+     'https://upload.wikimedia.org/wikipedia/en/thumb/6/63/Cum_Town_logo.png/250px-Cum_Town_logo.png'),
+))
 
 def normal_name(text):
     if not isinstance(text,str):return ''
@@ -101,6 +107,10 @@ def candidates_for(rows, old_names, external):
         for e in idx.get((target['countrycode'],sid),()):
             reason=match_identity(target,e)
             if not reason:continue
+            if (target['stationuuid'],e['logo']) in MISMATCHED_ARTWORK:
+                # Exact UUID+source URL only; a future correct logo is allowed.
+                reasons['known_mismatched_brand']+=1
+                continue
             if len(same_logo[e['logo']])>1:
                 reasons['shared_site_icon']+=1
                 continue
