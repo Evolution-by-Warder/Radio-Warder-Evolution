@@ -1,0 +1,130 @@
+name: New German Media Broadcast DAB+ original station logos (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-media-broadcast-de-dab-originals-review.yml
+      - tools/recover_media_broadcast_de_radio_logos.py
+      - tests/test_media_broadcast_de_radio_logos.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover-verified-de-logos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 38
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-operator-dab-de
+      WORLD_SHA: 66a6e9ddf655c9030e0279abc5596be7728d9f397835720f1018f449927a7221
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline independent-source image identity regression
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_media_broadcast_de_radio_logos.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install image conversion for this isolated review only
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Download only already verified last 39655 originals and changed DE candidate
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/latest" "$ROOT/old" "$ROOT/source"
+          test "$(gh run view 44802603175 --json conclusion -q '.conclusion')" = success
+          gh run download 44802603175 \
+            -n radio-224-39655-independent-source-originals-REVIEW-ONLY \
+            -D "$ROOT/latest"
+          mapfile -t world < <(find "$ROOT/latest" -type f -name radio-countries-bouquets.zip)
+          test "${#world[@]}" -eq 1
+          cp "${world[0]}" "$ROOT/world-39655.zip"
+          mapfile -t candidates < <(find "$ROOT/latest" -type d -name radio-country-DE-REVIEW-NOT-PRODUCTION)
+          test "${#candidates[@]}" -eq 1
+          cp -a "${candidates[0]}" "$ROOT/old/"
+      - name: Confirm immutable SHA of 224-country 39655 PNG world and DE image ZIP
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          world=root/'world-39655.zip'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(world) as z:
+              idx=json.loads(z.read('index.json'))
+              assert idx['country_count']==224 and idx['station_count']==48219
+              assert sum(x['logos_found'] for x in idx['countries'].values())==39655
+              de=idx['countries']['DE']
+          asset=root/'old/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip'
+          assert asset.is_file() and hashlib.sha256(asset.read_bytes()).hexdigest()==de['logo_sha256']
+          print('DE old originals SHA PASS',de['stations'],de['logos_found'])
+          PY
+      - name: Download NEW Media Broadcast official DAB+ brand library once
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --compressed \
+            --retry 2 --connect-timeout 10 --max-time 60 \
+            --user-agent 'WarderRadioLogoReview/0.1 (official DAB+ original logos)' \
+            'https://media-broadcast.squarespace.com/dab-logoservice' \
+            -o "$ROOT/source/dab-logoservice.html"
+          test -s "$ROOT/source/dab-logoservice.html"
+          sha256sum "$ROOT/source/dab-logoservice.html"
+      - name: Match ONLY exact DE station names and download verified operator originals
+        run: |
+          PYTHONPATH=src:tools python3 -B tools/recover_media_broadcast_de_radio_logos.py \
+            --world "$ROOT/world-39655.zip" \
+            --old-root "$ROOT/old" \
+            --source-page "$ROOT/source/dab-logoservice.html" \
+            --out "$ROOT/review" --workers 8
+      - name: Audit original PNG byte-for-byte preservation and gain
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'review/media-broadcast-de-radio-originals-review.json').read_text())
+          assert report['review_only'] and report['country']=='DE'
+          assert report['unchanged_existing_pngs'] and report['operator_brand_names']>=60
+          assert report['new_downloads']==len(report['new_operator_images'])
+          assert report['recovered_total']==report['new_downloads']+report['cloned_exact']
+          old=root/'old/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip'
+          new=root/'review/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip'
+          if report['recovered_total']:
+              with ZipFile(old) as o,ZipFile(new) as n:
+                  assert all(o.read(x)==n.read(x) for x in o.namelist())
+                  assert len(n.namelist())-len(o.namelist())==report['recovered_total']
+          else:
+              assert not new.exists()
+          print('GERMAN DAB OPERATORS ORIGINALS',json.dumps({
+              'brand_names':report['operator_brand_names'],
+              'exact_candidates':report['exact_candidates'],
+              'image_success':report['new_downloads'],
+              'new_logos':report['recovered_total'],
+              'image_failures':report['image_failures'],
+              'still_missing_DE':report['logos_missing'],
+              'unchanged_png':report['unchanged_existing_pngs']
+          },sort_keys=True))
+          PY
+      - name: Create NEW complete 224-country world ZIP only when DE gains logos (review only)
+        run: |
+          set -euo pipefail
+          if test -f "$ROOT/review/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip"; then
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/world-39655.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries DE --out "$ROOT/new-world"
+          else
+            echo 'Zero exact new DE logos: source world remains 39655; no candidate overwritten.'
+          fi
+      - name: Save only source proof, candidate changed country and optional review world
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY
+          path: |
+            /tmp/warder-operator-dab-de/review/
+            /tmp/warder-operator-dab-de/new-world/
+          if-no-files-found: error
+          retention-days: 30
