@@ -2,7 +2,10 @@ name: New independent curated US/Canada radio logos by exact stream + station id
 on:
   push:
     branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
-    paths: [.github/workflows/radio-new-independent-city-playlists-review.yml]
+    paths:
+      - .github/workflows/radio-new-independent-city-playlists-review.yml
+      - tools/recover_independent_city_radio_logos.py
+      - tests/test_independent_city_radio_logos.py
 permissions:
   contents: read
   actions: read
