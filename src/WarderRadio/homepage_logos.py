@@ -4,6 +4,8 @@ No scraping of search engines, no unrelated image guesses, and no arbitrary
 third-party CDNs. The caller's hardened public-IP-pinned request_logo handles
 HTTP and redirects. This module only parses small HTML from a station homepage.
 """
+import ipaddress
+import re
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
@@ -24,13 +26,19 @@ def station_domain(homepage):
         if (parsed.scheme not in ('http', 'https') or
                 parsed.username is not None or parsed.password is not None):
             return ''
-        host = (parsed.hostname or '').lower().removeprefix('www.')
-        if (not host or len(host) > 240 or
-                '.' not in host or any(host == name or host.endswith('.' + name)
-                                     for name in GENERIC_HOSTS)):
+        host = (parsed.hostname or '').encode('idna').decode('ascii').lower().removeprefix('www.')
+        if (not host or len(host) > 240 or '.' not in host or
+                not re.fullmatch(r'[a-z0-9.-]+', host) or
+                host.endswith(('.local', '.localhost', '.internal', '.test')) or
+                any(host == name or host.endswith('.' + name)
+                    for name in GENERIC_HOSTS)):
             return ''
-        return host
-    except (ValueError, AttributeError):
+        try:
+            ipaddress.ip_address(host)
+            return ''
+        except ValueError:
+            return host
+    except (ValueError, AttributeError, UnicodeError):
         return ''
 
 
