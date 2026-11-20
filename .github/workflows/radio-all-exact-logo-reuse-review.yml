@@ -1,0 +1,93 @@
+name: Radio 224-country exact original-logo reuse (review-only, NO HTTP)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-all-exact-logo-reuse-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reuse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      WORK_ROOT: /tmp/warder-world-exact-logo-reuse
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline identity and signature safety checks
+        run: python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Fetch only previously SHA-audited world and historical country assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$WORK_ROOT/world" "$WORK_ROOT/batches" "$WORK_ROOT/old" "$WORK_ROOT/recovered"
+          gh run download 44583128017 -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$WORK_ROOT/world"
+          gh run download 44583128017 -p 'radio-original-logos-batch-*-REVIEW' -D "$WORK_ROOT/batches"
+      - name: Move original country snapshot packages without modifying source artifacts
+        run: |
+          python3 - <<'PY'
+          import os, shutil
+          from pathlib import Path
+          root=Path(os.environ['WORK_ROOT'])
+          folders=sorted(root.joinpath('batches').rglob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          if len(folders)!=224:
+              raise SystemExit('Expected 224 original signed country packages: '+str(len(folders)))
+          names=set()
+          for folder in folders:
+              code=folder.name.split('-')[2]
+              if code in names or folder.is_symlink() or len(code)!=2:
+                  raise SystemExit('Unsafe duplicate country')
+              names.add(code)
+              shutil.move(str(folder),str(root/'old'/folder.name))
+          print('Verified original country folders:',len(names))
+          PY
+      - name: Reuse identical logo only for exact country name and station homepage
+        run: |
+          python3 - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          root=Path(os.environ['WORK_ROOT'])
+          sys.path.insert(0,str(Path.cwd()/'tools'))
+          import complete_world_country_original_logos as complete
+          import recover_missing_radio_logos as second
+          path=root/'world/radio-countries-bouquets.zip'
+          sha='669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38'
+          idx=complete.verify_source(path,sha)
+          idx['_source_sha256']=sha
+          _,_,_,validator=complete.engine(Path.cwd()/'src')
+          class NeverRequestNetwork:
+              def get(self, station):
+                  raise AssertionError('Exact-brand reuse must not request Internet')
+          results=[]
+          for code in sorted(idx['countries']):
+              results.append(second.recover_country(path,idx,code,root/'old',
+                       NeverRequestNetwork(),validator,root/'recovered',
+                       workers=1,max_network=0))
+          old=sum(r['original_logos'] for r in results)
+          gain=sum(r['recovered_total'] for r in results)
+          assert len(results)==224 and old==39110 and 0<=gain<=9109
+          assert all(r['unchanged_existing_pngs'] and
+                     r['network_attempts']==0 and
+                     r['new_downloads']==0 for r in results)
+          report={'schema':1,'country_count':224,'original_logos':old,
+                  'new_exact_clones':gain,
+                  'after_recovery_logos':old+gain,
+                  'remaining_without_logo':9109-gain,
+                  'changed_countries':[r for r in results if r['recovered_total']>0],
+                  'status':'review-only-not-published'}
+          destination=root/'recovered/global-exact-logo-reuse-report.json'
+          destination.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+          print('GLOBAL EXACT PNG REUSE',json.dumps(report,sort_keys=True))
+          PY
+      - name: Archive only the candidates that changed and the small report
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-224-exact-original-logo-reuse-REVIEW-ONLY
+          path: /tmp/warder-world-exact-logo-reuse/recovered/
+          retention-days: 30
+          if-no-files-found: error
