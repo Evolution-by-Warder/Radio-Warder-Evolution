@@ -197,7 +197,14 @@ class StationLogos:
                 return
             checked.add(url)
             try:
-                png, value = normalized_logo(self.download(url))
+                source = self.download(url)
+                if self.bulk_mode and source.lstrip().startswith((b'<svg', b'<?xml')):
+                    # No CairoSVG requirement in the installed receiver plugin.
+                    # Only the isolated offline builder may rasterize SVG.
+                    from .svg_logos import render_svg
+                    png, value = render_svg(source)
+                else:
+                    png, value = normalized_logo(source)
                 if value > quality:
                     best, quality = png, value
             except (OSError, ValueError, ImportError, http.client.HTTPException):
