@@ -1,3 +1,13 @@
+## 20. 11. 2026 — nové RadioDNS UK dáta preverované proti 39 655-logo svetu (0 čerstvých PNG)
+
+- **Nový nezávislý zdroj, nie Radio Browser ani IPRD:** `https://www.radiodns.uk/services.json` (Ofcom + RadioDNS broadcaster SPI). Zdroje serverovej schémy boli overené v `njh/radiodns-uk` (`views/services_index.yajl`, `views/services_show.yajl`); 515 služieb s explicitným oficiálnym webom a URL log. Testovací importer `tools/recover_radiodns_uk_radio_logos.py`, regresie `tests/test_radiodns_uk_radio_logos.py`, review CI [#44817108745 PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44817108745).
+- **Čistý výsledok:** 1 776 GB staníc, z toho 1 561 pôvodných PNG a **215 stále chýbajúcich**; z indexu len **5 potenciálnych zhôd názvu**, z nich 1 kompletný záznam s metadata, avšak **0 zhôd oficiálny web + názov a 0 nových PNG**. Webový snapshot SHA-256 `9a1f79a26fd541078f63c102d5c6384fd93f230edf0387dd11e9146b26c02c06`. Starý GB ZIP kontrolne zhodný, nič neprepísané, nepridané a nepublikované.
+- **Výsledok opakovania:** nový zdroj označený za preverený a momentálne vyčerpaný; **nezopakovať nezmenený RadioDNS UK snapshot**. Vyhľadávať iné originálne zdroje. Kandidátsky celosvetový počet zostáva **39 655/48 219**, chýba **8 564**.
+- Nezávislý ďalší smer na preverenie: pôvodné logá zo [stránky Media Broadcast DAB+ Logoservice](https://media-broadcast.squarespace.com/dab-logoservice) (nemecký prevádzkovateľ DAB+, identifikátory Service-ID a logá; nepreberať bez presnej identity vysielateľa).
+- **Iba pracovná vetva PR #52**. Main, používateľské balíky, IPK ani verejné vydanie sa nezmenili.
+
+---
+
 ## 20. 11. 2026 — NOVÉ nezávislé zdroje (nie opakovanie Radio Browser/IPRD) a 39 655 originálnych rádiových log
 
 - **Príprava pre prácu bez duplicitného zberu:** SHA-identický základ všetkých **224** country ZIP archívov **39 643** log / 48 219 staníc [Actions #44800357834 PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44800357834). Z jedného 810 MB podkladu sa v jednej úlohe urobilo **28 nezmenených 8-country shardov** pre krátke nezávislé kontroly [#44801652426 PASS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44801652426). Každý SHA a manifest zachovaný. **Nespúšťať znovu staré 48 219-staničné downloady** len na získanie minulých výsledkov.
