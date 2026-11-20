@@ -1,0 +1,251 @@
+name: Slice verified 39643-logo world into 28 country review assets (new sources only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-canonical-country-shards-review.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  split-signed-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download once — 224 original country ZIPs, verified canonical source
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/warder-canonical/complete
+          gh run download 44800357834 \
+            -n radio-canonical-224-country-39643-logos-REVIEW-ONLY \
+            -D /tmp/warder-canonical/complete
+      - name: Partition 224 reviewed countries by original alphabetic world ordering
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          base=Path('/tmp/warder-canonical/complete')
+          proof=json.loads((base/'current-world-provenance.json').read_text())
+          assert [proof['countries'],proof['stations'],proof['logos']]==[224,48219,39643]
+          assert proof['review_only'] is True
+          assert proof['world_sha256']=='5b93b00032c4eec5e4934be24945604f49eaf89fd2f31900c8e46fe2b971ea84'
+          files=sorted(base.glob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          assert len(files)==224
+          names=set()
+          for index,folder in enumerate(files):
+              code=folder.name.split('-')[2]
+              assert len(code)==2 and code.isalpha() and code not in names and not folder.is_symlink()
+              names.add(code)
+              manifest=json.loads((folder/'manifests'/f'{code}.json').read_text())
+              logo=(folder/'logos'/f'{code}.zip')
+              evidence=manifest['files'][f'logos/{code}.zip']
+              assert logo.stat().st_size==evidence['bytes'] and hashlib.sha256(logo.read_bytes()).hexdigest()==evidence['sha256']
+              dest=Path('/tmp/warder-canonical/shards')/f'{index//8:02d}'
+              dest.mkdir(parents=True,exist_ok=True)
+              shutil.move(str(folder),str(dest/folder.name))
+          assert len(names)==224
+          assert not list(base.glob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          print('SPLIT 224 SHA-checked countries into 28 groups of 8; untouched PNG bytes')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-00-REVIEW
+          path: /tmp/warder-canonical/shards/00/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-01-REVIEW
+          path: /tmp/warder-canonical/shards/01/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-02-REVIEW
+          path: /tmp/warder-canonical/shards/02/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-03-REVIEW
+          path: /tmp/warder-canonical/shards/03/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-04-REVIEW
+          path: /tmp/warder-canonical/shards/04/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-05-REVIEW
+          path: /tmp/warder-canonical/shards/05/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-06-REVIEW
+          path: /tmp/warder-canonical/shards/06/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-07-REVIEW
+          path: /tmp/warder-canonical/shards/07/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-08-REVIEW
+          path: /tmp/warder-canonical/shards/08/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-09-REVIEW
+          path: /tmp/warder-canonical/shards/09/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-10-REVIEW
+          path: /tmp/warder-canonical/shards/10/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-11-REVIEW
+          path: /tmp/warder-canonical/shards/11/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-12-REVIEW
+          path: /tmp/warder-canonical/shards/12/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-13-REVIEW
+          path: /tmp/warder-canonical/shards/13/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-14-REVIEW
+          path: /tmp/warder-canonical/shards/14/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-15-REVIEW
+          path: /tmp/warder-canonical/shards/15/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-16-REVIEW
+          path: /tmp/warder-canonical/shards/16/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-17-REVIEW
+          path: /tmp/warder-canonical/shards/17/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-18-REVIEW
+          path: /tmp/warder-canonical/shards/18/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-19-REVIEW
+          path: /tmp/warder-canonical/shards/19/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-20-REVIEW
+          path: /tmp/warder-canonical/shards/20/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-21-REVIEW
+          path: /tmp/warder-canonical/shards/21/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-22-REVIEW
+          path: /tmp/warder-canonical/shards/22/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-23-REVIEW
+          path: /tmp/warder-canonical/shards/23/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-24-REVIEW
+          path: /tmp/warder-canonical/shards/24/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-25-REVIEW
+          path: /tmp/warder-canonical/shards/25/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-26-REVIEW
+          path: /tmp/warder-canonical/shards/26/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-canonical-39643-country-shard-27-REVIEW
+          path: /tmp/warder-canonical/shards/27/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
