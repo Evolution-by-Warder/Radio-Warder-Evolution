@@ -7,6 +7,7 @@ on:
       - .github/workflows/radio-iprd-224-reconcile-review.yml
       - tools/reconcile_iprd_svg_world.py
       - tests/test_reconcile_iprd_svg_world.py
+      # The exact UUID evidence is part of the immutable review gate.
 
 permissions:
   contents: read
