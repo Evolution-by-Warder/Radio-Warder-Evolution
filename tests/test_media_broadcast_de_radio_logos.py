@@ -40,12 +40,18 @@ class TestMediaBroadcast(unittest.TestCase):
         self.assertEqual(normalize('Radio Flensbürg'),'radio flensburg')
 
     def test_live_site_shape_but_never_fuzzy_match(self):
-        body=['<html><main>']
+        # Live site stores alt, visible caption and original image link as
+        # HTML-entity encoded JSON; rendered <img> tags actually have alt="".
+        import json,html
+        rows=[]
         for n in range(80):
             name='Radio Flensburg' if n==5 else 'Other Radio '+str(n)
-            body.append(f'<img alt="Logo {name}" data-src="{IMG}"/>')
-        body.append('</main></html>')
-        names=parse_page(''.join(body).encode())
+            rows.append({'title':'Neuer Listeneintrag',
+                'description':'<p>'+name+'</p>',
+                'imageAltText':'Logo '+name,
+                'image':{'assetUrl':IMG}})
+        source='<html><script>'+html.escape(json.dumps(rows))+'</script></html>'
+        names=parse_page(source.encode())
         self.assertEqual(len(names),80)
         self.assertIn('radio flensburg',names)
         choices,ambiguous,stats=candidates_for([station()],set(),names)
