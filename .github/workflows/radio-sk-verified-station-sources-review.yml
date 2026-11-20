@@ -39,7 +39,7 @@ jobs:
             -n radio-original-logos-batch-22-REVIEW \
             -D "$ROOT/source"
           cp -a "$ROOT/source/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
-      - name: Recover original Jazz, Topoľčany and Party Radio sources
+      - name: Recover six externally verified SK broadcaster logos
         run: |
           set -euo pipefail
           python3 -B tools/recover_verified_station_directory.py \
@@ -55,7 +55,7 @@ jobs:
           root = Path(os.environ['ROOT'])
           report = json.loads((root/'candidate/curated-source-report.json').read_text())
           assert report['previous_logo_count'] == 111
-          assert 111 <= report['candidate_logo_count'] <= 114
+          assert 111 <= report['candidate_logo_count'] <= 117
           assert report['new_logos'] == len(report['sources'])
           assert report['missing'] == 123 - report['candidate_logo_count']
           changed = root/'candidate/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip'
@@ -72,7 +72,7 @@ jobs:
       - name: Keep candidate in GitHub Actions only — no GitHub Release or production feed
         uses: actions/upload-artifact@v4
         with:
-          name: radio-SK-curated-jazz-topolcany-party-REVIEW-ONLY
+          name: radio-SK-curated-six-profiles-REVIEW-ONLY
           path: /tmp/warder-radio-curated-sk/candidate/
           retention-days: 30
           if-no-files-found: error
