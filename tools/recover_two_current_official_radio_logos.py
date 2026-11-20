@@ -96,6 +96,8 @@ def recover(world,old_root,pages,gaps_file,output):
                 raise ValueError('Broke original country PNG preservation')
             record={**country_result,'official_identity_status':reason,
                     'current_broadcaster_name':name,
+                    'pinned_homepage':target.get('homepage',''),
+                    'pinned_audio_stream':target.get('url',''),
                     'official_image_attempted':bool(match),
                     'accepted_original_images':provider.success,
                     'download_failures':dict(provider.failures),
