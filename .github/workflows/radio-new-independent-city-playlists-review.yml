@@ -1,0 +1,97 @@
+name: New independent curated US/Canada radio logos by exact stream + station identity (review only)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-new-independent-city-playlists-review.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-city-playlist-originals
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm external stream identities with no network requests
+        run: PYTHONPATH=src python3 -B tests/test_independent_city_radio_logos.py
+      - name: Install image conversion only on review runner
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Get independently maintained country and city radio CSVs pinned by commit
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/csv" "$ROOT/world" "$ROOT/ca" "$ROOT/us" "$ROOT/old"
+          for file in \
+            ca-bc-vancouver.csv ca-on-barrie.csv ca-on-collingwood.csv \
+            ca-on-kitchener.csv ca-on-toronto.csv ca-sportsnet.csv \
+            us-ca-sanfancisco.csv us-mo-stlouis.csv us-ny-newyork.csv; do
+            curl --fail --location --silent --show-error --compressed \
+              --connect-timeout 10 --max-time 40 --retry 2 \
+              --user-agent 'WarderRadioLogoReview/0.1 (independent curated radio directory)' \
+              "https://raw.githubusercontent.com/sethwv/radio-playlists/6b2d87f2412fad5fd53d1efde7e0cc157eba4771/$file" \
+              -o "$ROOT/csv/$file"
+          done
+          gh run download 44794574890 -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44790307518 -n radio-iprd-original-logos-04-REVIEW -D "$ROOT/ca"
+          gh run download 44790307518 -n radio-iprd-original-logos-25-REVIEW -D "$ROOT/us"
+          cp -a "$ROOT/ca/radio-country-CA-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/us/radio-country-US-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+      - name: Verify original 39643-logo world ZIP and both unchanged country asset SHA values
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          world=root/'world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()=='5b93b00032c4eec5e4934be24945604f49eaf89fd2f31900c8e46fe2b971ea84'
+          with ZipFile(world) as z:
+              idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39643
+          for code in ('CA','US'):
+              original=root/'old'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              assert original.is_file()
+              assert hashlib.sha256(original.read_bytes()).hexdigest()==idx['countries'][code]['logo_sha256']
+          print('Curated city radio: world and original country SHA proof PASS')
+          PY
+      - name: Recover ONLY new exact-stream and same station call-sign originals
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src python3 -B tools/recover_independent_city_radio_logos.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --old-root "$ROOT/old" \
+            --csv "$ROOT/csv" --out "$ROOT/review" --workers 5
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'review/city-radio-independent-source-audit.json').read_text())
+          assert len(report['countries'])==2 and report['review_only']
+          for row in report['countries']:
+              assert row['unchanged_existing_pngs']
+              code=row['country']
+              old=root/'old'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              new=root/'review'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              if row['recovered_total']:
+                  with ZipFile(old) as before,ZipFile(new) as after:
+                      assert all(before.read(k)==after.read(k) for k in before.namelist())
+              else:
+                  assert not new.exists()
+          print('INDEPENDENT CITY RADIO REVIEW:',json.dumps({
+              'candidate_urls':report['source_candidates'],
+              'new_original_pngs':report['new_originals'],
+              'country_counts':{r['country']:r.get('recovered_total',0) for r in report['countries']}
+          },sort_keys=True))
+          PY
+      - name: Retain only country candidates and provenance, no public release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-independent-city-logos-US-CA-REVIEW-ONLY
+          path: /tmp/warder-city-playlist-originals/review/
+          retention-days: 30
+          if-no-files-found: error
