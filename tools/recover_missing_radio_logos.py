@@ -125,7 +125,7 @@ def encode_logos(known):
 
 
 def recover_country(world_path, world_index, code, old_root, store, validator, output,
-                    workers=6, max_network=None):
+                    workers=6, max_network=None, svg_only=False):
     """Build a NEW draft country, keeping 100% of verified earlier PNGs."""
     if not isinstance(code, str) or not CODE.fullmatch(code):
         raise ValueError('Unsafe country code')
@@ -154,6 +154,10 @@ def recover_country(world_path, world_index, code, old_root, store, validator, o
     missing = [r for r in rows if r['stem'] + '.png' not in good]
     quarantined = [r for r in missing if r['stationuuid'] in QUARANTINED_UUIDS]
     missing = [r for r in missing if r['stationuuid'] not in QUARANTINED_UUIDS]
+    if svg_only:
+        # Retry only source-declared SVG logos, never unrelated image guesses.
+        missing = [r for r in missing if isinstance(r.get('favicon'),str)
+                   and re.search(r'\.svg(?:[?#]|$)',r['favicon'],re.I)]
     if max_network is not None and (type(max_network) is not int or max_network < 0):
         raise ValueError('Invalid network station limit')
     if max_network is not None:
@@ -223,6 +227,8 @@ def main():
     parser.add_argument('--countries', required=True, help='Comma-separated country codes')
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--workers', type=int, default=6)
+    parser.add_argument('--svg-only', action='store_true',
+                        help='Only retry existing SVG image URLs for missing stations')
     parser.add_argument('--max-network', type=int, default=None)
     args = parser.parse_args()
     codes = [x.strip().upper() for x in args.countries.split(',') if x.strip()]
@@ -237,7 +243,8 @@ def main():
         for code in codes:
             result = recover_country(args.world, world_index, code, args.old_root,
                                      store, validator, args.out,
-                                     workers=args.workers, max_network=args.max_network)
+                                     workers=args.workers, max_network=args.max_network,
+                                     svg_only=args.svg_only)
             results.append(result)
             print(json.dumps(result, sort_keys=True), flush=True)
     summary = {'schema': 1, 'source_world_sha256': args.world_sha256,
