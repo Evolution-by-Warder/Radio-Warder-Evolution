@@ -16,6 +16,7 @@ from .cache import prune, write_atomic
 from .model import search_key, stream_url
 from .radio_browser import USER_AGENT
 from .homepage_logos import homepage_icon_candidates, station_domain
+from .logo_source_guard import mismatched_source
 
 MAX_INPUT = 512 * 1024
 MAX_PIXELS = 1024 * 1024
@@ -176,6 +177,11 @@ class StationLogos:
         if not key or os.path.islink(self.directory):
             return None
         station = item if isinstance(item, dict) else {'favicon': item}
+        if self.bulk_mode and mismatched_source(station) is not None:
+            # Do not turn a shared website favicon into the logo of an
+            # unrelated or differently branded station. Future valid source
+            # replacements are accepted automatically.
+            return None
         prefix = hashlib.sha256(key.encode('utf-8')).hexdigest()
         path = os.path.join(self.directory, prefix + '.png')
         miss = os.path.join(self.directory, prefix + '.miss')
