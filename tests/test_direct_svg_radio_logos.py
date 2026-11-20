@@ -39,6 +39,30 @@ class Tests(unittest.TestCase):
             self.assertEqual(len(store.successes),1)
             self.assertFalse(store.failures)
 
+    def test_site_player_favicon_is_quarantined_but_new_correct_source_is_allowed(self):
+        from WarderRadio.logo_source_guard import (
+            mismatched_source, SOURCE_BRANDING_MISMATCH,
+        )
+        self.assertEqual(len(SOURCE_BRANDING_MISMATCH),10)
+        key='18d1c523-1740-4b9c-8efe-60341d841733'
+        item=dict(ROW, stationuuid=key, favicon=SOURCE_BRANDING_MISMATCH[key])
+        self.assertEqual(mismatched_source(item),SOURCE_BRANDING_MISMATCH[key])
+        self.assertIsNone(svg_source(item))
+        requests=[]
+        with tempfile.TemporaryDirectory() as tmp:
+            loader=DirectSVGStore(tmp,
+                    downloader=lambda url: requests.append(url) or b'<svg/>',
+                    renderer=lambda _: (b'\x89PNG\r\n\x1a\nsafe',224))
+            self.assertIsNone(loader.get(item))
+            self.assertEqual(requests,[])
+            self.assertEqual(loader.attempted,0)
+            self.assertIn(key,loader.branding_quarantine)
+            corrected=dict(item,favicon='https://dorognoe.ru/assets/real-logo.svg')
+            self.assertIsNone(mismatched_source(corrected))
+            self.assertEqual(svg_source(corrected),corrected['favicon'])
+            self.assertIsNotNone(loader.get(corrected))
+            self.assertEqual(requests,[corrected['favicon']])
+
     def test_download_or_svg_failure_is_counted_without_fake_png(self):
         with tempfile.TemporaryDirectory() as tmp:
             failing=DirectSVGStore(tmp,downloader=lambda _: (_ for _ in ()).throw(OSError('offline')),
