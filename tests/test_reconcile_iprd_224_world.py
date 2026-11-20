@@ -52,7 +52,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(review.SOURCE_SHARD_LOGOS,39129)
         self.assertEqual(review.EXPECTED_NEWER_OVERLAY,21)
         self.assertEqual(review.IPRD_NEW,510)
-        self.assertEqual(len(review.SUSPICIOUS_SOURCE_UUIDS),13)
+        self.assertEqual(len(review.SUSPICIOUS_SOURCE_UUIDS),16)
 
 
 if __name__=='__main__':
