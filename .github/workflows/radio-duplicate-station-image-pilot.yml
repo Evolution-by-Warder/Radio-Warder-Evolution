@@ -1,0 +1,107 @@
+name: Original radio logo rescue from exact duplicate online station records - SK CZ DE pilot
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-duplicate-station-image-pilot.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  exact-records:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-verified-exact-duplicate-images
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tests reject similarly named stations and shared generic website icons
+        run: |
+          PYTHONPATH=src python3 -B tests/test_duplicate_radio_logo_recovery.py
+          PYTHONPATH=src python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install image decoders on CI only, never on the receiver
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Fetch pinned original 39150-logo world and verified SK/CZ/DE country ZIPs
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/sk" "$ROOT/cz" "$ROOT/de" "$ROOT/old" "$ROOT/review"
+          gh run download 44781162459 \
+            -n radio-world-224-39150-station-originals-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44780870898 \
+            -n radio-SK-curated-six-profiles-REVIEW-ONLY -D "$ROOT/sk"
+          gh run download 44762776607 \
+            -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/cz"
+          gh run download 44776112474 \
+            -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/de"
+          cp -a "$ROOT/sk/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/cz/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/de/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+      - name: Verify exact signature, preserved station counts and old PNG manifests
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          world=root/'world/new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()=='a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74'
+          with ZipFile(world) as z:
+              data=json.loads(z.read('index.json'))
+              assert data['country_count']==224 and data['station_count']==48219
+              assert sum(r['logos_found'] for r in data['countries'].values())==39150
+              assert [data['countries'][c]['logos_found'] for c in ('SK','CZ','DE')]==[117,205,3963]
+          PY
+      - name: Cross-check current Radio Browser records and fetch ONLY justified new image URLs
+        run: |
+          set -euo pipefail
+          python3 -B tools/recover_radiobrowser_duplicate_logos.py \
+            --world "$ROOT/world/new-world/radio-countries-bouquets.zip" \
+            --world-sha256 a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74 \
+            --old-root "$ROOT/old" --countries SK,CZ,DE \
+            --workers 6 --out "$ROOT/review"
+      - name: Verify no preexisting PNG overwritten
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'review/exact-radio-browser-duplicate-logo-review.json').read_text())
+          assert report['review_only'] is True
+          assert report['stations']==123+229+4863
+          assert report['logos_before']==117+205+3963
+          assert report['logos_after']==report['logos_before']+report['new_original_logos']
+          for row in report['countries']:
+              assert row['unchanged_existing_pngs']
+              assert row['new_downloads']==len(row['new_image_evidence'])
+              code=row['country']
+              new=root/'review'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              old=root/'old'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              if row['recovered_total']:
+                  with ZipFile(old) as before,ZipFile(new) as after:
+                      for name in before.namelist():
+                          assert before.read(name)==after.read(name),name
+                      assert len(after.namelist())==row['logos_found']
+              else:
+                  assert not new.exists()
+          print('PILOT THREE COUNTRIES:',json.dumps({
+              'stations':report['stations'],
+              'original_logos':report['logos_before'],
+              'new_verified_images':report['new_original_logos'],
+              'still_missing':report['stations']-report['logos_after'],
+              'source_options':sum(r['source_url_options'] for r in report['countries']),
+              'source_conflicts':sum(len(r['ambiguous_candidates']) for r in report['countries']),
+          },sort_keys=True))
+          PY
+      - name: Keep only changed original ZIPs and evidence, never a public release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-SK-CZ-DE-exact-duplicate-source-logos-REVIEW-ONLY
+          path: /tmp/warder-verified-exact-duplicate-images/review/
+          retention-days: 30
+          if-no-files-found: error
