@@ -3,7 +3,10 @@ name: New independent Wikidata Commons station-logo recovery across verified 224
 on:
   push:
     branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
-    paths: [.github/workflows/radio-new-wikidata-commons-country-review.yml]
+    paths:
+      - .github/workflows/radio-new-wikidata-commons-country-review.yml
+      - tools/recover_wikidata_radio_logos.py
+      - tests/test_wikidata_radio_logos.py
 
 permissions:
   contents: read
@@ -36,7 +39,7 @@ jobs:
       - name: Make 8-country matrix ONLY for new exact website matches
         id: matrix
         run: |
-          PYTHONPATH=src python3 - <<'PY'
+          PYTHONPATH=src:tools python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
           import json,os
@@ -176,7 +179,7 @@ jobs:
 
   summary:
     needs: [index,countries]
-    if: always()
+    if: needs.index.result == 'success' && needs.countries.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
