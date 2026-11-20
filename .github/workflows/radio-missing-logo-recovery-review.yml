@@ -1,0 +1,81 @@
+name: Radio second-pass missing PNG recovery (SK/CZ review-only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/recover_missing_radio_logos.py
+      - tests/test_missing_radio_logo_recovery.py
+      - .github/workflows/radio-missing-logo-recovery-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  safety:
+    name: Verify missing-only rebuild and original PNG preservation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recovery safety tests
+        run: |
+          python3 -B tests/test_missing_radio_logo_recovery.py
+          python3 -B tests/test_world_country_original_logos.py
+
+  two-countries:
+    name: Recover only previously absent SK/CZ service logos
+    needs: safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      WORK_ROOT: /tmp/warder-missing-second-pass
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install original plugin image dependency
+        run: python3 -m pip install --quiet Pillow
+      - name: Fetch SHA-pinned source world and unchanged historical SK/CZ assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$WORK_ROOT/world" "$WORK_ROOT/batch06" "$WORK_ROOT/batch22" "$WORK_ROOT/old" "$WORK_ROOT/recovered"
+          gh run download 44583128017 -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$WORK_ROOT/world"
+          gh run download 44583128017 -n radio-original-logos-batch-06-REVIEW -D "$WORK_ROOT/batch06"
+          gh run download 44583128017 -n radio-original-logos-batch-22-REVIEW -D "$WORK_ROOT/batch22"
+          cp -a "$WORK_ROOT/batch06/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$WORK_ROOT/old/"
+          cp -a "$WORK_ROOT/batch22/radio-country-SK-REVIEW-NOT-PRODUCTION" "$WORK_ROOT/old/"
+      - name: Recover missing SK/CZ PNG without downloading existing logos
+        run: |
+          set -euo pipefail
+          python3 -B tools/recover_missing_radio_logos.py \
+            --world "$WORK_ROOT/world/radio-countries-bouquets.zip" \
+            --world-sha256 669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38 \
+            --countries SK,CZ \
+            --old-root "$WORK_ROOT/old" \
+            --out "$WORK_ROOT/recovered" \
+            --workers 6
+      - name: Check signed original-country count and non-destructive updates
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          folder=Path(os.environ['WORK_ROOT'])
+          report=json.loads((folder/'recovered/missing-logo-recovery-report.json').read_text())
+          rows={row['country']: row for row in report['results']}
+          assert set(rows)=={'SK','CZ'}
+          assert rows['SK']['stations']==123 and rows['SK']['original_logos']==111
+          assert rows['CZ']['stations']==229 and rows['CZ']['original_logos']==202
+          assert all(row['unchanged_existing_pngs'] for row in rows.values())
+          assert rows['SK']['logos_found']>=111 and rows['CZ']['logos_found']>=202
+          assert sum(row['recovered_total'] for row in rows.values())==report['recovered_total']
+          print('Original images unchanged; review-only recovery:', json.dumps(report,sort_keys=True))
+          PY
+      - name: Keep only changed candidate ZIPs and the small review report
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY
+          path: /tmp/warder-missing-second-pass/recovered/
+          if-no-files-found: error
+          retention-days: 30
