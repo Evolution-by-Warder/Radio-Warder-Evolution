@@ -54,7 +54,7 @@ jobs:
       matrix:
         batch: ${{ fromJSON(needs.index.outputs.batches) }}
     env:
-      GH_TOKEN: __GITHUB_TOKEN__
+      GH_TOKEN: ${{ github.token }}
       GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
       ROOT: /tmp/iprd-shard
       BATCH_ID: ${{ matrix.batch.id }}
