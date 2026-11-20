@@ -32,7 +32,7 @@ BASE_LOGOS=39150
 # Leave for review until an attributable original broadcaster image is found.
 QUARANTINE={
     '5083849a-f18e-11e8-a471-52543be04c81': 'unrelated-handbook-thumbnail',
-    '911fd725-f18e-11e8-a471-52543be04c81': 'unrelated-handbook-thumbnail',
+    '911fd725-f18d-11e8-a471-52543be04c81': 'unrelated-handbook-thumbnail',
     'eaec35b3-f18d-11e8-a471-52543be04c81': 'unrelated-handbook-thumbnail',
     '63ebf295-bca6-11e8-aaf2-52543be04c81': 'indistinguishable-sangam-placeholder',
     'd9125a0f-bca6-11e8-aaf2-52543be04c81': 'indistinguishable-sangam-placeholder',
