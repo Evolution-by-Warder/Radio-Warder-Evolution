@@ -15,6 +15,7 @@ from urllib.parse import quote, urljoin, urlsplit
 from .cache import prune, write_atomic
 from .model import search_key, stream_url
 from .radio_browser import USER_AGENT
+from .homepage_logos import homepage_icon_candidates, station_domain
 
 MAX_INPUT = 512 * 1024
 MAX_PIXELS = 1024 * 1024
@@ -122,7 +123,9 @@ def public_domain(url):
 
 
 def website_icons(item):
-    domain = public_domain(item.get('homepage') or item.get('favicon') or '')
+    # A social-platform or generic image-CDN favicon is not a radio logo.
+    # Website fallbacks require the broadcaster's own homepage host.
+    domain = station_domain(item.get('homepage') or '')
     if not domain:
         return []
     return [
@@ -186,7 +189,7 @@ class StationLogos:
             return None
 
         best, quality, checked = None, 0, set()
-        deadline = time.monotonic() + LOOKUP_BUDGET
+        deadline = time.monotonic() + (20 if self.bulk_mode else LOOKUP_BUDGET)
 
         def consider(url):
             nonlocal best, quality
@@ -202,10 +205,29 @@ class StationLogos:
 
         consider(station.get('favicon'))
         if quality < 64 and isinstance(item, dict):
-            for url in website_icons(item):
-                consider(url)
-                if quality >= 64:
-                    break
+            website = website_icons(item)
+            if self.bulk_mode:
+                # Official on-site icon URLs first, then bounded same-origin
+                # HTML icon declarations, then generic icon proxies.
+                for url in website[:2]:
+                    consider(url)
+                    if quality >= 64:
+                        break
+                if quality < 64 and time.monotonic() < deadline:
+                    for url in homepage_icon_candidates(item.get('homepage'), self.download):
+                        consider(url)
+                        if quality >= 64:
+                            break
+                if quality < 64:
+                    for url in website[2:]:
+                        consider(url)
+                        if quality >= 64:
+                            break
+            else:
+                for url in website:
+                    consider(url)
+                    if quality >= 64:
+                        break
         if quality < 64 and isinstance(item, dict) and time.monotonic() < deadline:
             for url in self.alternatives(item)[:4]:
                 consider(url)
