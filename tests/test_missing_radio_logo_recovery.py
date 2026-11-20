@@ -33,7 +33,8 @@ class Browser:
         chunk = [
             {'stationuuid': '12345678-1234-1234-1234-%012x' % (i + 20),
              'name': name, 'countrycode': country, 'homepage': home,
-             'url': 'https://radio.example/' + path}
+             'url': 'https://radio.example/' + path,
+             'favicon':('https://logos.example/different.svg' if path=='live3' else '')}
             for i, (name, home, path) in enumerate(rows)
         ]
         return SimpleNamespace(rows=chunk[offset:offset + 60],
@@ -121,6 +122,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(manifest['logo_attempted'], 4)
         self.assertEqual(manifest['files']['logos/ET.zip']['sha256'],
                          hashlib.sha256((final / 'logos/ET.zip').read_bytes()).hexdigest())
+
+    def test_svg_retry_only_requests_missing_direct_svg_asset(self):
+        store = FakeStore(self.root/'svg-cache',success=[self.third['stationuuid']])
+        result = recover.recover_country(self.world,self.index,'ET',self.old,
+                                         store,valid,self.output,svg_only=True)
+        self.assertEqual(result['network_attempts'],1)
+        self.assertEqual(result['new_downloads'],1)
+        self.assertEqual(result['cloned_exact'],1)
+        self.assertEqual(result['recovered_total'],2)
+        self.assertEqual(store.calls,[self.third['stationuuid']])
 
     def test_no_new_logo_does_not_write_country_or_touch_old(self):
         prior = self.prior_zip.read_bytes()
