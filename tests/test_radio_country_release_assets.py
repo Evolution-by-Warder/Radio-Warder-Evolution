@@ -106,6 +106,25 @@ class Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'must be new'):
             audit.stage(world,shards,index,staged)
 
+    def test_missing_source_metadata_categories_are_exact(self):
+        rows = [
+            {'stem': 'first', 'favicon': '', 'homepage': ''},
+            {'stem': 'second', 'favicon': '', 'homepage': 'https://radio.example'},
+            {'stem': 'third', 'favicon': 'https://radio.example/icon.svg',
+             'homepage': 'https://radio.example'},
+            {'stem': 'fourth', 'favicon': 'https://radio.example/logo.png',
+             'homepage': ''},
+            {'stem': 'already_present', 'favicon': '', 'homepage': ''},
+        ]
+        result = audit.classify_missing(rows, {'already_present.png'})
+        self.assertEqual(result, {
+            'without_favicon_without_homepage': 1,
+            'without_favicon_with_homepage': 1,
+            'with_favicon_without_homepage': 1,
+            'with_favicon_with_homepage': 1,
+            'svg_favicon_candidates': 1,
+        })
+
     def test_one_missing_country_logo_blocks_release(self):
         world,shards,index=fixture(self.root)
         (shards/'radio-country-AA-REVIEW-NOT-PRODUCTION/logos/AA.zip').unlink()
