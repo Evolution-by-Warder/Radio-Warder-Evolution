@@ -235,7 +235,7 @@ def main():
         if args.list_countries:
             print(json.dumps({'countries': countries}))
             return
-        source = StationLogos(temporary)
+        source = StationLogos(temporary, bulk_mode=True)
         result = []
         for code in countries:
             info = build(code, browser, country_name, source, stream_url, args.out,
