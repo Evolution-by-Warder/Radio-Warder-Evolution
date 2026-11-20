@@ -113,11 +113,11 @@ def parse_page(raw):
     # one HTML-entity-encoded list-item JSON object. Never match by image order.
     markup=unescape(raw.decode('utf-8',errors='replace'))
     pairs=re.compile(
-        r'"imageAltText"\\s*:\\s*"(?P<alt>[^"]{3,150})"'
-        r'(?:(?!"imageAltText"\\s*:).){0,2600}?'
-        r'"assetUrl"\\s*:\\s*"(?P<image>[^"]{15,1500})"',re.S)
+        r'"imageAltText"\s*:\s*"(?P<alt>[^"]{3,150})"'
+        r'(?:(?!"imageAltText"\s*:).){0,2600}?'
+        r'"assetUrl"\s*:\s*"(?P<image>[^"]{15,1500})"',re.S)
     descriptions=re.compile(
-        r'"description"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"',re.S)
+        r'"description"\s*:\s*"((?:\\.|[^"\\])*)"',re.S)
     for match in pairs.finditer(markup):
         name=titled_alt(match.group('alt'))
         image=original_image_url(match.group('image'))
