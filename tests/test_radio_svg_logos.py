@@ -29,8 +29,24 @@ class Tests(unittest.TestCase):
         self.assertEqual(quality,224)
         self.assertTrue(png.startswith(b'\x89PNG\r\n\x1a\n'))
         with Image.open(BytesIO(png)) as image:
-            self.assertEqual(image.size,(224,224))
-            self.assertEqual(image.getpixel((112,112))[:3],(255,0,0))
+            self.assertEqual(image.size,(224,112))
+            self.assertEqual(image.getpixel((112,56))[:3],(255,0,0))
+
+    @unittest.skipUnless(cairosvg is not None and Image is not None, 'Bulk-only CairoSVG dependency')
+    def test_portrait_and_viewbox_only_vectors_keep_original_proportions(self):
+        from io import BytesIO
+        portrait = SVG.replace(b'width="180" height="90"', b'width="90" height="180"')
+        portrait = portrait.replace(b'viewBox="0 0 180 90"', b'viewBox="0 0 90 180"')
+        vector_only = SVG.replace(b'width="180" height="90" ', b'')
+        for source, expected in ((portrait,(112,224)),(vector_only,(224,112))):
+            with self.subTest(shape=expected):
+                png, quality = render_svg(source)
+                self.assertEqual(quality,224)
+                with Image.open(BytesIO(png)) as img:
+                    self.assertEqual(img.size,expected)
+        unknown = b'<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"/>'
+        with self.assertRaisesRegex(ValueError,'proportions'):
+            render_svg(unknown)
 
     def test_svg_external_resources_scripts_and_invalid_format_are_rejected(self):
         candidates = [
