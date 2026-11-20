@@ -1,3 +1,15 @@
+## 20. 11. 2026 — príčiny 9 109 nezískaných log: presný audit všetkých 224 krajín
+
+- **Real asset audit**: [Actions #44695388726 — SUCCESS](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44695388726) porovnal pôvodných 28 krajinských country archivov bez opakovaného zberu. Výsledok: 224 krajín, 48 219 staníc, 39 110 originálnych PNG, 9 109 nezískaných. Všetkých 224 ZIP-ov a SHA-256 bolo nezávisle overených; malý JSON pre krajiny je v review artefakte.
+- **Presné metadátové skupiny 9 109 prípadov**: 5 644 bez priamej adresy favicon, ale s homepage; 1 345 bez oboch; 2 110 s favicon aj homepage; 10 s favicon, ale bez homepage. Z toho 6 989 nemá priamy odkaz na obrázok a 2 120 taký odkaz má, ale prvý beh nedal výsledný PNG. 65 chýbajúcich obsahuje SVG v URL (je to podskupina, nie ďalšia skupina). Všetkých staníc s prázdnym favicon v celom katalógu je 18 979.
+- **Interpretácia**: 9 109 neznamená 9 109 neexistujúcich log, ale 9 109 neúspešných získaní obrázka v konkrétnom behu. Dôvod môže byť chýbajúci odkaz, nefunkčný URL/časový limit, formát alebo rozmer. Žiadne vymyslené alebo náhodne priradené grafiky.
+- **Bezpečný doplnok zdrojov**: StationLogos skúša priamo oficiálne https://DOMENA/favicon.ico po apple-touch ikone a pred externými proxy. Regresný test a unit CI PASS ([Actions #44694537817](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44694537817)).
+- **Ochrana paralelného zberu**: iba pri krátkodobom review ZIP zostavovaní je vypnuté priebežné prerezávanie spoločnej cache medzi download vláknami. Žiadne PNG už nemôže byť odstránené týmto mechanizmom skôr, než ho číta iné vlákno. Bežný limit cache v prijímači sa nemení. Unit test bulk režimu PASS ([Actions #44695809450](https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/actions/runs/44695809450)).
+- **Ďalšie kroky, zatiaľ nevykonané**: cielený druhý zdrojový pokus iba pre neúspešné UUID, rozlíšiť HTTP/timeout/rozmer/formát, kontrolovať oficiálne HTML metadáta rel=icon a og:image, podľa potreby podporiť SVG vo vytváraní PNG a striktne overiť presnú identitu značky. Až nový zber poskytne nový skutočný počet získaných log.
+- **Vydania nezmenené**: všetko je review-only v PR #52; main, produkčné zdroje aj IPK nedotknuté.
+
+---
+
 ## 19. 11. 2026 — minimálne 14-dňové vydania: nezmenené originálne ZIP zostávajú na starom immutable GitHub tagu
 
 - **Nový manifest bez opakovaného nahrávania**: `tools/prepare_country_release_index.py` generuje voliteľné `countries[CC].logos.asset_tag`. Ak sa SHA-256 a dĺžka pôvodného ZIP pri ďalšej kontrole nezmenili, uchová dôveryhodný existujúci immutable tag z predošlého **complete=true** verejného `latest.json`; nový tag dostane iba krajina so zmeneným obrázkom. Staré/invalid URL ani tag sa nerecyklujú. Zmenený world ZIP vždy patrí aktuálnej release značke.
