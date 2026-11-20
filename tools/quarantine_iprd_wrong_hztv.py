@@ -81,7 +81,7 @@ def correct(source_root, output):
                 filename not in old_files):
             raise ValueError('Wrong TV source PNG evidence changed')
         quarantine[uuid]={
-            'station':name,'source':evidence['logo'],
+            'station':name,'source':evidence['logo_url'],
             'unrelated_png_sha256':evidence['sha256'],
             'reason':'HZTV TV-logo not radio-station branding'}
         del files[filename]
