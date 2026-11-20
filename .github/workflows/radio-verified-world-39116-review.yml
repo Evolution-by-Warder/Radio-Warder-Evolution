@@ -1,4 +1,4 @@
-name: Verify new 224-country radio world with 39117 original logos (review only)
+name: Verify new 224-country radio world with 39126 original logos (review only)
 
 on:
   push:
@@ -41,8 +41,8 @@ jobs:
             -n radio-SK-curated-jazz-topolcany-party-REVIEW-ONLY -D "$ROOT/new-sk"
           gh run download 44762776607 \
             -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/new-cz"
-          gh run download 44764518185 \
-            -n radio-224-exact-original-logo-reuse-REVIEW-ONLY -D "$ROOT/new-de"
+          gh run download 44776112474 \
+            -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/new-de"
           cp -a "$ROOT/old-sk/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
           cp -a "$ROOT/old-czde/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
           cp -a "$ROOT/old-czde/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
@@ -79,15 +79,15 @@ jobs:
           root=Path(os.environ['ROOT'])
           report=json.loads((root/'new-world/world-recovery-review.json').read_text())
           assert report['country_count']==224 and report['station_count']==48219
-          assert report['logos_added']==7 and report['review_only']
+          assert report['logos_added']==16 and report['review_only']
           counts={r['country']:(r['previous'],r['current']) for r in report['countries_changed']}
-          assert counts=={'SK':(111,114),'CZ':(202,205),'DE':(3953,3954)}
-          print('WORLD 39117 TOTAL original PNGs — review verified',json.dumps(report,sort_keys=True))
+          assert counts=={'SK':(111,114),'CZ':(202,205),'DE':(3953,3963)}
+          print('WORLD 39126 TOTAL original PNGs — review verified',json.dumps(report,sort_keys=True))
           PY
       - name: Archive the new world and only three changed country ZIPs
         uses: actions/upload-artifact@v4
         with:
-          name: radio-world-224-39117-logos-REVIEW-ONLY
+          name: radio-world-224-39126-logos-REVIEW-ONLY
           path: |
             /tmp/warder-39116-verified-world/new-world/
             /tmp/warder-39116-verified-world/candidates/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip
