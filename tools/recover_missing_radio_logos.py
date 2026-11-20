@@ -148,9 +148,21 @@ def recover_country(world_path, world_index, code, old_root, store, validator, o
             good[filename] = png_by_sha[next(iter(hashes))]
             cloned += 1
     missing = [r for r in rows if r['stem'] + '.png' not in good]
-    selected = missing[:max_network] if max_network is not None else missing
     if max_network is not None and (type(max_network) is not int or max_network < 0):
         raise ValueError('Invalid network station limit')
+    if max_network is not None:
+        # For a bounded recovery sample, prefer the broadcaster's own site.
+        # Avoid 140-character spam station names and no-source records first.
+        # No identity or station UUID is changed by this priority ordering.
+        missing.sort(key=lambda row: (
+            0 if brand_key(row) is not None and not row.get('favicon') else
+            1 if brand_key(row) is not None else
+            2 if row.get('favicon') else 3,
+            len(row.get('name', '')) > 100,
+            row.get('name', '').casefold(),
+            row.get('stationuuid', ''),
+        ))
+    selected = missing[:max_network] if max_network is not None else missing
     new_zip, coverage = logos(selected, store, workers=workers)
     with ZipFile(BytesIO(new_zip)) as archive:
         for filename in archive.namelist():
