@@ -172,7 +172,7 @@ def main():
     codes=[c.strip().upper() for c in args.countries.split(',') if c.strip()]
     _,_,Store,validator=engine(Path(__file__).resolve().parents[1]/'src')
     with tempfile.TemporaryDirectory(prefix='warder-source-country-logos-') as root:
-        result=batch(args.world,args.world_sha256,codes,Store(root),validator,
+        result=batch(args.world,args.world_sha256,codes,Store(root,bulk_mode=True),validator,
                      args.out,args.workers)
     print(json.dumps({'countries':result['count'],'complete':result['complete'],
                       'logos':sum(x.get('logos_found',0) for x in result['countries']),
