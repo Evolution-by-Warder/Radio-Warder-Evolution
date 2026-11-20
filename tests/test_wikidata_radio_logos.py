@@ -56,7 +56,8 @@ class TestWikidata(unittest.TestCase):
                          site_key('http://radio.de/listen'))
         self.assertNotEqual(site_key('https://radio.de/listen/a'),
                             site_key('https://radio.de/listen/b'))
-        self.assertIsNone(site_key('http://127.0.0.1/')) if False else None
+        self.assertIsNone(site_key('http://127.0.0.1/'))
+        self.assertIsNone(site_key('https://example.local/'))
 
 if __name__=='__main__':
     unittest.main(verbosity=2)
