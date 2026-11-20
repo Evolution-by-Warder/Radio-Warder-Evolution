@@ -31,7 +31,7 @@ class TwoCurrentOriginalsTests(unittest.TestCase):
                          'OFFICIAL_NAMED_IMAGE')
         other_stream={**stream_only,'url':'http://radio-external.example/live'}
         self.assertEqual(candidate(other_stream,self.gap,self.html,self.key)[1],
-                         'NEITHER_HOMEPAGE_NOR_EXACT_STREAM_ON_BROADCASTER_DOMAIN'
+                         'NEITHER_HOMEPAGE_NOR_EXACT_STREAM_ON_BROADCASTER_DOMAIN')
         row={**self.row,'homepage':'https://radio-directory.example.org/retro-radio'}
         self.assertEqual(candidate(row,self.gap,self.html,self.key)[1],
                          'NEITHER_HOMEPAGE_NOR_EXACT_STREAM_ON_BROADCASTER_DOMAIN')
