@@ -72,9 +72,9 @@ jobs:
       - name: Obtain ONLY current official DK/LT broadcaster page source code
         run: |
           set -euo pipefail
-          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 \
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 --user-agent 'WarderRadioOfficialBrandAudit/1.0' \
             'https://retro-radio.dk/' -o "$ROOT/official-pages/DK-retro-radio.html"
-          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 \
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 --user-agent 'WarderRadioOfficialBrandAudit/1.0' \
             'https://www.manofm.lt/' -o "$ROOT/official-pages/LT-mano-fm.html"
           sha256sum "$ROOT/official-pages/"*.html
       - name: Recover ONLY two exact UUID first-party originals; preserve all old PNG byte-for-byte
