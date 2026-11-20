@@ -381,6 +381,51 @@ class LogoTests(unittest.TestCase):
             self.assertEqual(logos.get(item), path)
 
     @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_review_bulk_mode_recovers_official_same_origin_html_icon(self):
+        from WarderRadio.homepage_logos import homepage_icon_candidates
+        html = (b'<!doctype html><html><head>'
+                b'<link rel="icon" href="https://unrelated.example/icons/logo.png">'
+                b'<link rel="shortcut icon" href="/assets/station-logo.png">'
+                b'<meta property="og:image" content="/stories/irrelevant-photo.jpg">'
+                b'<meta property="og:image" content="/assets/brand-logo.png">'
+                b'</head></html>')
+        expected = ['https://radio.example/assets/station-logo.png',
+                    'https://radio.example/assets/brand-logo.png']
+        self.assertEqual(homepage_icon_candidates('https://radio.example/listen',
+                         lambda url: html), expected)
+        self.assertEqual(homepage_icon_candidates('https://facebook.com/radio-page',
+                         lambda url: html), [])
+        self.assertEqual(homepage_icon_candidates('http://127.0.0.1/',
+                         lambda url: html), [])
+        self.assertEqual(homepage_icon_candidates('https://radio.example/',
+                         lambda url: b'\x89PNG\r\n\x1a\n'), [])
+        image = io.BytesIO()
+        Image.new('RGBA', (160, 160), (30, 70, 140, 255)).save(image, 'PNG')
+        calls = []
+        def retrieve(url):
+            calls.append(url)
+            if url == 'https://radio.example/listen':
+                return html
+            if url == expected[0]:
+                return image.getvalue()
+            raise OSError('Not found')
+        with tempfile.TemporaryDirectory() as temporary:
+            station = {'stationuuid': 'bulk-html-test', 'countrycode': 'SK',
+                       'name': 'Radio Test', 'homepage': 'https://radio.example/listen',
+                       'favicon': ''}
+            cache = StationLogos(temporary, download=retrieve, bulk_mode=True,
+                                 alternatives=lambda station: [])
+            path = cache.get(station)
+            self.assertIsNotNone(path)
+            self.assertEqual(calls, [
+                'https://radio.example/apple-touch-icon.png',
+                'https://radio.example/favicon.ico',
+                'https://radio.example/listen',
+                'https://radio.example/assets/station-logo.png'])
+            with Image.open(path) as logo:
+                self.assertEqual(logo.size, (160, 160))
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
     def test_missing_favicon_uses_checked_alternative_station_record(self):
         with tempfile.TemporaryDirectory() as temporary:
             data = io.BytesIO()
