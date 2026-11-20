@@ -20,11 +20,11 @@ TOTAL = 48219
 # the individually named service logo. Keep them in review evidence only.
 REJECT = {
     '18d1c523-1740-4b9c-8efe-60341d841733': ('RU', 'Road Radio 91.2', 'region15 portal badge'),
-    'a5a8c2c4-145a-4064-a668-0a402a88290b': ('RU', 'Mineplay FM', 'generic play symbol'),
+    'a5a8c2c4-a145-4064-a668-0a402a88290b': ('RU', 'Mineplay FM', 'generic play symbol'),
     'ef9a0e26-0ebe-47e7-888a-867065654776': ('CL', 'Bio-Bio Osorno', 'news portal emblem'),
     '7fbabf72-3dd2-4d7e-8924-94bcdbb51530': ('UA', 'Lounge Music', 'common platform soundwave icon'),
     '94543b27-7148-4328-83d6-27927a452965': ('UA', 'Worship', 'common platform soundwave icon'),
-    '9a627ab5-735d-40e7-9f5a-89863d408e1d': ('UA', 'Українські хіти', 'common platform soundwave icon'),
+    '9a627ab5-735d-40e7-9f5a-89863d6d4910': ('UA', 'Українські хіти', 'common platform soundwave icon'),
     'b52c9597-95d7-4310-9a5e-6006920bd2b2': ('US', 'Passport Radio', 'shared player favicon'),
     'bce0553a-5414-4eab-906f-b9c81cb40b0c': ('US', 'Deep Haus', 'shared player favicon'),
     'f0d18892-adaf-460e-bda0-9194a5eb3d55': ('US', 'Electric Midnight', 'shared player favicon'),
