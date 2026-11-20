@@ -54,6 +54,19 @@ class TestMatches(unittest.TestCase):
         self.assertFalse(opts)
         self.assertTrue(why.get('shared_site_icon'))
 
+    def test_bust_club_cum_town_logo_is_not_copied(self):
+        from recover_iprd_radio_logos import canonical_stream
+        uuid='54ef321a-b595-4a76-b198-cb9c66a188e3'
+        logo='https://upload.wikimedia.org/wikipedia/en/thumb/6/63/Cum_Town_logo.png/250px-Cum_Town_logo.png'
+        stream='https://radio.example/bustclub'
+        target=station(stationuuid=uuid,name='Bust.club',url=stream)
+        old=remote(title='Bust.club',logo=logo,url=stream)
+        results,ambiguity,reasons=candidates_for([target],set(),
+            ({('US',canonical_stream(stream)):[old]},[old]))
+        self.assertEqual(results,{})
+        self.assertEqual(ambiguity,{})
+        self.assertEqual(reasons.get('known_mismatched_brand'),1)
+
     def test_parser_only_accepts_country_scoped_stream_csv(self):
         with tempfile.TemporaryDirectory() as tmp:
             for name, rows in (
