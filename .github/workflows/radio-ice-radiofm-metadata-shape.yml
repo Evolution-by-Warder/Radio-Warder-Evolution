@@ -1,0 +1,53 @@
+name: Validate ice Radio FM station data identity fields (new source, no art downloads)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-ice-radiofm-metadata-shape.yml]
+permissions: {contents: read}
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download one country page and one station page for metadata shape
+        run: |
+          mkdir -p /tmp/ice-radio
+          curl -fsSL --compressed --connect-timeout 10 --max-time 50 --retry 1 \
+            -A 'WarderRadioReview/0.1 metadata diagnosis' \
+            https://ice.radio.fm/countries/germany -o /tmp/ice-radio/country.html
+          curl -fsSL --compressed --connect-timeout 10 --max-time 50 --retry 1 \
+            -A 'WarderRadioReview/0.1 metadata diagnosis' \
+            https://ice.radio.fm/station/101-smooth-jazz -o /tmp/ice-radio/station.html
+      - name: Inspect Inertia.js public metadata, no guesses
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          import html,json
+          from pathlib import Path
+          class Reader(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.pages=[]
+              def handle_starttag(self, tag, attrs):
+                  v=dict(attrs).get('data-page')
+                  if v:
+                      self.pages.append(v)
+          for path in sorted(Path('/tmp/ice-radio').glob('*.html')):
+              parser=Reader();parser.feed(path.read_text(errors='replace'))
+              print('ICE METADATA FILE',path.name,'PAGES',len(parser.pages))
+              for s in parser.pages[:1]:
+                  root=json.loads(html.unescape(s))
+                  props=root.get('props') or {}
+                  print('COMPONENT',root.get('component'))
+                  print('TOP PROPS',[(k,type(v).__name__) for k,v in props.items()])
+                  for key,v in props.items():
+                      if key.lower() in ('stations','station','results','searchresults','popularstations','relatedstations'):
+                          if isinstance(v,dict):
+                              print('DATASET',key,'KEYS',list(v)[:20])
+                              for name,item in v.items():
+                                  if isinstance(item,list) and item:
+                                      print('LIST',name,'COUNT',len(item),'FIRST',json.dumps(item[0],ensure_ascii=False)[:6500])
+                          elif isinstance(v,list):
+                              print('LIST',key,'COUNT',len(v),'FIRST',json.dumps(v[0],ensure_ascii=False)[:6500])
+          PY
