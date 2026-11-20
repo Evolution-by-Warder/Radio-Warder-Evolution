@@ -63,7 +63,7 @@ class TestMatches(unittest.TestCase):
             ):
                 with (Path(tmp)/name).open('w',newline='') as f:
                     writer=csv.DictWriter(f,fieldnames=['title','url','logo'])
-                    writer.writeheader();writer.writerows(rows)
+                    writer.writeheader();writer.writerows([{k:v for k,v in item.items() if k in writer.fieldnames} for item in rows])
             data,records=parse_directory(tmp)
             self.assertEqual(len(records),3)
             self.assertEqual(set(x['countrycode'] for x in records),{'US','CA'})
