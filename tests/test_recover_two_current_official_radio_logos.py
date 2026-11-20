@@ -24,9 +24,17 @@ class TwoCurrentOriginalsTests(unittest.TestCase):
         info,reason=candidate(self.row,self.gap,self.html,self.key)
         self.assertEqual(reason,'OFFICIAL_NAMED_IMAGE')
         self.assertEqual(info['logo'],VERIFIED[self.key]['logo'])
+        # CarRadio's pinned retro stream belongs to the official first-party
+        # domain even though Radio Browser's homepage field is missing.
+        stream_only={**self.row,'homepage':'','url':'http://stream128.retro-radio.dk/retro'}
+        self.assertEqual(candidate(stream_only,self.gap,self.html,self.key)[1],
+                         'OFFICIAL_NAMED_IMAGE')
+        other_stream={**stream_only,'url':'http://radio-external.example/live'}
+        self.assertEqual(candidate(other_stream,self.gap,self.html,self.key)[1],
+                         'NEITHER_HOMEPAGE_NOR_EXACT_STREAM_ON_BROADCASTER_DOMAIN'
         row={**self.row,'homepage':'https://radio-directory.example.org/retro-radio'}
         self.assertEqual(candidate(row,self.gap,self.html,self.key)[1],
-                         'PINNED_HOMEPAGE_NOT_BROADCASTER_OWNED')
+                         'NEITHER_HOMEPAGE_NOR_EXACT_STREAM_ON_BROADCASTER_DOMAIN')
         self.assertEqual(candidate({**self.row,'name':'Other Radio'},
                          self.gap,self.html,self.key)[1],'UUID_NAME_OR_SOURCE_STEM_MISMATCH')
         self.assertEqual(candidate(self.row,self.gap,b'<title>Retro-Radio</title><img alt="Retro-Radio" src="https://i.ibb.co/archived.png">',self.key)[1],
