@@ -80,16 +80,16 @@ jobs:
             cp -a "$ROOT/overlay/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
           fi
           if [[ ",$COUNTRY_CODES," == *",CZ,"* ]]; then
-            mkdir -p "$ROOT/overlay"
-            gh run download 44762776607 -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/overlay"
+            mkdir -p "$ROOT/overlay-cz"
+            gh run download 44762776607 -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/overlay-cz"
             rm -rf "$ROOT/old/radio-country-CZ-REVIEW-NOT-PRODUCTION"
-            cp -a "$ROOT/overlay/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+            cp -a "$ROOT/overlay-cz/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
           fi
           if [[ ",$COUNTRY_CODES," == *",DE,"* ]]; then
-            mkdir -p "$ROOT/overlay"
-            gh run download 44776112474 -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/overlay"
+            mkdir -p "$ROOT/overlay-de"
+            gh run download 44776112474 -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/overlay-de"
             rm -rf "$ROOT/old/radio-country-DE-REVIEW-NOT-PRODUCTION"
-            cp -a "$ROOT/overlay/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+            cp -a "$ROOT/overlay-de/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
           fi
       - name: Download only validated missing original station images, keep old bytes
         run: |
