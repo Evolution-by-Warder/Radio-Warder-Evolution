@@ -115,7 +115,6 @@ def merge_world(original_world, expected_sha256, old_root, candidate_root,
     world_index = verify_source(original_world, expected_sha256)
     with ZipFile(original_world) as archive:
         old_members = {item.filename: archive.read(item) for item in archive.infolist()}
-    original_index = json.loads(old_members['index.json'])
     updated_index = json.loads(old_members['index.json'])
     report = []
     for code in country_codes:
@@ -148,11 +147,15 @@ def merge_world(original_world, expected_sha256, old_root, candidate_root,
             verified['station_count'] != world_index['station_count'] or
             set(verified['countries']) != set(world_index['countries'])):
         raise ValueError('New world lost original station identities')
-    with ZipFile(target) as archive:
-        if any(archive.read('bouquets/' + c + '.radio') !=
-               ZipFile(original_world).read('bouquets/' + c + '.radio')
-               for c in country_codes):
-            raise ValueError('Changed original radio bouquet')
+    # Unlike the country logo manifests and the index, all other files must
+    # have byte-for-byte equal decompressed content.
+    changed = {'index.json'} | {'manifests/' + c + '.json' for c in country_codes}
+    with ZipFile(target) as archive, ZipFile(original_world) as previous:
+        if set(archive.namelist()) != set(previous.namelist()):
+            raise ValueError('World lost an archive member')
+        for name in previous.namelist():
+            if name not in changed and archive.read(name) != previous.read(name):
+                raise ValueError('Changed unrelated original world member: ' + name)
     summary = {'schema':1,'review_only':True,'original_world_sha256':expected_sha256,
                'new_world_sha256':final,'new_world_bytes':target.stat().st_size,
                'country_count':world_index['country_count'],
