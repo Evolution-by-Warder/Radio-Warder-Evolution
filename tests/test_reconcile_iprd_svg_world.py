@@ -77,7 +77,7 @@ class Tests(unittest.TestCase):
             world.reconcile_files({}, {'new.png':self.png2},
                 self.basename,{self.second:{'sha256':'f'*64}})
         with self.assertRaisesRegex(ValueError,'Missing exactly evidenced'):
-            world.reconcile_files({}, {'old.png':self.png1},
+            world.reconcile_files({}, {},
                 self.basename,{self.second:{'sha256':digest(self.png2)}})
 
 
