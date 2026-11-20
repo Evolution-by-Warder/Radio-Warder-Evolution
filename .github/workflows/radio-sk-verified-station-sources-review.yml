@@ -1,0 +1,78 @@
+name: Verify and recover missing Slovak logos from known station directory profiles (review-only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/recover_verified_station_directory.py
+      - tests/test_verified_station_directory.py
+      - .github/workflows/radio-sk-verified-station-sources-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radio-curated-sk
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test exact station logo identity and trust constraints
+        run: |
+          python3 -B tests/test_verified_station_directory.py
+          python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Image-decoding dependency for offline review builder
+        run: python3 -m pip install --quiet Pillow
+      - name: Get immutable original radio world and signed Slovak logos
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/source" "$ROOT/old" "$ROOT/candidate"
+          gh run download 44583128017 \
+            -n radio-world-224-with-original-logo-checks-REVIEW-ONLY \
+            -D "$ROOT/world"
+          gh run download 44583128017 \
+            -n radio-original-logos-batch-22-REVIEW \
+            -D "$ROOT/source"
+          cp -a "$ROOT/source/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+      - name: Recover only curated Rádio Jazz and Rádio Topoľčany image sources
+        run: |
+          set -euo pipefail
+          python3 -B tools/recover_verified_station_directory.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --old-root "$ROOT/old" \
+            --out "$ROOT/candidate"
+      - name: Verify exact original PNG preservation and report evidence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json, os
+          root = Path(os.environ['ROOT'])
+          report = json.loads((root/'candidate/curated-source-report.json').read_text())
+          assert report['previous_logo_count'] == 111
+          assert 111 <= report['candidate_logo_count'] <= 113
+          assert report['new_logos'] == len(report['sources'])
+          assert report['missing'] == 123 - report['candidate_logo_count']
+          changed = root/'candidate/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip'
+          old = root/'old/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip'
+          if report['new_logos']:
+              with ZipFile(old) as original, ZipFile(changed) as updated:
+                  for name in original.namelist():
+                      assert updated.read(name) == original.read(name),name
+                  assert len(updated.namelist()) == report['candidate_logo_count']
+          else:
+              assert not changed.exists()
+          print('CURATED ORIGINAL LOGO REVIEW:',json.dumps(report,sort_keys=True))
+          PY
+      - name: Keep candidate in GitHub Actions only — no GitHub Release or production feed
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-SK-curated-jazz-topolcany-REVIEW-ONLY
+          path: /tmp/warder-radio-curated-sk/candidate/
+          retention-days: 30
+          if-no-files-found: error
