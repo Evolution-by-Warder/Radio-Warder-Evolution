@@ -426,6 +426,38 @@ class LogoTests(unittest.TestCase):
                 self.assertEqual(logo.size, (160, 160))
 
     @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_verified_directory_source_survives_future_bulk_rebuild_only(self):
+        from WarderRadio.curated_station_logos import verified_logo_url
+        station = {'stationuuid':'12e9aa8b-996e-4cf0-aace-3a8addf4dd57',
+                   'countrycode':'SK','name':'Radio Bela',
+                   'homepage':'https://www.radiobela.zanet.sk/',
+                   'favicon':''}
+        source = 'https://www.radia.sk/_radia/loga/coverflow/bela.png'
+        self.assertEqual(verified_logo_url(station), source)
+        self.assertIsNone(verified_logo_url(dict(station,name='Other Station')))
+        self.assertIsNone(verified_logo_url(dict(station,countrycode='CZ')))
+        raw = io.BytesIO()
+        Image.new('RGBA',(150,150),(0,100,160,255)).save(raw,'PNG')
+        calls = []
+        def retrieve(url):
+            calls.append(url)
+            if url == source:
+                return raw.getvalue()
+            raise OSError('Not this exact verified source')
+
+        with tempfile.TemporaryDirectory() as temporary:
+            bulk = StationLogos(temporary,download=retrieve,bulk_mode=True,
+                                alternatives=lambda _: [])
+            self.assertIsNotNone(bulk.get(station))
+            self.assertEqual(calls,[source])
+        calls.clear()
+        with tempfile.TemporaryDirectory() as temporary:
+            ordinary = StationLogos(temporary,download=retrieve,bulk_mode=False,
+                                    alternatives=lambda _: [])
+            self.assertIsNone(ordinary.get(station))
+            self.assertNotIn(source,calls)
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
     def test_missing_favicon_uses_checked_alternative_station_record(self):
         with tempfile.TemporaryDirectory() as temporary:
             data = io.BytesIO()
