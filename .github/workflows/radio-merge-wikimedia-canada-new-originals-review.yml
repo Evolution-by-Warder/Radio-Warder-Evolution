@@ -1,0 +1,136 @@
+name: Merge ONLY 12 independently sourced Wikimedia and Canadian radio logos (review-only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-merge-wikimedia-canada-new-originals-review.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  merge-new-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 42
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-new-20261120-verified
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test all-world original PNG preservation and new-source identity
+        run: |
+          PYTHONPATH=src python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src python3 -B tests/test_wikidata_radio_logos.py
+          PYTHONPATH=src python3 -B tests/test_independent_city_radio_logos.py
+      - name: Fetch only proven new sources and the SHA-pinned original world
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/wiki" "$ROOT/city" "$ROOT/original" "$ROOT/candidates"
+          gh run download 44794574890 \
+            -n radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44802012033 \
+            -n radio-new-independent-city-logos-US-CA-REVIEW-ONLY -D "$ROOT/city"
+          for shard in 06 08 18 25; do
+            mkdir -p "$ROOT/wiki/$shard"
+            gh run download 44801887601 \
+              -n "radio-new-Wikimedia-source-originals-$shard-REVIEW" -D "$ROOT/wiki/$shard"
+          done
+          for shard in 04 06 08 18 25; do
+            mkdir -p "$ROOT/original/$shard"
+            gh run download 44801652426 \
+              -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/original/$shard"
+          done
+      - name: Independently identify 5 changed UUID country assets without accepting wrong US image
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          world=root/'world/radio-countries-bouquets.zip'
+          original_sha='5b93b00032c4eec5e4934be24945604f49eaf89fd2f31900c8e46fe2b971ea84'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==original_sha
+          selected={'CA':('city','04'),'DE':('wiki','06'),'FR':('wiki','08'),
+                    'NL':('wiki','18'),'UA':('wiki','25')}
+          delta={'CA':4,'DE':5,'FR':1,'NL':1,'UA':1}
+          with ZipFile(world) as archive:
+              index=json.loads(archive.read('index.json'))
+              assert index['station_count']==48219 and index['country_count']==224
+              assert sum(x['logos_found'] for x in index['countries'].values())==39643
+              for code,(kind,shard) in selected.items():
+                  folder=f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+                  prev=root/'original'/shard/folder
+                  newer=root/kind/(shard if kind=='wiki' else '')/folder
+                  assert prev.is_dir() and newer.is_dir()
+                  shutil.copytree(prev,root/'old'/folder) if (root/'old').is_dir() else (
+                      (root/'old').mkdir(),
+                      shutil.copytree(prev,root/'old'/folder))
+                  shutil.copytree(newer,root/'candidates'/folder)
+                  orig=root/'old'/folder/'logos'/f'{code}.zip'
+                  updated=root/'candidates'/folder/'logos'/f'{code}.zip'
+                  pidx=index['countries'][code]
+                  assert hashlib.sha256(orig.read_bytes()).hexdigest()==pidx['logo_sha256']
+                  old_manifest=json.loads((prev/'manifests'/f'{code}.json').read_text())
+                  new_manifest=json.loads((newer/'manifests'/f'{code}.json').read_text())
+                  assert old_manifest['logos_found']==pidx['logos_found']
+                  assert new_manifest['logos_found']-old_manifest['logos_found']==delta[code]
+                  with ZipFile(orig) as old, ZipFile(updated) as new:
+                      assert len(new.namelist())-len(old.namelist())==delta[code]
+                      assert all(old.read(n)==new.read(n) for n in old.namelist())
+                  evidence_name=('wikidata-new-source-logo-review.json'
+                                  if kind=='wiki' else 'city-radio-independent-source-audit.json')
+                  data=json.loads((root/kind/(shard if kind=='wiki' else '')/evidence_name).read_text())
+                  country_report=next(c for c in data['countries'] if c['country']==code)
+                  assert country_report['recovered_total']==delta[code] and country_report['unchanged_existing_pngs']
+                  if kind=='wiki':
+                      new_sources=country_report['new_wikimedia_originals']
+                  else:
+                      new_sources=country_report['new_station_originals']
+                  assert len(new_sources)==delta[code]
+                  print('NEW EXACT STATION LOGOS',code,json.dumps(new_sources,ensure_ascii=False,sort_keys=True))
+          assert not (root/'candidates/radio-country-US-REVIEW-NOT-PRODUCTION').exists()
+          print('ORIGINAL WORLD SHA PRESERVED; 12 source images in 5 countries; mismatched Bust.club EXCLUDED')
+          PY
+      - name: Assemble and SHA-verify NEW world with precisely 39655 original radio PNGs
+        run: |
+          set -euo pipefail
+          python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --world-sha256 5b93b00032c4eec5e4934be24945604f49eaf89fd2f31900c8e46fe2b971ea84 \
+            --old-root "$ROOT/old" \
+            --candidates "$ROOT/candidates" \
+            --countries CA,DE,FR,NL,UA \
+            --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import json,os,hashlib
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert report['logos_added']==12 and report['country_count']==224
+          assert report['station_count']==48219 and report['review_only'] is True
+          expected={'CA':4,'DE':5,'FR':1,'NL':1,'UA':1}
+          assert {r['country']:r['added'] for r in report['countries_changed']}==expected
+          world=root/'new-world/radio-countries-bouquets.zip'
+          assert report['new_world_sha256']==hashlib.sha256(world.read_bytes()).hexdigest()
+          with ZipFile(world) as z:
+              index=json.loads(z.read('index.json'))
+              assert sum(x['logos_found'] for x in index['countries'].values())==39655
+              assert sum(x['stations'] for x in index['countries'].values())==48219
+              assert index['countries']['US']['logos_found']==5755
+          print('FINAL NEW SOURCE WORLD VERIFIED',json.dumps({
+              'countries':224,'stations':48219,'logo_count':39655,
+              'new_authentic_images':12,'remaining_missing':8564,
+              'sha256':report['new_world_sha256']},sort_keys=True))
+          PY
+      - name: Store only changed country ZIPs and complete world review, no release/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-224-39655-independent-source-originals-REVIEW-ONLY
+          path: |
+            /tmp/warder-new-20261120-verified/new-world/
+            /tmp/warder-new-20261120-verified/candidates/
+          retention-days: 30
+          if-no-files-found: error
