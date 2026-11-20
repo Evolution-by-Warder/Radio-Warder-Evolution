@@ -1,0 +1,126 @@
+name: DK Retro and LT Mano first-party original PNG recovery (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-two-first-party-originals-review.yml
+      - tools/recover_two_current_official_radio_logos.py
+      - tests/test_recover_two_current_official_radio_logos.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-two-official-radio-originals
+      WORLD_SHA: 1b0c79812d988ac4aaa368033d966de117d11e3ef5c9db66331afc5c9c750c8b
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline first-party security and current-logo identity checks
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_probe_six_official_radio_brand_assets.py
+          PYTHONPATH=src:tools python3 -B tests/test_recover_two_current_official_radio_logos.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install image processor ONLY in isolated Actions review
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Load pinned 39661 world and six exact stream+name gaps, not Radio Browser
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{gaps,pinned-world,old,shards,official-pages}
+          test "$(gh run view 44830949401 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44818364283 --json conclusion -q .conclusion)" = success
+          gh run download 44830949401 -n radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY -D "$ROOT/gaps"
+          gh run download 44818364283 -n radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY -D "$ROOT/pinned-world"
+          mapfile -t zipfiles < <(find "$ROOT/pinned-world" -type f -name radio-countries-bouquets.zip)
+          test "${#zipfiles[@]}" -eq 1
+          cp "${zipfiles[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          test -f "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json"
+      - name: Identify and fetch ONLY original DK and LT immutable country shards
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(v['logos_found'] for v in idx['countries'].values())==39661
+          codes=sorted(idx['countries'])
+          numbers=sorted({codes.index(c)//8 for c in ('DK','LT')})
+          (root/'shard-numbers.txt').write_text('\n'.join(f'{n:02d}' for n in numbers)+'\n')
+          print('Only required shards:',numbers,flush=True)
+          PY
+          while read -r shard; do
+            mkdir -p "$ROOT/shards/$shard"
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-${shard}-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/shard-numbers.txt"
+          for code in DK LT; do
+            mapfile -t folders < <(find "$ROOT/shards" -type d -name "radio-country-${code}-REVIEW-NOT-PRODUCTION")
+            test "${#folders[@]}" -eq 1
+            cp -a "${folders[0]}" "$ROOT/old/"
+          done
+      - name: Obtain ONLY current official DK/LT broadcaster page source code
+        run: |
+          set -euo pipefail
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 \
+            'https://retro-radio.dk/' -o "$ROOT/official-pages/DK-retro-radio.html"
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 \
+            'https://www.manofm.lt/' -o "$ROOT/official-pages/LT-mano-fm.html"
+          sha256sum "$ROOT/official-pages/"*.html
+      - name: Recover ONLY two exact UUID first-party originals; preserve all old PNG byte-for-byte
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_two_current_official_radio_logos.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --pages "$ROOT/official-pages" \
+            --gaps "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json" \
+            --out "$ROOT/review"
+      - name: Merge only gained original logos to NEW 224-country REVIEW world
+        run: |
+          set -euo pipefail
+          changed=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          d=json.loads((Path(os.environ['ROOT'])/'review/new-first-party-radio-originals-REVIEW.json').read_text())
+          assert d['review_only'] and d['unchanged_existing_png'] and d['world_sha256']==os.environ['WORLD_SHA']
+          print(','.join(x['country'] for x in d['countries'] if x['recovered_total']>0))
+          PY
+          )
+          if test -z "$changed"; then
+            echo "No source-qualified actual additions; immutable source world unchanged."
+          else
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries "$changed" --out "$ROOT/new-world"
+            python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          c=json.loads((root/'review/new-first-party-radio-originals-REVIEW.json').read_text())
+          w=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert w['country_count']==224 and w['station_count']==48219
+          assert w['logos_added']==c['new_verified_png']>0
+          assert len(w['countries_changed'])<=2
+          print('PINNED WORLD REBUILT WITHOUT LOSSES',json.dumps(w,sort_keys=True))
+          PY
+          fi
+      - name: Keep isolated country and optional worldwide REVIEW only, NEVER publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-DK-LT-first-party-originals-REVIEW-ONLY
+          path: |
+            /tmp/warder-two-official-radio-originals/review/
+            /tmp/warder-two-official-radio-originals/new-world/
+          retention-days: 30
+          if-no-files-found: error
