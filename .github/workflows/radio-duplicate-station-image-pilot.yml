@@ -29,7 +29,7 @@ jobs:
       - name: Fetch pinned original 39150-logo world and verified SK/CZ/DE country ZIPs
         run: |
           set -euo pipefail
-          mkdir -p "$ROOT/world" "$ROOT/sk" "$ROOT/cz" "$ROOT/de" "$ROOT/old" "$ROOT/review"
+          mkdir -p "$ROOT/world" "$ROOT/sk" "$ROOT/cz" "$ROOT/de" "$ROOT/old"
           gh run download 44781162459 \
             -n radio-world-224-39150-station-originals-REVIEW-ONLY -D "$ROOT/world"
           gh run download 44780870898 \
