@@ -49,6 +49,11 @@ SUSPICIOUS_SOURCE_UUIDS = {
     '30b38ce8-295e-11ea-aa0c-52543be04c81': 'YouTube video screenshot',
     '8121ee9e-c124-440a-9b6a-6aa89f8d': 'YouTube video screenshot',
     '64dd42ec-d283-4939-a76c-58b23c4b6259': 'Generic default3.png',
+    # All three Hotse news/music/traffic rows point to the very same
+    # unrelated HZTV flower/television logo, independently inspected as PNG.
+    '5083849a-f18e-11e8-a471-52543be04c81': 'Unrelated HZTV television logo',
+    '911fd725-f18d-11e8-a471-52543be04c81': 'Unrelated HZTV television logo',
+    'eaec35b3-f18d-11e8-a471-52543be04c81': 'Unrelated HZTV television logo',
 }
 QUARANTINE_PATH = re.compile(
     r'(?:album-art-default|spotify-radar|cover_default|/tmp/images/default\.jpg|'
