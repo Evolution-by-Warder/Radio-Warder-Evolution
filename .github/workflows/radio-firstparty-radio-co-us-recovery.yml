@@ -1,0 +1,113 @@
+name: US Radio.co station-owner ORIGINAL logo gap recovery (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-firstparty-radio-co-us-recovery.yml
+      - tools/recover_firstparty_radio_co_us.py
+      - tests/test_recover_firstparty_radio_co_us.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover-us-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 32
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radio-co-us-originals
+      WORLD_SHA: bde7de03fcb203da1440c43b1bf7c62ede43699894ce53f232e7bc25d76cf353
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict owner-id cross-brand/template rejection tests
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_recover_firstparty_radio_co_us.py
+          PYTHONPATH=src:tools python3 -B tests/test_audit_firstparty_radio_co_world.py
+      - name: Prepare image conversion safely in isolated review job
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Fetch ONLY pinned successful worldwide metadata and full original bouquet ZIP
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-artifact,metadata,shards,old}
+          test "$(gh run view 44862475699 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44867246914 --json conclusion -q .conclusion)" = success
+          gh run download 44862475699 -n radio-DK-RADIOIIII-official-inline-SVG-REVIEW-ONLY -D "$ROOT/world-artifact"
+          mapfile -t archives < <(find "$ROOT/world-artifact" -type f -name radio-countries-bouquets.zip)
+          test "${#archives[@]}" -eq 1
+          cp "${archives[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          gh run download 44867246914 -n radio-224-country-RadioCo-station-firstparty-REVIEW-ONLY -D "$ROOT/metadata"
+          test -f "$ROOT/metadata/radio-co-first-party-world-224-metadata-review.json"
+      - name: Get ONLY immutable original US country ZIP from canonical 8-country shard
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          shard=$(python3 - <<'PY'
+          import os,json
+          from zipfile import ZipFile
+          from pathlib import Path
+          with ZipFile(Path(os.environ["ROOT"])/"world.zip") as z:
+              idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39666
+          assert idx["countries"]["US"]["logos_found"]>0
+          print(f"{sorted(idx['countries']).index('US')//8:02d}")
+          PY
+          )
+          echo "Verify original US canonical shard index: $shard"
+          gh run download 44801652426 -n "radio-canonical-39643-country-shard-${shard}-REVIEW" -D "$ROOT/shards"
+          mapfile -t dirs < <(find "$ROOT/shards" -type d -name radio-country-US-REVIEW-NOT-PRODUCTION)
+          test "${#dirs[@]}" -eq 1
+          cp -a "${dirs[0]}" "$ROOT/old/"
+      - name: Download ONLY originally missing current 2026 station-owned logos and retain all old PNG unchanged
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_firstparty_radio_co_us.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --metadata "$ROOT/metadata/radio-co-first-party-world-224-metadata-review.json" \
+            --out "$ROOT/review"
+      - name: Assemble new 224-country REVIEW world ONLY if new originals passed quality
+        run: |
+          set -euo pipefail
+          added=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ["ROOT"])/"review/us-radio-co-exact-firstparty-originals-review.json").read_text())
+          assert r["review_only"] and r["unchanged_existing_pngs"]
+          assert r["world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["country"]=="US" and r["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["new_downloads"]==len(r["actual_accepted_owner_logos"])
+          assert r["recovered_total"]==r["new_downloads"]+r["cloned_exact"]
+          print(r["recovered_total"])
+          PY
+          )
+          if test "$added" -gt 0; then
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries US --out "$ROOT/new-world"
+            python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ["ROOT"])/"new-world/world-recovery-review.json").read_text())
+          assert r["review_only"] and r["country_count"]==224 and r["station_count"]==48219
+          assert r["logos_added"]==len(r["countries_changed"]) or r["logos_added"]>1
+          assert len(r["countries_changed"])==1 and r["countries_changed"][0]["country"]=="US"
+          print("US VERIFIED NEW FIRSTPARTY WORLD",json.dumps(r,sort_keys=True))
+          PY
+          else
+            echo "No newly validated station logo; exact world count remains 39666"
+          fi
+      - name: Upload US review evidence and optional new world (NEVER RELEASE)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-US-RadioCo-original-logos-REVIEW-ONLY
+          path: |
+            /tmp/warder-radio-co-us-originals/review/
+            /tmp/warder-radio-co-us-originals/new-world/
+          retention-days: 30
+          if-no-files-found: error
