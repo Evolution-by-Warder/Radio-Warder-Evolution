@@ -63,7 +63,7 @@ def load_approval(root):
     raw=image.read_bytes()
     if (image.is_symlink() or not image.is_file() or
         sha256(raw).hexdigest()!=rec["png_sha256"] or
-        not raw.startswith(b"\\x89PNG\\r\\n\\x1a\\n") or
+        not raw.startswith(b"\x89PNG\r\n\x1a\n") or
         not 1024<len(raw)<512000):
         raise ValueError("First-party station brand original image changed")
     return rec
