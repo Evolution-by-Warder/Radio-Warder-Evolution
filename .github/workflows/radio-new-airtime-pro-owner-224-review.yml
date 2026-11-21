@@ -1,0 +1,91 @@
+name: New Airtime Pro first-party broadcaster logos world source REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-airtime-pro-owner-224-review.yml
+      - tools/probe_airtime_pro_owner_224.py
+      - tests/test_probe_airtime_pro_owner_224.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  exact-airtime-operator-logo-source-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-airtime-firstparty-224
+      WORLD_SHA: bb115a8f0fd0127990f2c22a3ed44cee526255b3599dc6db5c1bbf6b7ee65a97
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated picture audit dependency
+        run: python3 -m pip install --quiet 'Pillow>=10,<13'
+      - name: Exact owner stream/name, no-redirect and image security tests
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_probe_airtime_pro_owner_224.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_radiojar_firstparty_source_224.py
+      - name: Verify existing 39704 world success and retrieve SHA-pinned review artifact
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44889673492 --json conclusion -q .conclusion)" = success
+          mkdir -p "$ROOT/source"
+          gh run download 44889673492 \
+            -n radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY \
+            -D "$ROOT/source"
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          matches=list((root/"source").rglob("radio-countries-bouquets.zip"))
+          assert len(matches)==1,(len(matches),"missing source ZIP")
+          shutil.copyfile(matches[0],root/"world.zip")
+          h=hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()
+          assert h==os.environ["WORLD_SHA"],h
+          with ZipFile(root/"world.zip") as z:
+              idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==39704
+          print("EXISTING WORLD SHA PASS",h,"PNG",39704)
+          PY
+          rm -rf "$ROOT/source"
+      - name: Probe ONLY matching operator first-party metadata and potentially original station logos
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_airtime_pro_owner_224.py \
+            --world "$ROOT/world.zip" --out "$ROOT/review"
+      - name: Strict zero-approved PNG and zero-production-change assertion
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ["ROOT"])
+          data=json.loads((root/"review/airtime-pro-firstparty-224-UNAPPROVED.json").read_text())
+          assert data["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert data["countries_scanned"]==224 and data["stations_scanned"]==48219
+          assert data["baseline_png"]==39704
+          assert data["review_only"] and data["new_png_approved"]==0
+          assert data["new_world_created"] is False
+          assert data["metadata_requests"]<=18
+          assert data["images_for_visual_review"]<=12
+          assert all(a["visually_approved"] is False for a in data["attempts"])
+          assert not list((root/"review").rglob("*countries-bouquets.zip"))
+          print("SOURCE REVIEW PASS",json.dumps({k:data[k] for k in
+              ("provider_audio_rows","unique_owners","metadata_requests",
+               "exact_stream_and_name_matches","images_for_visual_review","provider_errors")},
+              sort_keys=True))
+          PY
+      - name: Preserve only new first-party source evidence and original-image visual candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-airtime-pro-firstparty-world-UNAPPROVED-REVIEW
+          path: /tmp/warder-airtime-firstparty-224/review/
+          retention-days: 30
+          if-no-files-found: error
