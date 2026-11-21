@@ -1,0 +1,71 @@
+name: New independent laut.fm official station logos metadata - 224-country pilot
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-lautfm-owner-world-probe.yml
+      - tools/probe_lautfm_firstparty_world.py
+      - tests/test_probe_lautfm_firstparty_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  independent-owner-metadata-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-new-lautfm-owner
+      WORLD_SHA: 9e6d8745979b25a352de4986202a5500a73a6a7935c88ccf1bdc9d82d4afa923
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict stream slug / generic image / exact owner identity regressions
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_probe_lautfm_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_live365_firstparty_world.py
+      - name: Read only last full SHA-pinned 39689 review world, no old PNG re-downloads
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source"
+          test "$(gh run view 44873272556 --json conclusion -q .conclusion)" = success
+          gh run download 44873272556 -n radio-co-crosscountry-8-fourth-originals-REVIEW-ONLY -D "$ROOT/source"
+          mapfile -t archives < <(find "$ROOT/source" -type f -name radio-countries-bouquets.zip)
+          test "${#archives[@]}" -eq 1
+          cp "${archives[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          rm -rf "$ROOT/source"
+      - name: Sample official laut.fm API from exact audio station slugs across 224 country catalogues
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_lautfm_firstparty_world.py \
+            --world "$ROOT/world.zip" --out "$ROOT/review" --limit 24
+      - name: Validate 224-country source coverage and NO premature logo publication
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          src=Path(os.environ['ROOT'])/'review/lautfm-firstparty-owner-metadata-224-country-REVIEW.json'
+          r=json.loads(src.read_text())
+          assert r['review_only'] and r['metadata_only'] and r['new_png_verified']==0
+          assert r['world_sha256']==os.environ['WORLD_SHA']
+          assert r['countries_scanned']==224 and r['stations_scanned']==48219
+          assert r['official_stream_matches']>=200 and r['countries_with_station_streams']>=1
+          assert r['owner_api_requests']==len(r['attempts'])==24
+          print('LAUTFM NEW SOURCE SAFE METADATA RESULT',json.dumps({
+            k:r[k] for k in ('official_stream_matches','countries_with_station_streams',
+               'owner_api_requests','failed_requests','exact_name','exact_name_with_station_image')
+          },sort_keys=True))
+          PY
+      - name: Keep source metadata review only, no original PNG replacement or Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-lautfm-firstparty-owner-sample-REVIEW-ONLY
+          path: /tmp/warder-new-lautfm-owner/review/
+          if-no-files-found: error
+          retention-days: 30
