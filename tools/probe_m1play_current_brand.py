@@ -84,6 +84,7 @@ def main():
     result = probe(a.world.read_bytes(), a.html.read_bytes())
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+    print("M1PLAY TARGET", json.dumps({"target_station":result["target_station"],"world_sha256":result["world_sha256"],"brand_related_links":result["brand_related_links"],"page_sha256":result["page_sha256"]}, sort_keys=True, ensure_ascii=False), flush=True)
     print("M1PLAY FIRST-PARTY BRAND REPORT", json.dumps(result, sort_keys=True, ensure_ascii=False)[:16000], flush=True)
 
 if __name__ == "__main__":
