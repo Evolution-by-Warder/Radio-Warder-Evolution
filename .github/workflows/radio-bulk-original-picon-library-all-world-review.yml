@@ -32,7 +32,7 @@ jobs:
       - name: Pin full existing 39879 world and EXACT high-resolution official logo index once
         run: |
           set -euo pipefail
-          mkdir -p "$ROOT"/{source,baseline,patch13,patch7,old,review}
+          mkdir -p "$ROOT"/{source,baseline,patch13,patch7,old}
           test "$(gh run view 44907110543 --json conclusion -q .conclusion)" = success
           test "$(gh run view 44906253671 --json conclusion -q .conclusion)" = success
           test "$(gh run view 44907497364 --json conclusion -q .conclusion)" = success
