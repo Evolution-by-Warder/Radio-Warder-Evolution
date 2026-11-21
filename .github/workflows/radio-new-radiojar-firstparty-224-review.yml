@@ -1,0 +1,73 @@
+name: 224-country Radiojar first-party original image source staging REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-radiojar-firstparty-224-review.yml
+      - tools/probe_radiojar_firstparty_source_224.py
+      - tests/test_probe_radiojar_firstparty_source_224.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bounded-firstparty-image-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-new-radiojar-owner
+      WORLD_SHA: f5a550d39f79957778f357296bc85102023ffc96f89bfb2daffbd1f87cf5bd49
+    steps:
+      - uses: actions/checkout@v4
+      - name: Isolated Pillow for candidate review only
+        run: python3 -m pip install --quiet 'Pillow>=10,<13'
+      - name: Exact owner stream path and image negative tests
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_probe_radiojar_firstparty_source_224.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_new_zeno_radioking_owner_world.py
+      - name: Restore 39698 PNG world catalogue from latest successfully rebuilt source
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source"
+          test "$(gh run view 44876454750 --json conclusion -q .conclusion)" = success
+          gh run download 44876454750 \
+            -n radio-lautfm-nine-visual-approved-originals-39698-REVIEW-ONLY -D "$ROOT/source"
+          test "$(find "$ROOT/source" -type f -name radio-countries-bouquets.zip | wc -l)" -eq 1
+          cp "$(find "$ROOT/source" -name radio-countries-bouquets.zip)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          rm -rf "$ROOT/source"
+      - name: Audit 224 country identities and stage at most 24 new owner image responses
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_radiojar_firstparty_source_224.py \
+            --world "$ROOT/world.zip" --out "$ROOT/review"
+      - name: Enforce no approved logo or production package
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path(os.environ["ROOT"])
+          r=json.loads((root/"review/radiojar-firstparty-source-224-review.json").read_text())
+          assert r["world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["review_only"] and r["new_png_approved"]==0 and not r["new_world_created"]
+          assert r["countries_scanned"]==224 and r["stations_scanned"]==48219
+          assert r["requested_images"]<=24
+          assert r["image_candidates_for_visual_review"]<=r["requested_images"]
+          assert all(not x.get("visually_approved") for x in r["attempts"])
+          assert not list(root.glob("review/**/radio-countries-bouquets.zip"))
+          print("RADIOJAR INDEPENDENT REVIEW PASS", {k:r[k] for k in
+             ("audio_rows","requested_images","image_candidates_for_visual_review","errors")})
+          PY
+      - name: Persist only isolated original-image evidence and contact sheet
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-Radiojar-owner-images-224-world-REVIEW-UNAPPROVED
+          path: /tmp/warder-new-radiojar-owner/review/
+          if-no-files-found: error
+          retention-days: 30
