@@ -1,0 +1,134 @@
+name: Radiojar new Swiss Norwegian original station logos - 39709 complete world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radiojar-swiss-norway-two-visual-approved-world.yml
+      - tools/merge_radiojar_gwen_history_two.py
+      - tests/test_merge_radiojar_gwen_history_two.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  swiss-norwegian-firstparty-reviewed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radiojar-gwen-history
+      WORLD_SHA: 41e0b024aa56e2149da76270479dd41558a505388635531810d3185de3d65042
+      STAGE_SHA: 1c58e4efc5ee5113f341b47ee07fa91314d48aff0cbe218fa992313340451205
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PNG converter and run strict brand, archive, identity negative tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_radiojar_gwen_history_two.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_radiojar_world_remaining_second_pass.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Read last 39707 world and all four previously source-staged broadcaster images
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source" "$ROOT/stage" "$ROOT/old" "$ROOT/shards"
+          test "$(gh run view 44891211396 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44891447809 --json conclusion -q .conclusion)" = success
+          gh run download 44891211396 -n radiojar-global-three-verified-39707-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44891447809 -n radiojar-world-second-45excluded-missing-source-images-REVIEW -D "$ROOT/stage"
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,os,shutil
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          matches=list((root/'source').rglob('radio-countries-bouquets.zip'))
+          assert len(matches)==1
+          shutil.copyfile(matches[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39707
+          proof=root/'stage/radiojar-224-world-unprobed-owners-REVIEW.json'
+          assert hashlib.sha256(proof.read_bytes()).hexdigest()==os.environ['STAGE_SHA']
+          print('LAST RADIOJAR SOURCE 39707 WORLD AND FOUR NEW OWNER IMAGES PINNED')
+          PY
+          rm -rf "$ROOT/source"
+      - name: Restore only CH and NO canonical country ZIPs and exact SHA verify against 39707 world
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          python3 - <<'PY' > "$ROOT/needed.txt"
+          import json,os
+          from zipfile import ZipFile
+          with ZipFile(os.environ['ROOT']+'/world.zip') as z:idx=json.loads(z.read('index.json'))
+          print(*sorted({f"{sorted(idx['countries']).index(cc)//8:02d}" for cc in ('CH','NO')}),sep='\n')
+          PY
+          while read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/needed.txt"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,hashlib,json,shutil
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          for cc,expected_old in (('CH',391),('NO',112)):
+              matches=list((root/'shards').rglob('radio-country-'+cc+'-REVIEW-NOT-PRODUCTION'))
+              assert len(matches)==1
+              src=matches[0]
+              assert idx['countries'][cc]['logos_found']==expected_old
+              assert hashlib.sha256((src/'logos'/(cc+'.zip')).read_bytes()).hexdigest()==idx['countries'][cc]['logo_sha256']
+              shutil.copytree(src,root/'old'/src.name)
+              print('CURRENT COUNTRY ORIGINAL SHA PASS',cc)
+          PY
+          rm -rf "$ROOT/shards"
+      - name: Attach only the two visually approved Swiss and Norwegian original logos
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_radiojar_gwen_history_two.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Rebuild 224-world zip and verify exactly two new PNGs and all previous bytes
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries CH,NO --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          proof=json.loads((root/'review/radiojar-swiss-norway-two-verified-review.json').read_text())
+          world=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert proof['approved_new_png']==world['logos_added']==2
+          assert proof['review_only'] and world['review_only']
+          assert proof['source_world_sha256']==world['original_world_sha256']==os.environ['WORLD_SHA']
+          changed={x['country']:(x['previous'],x['current'],x['added']) for x in world['countries_changed']}
+          assert changed=={'CH':(391,392,1),'NO':(112,113,1)}
+          nextzip=root/'new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(nextzip.read_bytes()).hexdigest()==world['new_world_sha256']
+          with ZipFile(nextzip) as z:
+              idx=json.loads(z.read('index.json'))
+              assert idx['country_count']==224 and idx['station_count']==48219
+              assert sum(x['logos_found'] for x in idx['countries'].values())==39709
+              assert 48219-39709==8510
+          print('TWO CH NO FIRSTPARTY RADIO ORIGINALS VERIFIED WORLD',json.dumps({
+              'new_total_png':39709,'missing':8510,'world_sha256':world['new_world_sha256'],
+              'country_changes':changed
+          },sort_keys=True))
+          PY
+      - name: Upload ONLY new 39709 complete world REVIEW and CH NO country ZIP, no IPK/main
+        uses: actions/upload-artifact@v4
+        with:
+          name: radiojar-swiss-norway-two-39709-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-radiojar-gwen-history/review/
+            /tmp/warder-radiojar-gwen-history/new-world/
+          retention-days: 30
+          if-no-files-found: error
