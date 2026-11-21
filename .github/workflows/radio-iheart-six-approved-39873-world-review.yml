@@ -1,0 +1,113 @@
+name: Six visual-approved iHeart US originals - world 39873 REVIEW only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iheart-six-approved-39873-world-review.yml
+      - tools/merge_iheart_six_visually_approved_US.py
+      - tests/test_merge_iheart_six_visually_approved_US.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-224-country-signed-world-and-six-brand-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-iheart-six-rebuild
+      WORLD_SHA: dc04766992e47566abec68de7221169d41ee3d41914f1465fc83ae4a6f0fc12f
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict positive/negative identity test and existing immutable world regression suite
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_iheart_six_visually_approved_US.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_iheart_six_missing_exact_brand.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          python3 -m py_compile tools/merge_iheart_six_visually_approved_US.py
+      - name: Fetch only SHA-pinned world, six visual-approved owner PNGs and current original US ZIP
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,images,US,old}
+          test "$(gh run view 44900502836 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44901766039 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895332419 --json conclusion -q .conclusion)" = success
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44901766039 -n radio-iheart-six-exact-missing-firstparty-PNG-UNAPPROVED -D "$ROOT/images"
+          gh run download 44895332419 -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/US"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          world=list((root/"source").rglob("radio-countries-bouquets.zip"))
+          assert len(world)==1
+          shutil.copyfile(world[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39867
+          assert idx["countries"]["US"]["logos_found"]==5777
+          folders=list((root/"US").rglob("radio-country-US-REVIEW-NOT-PRODUCTION"))
+          assert len(folders)==1
+          logo=folders[0]/"logos/US.zip"
+          assert hashlib.sha256(logo.read_bytes()).hexdigest()==idx["countries"]["US"]["logo_sha256"]
+          shutil.copytree(folders[0],root/"old"/folders[0].name)
+          print("CURRENT ORIGINAL USA 5777 LOGOS AND ALL WORLD 39867 SIGNED")
+          PY
+          rm -rf "$ROOT/source" "$ROOT/US"
+      - name: Merge exactly SIX individually inspected first-party station logos into USA, preserve every earlier PNG
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_iheart_six_visually_approved_US.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/images" --out "$ROOT/review"
+      - name: One fresh 224-country world rebuild with only US logo count/ZIP SHA changed
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries US --out "$ROOT/new-world"
+      - name: Verify 224 countries, 48219 stations and 39873 originals; protect all old catalog/PNG files
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ["ROOT"])
+          merged=json.loads((root/"review/iheart-six-original-US-merge-review.json").read_text())
+          report=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert merged["review_only"] and merged["accepted_new_png"]==6
+          assert merged["old_png"]==5777 and merged["new_png"]==5783 and merged["old_png_unchanged"]
+          assert report["review_only"] and report["original_world_sha256"]==os.environ["WORLD_SHA"]
+          assert report["country_count"]==224 and report["station_count"]==48219
+          assert report["logos_added"]==6
+          assert {z["country"]:(z["previous"],z["current"],z["added"]) for z in report["countries_changed"]}=={"US":(5777,5783,6)}
+          w=root/"new-world/radio-countries-bouquets.zip"
+          assert hashlib.sha256(w.read_bytes()).hexdigest()==report["new_world_sha256"]
+          with ZipFile(w) as z:
+              idx=json.loads(z.read("index.json"))
+              assert idx["country_count"]==224 and idx["station_count"]==48219
+              assert sum(v["logos_found"] for v in idx["countries"].values())==39873
+              assert 48219-39873==8346
+          print("224 COUNTRY SIX VISUAL IHEART ORIGINALS WORLD PASS",json.dumps({
+              "new_logos":39873,"still_missing":8346,"world_sha256":report["new_world_sha256"],
+              "existing_original_png_unchanged":39867},sort_keys=True))
+          PY
+      - name: Upload only REVIEW world and signed new US logo ZIP, not main/latest.json/Release/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-iheart-six-verified-39873-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-iheart-six-rebuild/review/
+            /tmp/warder-iheart-six-rebuild/new-world/
+          retention-days: 30
+          if-no-files-found: error
