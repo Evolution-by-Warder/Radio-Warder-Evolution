@@ -73,7 +73,10 @@ def render_pinned_inline_svg(data):
     """Case-normalize one SVG attribute only; preserve all visible paths/colours."""
     if hashlib.sha256(data).hexdigest() != PINNED_BRAND_SVG:
         raise ValueError("SVG differs from pinned official current logo")
-    cleaned = data.replace(WIDTH_FIX, WIDTH_REPLACEMENT, 1)
+    if data.count(b' data-v-05f6e439>') != 1:
+        raise ValueError("Unrecognized nonrendering Nuxt root annotation")
+    cleaned = data.replace(WIDTH_FIX, WIDTH_REPLACEMENT, 1).replace(
+        b' data-v-05f6e439>', b'>', 1)
     from WarderRadio.svg_logos import render_svg
     try:
         png, size = render_svg(cleaned)
@@ -88,7 +91,7 @@ def render_pinned_inline_svg(data):
         raise ValueError("Invalid new station vector raster")
     print("DK RADIO IIII CURRENT SVG QUALITY", json.dumps({
         "svg_raw_sha256":PINNED_BRAND_SVG,
-        "svg_attribute_normalization":"viewbox -> viewBox (nonvisual only)",
+        "svg_attribute_normalization":"viewbox -> viewBox and remove bare Nuxt SVG root annotation (nonvisual only)",
         "svg_normalized_sha256":hashlib.sha256(cleaned).hexdigest(),
         "rendered_png_sha256":hashlib.sha256(png).hexdigest(),
         "rendered_png_bytes":len(png)},sort_keys=True),flush=True)
