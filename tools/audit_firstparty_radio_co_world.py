@@ -41,7 +41,7 @@ def radio_id(raw):
         if (p.scheme not in ("https", "http") or p.username or p.password or
                 p.fragment or p.port not in (None, 80, 443) or
                 not (h == "streaming.radio.co" or
-                     re.fullmatch(r"s[0-9]{1,3}\\.radio\\.co", h))):
+                     re.fullmatch(r"s[0-9]{1,3}\.radio\.co", h))):
             return ""
         m = STREAM_PATH.fullmatch(p.path)
         return m.group(1).lower() if m else ""
@@ -58,7 +58,7 @@ def logo_url(raw):
         if (p.scheme != "https" or p.username or p.password or p.fragment or
                 p.port not in (None, 443) or not h or
                 not (h == "images.radio.co" or h.endswith(".radio.co")) or
-                not re.search(r"\\.(png|jpe?g|webp)(?:$)", p.path, re.I)):
+                not re.search(r"\.(png|jpe?g|webp)(?:$)", p.path, re.I)):
             return ""
         ipaddress.ip_address(h)  # Should reject all IP literals.
         return ""
