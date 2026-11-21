@@ -1,0 +1,89 @@
+name: LT M1 Dance current first-party logo from M1 PLAY (review only)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-lt-m1play-dance-firstparty-review.yml
+      - tools/recover_current_m1play_dance_original.py
+      - tests/test_recover_current_m1play_dance_original.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover-current-branded-original:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-lt-m1play-firstparty-review
+      WORLD_SHA: c3cd40436109bd6c7f19b37ff04833a9080b2418e34f20719f5ec4712464b5e9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline identity, strict image metadata and old-logo integrity regressions
+        run: |
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_recover_current_m1play_dance_original.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Reuse checksum-pinned latest 224-country world and previous Mano FM LT ZIP
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-source,lt-source,gaps,old,official,reivew}
+          test "$(gh run view 44851765176 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44838788045 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44830949401 --json conclusion -q .conclusion)" = success
+          gh run download 44851765176 -n radio-DK-retro-firstparty-600px-REVIEW-ONLY -D "$ROOT/world-source"
+          mapfile -t archives < <(find "$ROOT/world-source" -type f -name radio-countries-bouquets.zip)
+          test "${#archives[@]}" -eq 1
+          cp "${archives[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum -c
+          gh run download 44838788045 -n radio-DK-LT-first-party-originals-REVIEW-ONLY -D "$ROOT/lt-source"
+          mapfile -t folders < <(find "$ROOT/lt-source" -type d -name radio-country-LT-REVIEW-NOT-PRODUCTION)
+          test "${#folders[@]}" -eq 1
+          cp -a "${folders[0]}" "$ROOT/old/"
+          gh run download 44830949401 -n radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY -D "$ROOT/gaps"
+          test -f "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json"
+      - name: Fetch ONLY live official M1 PLAY channel, not archived CarRadio thumbnails
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --compressed --retry 1 --connect-timeout 8 --max-time 40 --max-filesize 5242880 --user-agent 'WarderRadioOfficialBrandAudit/1.0' 'https://m1play.15min.lt/m1dance' -o "$ROOT/official/m1dance.html"
+          sha256sum "$ROOT/official/m1dance.html"
+      - name: Verify exact UUID, archived exact stream, current brand and master PNG quality
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_current_m1play_dance_original.py --world "$ROOT/world.zip" --old-root "$ROOT/old" --gaps "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json" --page "$ROOT/official/m1dance.html" --out "$ROOT/review"
+      - name: Assemble 224-country REVIEW world ONLY if 1 original was actually added
+        run: |
+          set -euo pipefail
+          gained=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ['ROOT'])/'review/lt-m1play-dance-firstparty-review.json').read_text())
+          assert r['review_only'] and r['unchanged_existing_pngs'] and r['world_sha256']==os.environ['WORLD_SHA']
+          print(r['recovered_total'])
+          PY
+          )
+          if test "$gained" -gt 0; then
+            test "$gained" -eq 1
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" --old-root "$ROOT/old" --candidates "$ROOT/review" --countries LT --out "$ROOT/new-world"
+            python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ['ROOT'])/'new-world/world-recovery-review.json').read_text())
+          assert r['review_only'] and r['country_count']==224 and r['station_count']==48219
+          assert r['logos_added']==1 and len(r['countries_changed'])==1
+          assert r['countries_changed'][0]['country']=='LT' and r['countries_changed'][0]['previous']==79 and r['countries_changed'][0]['current']==80
+          print('LT M1 PLAY VERIFIED WORLD +1 PNG',json.dumps(r,sort_keys=True),flush=True)
+          PY
+          else
+            echo 'Official new PNG rejected or unavailable; world stays 39664; no packaging claims.'
+          fi
+      - name: Retain isolated LT and optional world review artifacts only, NEVER release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-LT-M1PLAY-current-firstparty-REVIEW-ONLY
+          path: |
+            /tmp/warder-lt-m1play-firstparty-review/review/
+            /tmp/warder-lt-m1play-firstparty-review/new-world/
+          retention-days: 30
+          if-no-files-found: error
