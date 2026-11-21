@@ -116,6 +116,16 @@ def source_verified(row, gap, page):
             'proof_html_sha256': hashlib.sha256(page).hexdigest(),
             'logo_on_broadcaster_site': True}, 'OFFICIAL_EXACT_CHANNEL_VECTOR'
 
+def strict_svg_with_quality_reason(data):
+    from WarderRadio.svg_logos import render_svg
+    try:
+        return render_svg(data)
+    except ValueError as exc:
+        print('RTSH SVG SOURCE FAILS CLOSED',json.dumps({
+            'reason':str(exc),'raw_sha256':hashlib.sha256(data).hexdigest(),
+            'raw_bytes':len(data)}),flush=True)
+        raise
+
 def recover(world, old_root, gaps_file, official_page_file, out):
     out = Path(out)
     if out.exists() or out.is_symlink():
@@ -136,7 +146,8 @@ def recover(world, old_root, gaps_file, official_page_file, out):
     page = Path(official_page_file).read_bytes()
     choice, reason = source_verified(target, gap, page)
     with tempfile.TemporaryDirectory(prefix='warder-al-firstparty-') as temp:
-        store = OriginalIPRDImages(Path(temp), {target['stationuuid']: choice} if choice else {})
+        store = OriginalIPRDImages(Path(temp), {target['stationuuid']: choice} if choice else {},
+                                   svg=strict_svg_with_quality_reason)
         result = recover_country(world, idx, CODE, old_root, store, validator, out, workers=1)
         if (not result['unchanged_existing_pngs']
             or result['new_downloads'] != len(store.success)
