@@ -1,0 +1,117 @@
+name: Six more independent Live365 US station originals - 39724 world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-live365-six-unseen-us-originals-39724-world-review.yml
+      - tools/merge_live365_unseen_six_US_world.py
+      - tests/test_merge_live365_unseen_six_US_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  six-new-source-exact-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-live365-third-six
+      WORLD_SHA: b9a2ac03b5a5fe220c27f8ed8615066a0ccea2fab4e3e7ec0c4dc3629ddb7257
+      STAGE_SHA: ca917d992a91c7c4f9a914c616e03bdb931af054d53af39a6aa800a3fd94aa17
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test exact station UUID+stream+provider original, regressions and safety
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_live365_unseen_six_US_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_live365_unseen_final_39718.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Fetch signed 39718 world, exact current US PNG archive and disjoint 15 owner visual sources
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{latest,source,old}
+          test "$(gh run view 44894826484 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895097576 --json conclusion -q .conclusion)" = success
+          gh run download 44894826484 -n radio-live365-nine-visual-originals-39718-world-REVIEW-ONLY -D "$ROOT/latest"
+          gh run download 44895097576 -n live365-third-disjoint-39718-unseen-broadcaster-originals-REVIEW -D "$ROOT/source"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from hashlib import sha256
+          import os,json,shutil
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"latest").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1,worlds
+          shutil.copyfile(worlds[0],root/"world.zip")
+          assert sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z: idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39718
+          found=list((root/"latest").rglob("radio-country-US-REVIEW-NOT-PRODUCTION"))
+          assert len(found)==1
+          src=found[0]
+          archive=src/"logos/US.zip"
+          assert sha256(archive.read_bytes()).hexdigest()==idx["countries"]["US"]["logo_sha256"]
+          assert idx["countries"]["US"]["logos_found"]==5771
+          shutil.copytree(src,root/"old"/src.name)
+          prior=root/"source/live365-third-disjoint-owner-39718-review.json"
+          assert sha256(prior.read_bytes()).hexdigest()==os.environ["STAGE_SHA"]
+          print("LATEST 39718 WORLD AND US 5771 ORIGINALS SHA PASS")
+          PY
+          rm -rf "$ROOT/latest"
+      - name: Merge SIX precise visually accepted Live365 original US radio PNGs, quarantine 2
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_live365_unseen_six_US_world.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/source" --out "$ROOT/review"
+      - name: Assemble complete 224-country 39724 world without modifying existing catalogue/bouquet/originals
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries US --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import json,os,hashlib
+          from zipfile import ZipFile
+          from pathlib import Path
+          root=Path(os.environ["ROOT"])
+          stage=json.loads((root/"review/live365-six-us-station-approved-review.json").read_text())
+          report=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert stage["review_only"] and stage["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert stage["validated_new_original_png"]==report["logos_added"]==6
+          assert stage["all_previous_country_pngs_byte_equal"]
+          assert len(stage["visual_quarantine"])==2
+          assert report["review_only"] and report["original_world_sha256"]==os.environ["WORLD_SHA"]
+          assert report["country_count"]==224 and report["station_count"]==48219
+          assert [(x["country"],x["previous"],x["current"],x["added"]) for x in report["countries_changed"]]==[("US",5771,5777,6)]
+          p=root/"new-world/radio-countries-bouquets.zip"
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==report["new_world_sha256"]
+          with ZipFile(p) as z:
+            idx=json.loads(z.read("index.json"))
+            assert idx["country_count"]==224 and idx["station_count"]==48219
+            assert sum(x["logos_found"] for x in idx["countries"].values())==39724
+            assert idx["countries"]["US"]["logos_found"]==5777
+          assert 48219-39724==8495
+          print("LIVE365 SIX US ORIGINALS NEW 39724 WORLD PASS",json.dumps({
+            "new_png":6,"total_png":39724,"missing":8495,
+            "old_world_sha256":os.environ["WORLD_SHA"],
+            "new_world_sha256":report["new_world_sha256"],
+            "US":[5771,5777]},sort_keys=True))
+          PY
+      - name: Preserve source and new complete world only as unpublished REVIEW artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: live365-six-disjoint-US-39724-complete-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-live365-third-six/review/
+            /tmp/warder-live365-third-six/new-world/
+          retention-days: 30
+          if-no-files-found: error
