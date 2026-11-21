@@ -104,13 +104,13 @@ def choose_batch(unprobed, ids, batch):
     return selected, target
 
 
-def audit(world, old_metadata, out, batch, downloader=fetch_public):
+def audit(world, old_metadata, out, batch, downloader=fetch_public, expected_old_ids=FIRST_PASS_IDS):
     if out.exists() or out.is_symlink():
         raise ValueError("Refuse to replace a previous review")
     first_bytes = old_metadata.read_bytes()
     first = json.loads(first_bytes)
     candidates, missing = scan_catalogs(world)
-    unprobed, ids, prior_ids = plan_remaining(candidates, first)
+    unprobed, ids, prior_ids = plan_remaining(candidates, first, expected_old_ids=expected_old_ids)
     selected, target = choose_batch(unprobed, ids, batch)
     cache = {}
     examined = []
