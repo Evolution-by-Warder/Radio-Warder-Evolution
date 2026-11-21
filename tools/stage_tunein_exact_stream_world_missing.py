@@ -47,10 +47,10 @@ def safe_image(src):
     if not isinstance(src,str) or len(src)>1400:return ""
     try:
         u=urlsplit(src)
-        if u.scheme not in ("https","http") or u.hostname not in SAFE_IMG_HOSTS or
-           u.username or u.password or u.fragment or u.port is not None or
-           not re.fullmatch(r"/[a-zA-Z0-9._/-]+",u.path) or
-           not re.fullmatch(r"[a-zA-Z0-9=&._-]*",u.query):
+        if (u.scheme not in ("https","http") or u.hostname not in SAFE_IMG_HOSTS or
+            u.username or u.password or u.fragment or u.port is not None or
+            not re.fullmatch(r"/[a-zA-Z0-9._/-]+",u.path) or
+            not re.fullmatch(r"[a-zA-Z0-9=&._-]*",u.query)):
             return ""
         return urlunsplit(("https",u.hostname,u.path,u.query,""))
     except (ValueError,TypeError):return ""
@@ -155,8 +155,8 @@ def inventory(world,old_root,country_limit=25):
         for row in sorted(rows,key=lambda x:(-int(bool(x.get("homepage"))),len(x.get("name","")),-len(x.get("name","")),x["stationuuid"])):
             if row["stem"]+".png" in old:continue
             name=row["name"].strip();key=norm(name)
-            if not 9<=len(key)<=70 or key in ("radio","radioradio","rockradio","rockfm") or
-                len(name)>85 or key in seen:
+            if (not 9<=len(key)<=70 or key in ("radio","radioradio","rockradio","rockfm") or
+                len(name)>85 or key in seen):
                 counters["unusable_generic_or_duplicate_station_name"]+=1
                 continue
             seen.add(key)
