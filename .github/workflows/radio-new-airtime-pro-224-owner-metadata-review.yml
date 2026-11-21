@@ -1,0 +1,78 @@
+name: New Sourcefabric Airtime Pro official station-original source - 224-country review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-airtime-pro-224-owner-metadata-review.yml
+      - tools/probe_airtime_pro_owner_224.py
+      - tests/test_probe_airtime_pro_owner_224.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  sourcefabric-firstparty-metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radio-airtime-firstparty
+      WORLD_SHA: bb115a8f0fd0127990f2c22a3ed44cee526255b3599dc6db5c1bbf6b7ee65a97
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow and run exact stream/brand/logo negative safety tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_probe_airtime_pro_owner_224.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_radiojar_firstparty_source_224.py
+      - name: Fetch and SHA-check most recent successful 39704-original 224-country REVIEW world
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world-source"
+          test "$(gh run view 44889673492 --json conclusion -q .conclusion)" = success
+          gh run download 44889673492 \
+            -n radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY \
+            -D "$ROOT/world-source"
+          mapfile -t candidates < <(find "$ROOT/world-source" -type f -name radio-countries-bouquets.zip)
+          test "${#candidates[@]}" -eq 1
+          cp "${candidates[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          rm -rf "$ROOT/world-source"
+      - name: Probe independent Airtime Pro station-metadata and broadcaster-logo endpoints
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_airtime_pro_owner_224.py \
+            --world "$ROOT/world.zip" --out "$ROOT/review" --max-probes 18
+      - name: Confirm no original was automatically approved or added to a world ZIP
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path(os.environ["ROOT"])/"review/airtime-pro-firstparty-224-UNAPPROVED.json"
+          o=json.loads(p.read_text())
+          assert o["schema"]==1 and o["review_only"]
+          assert o["new_png_approved"]==0 and o["new_world_created"] is False
+          assert o["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert o["countries_scanned"]==224 and o["stations_scanned"]==48219
+          assert o["baseline_png"]==39704
+          assert 0<o["metadata_requests"]<=18
+          assert len(o["attempts"])==o["metadata_requests"]
+          assert all(not a.get("visually_approved") for a in o["attempts"])
+          assert not list((Path(os.environ["ROOT"])/"review").rglob("radio-countries-bouquets.zip"))
+          print("AIRTIME PRO OFFICIAL NEW SOURCE SAFE AUDIT",json.dumps({
+             k:o[k] for k in ("provider_audio_rows","unique_owners","metadata_requests",
+                 "exact_stream_and_name_matches","images_for_visual_review","provider_errors")
+          },sort_keys=True))
+          PY
+      - name: Preserve only review-only original broadcaster image evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: airtime-pro-224-country-firstparty-originals-UNAPPROVED-REVIEW
+          path: /tmp/warder-radio-airtime-firstparty/review/
+          retention-days: 30
+          if-no-files-found: error
