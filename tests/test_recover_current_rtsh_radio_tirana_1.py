@@ -25,6 +25,28 @@ class RadioTiranaReviewTests(unittest.TestCase):
         self.assertEqual(match['proof_page'],OFFICIAL_PAGE)
         self.assertNotEqual(match['logo'],self.gap['source_logo_url'])
 
+    def test_official_webpage_jsonld_exact_logo_only(self):
+        import json
+        document={'@context':'https://schema.org','@graph':[{
+            '@type':'WebPage',
+            'name':'Radio Tirana 1 - RTSH Radio',
+            'url':OFFICIAL_PAGE,
+            'thumbnailUrl':OFFICIAL_LOGO}]}
+        html=(b'<html><head><title>Radio Tirana 1 - RTSH Radio</title>'
+              b'<script type="application/ld+json">'+json.dumps(document).encode()+
+              b'</script></head><body></body></html>')
+        self.assertEqual(source_verified(self.row,self.gap,html)[1],
+                         'OFFICIAL_EXACT_CHANNEL_VECTOR')
+        for bad_field,bad_value in [('url','https://other.example/'),
+                                    ('name','Radio Tirana 2 - RTSH Radio'),
+                                    ('thumbnailUrl','https://rtsh.al/assets/global-logo.svg'),
+                                    ('@type','Organization')]:
+            d=json.loads(json.dumps(document))
+            d['@graph'][0][bad_field]=bad_value
+            wrong=html.replace(json.dumps(document).encode(),json.dumps(d).encode())
+            with self.subTest(bad_field=bad_field):
+                self.assertIsNone(source_verified(self.row,self.gap,wrong)[0])
+
     def test_full_identity_not_merely_a_name(self):
         for gap in [dict(self.gap,stationuuid='bad'),
                     dict(self.gap,station_stem='DIFFERENT'),
