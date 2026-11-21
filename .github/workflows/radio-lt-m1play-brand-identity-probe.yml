@@ -1,0 +1,48 @@
+name: LT M1 PLAY current broadcaster identity/logo source audit (REVIEW ONLY)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-lt-m1play-brand-identity-probe.yml
+      - tools/probe_m1play_current_brand.py
+      - tests/test_probe_m1play_current_brand.py
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect-firstparty:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-m1play-brand-identity
+      WORLD_SHA: c3cd40436109bd6c7f19b37ff04833a9080b2418e34f20719f5ec4712464b5e9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline page/identity tests
+        run: PYTHONPATH=tools python3 -B tests/test_probe_m1play_current_brand.py
+      - name: Reuse most recent immutable 224-country REVIEW world (no PNG re-download)
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source" "$ROOT/review"
+          test "$(gh run view 44851765176 --json conclusion -q .conclusion)" = success
+          gh run download 44851765176 -n radio-DK-retro-firstparty-600px-REVIEW-ONLY -D "$ROOT/source"
+          mapfile -t worlds < <(find "$ROOT/source" -type f -name radio-countries-bouquets.zip)
+          test "${#worlds[@]}" -eq 1
+          cp "${worlds[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum -c
+      - name: Fetch official current LT M1 PLAY station page and audit visible brand assets
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --compressed --retry 2 --connect-timeout 10 --max-time 50 --max-filesize 5242880 --user-agent 'WarderRadioOfficialBrandAudit/1.0' 'https://m1play.15min.lt/m1dance' -o "$ROOT/current-m1dance.html"
+          sha256sum "$ROOT/current-m1dance.html"
+          PYTHONPATH=tools python3 -B tools/probe_m1play_current_brand.py --world "$ROOT/world.zip" --html "$ROOT/current-m1dance.html" --out "$ROOT/review/m1play-official-brand-source.json"
+      - name: Store tiny REVIEW identity data only, no PNG acceptance
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-LT-M1PLAY-current-identity-REVIEW-ONLY
+          path: /tmp/warder-m1play-brand-identity/review/
+          if-no-files-found: error
+          retention-days: 30
