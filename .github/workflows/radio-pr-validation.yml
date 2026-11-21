@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install test image decoder and safe XML parser for offline source-review tests
-        run: python3 -m pip install Pillow 'defusedxml>=0.7,<1'
+        run: python3 -m pip install Pillow 'defusedxml>=0.7,<1' 'pycountry>=24,<30'
       - name: Compile all Python files
         run: python3 -m compileall -q src tests tools
       - name: Build independent IPK and legacy bridge before unit tests
