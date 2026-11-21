@@ -25,7 +25,7 @@ MAX_PROBES = 18
 MAX_IMAGES = 12
 MAX_METADATA = 100_000
 MAX_IMAGE = 2_500_000
-HOST_RE = re.compile(r"^([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\\.out\\.airtime\\.pro$")
+HOST_RE = re.compile(r"^([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.out\.airtime\.pro$")
 MOUNT_RE = re.compile(r"^/[a-zA-Z0-9_-]{2,96}$")
 
 
@@ -162,8 +162,6 @@ def audit(world, out, max_probes=MAX_PROBES, metadata_get=None, image_get=None):
     attempts, errors, images = [], Counter(), []
     seen_countries = set()
     # Balance the highest-missing countries; never repeat the same owner ID.
-    ordered = sorted(targets, key=lambda r: (r["country"] in seen_countries,
-        r["country"], r["owner"]))
     # Explicit pass across countries before taking further targets per country.
     selected = []
     by_country = defaultdict(list)
