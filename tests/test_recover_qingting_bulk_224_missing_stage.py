@@ -19,17 +19,20 @@ class WorldWideBulk(unittest.TestCase):
     def test_safe_bulk_worker_and_page_cap(self):
         for badworkers in (0,17,100):
             with self.assertRaises(ValueError):
-                run(None,None,None,None,workers=badworkers)
+                run("world.zip","old","prior","/tmp/non-existing-bulk-output-guard",workers=badworkers)
         for badcount in (0,401):
             with self.assertRaises(ValueError):
-                run(None,None,None,None,limit=badcount)
+                run("world.zip","old","prior","/tmp/non-existing-bulk-output-guard",limit=badcount)
     def test_exact_firstparty_owner_name_and_https_image(self):
         calls=[]
         raw=('''<html><h1>三亚天涯之声</h1>
              <img alt="三亚天涯之声" src="http://pic.qtfm.cn/2018/0102/20180102120634.jpeg!200"></html>''').encode()
         from PIL import Image
         from io import BytesIO
-        b=BytesIO();Image.new("RGB",(200,200)).save(b,format="PNG")
+        b=BytesIO();im=Image.new("RGB",(200,200));
+        for y in range(200):
+            for x in range(200):im.putpixel((x,y),((x*3+y)%256,(x+y*7)%256,(x*11+y*2)%256))
+        im.save(b,format="PNG")
         def im(url):
             calls.append(url)
             return b.getvalue()
