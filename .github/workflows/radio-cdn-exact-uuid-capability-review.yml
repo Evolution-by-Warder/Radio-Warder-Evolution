@@ -1,0 +1,46 @@
+name: RadioDock curated CDN exact UUID missing-image quality gate (preview)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-cdn-exact-uuid-capability-review.yml]
+permissions:
+  contents: read
+jobs:
+  verify-provider-original-retrieval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check distinct known missing Radio Browser UUIDs against curated logo CDN
+        run: |
+          python3 - <<'PY'
+          import json,urllib.request,hashlib
+          from io import BytesIO
+          ids=['ee623a0e-933e-4030-b1c9-1c48aa332d7a',
+               '648e9e34-640d-4c9c-acc8-32d72063c44f',
+               '54efcce2-2eb5-4767-aa9b-bdfdc5b6b3a4',
+               '7951efdf-033e-4929-ade0-dcf11baf0a8e']
+          for uid in ids:
+            for origin in [f'https://stations.radiodock.app/logos/{uid}?size=512',
+                           f'https://stations.radiodock.app/json/stations/byuuid/{uid}']:
+              try:
+                with urllib.request.urlopen(urllib.request.Request(origin,headers={
+                     'User-Agent':'WarderRadioOriginalLogoBulkQA/1.0'}),timeout=10) as res:
+                  raw=res.read(1500000)
+                  rec={'url':origin,'status':res.status,'content_type':res.headers.get('Content-Type'),
+                       'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),
+                       'first_bytes':raw[:35].hex()}
+                print('CURATED LOGO CAPABILITY',json.dumps(rec))
+              except Exception as e:print('CURATED LOGO CAPABILITY',json.dumps({'url':origin,'error':str(e)[:200]}))
+          for path in ['/json/stations/browse?limit=25&offset=0',
+                       '/json/stations/browse?mode=az&limit=30&offset=0']:
+            url='https://stations.radiodock.app'+path
+            try:
+              with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'WarderRadioOriginalLogoBulkQA/1.0'}),timeout=10) as r:
+                raw=r.read(200000)
+                doc=json.loads(raw)
+              print('RADIO DOCK DIRECTORY',json.dumps({'url':url,'keys':list(doc)[:20],
+                 'count':len(doc.get('stations',[])),'total':doc.get('total'),
+                 'row':(doc.get('stations') or [None])[0]},ensure_ascii=False)[:1500])
+            except Exception as e:print('RADIO DOCK DIRECTORY',json.dumps({'url':url,'error':str(e)[:200]}))
+          PY
