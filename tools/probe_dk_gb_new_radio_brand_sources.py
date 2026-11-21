@@ -49,14 +49,14 @@ def summarize(url,data):
  if not isinstance(data,bytes) or not 1<=len(data)<=5000000:raise ValueError("Invalid page")
  text=data.decode("utf-8","replace");p=Page();p.feed(text);chosen={}
  svg_evidence=[]
- for m in re.finditer(r"<svg\\b[^>]*>[\\s\\S]*?</svg>",text,re.I):
+ for m in re.finditer(r"<svg\b[^>]*>[\s\S]*?</svg>",text,re.I):
   before=text[max(0,m.start()-240):m.start()]
   tag=m.group(0).split(">",1)[0]
   clues=(before+" "+tag).lower()
   if len(svg_evidence)<32 and (m.start()<20000 or any(x in clues for x in ("logo","header","navbar","brand","radio4"))):
    svg_evidence.append({"position":m.start(),"sha256":hashlib.sha256(m.group(0).encode()).hexdigest(),
     "bytes":len(m.group(0)),"start_tag":tag[:230],
-    "before":before[-200:],"path_count":len(re.findall(r"<path\\b",m.group(0),re.I))})
+    "before":before[-200:],"path_count":len(re.findall(r"<path\b",m.group(0),re.I))})
  for raw,alt,kind in p.images:
   link=image_url(raw,url)
   if not link:continue
