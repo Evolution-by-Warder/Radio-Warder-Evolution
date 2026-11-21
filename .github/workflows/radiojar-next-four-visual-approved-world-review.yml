@@ -1,0 +1,130 @@
+name: Four newly verified Radiojar station originals - DE US 224-world REVIEW merge
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radiojar-next-four-visual-approved-world-review.yml
+      - tools/merge_visual_approved_radiojar_next_four.py
+      - tests/test_merge_visual_approved_radiojar_next_four.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  owner-originals-and-unchanged-world:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radiojar-next-four
+      WORLD_SHA: 62fefd31160af380942e471bb04fe59d76ca2a780c2c4a7e1eefe246d4c91fa5
+      STAGE_SHA: 195d666328f114fa38984d24b8013504baa9654f38e7ba794c59f374f8d89624
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow for isolated review-only PNG normalization
+        run: python3 -m pip install --quiet 'Pillow>=10,<13'
+      - name: Verify immutable owner brand, visual allowlist, and original-preservation negative tests
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_merge_visual_approved_radiojar_next_four.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_radiojar_new_missing_owner_ids.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Fetch only SHA-pinned current 39700 world, original DE and US ZIP and staged source pictures
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world-source" "$ROOT/us-source" "$ROOT/old" "$ROOT/stage"
+          test "$(gh run view 44886213146 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44867416434 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44889385623 --json conclusion -q .conclusion)" = success
+          gh run download 44886213146 \
+            -n radio-two-visual-approved-Radiojar-originals-39700-REVIEW-ONLY \
+            -D "$ROOT/world-source"
+          gh run download 44867416434 \
+            -n radio-US-RadioCo-original-logos-REVIEW-ONLY \
+            -D "$ROOT/us-source"
+          gh run download 44889385623 \
+            -n radiojar-next-24-missing-owner-images-UNAPPROVED-REVIEW \
+            -D "$ROOT/stage"
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          available=list((root/"world-source").rglob("radio-countries-bouquets.zip"))
+          assert len(available)==1
+          shutil.copyfile(available[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as archive:
+              index=json.loads(archive.read("index.json"))
+          assert index["country_count"]==224 and index["station_count"]==48219
+          assert sum(x["logos_found"] for x in index["countries"].values())==39700
+          for cc,folder in (("DE","world-source"),("US","us-source")):
+              matches=list((root/folder).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              assert len(matches)==1,(cc,len(matches))
+              dest=root/"old"/matches[0].name
+              shutil.copytree(matches[0],dest)
+              png=dest/"logos"/(cc+".zip")
+              assert hashlib.sha256(png.read_bytes()).hexdigest()==index["countries"][cc]["logo_sha256"],cc
+          stage=root/"stage/radiojar-new-ids-priority-country-review.json"
+          assert hashlib.sha256(stage.read_bytes()).hexdigest()==os.environ["STAGE_SHA"]
+          print("39700 WORLD, DE AND US ORIGINAL ZIP, 16 STAGED RADIOJAR IMAGES SHA PASS")
+          PY
+          rm -rf "$ROOT/world-source" "$ROOT/us-source"
+      - name: Merge ONLY four locally hash-pinned visually verified owner logos, no HTTP
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_visual_approved_radiojar_next_four.py \
+            --world "$ROOT/world.zip" \
+            --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" \
+            --out "$ROOT/review"
+      - name: Assemble and independently SHA-check complete 224-country REVIEW world
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" \
+            --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" \
+            --candidates "$ROOT/review" \
+            --countries DE,US \
+            --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ["ROOT"])
+          approved=json.loads((root/"review/radiojar-next-four-visual-originals-proof.json").read_text())
+          review=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert approved["approved_count"]==review["logos_added"]==4
+          assert approved["review_only"] and review["review_only"]
+          assert approved["source_world_sha256"]==review["original_world_sha256"]==os.environ["WORLD_SHA"]
+          assert review["country_count"]==224 and review["station_count"]==48219
+          by_country={r["country"]:(r["previous"],r["current"],r["added"]) for r in review["countries_changed"]}
+          assert by_country=={"DE":(4051,4054,3),"US":(5762,5763,1)},by_country
+          new_world=root/"new-world/radio-countries-bouquets.zip"
+          assert hashlib.sha256(new_world.read_bytes()).hexdigest()==review["new_world_sha256"]
+          with ZipFile(new_world) as z:
+              index=json.loads(z.read("index.json"))
+              assert index["country_count"]==224 and index["station_count"]==48219
+              assert sum(r["logos_found"] for r in index["countries"].values())==39704
+              assert index["countries"]["DE"]["logos_found"]==4054
+              assert index["countries"]["US"]["logos_found"]==5763
+          print("FOUR NEW RADIOJAR OWN-STATION ORIGINALS 224-COUNTRY WORLD PASS",
+                json.dumps({"new_png":4,"old_png":39700,
+                "new_world_sha256":review["new_world_sha256"],
+                "changed_country_ZIPs":by_country},sort_keys=True))
+          print("MEXICAN AMBIGUOUS ARTWORK AND US GENERIC ICONS STILL QUARANTINED")
+          PY
+      - name: Save only new DE US reviewed ZIPs and full world archive; no release, IPK or main merge
+        uses: actions/upload-artifact@v4
+        with:
+          name: radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-radiojar-next-four/review/
+            /tmp/warder-radiojar-next-four/new-world/
+          retention-days: 30
+          if-no-files-found: error
