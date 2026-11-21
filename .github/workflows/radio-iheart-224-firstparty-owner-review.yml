@@ -1,0 +1,80 @@
+name: iHeart first-party 224-country station logo identity REVIEW (no publishing)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iheart-224-firstparty-owner-review.yml
+      - tools/probe_iheart_224_firstparty_owner.py
+      - tests/test_probe_iheart_224_firstparty_owner.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  firstparty-iheart-224-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-224-iheart-owner
+      WORLD_SHA: dc04766992e47566abec68de7221169d41ee3d41914f1465fc83ae4a6f0fc12f
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate brand/stream identity rejection, no automatic imports
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_probe_iheart_224_firstparty_owner.py
+          python3 -m py_compile tools/probe_iheart_224_firstparty_owner.py
+      - name: Fetch only latest complete 224-country 39867 REVIEW world by immutable SHA
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source"
+          test "$(gh run view 44900502836 --json conclusion -q .conclusion)" = success
+          gh run download 44900502836 \
+            -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/source"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,shutil,hashlib
+          root=Path(os.environ["ROOT"])
+          candidates=list((root/"source").rglob("radio-countries-bouquets.zip"))
+          assert len(candidates)==1, candidates
+          shutil.copyfile(candidates[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z: idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==39867
+          print("SIGNED ALL-COUNTRY SOURCE PASS",os.environ["WORLD_SHA"])
+          PY
+          rm -rf "$ROOT/source"
+      - name: ONE bulk cross-country first-party operator ID and broadcaster-logo review
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_iheart_224_firstparty_owner.py \
+            --world "$ROOT/world.zip" --out "$ROOT/review" --limit 240 --workers 8
+      - name: Review audit proof (NO unverified image ever counted as approved)
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          p=json.loads((Path(os.environ["ROOT"])/"review/iheart-224-firstparty-station-audit-REVIEW.json").read_text())
+          assert p["world_sha256"]==os.environ["WORLD_SHA"]
+          assert p["review_only"] and p["countries_scanned"]==224
+          assert p["stations_scanned"]==48219 and p["before_png"]==39867
+          assert p["missing_png"]==8352 and p["new_png_approved"]==0
+          assert 0<=p["requests"]<=240 and len(p["results"])==p["requests"]
+          assert all(r["reviewed_only"] and not r["accepted"] for r in p["results"])
+          assert not list((Path(os.environ["ROOT"])/"review").rglob("radio-countries-bouquets.zip"))
+          print("SAFE FIRST-PARTY SOURCE REVIEW PASS",p["requests"],p["unapproved_visual_candidates"])
+          PY
+      - name: Keep only source audit and unapproved contact sheets (no Release/main/IPK/latest.json)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-iheart-224-independent-original-source-REVIEW-ONLY
+          path: /tmp/warder-224-iheart-owner/review/
+          retention-days: 30
+          if-no-files-found: error
