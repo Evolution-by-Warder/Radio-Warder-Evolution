@@ -27,7 +27,7 @@ jobs:
           python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
           PYTHONPATH=src:tools python3 -B tests/test_stage_world_picons_exact_missing_originals.py
           PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
-          PYTHONPATH=src:tools python3 -B tests/test_svg_logos.py
+          PYTHONPATH=src:tools python3 -B tests/test_radio_svg_logos.py
           python3 -m py_compile tools/stage_world_picons_exact_missing_originals.py
       - name: Pin full existing 39879 world and EXACT high-resolution official logo index once
         run: |
