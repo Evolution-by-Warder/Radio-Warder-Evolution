@@ -22,6 +22,8 @@ from build_country_radio_packages import save
 
 WORLD_SHA="d1aecce83942efd6dd87c8fc5158d16dd4929b3caf807450069bfb324ab7ec98"
 OLD_SHA="55a557a950e07947db11046405cf45804c0926e869415c6327e43edd864b11ff"
+APPROVED_WORLDS={WORLD_SHA:39676,
+    "0525410859628a2016aa7bb46c7e2db53680b933897a4e473c91f1f3733ce096":39685}
 EVIDENCE_SHA=(
     "34e5fbd9a42da8a26d7df5e47449a304606a158d3e902dc1802ef441546e8521",
     "75f38241affbd9a6dad201bb48f17334cb13aadb6cbc56bce052eabae237bcbb",
@@ -100,18 +102,20 @@ def selected_images(rows, known, metadata, code):
         raise ValueError("Identical image assigned to different owners")
     return options,dict(reasons)
 
-def recover(world,old_root,meta0,meta1,out,codes):
+def recover(world,old_root,meta0,meta1,out,codes,current_world_sha=WORLD_SHA):
     out=Path(out)
     if out.exists() or out.is_symlink():
         raise ValueError("Never overwrite review artifact")
     if (not codes or len(codes)>12 or len(set(codes))!=len(codes) or
             any(not CODE.fullmatch(x) for x in codes)):
         raise ValueError("Only 1-12 unique country codes")
-    idx=verify_source(world,WORLD_SHA)
+    if current_world_sha not in APPROVED_WORLDS:
+        raise ValueError("Unapproved world checksum")
+    idx=verify_source(world,current_world_sha)
     if (idx.get("country_count")!=224 or idx.get("station_count")!=48219 or
-            sum(v["logos_found"] for v in idx["countries"].values())!=39676):
+            sum(v["logos_found"] for v in idx["countries"].values())!=APPROVED_WORLDS[current_world_sha]):
         raise ValueError("Not verified 39676-logo world")
-    idx["_source_sha256"]=WORLD_SHA
+    idx["_source_sha256"]=current_world_sha
     metadata=load_metadata([meta0,meta1])
     _,_,_,validator=engine(Path(__file__).resolve().parents[1]/"src")
     out.mkdir()
@@ -137,7 +141,7 @@ def recover(world,old_root,meta0,meta1,out,codes):
         reports.append(report)
         print("EXACT OWNER COUNTRY QA",json.dumps({k:v for k,v in report.items()
               if k!="new_station_originals"},sort_keys=True),flush=True)
-    summary={"schema":1,"review_only":True,"world_sha256":WORLD_SHA,
+    summary={"schema":1,"review_only":True,"world_sha256":current_world_sha,
              "metadata_sha256":list(EVIDENCE_SHA),"countries_attempted":codes,
              "changed_countries":[r["country"] for r in reports if r["recovered_total"]],
              "new_downloads":sum(r["new_downloads"] for r in reports),
@@ -157,7 +161,8 @@ if __name__=="__main__":
     p.add_argument("--batch-0",type=Path,required=True)
     p.add_argument("--batch-1",type=Path,required=True)
     p.add_argument("--countries",required=True)
+    p.add_argument("--current-world-sha",default=WORLD_SHA)
     p.add_argument("--out",type=Path,required=True)
     a=p.parse_args()
     recover(a.world,a.old_root,a.batch_0,a.batch_1,a.out,
-            [x.strip().upper() for x in a.countries.split(",") if x.strip()])
+            [x.strip().upper() for x in a.countries.split(",") if x.strip()],a.current_world_sha)
