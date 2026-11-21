@@ -1,0 +1,127 @@
+name: Radio.co original station logos from 12 new countries - third disjoint review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-co-verified-crosscountry-round3-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  only-new-real-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-co-verified-crosscountry-round3
+      CODES: NZ,IE,NO,SE,FI,NG,UM,IR,CR,VI,SR,VC
+      WORLD_SHA: 5372419e4f0173e2d3f5712f4aa3d6b8872b1312552dba14b2549b84f7d83bd0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict owner, cross-station, missing-only and original country regressions
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_recover_radio_co_verified_crosscountry.py
+          PYTHONPATH=src:tools python3 -B tests/test_recover_firstparty_radio_co_remaining.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install Pillow and SVG converter only on isolated review runner
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Fetch latest 39687-source world and both EXISTING queried metadata artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-evidence,metadata,shards,old}
+          test "$(gh run view 44872651080 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44871442656 --json conclusion -q .conclusion)" = success
+          gh run download 44872651080 -n radio-co-crosscountry-12-additional-originals-REVIEW-ONLY -D "$ROOT/world-evidence"
+          mapfile -t world < <(find "$ROOT/world-evidence" -type f -name radio-countries-bouquets.zip)
+          test "${#world[@]}" -eq 1
+          cp "${world[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          for batch in 0 1; do
+            gh run download 44871442656 -n "radio-co-disjoint-remaining-batch-$batch-REVIEW-ONLY" -D "$ROOT/metadata"
+            test -f "$ROOT/metadata/radio-co-remaining-batch-$batch-metadata-REVIEW.json"
+          done
+          rm -rf "$ROOT/world-evidence"
+      - name: Download only the needed historic signed country shards, NOT 39 thousand PNGs again
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          python3 - <<'PY' > "$ROOT/shards-needed.txt"
+          import json,os
+          from zipfile import ZipFile
+          with ZipFile(os.environ['ROOT']+'/world.zip') as z:
+              idx=json.loads(z.read('index.json'))
+          codes=os.environ['CODES'].split(',')
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert len(codes)==len(set(codes))==12 and all(c in idx['countries'] for c in codes)
+          print(*sorted({f"{sorted(idx['countries']).index(c)//8:02d}" for c in codes}),sep='\n')
+          PY
+          while read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/shards-needed.txt"
+          for cc in $(echo "$CODES" | tr ',' ' '); do
+            mapfile -t found < <(find "$ROOT/shards" -type d -name "radio-country-$cc-REVIEW-NOT-PRODUCTION")
+            test "${#found[@]}" -eq 1
+            cp -a "${found[0]}" "$ROOT/old/"
+          done
+          rm -rf "$ROOT/shards"
+      - name: Download ONLY exact owner image URLs for 12 countries with presently missing PNGs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_radio_co_verified_crosscountry.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --batch-0 "$ROOT/metadata/radio-co-remaining-batch-0-metadata-REVIEW.json" \
+            --batch-1 "$ROOT/metadata/radio-co-remaining-batch-1-metadata-REVIEW.json" \
+            --countries "$CODES" --current-world-sha "$WORLD_SHA" --out "$ROOT/review"
+      - name: Rebuild and SHA-verify the 224-country world ONLY when there is an actual new PNG
+        run: |
+          set -euo pipefail
+          changed=$(python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          r=json.loads((Path(os.environ['ROOT'])/'review/radio-co-verified-crosscountry-review.json').read_text())
+          assert r['review_only'] and r['existing_original_pngs_preserved']
+          assert r['world_sha256']==os.environ['WORLD_SHA']
+          assert set(r['countries_attempted'])==set(os.environ['CODES'].split(','))
+          assert r['added_logos']>=r['new_downloads']
+          print(','.join(r['changed_countries']))
+          PY
+          )
+          if test -n "$changed"; then
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries "$changed" --out "$ROOT/new-world"
+            python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,os,hashlib
+          root=Path(os.environ['ROOT'])
+          proof=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          r=json.loads((root/'review/radio-co-verified-crosscountry-review.json').read_text())
+          assert proof['review_only'] and proof['station_count']==48219 and proof['country_count']==224
+          assert proof['logos_added']==r['added_logos'] and proof['logos_added']>0
+          assert proof['original_world_sha256']==os.environ['WORLD_SHA']
+          next_world=root/'new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(next_world.read_bytes()).hexdigest()==proof['new_world_sha256']
+          with ZipFile(next_world) as z:
+              idx=json.loads(z.read('index.json'))
+              assert sum(c['logos_found'] for c in idx['countries'].values())==39687+proof['logos_added']
+          print('REAL WORLD REVIEW PASS',json.dumps(proof,sort_keys=True))
+          PY
+          else
+            echo 'No qualifying new PNG in these countries. Existing 39687 world unchanged.'
+          fi
+      - name: Preserve only changed country assets and independent review source evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-co-crosscountry-12-third-originals-REVIEW-ONLY
+          path: |
+            /tmp/warder-co-verified-crosscountry-round3/review/
+            /tmp/warder-co-verified-crosscountry-round3/new-world/
+          retention-days: 30
+          if-no-files-found: error
