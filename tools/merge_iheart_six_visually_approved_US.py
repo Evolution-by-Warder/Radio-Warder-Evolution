@@ -65,7 +65,7 @@ def merge(world,old_root,stage,out):
         item=rows[uuid]; station=by_uuid.get(uuid)
         if (not station or station["name"]!=name or item["name"]!=name
             or station["url"]!=item["url"] or station["stem"]!=item["stem"]
-            or item.get("official_name")!=name or item.get("exact_brand") is not True
+            or __import__("probe_iheart_224_firstparty_owner").norm(item.get("official_name")) != __import__("probe_iheart_224_firstparty_owner").norm(name) or item.get("exact_brand") is not True
             or not item.get("stream_evidence") or item.get("normalized_png_sha256")!=pngsha
             or item.get("approved") is not False or item.get("visual_review_required") is not True
             or station["stem"]+".png" in original):
