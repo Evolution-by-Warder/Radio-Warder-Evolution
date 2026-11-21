@@ -98,7 +98,7 @@ jobs:
               pic=ImageOps.exif_transpose(im).convert("RGBA")
               pic.thumbnail((320,320))
               b=BytesIO();pic.save(b,format="PNG");png=b.getvalue()
-          assert png.startswith(b"\\x89PNG\\r\\n\\x1a\\n") and 256<len(png)<=512000
+          assert png.startswith(b"\x89PNG\r\n\x1a\n") and 256<len(png)<=512000
           path=root/"review/US-84539d0f-8386-4302-a3f6-7d25dc44f0ff.png"
           path.write_bytes(png)
           pic.save(root/"review/KWVNFM-current-owner-visual.png")
