@@ -60,6 +60,7 @@ jobs:
             gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/baseline/$shard"
           done < "$ROOT/shard-ids.txt"
           gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/prior39964"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/prior39867"
           gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
           gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
           python3 - <<'PY'
@@ -69,7 +70,7 @@ jobs:
           root=Path(os.environ["ROOT"])
           with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
           codes=json.loads((root/"country-codes.json").read_text())
-          priority=("source","prior39964","patch7","patch13","baseline")
+          priority=("source","prior39964","prior39867","patch7","patch13","baseline")
           for cc in codes:
               matching=[]
               for directory in priority:
@@ -82,7 +83,7 @@ jobs:
               shutil.copytree(matching[0],root/"old"/matching[0].name)
           print("ALL TOP 25 RADIO ORIGINAL COUNTRY ZIP SHA VERIFIED")
           PY
-          rm -rf "$ROOT/baseline" "$ROOT/patch13" "$ROOT/patch7" "$ROOT/prior39964" "$ROOT/source"
+          rm -rf "$ROOT/baseline" "$ROOT/patch13" "$ROOT/patch7" "$ROOT/prior39964" "$ROOT/prior39867" "$ROOT/source"
       - name: ONE high-priority all-country missing-name TuneIn search, verify exact source audio and downloadable own logo
         run: |
           set -euo pipefail
