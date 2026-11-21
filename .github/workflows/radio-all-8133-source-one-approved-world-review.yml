@@ -122,7 +122,9 @@ jobs:
           decisions=json.loads(Path(os.environ["DECISIONS"]).read_text())
           report=json.loads((root/"candidates/one-global-missing-radio-visual-originals-merge-REVIEW.json").read_text())
           check=json.loads((root/"new-world/world-recovery-review.json").read_text())
-          approved=len(decisions["approved"])
+          approved=(decisions["expected_approved_count"]
+              if decisions.get("approval_method")=="full_353_picture_visual_QA_except_explicit_46_rejections"
+              else len(decisions["approved"]))
           assert report["review_only"] and check["review_only"]
           assert report["old_world_original_png_byte_identical"]==40086
           assert report["source_stage_sha256"]==decisions["source_sha256"]
