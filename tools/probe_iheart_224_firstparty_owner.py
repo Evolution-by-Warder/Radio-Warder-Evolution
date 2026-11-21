@@ -26,7 +26,7 @@ MAX_JSON = 1000000
 MAX_IMAGE = 2000000
 NETWORK_TIMEOUT = 10
 LOGO_RE = re.compile(r"^https://[a-z0-9.-]+/[A-Za-z0-9_./%?=&+~-]{4,1800}$")
-DIRECT_ID = re.compile(r"/live/[^/?#]*?-(\\d{3,10})(?:/?(?:[?#]|$))", re.I)
+DIRECT_ID = re.compile(r"/live/[^/?#]*?-(\d{3,10})(?:/?(?:[?#]|$))", re.I)
 
 def norm(value):
     return "".join(c for c in str(value or "").casefold() if c.isalnum())
