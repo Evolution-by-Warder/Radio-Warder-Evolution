@@ -1,0 +1,112 @@
+name: BULK independent station logo catalog discovery across 224 countries (review)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-bulk-independent-catalog-source-probe.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  two-independent-entire-directory-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-bulk-directory-source
+      WORLD_SHA: c6733fffcb6008322550785ae06007ed00a565e6ed29f62e2cdf7a72930f7019
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch current exact SHA signed 39879-world, not Radio Browser
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world,review}
+          test "$(gh run view 44907110543 --json conclusion -q .conclusion)" = success
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/world"
+          python3 - <<'PY'
+          import os,hashlib,json,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          paths=list((root/'world').rglob('radio-countries-bouquets.zip'))
+          assert len(paths)==1
+          shutil.copyfile(paths[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(v['logos_found'] for v in idx['countries'].values())==39879
+          PY
+          rm -rf "$ROOT/world"
+      - name: Read only TWO independent bulk station datasets and measure exact country stream matches
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,hashlib,re
+          from urllib.request import Request,urlopen
+          from pathlib import Path
+          from zipfile import ZipFile
+          from urllib.parse import urlsplit
+          root=Path(os.environ["ROOT"])
+          urls={
+           'dabplus':'https://dabplus.live/feeds/stations.json',
+           'radiodock':'https://stations.radiodock.app/json/stations/browse?mode=az&limit=3000&offset=0'}
+          report={'review_only':True,'source_world_sha256':os.environ['WORLD_SHA'],'feeds':{}}
+          with ZipFile(root/'world.zip') as z:
+            idx=json.loads(z.read('index.json'))
+            entries=[]
+            for cc in idx['countries']:
+              for row in json.loads(z.read('catalog/'+cc+'.json'))['stations']:
+                entries.append((cc,row['name'],row['url'],row['stationuuid'],row['stem'],row.get('homepage','')))
+          def norm(x):return ''.join(c for c in str(x or '').casefold() if c.isalnum())
+          def canon(u):
+            try:
+              a=urlsplit(u)
+              return ((a.hostname or '').lower(),a.path.rstrip('/').lower())
+            except Exception:return ('','')
+          bykey={}
+          for cc,name,url,uid,stem,home in entries: bykey.setdefault((cc,norm(name)),[]).append((canon(url),uid,stem,canon(home)))
+          for key,url in urls.items():
+            rec={'url':url}
+            try:
+              req=Request(url,headers={'User-Agent':'WarderRadioBulkDirectoryReview/1.0','Accept':'application/json'})
+              with urlopen(req,timeout=25) as res:
+                rec['status']=res.status
+                rec['content_type']=res.headers.get('Content-Type','')
+                raw=res.read(25000001)
+              rec['bytes']=len(raw)
+              rec['sha256']=hashlib.sha256(raw).hexdigest()
+              if len(raw)>25000000:raise ValueError('Too large')
+              doc=json.loads(raw)
+              rec['top_level_type']=type(doc).__name__
+              rec['top_keys']=list(doc)[:15] if isinstance(doc,dict) else []
+              if isinstance(doc,list):rows=doc
+              elif isinstance(doc,dict):
+                rec['top_summary']={k:(type(v).__name__,len(v) if isinstance(v,(list,dict)) else str(v)[:100]) for k,v in list(doc.items())[:12]}
+                rows=doc.get('stations',[])
+                if isinstance(rows,dict):
+                  rows=[y for v in rows.values() if isinstance(v,list) for y in v]
+                if not rows:
+                  for v in doc.values():
+                    if isinstance(v,list) and v and isinstance(v[0],dict):rows=v;break
+              else:rows=[]
+              rec['rows']=len(rows)
+              rec['example']=rows[0] if rows and isinstance(rows[0],dict) else str(rows[:2])[:900]
+              rec['country_names']=list({str(x.get('countrycode') or x.get('country') or '') for x in rows if isinstance(x,dict)})[:25]
+              rec['maybe_logo_rows']=sum(bool(x.get('favicon') or x.get('logo') or x.get('image') or x.get('logo_url')) for x in rows if isinstance(x,dict))
+              rec['candidate_exact_name_country']=sum(bool(bykey.get((str(x.get('countrycode') or x.get('country') or '').upper(),norm(x.get('name'))))) for x in rows if isinstance(x,dict))
+              if key=='dabplus':
+                (root/'review/dabplus-feed-preview.json').write_bytes(raw)
+              else:
+                (root/'review/radiodock-feed-preview.json').write_bytes(raw)
+            except Exception as e:
+              rec['error']=str(e)[:400]
+            report['feeds'][key]=rec
+          (root/'review/bulk-station-source-diagnostics.json').write_text(json.dumps(report,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
+          for key,r in report['feeds'].items():print('SOURCE BULK CATALOG',key,json.dumps(r,ensure_ascii=False,sort_keys=True)[:3000])
+          PY
+      - name: Retain two entire source snapshots and matching diagnostics, no logo imports yet
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-two-independent-bulk-logo-sources-REVIEW
+          path: /tmp/warder-bulk-directory-source/review/
+          retention-days: 30
+          if-no-files-found: error
