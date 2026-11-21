@@ -49,6 +49,7 @@ def safe_image(src):
         u=urlsplit(src)
         if (u.scheme not in ("https","http") or u.hostname not in SAFE_IMG_HOSTS or
             u.username or u.password or u.fragment or u.port is not None or
+            any(segment in (".","..") for segment in u.path.split("/")) or
             not re.fullmatch(r"/[a-zA-Z0-9._/-]+",u.path) or
             not re.fullmatch(r"[a-zA-Z0-9=&._-]*",u.query)):
             return ""
