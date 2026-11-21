@@ -1,0 +1,52 @@
+name: TuneIn OPML worldwide official station logos bulk capability and country tree (REVIEW)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-tunein-world-opml-logo-directory-review.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  one-independent-broadcaster-directory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read public OPML radio-country directory station image and stream identity
+        run: |
+          python3 - <<'PY'
+          from urllib.request import urlopen,Request
+          from xml.etree import ElementTree
+          from urllib.parse import urlencode
+          import json,hashlib
+          sources=[
+              "https://opml.radiotime.com/Browse.ashx?c=local",
+              "https://opml.radiotime.com/Browse.ashx?c=local&id=r0",
+              "https://opml.radiotime.com/Browse.ashx?c=local&id=r1",
+              "https://opml.radiotime.com/Search.ashx?query=Kriti+FM&render=json",
+              "https://opml.radiotime.com/Search.ashx?query=Radio+Silesia",
+              "https://opml.radiotime.com/Browse.ashx?c=country"]
+          for url in sources:
+              record={"url":url,"review_only":True}
+              try:
+                  with urlopen(Request(url,headers={"User-Agent":"WarderRadioOriginalLogoReview/1.0","Accept":"application/json,application/xml,text/xml"}),timeout=12) as r:
+                      body=r.read(500000)
+                      record.update(status=r.status,bytes=len(body),type=r.headers.get('Content-Type'),
+                                    sha256=hashlib.sha256(body).hexdigest(),
+                                    sample=body[:220].decode('utf8','replace'))
+                  if body.startswith(b'{'):
+                      doc=json.loads(body)
+                      record['json_keys']=list(doc)[:12]
+                      record['json_first']=str(doc)[:1500]
+                  else:
+                      tree=ElementTree.fromstring(body)
+                      outlines=tree.findall('.//outline')
+                      record["outlines"]=len(outlines)
+                      record["images"]=sum(bool(x.get('image')) for x in outlines)
+                      record["first_outlines"]=[x.attrib for x in outlines[:8]]
+              except Exception as e:
+                  record["error"]=type(e).__name__+":"+str(e)[:180]
+              print("TUNEIN WORLDWIDE RADIO OWNER SOURCE",json.dumps(record,ensure_ascii=False,sort_keys=True)[:5800])
+          PY
