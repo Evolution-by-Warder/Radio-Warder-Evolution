@@ -1,0 +1,117 @@
+name: Original broadcaster homepages - two branded BR CL logos in 39867 world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-240-sites-two-broadcaster-originals-world-review.yml
+      - tools/merge_224_homepage_two_confirmed_originals.py
+      - tests/test_merge_224_homepage_two_confirmed_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-224-world-originals-review-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-240-homepage-two-originals
+      WORLD_SHA: 7218bb72aedfc06f1850d36dd4868f68c6456903677756447278024a19f0da8c
+      SOURCE_SHA: 3ab3f5f0d590de9ae82e08e86d72ce1964ff55671dd51389d031cb8d3918e2dc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test the exact two broadcaster owner-artwork approvals and immutable station UUID, stream, name and homepage
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_merge_224_homepage_two_confirmed_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Fetch only signed 39865 world, 240-site owner image evidence, 2 legacy original country ZIP shards
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,stage,old,BR,CL}
+          test "$(gh run view 44898959277 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44899903936 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44898959277 -n radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44899903936 -n radio-224-independent-broadcaster-homepages-contact-REVIEW-ONLY -D "$ROOT/stage"
+          gh run download 44801652426 -n radio-canonical-39643-country-shard-03-REVIEW -D "$ROOT/BR"
+          gh run download 44801652426 -n radio-canonical-39643-country-shard-05-REVIEW -D "$ROOT/CL"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ['ROOT'])
+          worlds=list((root/'source').rglob('radio-countries-bouquets.zip'))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z: index=json.loads(z.read('index.json'))
+          assert index['country_count']==224 and index['station_count']==48219
+          assert sum(v['logos_found'] for v in index['countries'].values())==39865
+          for cc,previous_count in (('BR',1168),('CL',386)):
+              found=list((root/cc).rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              assert len(found)==1,(cc,len(found))
+              source=found[0]
+              previous=source/'logos'/f'{cc}.zip'
+              assert hashlib.sha256(previous.read_bytes()).hexdigest()==index['countries'][cc]['logo_sha256']
+              assert index['countries'][cc]['logos_found']==previous_count
+              shutil.copytree(source,root/'old'/source.name)
+              print('CURRENT 39865 SOURCE COUNTRY SHA PASS',cc,index['countries'][cc]['logo_sha256'])
+          report=root/'stage/firstparty-224-homepage-logo-stage-REVIEW.json'
+          assert hashlib.sha256(report.read_bytes()).hexdigest()==os.environ['SOURCE_SHA']
+          print('240 OWNER HOMEPAGES, TWO VISUALLY BRANDED PNG SHA VERIFIED')
+          PY
+          rm -rf "$ROOT/source" "$ROOT/BR" "$ROOT/CL"
+      - name: Merge ONLY Abrantes Gospel BR and Código Metal Radio CL from SHA-locked existing source PNGs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_224_homepage_two_confirmed_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Build 224-country REVIEW world and prove all earlier 39865 PNG and service references unchanged
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries BR,CL --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          approved=json.loads((root/'review/radio-two-independent-broadcaster-original-logo-proof.json').read_text())
+          check=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert approved['accepted_new_png']==check['logos_added']==2
+          assert approved['review_only'] and check['review_only']
+          assert approved['all_previous_png_unchanged'] and len(approved['provenance'])==2
+          assert check['original_world_sha256']==os.environ['WORLD_SHA']
+          assert check['country_count']==224 and check['station_count']==48219
+          changed={r['country']:(r['previous'],r['current'],r['added']) for r in check['countries_changed']}
+          assert changed=={'BR':(1168,1169,1),'CL':(386,387,1)},changed
+          target=root/'new-world/radio-countries-bouquets.zip'
+          sha=hashlib.sha256(target.read_bytes()).hexdigest()
+          assert sha==check['new_world_sha256']
+          with ZipFile(target) as z:
+              index=json.loads(z.read('index.json'))
+              assert index['country_count']==224 and index['station_count']==48219
+              assert sum(v['logos_found'] for v in index['countries'].values())==39867
+              assert 48219-39867==8352
+          print('TWO FIRST-PARTY BROADCASTER ORIGINAL RADIO LOGOS WORLD PASS',
+                json.dumps({'new_total':39867,'missing':8352,'world_sha256':sha,
+                  'old_png_unchanged':39865,'country_changes':changed},sort_keys=True))
+          PY
+      - name: Preserve only 39867 review world and two country original ZIPs, no main/Release/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-240-homepage-two-originals/review/
+            /tmp/warder-240-homepage-two-originals/new-world/
+          retention-days: 30
+          if-no-files-found: error
