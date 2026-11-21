@@ -62,7 +62,7 @@ jobs:
               assert index['countries'][cc]['logos_found']==previous_count
               shutil.copytree(source,root/'old'/source.name)
               print('CURRENT 39865 SOURCE COUNTRY SHA PASS',cc,index['countries'][cc]['logo_sha256'])
-          report=root/'stage/firstparty-224-homepage-logo-stage-REVIEW.json'
+          report=root/'stage/review/firstparty-224-homepage-logo-stage-REVIEW.json'
           assert hashlib.sha256(report.read_bytes()).hexdigest()==os.environ['SOURCE_SHA']
           print('240 OWNER HOMEPAGES, TWO VISUALLY BRANDED PNG SHA VERIFIED')
           PY
@@ -72,7 +72,7 @@ jobs:
           set -euo pipefail
           PYTHONPATH=src:tools python3 -B tools/merge_224_homepage_two_confirmed_originals.py \
             --world "$ROOT/world.zip" --old-root "$ROOT/old" \
-            --stage "$ROOT/stage" --out "$ROOT/review"
+            --stage "$ROOT/stage/review" --out "$ROOT/review"
       - name: Build 224-country REVIEW world and prove all earlier 39865 PNG and service references unchanged
         run: |
           set -euo pipefail
