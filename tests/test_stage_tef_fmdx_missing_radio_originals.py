@@ -21,8 +21,7 @@ class TestTefOriginalSource(unittest.TestCase):
   self.assertNotEqual(s.norm("Radio Berlin"),s.norm("Radio Hamburg"))
  def test_directory_parser_guards_host_and_malformed_link(self):
   doc=b'<html><a href="160B_RADIOAKTIV.svg">Radio Aktiv</a><a href="../">Back</a><a href="FAKE.png">No</a></html>'
-  with patch.object(s,"retrieve",return_value=doc):
-   proof,rows=s.fetch_dir("D")
+  proof,rows=s.fetch_dir("D",get=lambda url,cap,accept:doc)
   self.assertEqual(len(rows),1)
   self.assertEqual(rows[0]["country"],"DE")
   self.assertEqual(rows[0]["logo_key"],"radioaktiv")
