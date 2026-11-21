@@ -45,14 +45,14 @@ jobs:
           from zipfile import ZipFile
           root=Path(os.environ["ROOT"])
           doc=json.loads(Path(os.environ["DECISIONS"]).read_text())
-          stage=root/"stage/tunein-all-currently-missing-originals-REVIEW.json"
+          stage=root/"stage/review/tunein-all-currently-missing-originals-REVIEW.json"
           assert stage.is_file()
           assert doc["source_sha256"]==hashlib.sha256(stage.read_bytes()).hexdigest()
           assert doc["world_sha256"]==os.environ["WORLD_SHA"]
           assert doc["schema"]==1 and doc["review_only"] is True
           sys.path.insert(0,"tools")
           import merge_one_global_missing_radio_originals as m
-          source,approval,selected=m.verified_decisions(root/"stage",os.environ["DECISIONS"])
+          source,approval,selected=m.verified_decisions(root/"stage/review",os.environ["DECISIONS"])
           codes=sorted(selected)
           accepted=sum(len(v) for v in selected.values())
           assert accepted==len(approval["approved"])>0
@@ -106,7 +106,7 @@ jobs:
           set -euo pipefail
           PYTHONPATH=src:tools python3 -B tools/merge_one_global_missing_radio_originals.py \
             --world "$ROOT/world.zip" --old-root "$ROOT/old" \
-            --stage "$ROOT/stage" --decisions "$DECISIONS" --out "$ROOT/candidates"
+            --stage "$ROOT/stage/review" --decisions "$DECISIONS" --out "$ROOT/candidates"
       - name: ONE global 224-country world rebuild and verify all 40086 prior originals unchanged
         run: |
           set -euo pipefail
