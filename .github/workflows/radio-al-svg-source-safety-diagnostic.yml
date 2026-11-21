@@ -44,5 +44,6 @@ jobs:
               'external_http_references':len(re.findall(rb'https?://',data,re.I)),
               'has_png_data_uri':b'data:image/png;base64,' in data,
               'has_jpeg_data_uri':b'data:image/jpeg;base64,' in data,
-              'root_prefix':data[:145].decode('utf-8','replace')},ensure_ascii=False,sort_keys=True),flush=True)
+              'root_prefix':data[:145].decode('utf-8','replace'),
+              'xml_tail':data[-155:].decode('utf-8','replace')},ensure_ascii=False,sort_keys=True),flush=True)
           PY
