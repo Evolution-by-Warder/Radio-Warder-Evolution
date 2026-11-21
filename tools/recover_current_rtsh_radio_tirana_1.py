@@ -116,10 +116,32 @@ def source_verified(row, gap, page):
             'proof_html_sha256': hashlib.sha256(page).hexdigest(),
             'logo_on_broadcaster_site': True}, 'OFFICIAL_EXACT_CHANNEL_VECTOR'
 
+PINNED_RAW_SVG_SHA256 = 'd96d1825f01bf59d44bd6c29da38ae4525d1f54b8934bff6df5163fc55085331'
+INERT_EMPTY_XML_SCRIPT = b'<script xmlns=""/></svg>'
+
+def strip_only_pinned_empty_xml_script(data, expected_sha=PINNED_RAW_SVG_SHA256):
+    """Remove ONE empty non-rendering XML element in the exact vetted original.
+
+    Any changed SVG is still rejected by normal SVG security guards. This is
+    NOT a general script sanitizer and never executes or evaluates SVG scripts.
+    Pixel artwork paths, groups, dimensions and colours remain untouched.
+    """
+    if (hashlib.sha256(data).hexdigest() != expected_sha
+        or not data.endswith(INERT_EMPTY_XML_SCRIPT)
+        or data.count(b'<script') != 1):
+        return data, False
+    return data[:-len(INERT_EMPTY_XML_SCRIPT)] + b'</svg>', True
+
 def strict_svg_with_quality_reason(data):
     from WarderRadio.svg_logos import render_svg
+    cleaned, inert_node_stripped = strip_only_pinned_empty_xml_script(data)
+    if inert_node_stripped:
+        print('RTSH VERIFIED NONRENDERING EMPTY SCRIPT REMOVED',
+              json.dumps({'original_svg_sha256':hashlib.sha256(data).hexdigest(),
+                          'sanitized_svg_sha256':hashlib.sha256(cleaned).hexdigest(),
+                          'visual_elements_modified':0}),flush=True)
     try:
-        return render_svg(data)
+        return render_svg(cleaned)
     except ValueError as exc:
         print('RTSH SVG SOURCE FAILS CLOSED',json.dumps({
             'reason':str(exc),'raw_sha256':hashlib.sha256(data).hexdigest(),
