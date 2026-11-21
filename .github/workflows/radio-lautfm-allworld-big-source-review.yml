@@ -1,0 +1,158 @@
+name: ONE BIG laut.fm first-party original radio logo source review across 224 countries
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-lautfm-allworld-big-source-review.yml
+      - tools/stage_lautfm_all_world_missing_bulk.py
+      - tests/test_stage_lautfm_all_world_missing_bulk.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  all-224-inventory-and-bulk-original-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-bulk-lautfm-224
+      WORLD_SHA: 253ea0bd203acd84fb28dfa15b4d437040c64cfde4d7aae190f287eaa7211885
+      CODES: DE,IT,AT,ID,ES,NL,RU,AF,FR,GB,CH,BR
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install only review runner image tools and test strict owner identity, pinned source SHA and no repeated 50 IDs
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_lautfm_all_world_missing_bulk.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_lautfm_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_audit_stage_lautfm_missing_priority.py
+      - name: Read only SHA-pinned latest 39821 whole-world index and two previously queried laut.fm source JSON files
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{worldsource,prior24,prior26,origins,old,shards}
+          test "$(gh run view 44897612492 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44873505894 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44876139455 --json conclusion -q .conclusion)" = success
+          gh run download 44897612492 -n radio-qingting-90-visual-originals-39821-complete-world-REVIEW-ONLY -D "$ROOT/worldsource"
+          gh run download 44873505894 -n radio-new-lautfm-firstparty-owner-sample-REVIEW-ONLY -D "$ROOT/prior24"
+          gh run download 44876139455 -n radio-lautfm-50-new-missing-owner-review-staged-only -D "$ROOT/prior26"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,hashlib,shutil
+          root=Path(os.environ['ROOT'])
+          worlds=list((root/'worldsource').rglob('radio-countries-bouquets.zip'))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39821
+          p24=root/'prior24/lautfm-firstparty-owner-metadata-224-country-REVIEW.json'
+          p26=root/'prior26/new-lautfm-missing-originals-priority-review.json'
+          assert hashlib.sha256(p24.read_bytes()).hexdigest()=='7a3715c214c6683eca91e7495bf0723631a777eab88906ba3f56e936da2e02f2'
+          assert hashlib.sha256(p26.read_bytes()).hexdigest()=='11ba449aeb12a522b1ba2628a93ecce06f81b9c975dd65b9d3d21caa1246e6f7'
+          print('CURRENT 39821 WORLD AND PREVIOUS 50 LAUTFM API REQUESTS SHA VERIFIED')
+          PY
+          rm -rf "$ROOT/worldsource"
+      - name: Recover only current DE/ES, GB, CH and FR/NL original ZIPs from successful review checkpoints
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44891211396 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44894826484 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44891665963 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44802603175 --json conclusion -q .conclusion)" = success
+          gh run download 44891211396 -n radiojar-global-three-verified-39707-world-REVIEW-ONLY -D "$ROOT/origins/DE-ES"
+          gh run download 44894826484 -n radio-live365-nine-visual-originals-39718-world-REVIEW-ONLY -D "$ROOT/origins/GB"
+          gh run download 44891665963 -n radiojar-swiss-norway-two-39709-world-REVIEW-ONLY -D "$ROOT/origins/CH"
+          gh run download 44802603175 -n radio-224-39655-independent-source-originals-REVIEW-ONLY -D "$ROOT/origins/FR-NL"
+      - name: Recover only six canonical 39643 country shards for AT IT ID RU AF BR (do not redownload 39k other logos)
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          for shard in 00 01 03 11 12 21; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done
+      - name: Compare country ZIP SHA against 39821 world; fail-closed on any outdated country, continue only verified
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,hashlib,shutil,os
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          selected=os.environ['CODES'].split(',')
+          current={'DE':'origins/DE-ES','ES':'origins/DE-ES',
+                   'GB':'origins/GB','CH':'origins/CH',
+                   'FR':'origins/FR-NL','NL':'origins/FR-NL'}
+          verified=[];blocked=[]
+          for cc in selected:
+              source=root/current[cc] if cc in current else root/'shards'
+              found=list(source.rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              if len(found)!=1:
+                  blocked.append({'country':cc,'reason':'missing_or_nonunique_source','matches':len(found)})
+                  continue
+              origin=found[0]/'logos'/f'{cc}.zip'
+              if not origin.is_file():
+                  blocked.append({'country':cc,'reason':'country_logo_zip_missing'});continue
+              digest=hashlib.sha256(origin.read_bytes()).hexdigest()
+              if digest!=idx['countries'][cc]['logo_sha256']:
+                  blocked.append({'country':cc,'reason':'outdated_original_zip_SHA',
+                                  'expected':idx['countries'][cc]['logo_sha256'],'found':digest})
+                  continue
+              shutil.copytree(found[0],root/'old'/found[0].name)
+              verified.append(cc)
+              print('VERIFIED CURRENT ORIGINAL COUNTRY ZIP',cc,idx['countries'][cc]['logos_found'],digest)
+          if 'DE' not in verified or len(verified)<6:
+              raise ValueError(f'Not enough last-source countries; blocked={blocked}')
+          (root/'verified-codes.txt').write_text(','.join(verified))
+          (root/'original-shard-blockers.json').write_text(json.dumps(blocked,indent=2)+'\n')
+          print('VERIFIED_COUNTRIES',len(verified),'STALE_SKIPPED',len(blocked))
+          PY
+          rm -rf "$ROOT/origins" "$ROOT/shards"
+      - name: ONE large original-only laut.fm provider API pass across all 224 country catalogs and verified selected country ZIPs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_lautfm_all_world_missing_bulk.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior24 "$ROOT/prior24/lautfm-firstparty-owner-metadata-224-country-REVIEW.json" \
+            --prior26 "$ROOT/prior26/new-lautfm-missing-originals-priority-review.json" \
+            --countries "$(cat "$ROOT/verified-codes.txt")" \
+            --out "$ROOT/review" --workers 10 --max-api 400
+          cp "$ROOT/original-shard-blockers.json" "$ROOT/review/original-shard-blockers.json"
+      - name: Validate 224-country coverage, all 50 historic API IDs excluded, old logos unchanged, no world published yet
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json
+          root=Path(os.environ['ROOT'])
+          s=json.loads((root/'review/laut-fm-bulk-224-original-owner-stage-REVIEW.json').read_text())
+          assert s['schema']==1 and s['review_only'] and not s['new_world_created'] and s['new_png_approved']==0
+          assert s['source_world_sha256']==os.environ['WORLD_SHA']
+          assert s['countries_scanned']==224 and s['stations_scanned']==48219 and s['current_png_before']==39821
+          assert s['previous_api_ids_excluded']==50
+          assert s['countries_country_zip_verified']==(root/'verified-codes.txt').read_text().split(',')
+          assert 1<=s['owner_api_requests']<=400 and s['owner_api_requests']==len(s['attempts'])
+          assert s['new_unique_png_for_visual_QA']<=s['candidate_owner_images']
+          assert all(x['approved'] is False for x in s['attempts'])
+          assert not list((root/'review').rglob('radio-countries-bouquets.zip'))
+          print('LAUTFM ONE BIG 224-COUNTRY SOURCE REVIEW PASS',json.dumps({
+              k:s[k] for k in ('missing_owner_candidates','owner_api_requests','api_errors',
+                   'candidate_owner_images','new_unique_png_for_visual_QA',
+                   'shared_picture_groups','image_errors','country_missing_stats','rejections')
+          },sort_keys=True))
+          PY
+      - name: Upload one complete original-image review with all source proofs and contact sheets, never release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-lautfm-one-large-224-country-original-owner-REVIEW-ONLY
+          path: /tmp/warder-bulk-lautfm-224/review/
+          retention-days: 30
+          if-no-files-found: error
