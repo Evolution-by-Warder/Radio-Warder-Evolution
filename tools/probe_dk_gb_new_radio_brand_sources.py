@@ -48,10 +48,19 @@ def image_url(raw,page):
 def summarize(url,data):
  if not isinstance(data,bytes) or not 1<=len(data)<=5000000:raise ValueError("Invalid page")
  text=data.decode("utf-8","replace");p=Page();p.feed(text);chosen={}
+ svg_evidence=[]
+ for m in re.finditer(r"<svg\\b[^>]*>[\\s\\S]*?</svg>",text,re.I):
+  before=text[max(0,m.start()-240):m.start()]
+  tag=m.group(0).split(">",1)[0]
+  clues=(before+" "+tag).lower()
+  if len(svg_evidence)<32 and (m.start()<20000 or any(x in clues for x in ("logo","header","navbar","brand","radio4"))):
+   svg_evidence.append({"position":m.start(),"sha256":hashlib.sha256(m.group(0).encode()).hexdigest(),
+    "bytes":len(m.group(0)),"start_tag":tag[:230],
+    "before":before[-200:],"path_count":len(re.findall(r"<path\\b",m.group(0),re.I))})
  for raw,alt,kind in p.images:
   link=image_url(raw,url)
   if not link:continue
-  key=(link+" "+alt).lower()
+  key=(urlsplit(link).path+" "+alt).lower()
   if any(t in key for t in EXCLUDE):continue
   score=sum(t in key for t in WORDS)+int(kind.startswith(("og:","twitter:")))
   if score:chosen[link]={"url":link,"alt":alt[:100],"via":kind,"score":score}
@@ -59,7 +68,8 @@ def summarize(url,data):
   "title":" ".join(p.title.split())[:160],"has_radio_iiii":"RADIO IIII" in text,
   "has_big_l":"Big L" in text or "BIG L" in text,"embedded_svg":p.svgs,
   "meta":[[k,v] for k,v in p.meta if k in ("og:title","og:site_name","og:image","og:image:alt")][:14],
-  "firstparty_candidates":sorted(chosen.values(),key=lambda x:-x["score"])[:20]}
+  "firstparty_candidates":sorted(chosen.values(),key=lambda x:-x["score"])[:20],
+  "inline_svg_evidence":svg_evidence}
 def run(world,gaps,pages,out):
  if out.exists():raise ValueError("Refuse overwriting previous review")
  raw=world.read_bytes()
