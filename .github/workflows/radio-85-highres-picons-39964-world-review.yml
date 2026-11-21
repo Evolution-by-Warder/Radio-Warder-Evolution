@@ -1,0 +1,153 @@
+name: ONE BULK 224-country 85 high-resolution original radio logos - 39964 world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-85-highres-picons-39964-world-review.yml
+      - tools/approve_bulk_picons_visual_20261121.py
+      - tools/merge_world_picons_exact_originals.py
+      - tests/test_approve_bulk_picons_visual_20261121.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  all-in-one-85-originals-224-world-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-85-originals-224-world-bulk
+      WORLD_SHA: c6733fffcb6008322550785ae06007ed00a565e6ed29f62e2cdf7a72930f7019
+      STAGE_SHA: 9ca2e91c05b69d538ceed23d03ee9dd5466832bc6fe08582ce325c691f0bdafe
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exact image visual approval, previous PNG and source identity negative regression tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_approve_bulk_picons_visual_20261121.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          python3 -m py_compile tools/approve_bulk_picons_visual_20261121.py tools/merge_world_picons_exact_originals.py
+      - name: Fetch EXACT previous 39879 world and one huge 98-original visual source artifact
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,stage,old,baseline,patch13,patch7,approval}
+          test "$(gh run view 44907110543 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44911172515 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44906253671 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44907497364 --json conclusion -q .conclusion)" = success
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44911172515 -n radio-bulk-picons-original-missing-world-UNAPPROVED-REVIEW -D "$ROOT/stage"
+          cp "$(find "$ROOT/source" -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum -c
+          echo "$STAGE_SHA  $ROOT/stage/radio-global-picons-exact-missing-originals-REVIEW.json" | sha256sum -c
+          PYTHONPATH=src:tools python3 -B tools/approve_bulk_picons_visual_20261121.py \
+            --stage "$ROOT/stage" --out "$ROOT/approval"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,sys
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39879
+          approval=json.loads((root/'approval/approved-picons-exact-uuid-and-png-sha.json').read_text())
+          stage=json.loads((root/'stage/radio-global-picons-exact-missing-originals-REVIEW.json').read_text())
+          byid={r['stationuuid']:r for r in stage['images']}
+          codes=sorted({byid[uid]['country'] for uid in approval})
+          assert len(approval)==85 and len(codes)>=15
+          (root/'changed-country-codes.txt').write_text(','.join(codes))
+          (root/'shard-ids.txt').write_text(''.join(f"{n:02d}\n" for n in sorted({
+              sorted(idx['countries']).index(cc)//8 for cc in codes})))
+          print("ONE LARGE VISUAL APPROVAL",len(approval),"ORIGINAL STATION PNG IN",len(codes),"COUNTRIES")
+          PY
+      - name: Reuse the exact original country ZIPs only where 85 new brand images will be added
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/baseline/$shard"
+          done < "$ROOT/shard-ids.txt"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/newer39867"
+          gh run download 44898959277 -n radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY -D "$ROOT/newer39865"
+          gh run download 44897612492 -n radio-qingting-90-visual-originals-39821-complete-world-REVIEW-ONLY -D "$ROOT/newerCN"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,shutil,os
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          codes=(root/'changed-country-codes.txt').read_text().split(',')
+          priority=('source','newer39867','newer39865','newerCN','patch7','patch13','baseline')
+          for cc in codes:
+              matches=[]
+              for dir_ in priority:
+                  for folder in (root/dir_).rglob('radio-country-'+cc+'-REVIEW-NOT-PRODUCTION'):
+                      p=folder/'logos'/(cc+'.zip')
+                      if p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest()==idx['countries'][cc]['logo_sha256']:
+                          matches.append(folder)
+                  if matches:break
+              assert len(matches)==1,(cc,len(matches))
+              shutil.copytree(matches[0],root/'old'/matches[0].name)
+          print("EXACT SIGNED BEFORE-RECOVERY ORIGINAL COUNTRY ZIP VERIFIED",len(codes))
+          PY
+          rm -rf "$ROOT/baseline" "$ROOT/patch13" "$ROOT/patch7" "$ROOT/newer39867" "$ROOT/newer39865" "$ROOT/newerCN" "$ROOT/source"
+      - name: Merge all 85 individually visually confirmed branded PNGs into their exact UUID country ZIPs; never re-download originals
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_world_picons_exact_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" \
+            --approved "$ROOT/approval/approved-picons-exact-uuid-and-png-sha.json" \
+            --stage-sha256 "$STAGE_SHA" --out "$ROOT/candidates"
+      - name: ONE new global 224-country REVIEW ZIP, 39964 authentic radio PNGs, byte-preserve previous 39879
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/candidates" \
+            --countries "$(cat "$ROOT/changed-country-codes.txt")" --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          p=json.loads((root/'candidates/original-radio-bulk-exact-brand-merge-REVIEW.json').read_text())
+          r=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert p['review_only'] and r['review_only']
+          assert p['before_world_originals']==39879
+          assert p['added_originals']==r['logos_added']==85
+          assert p['after_world_originals']==39964
+          assert p['all_prior_png_unchanged']
+          assert r['original_world_sha256']==os.environ['WORLD_SHA']
+          assert r['country_count']==224 and r['station_count']==48219
+          w=root/'new-world/radio-countries-bouquets.zip'
+          sha=hashlib.sha256(w.read_bytes()).hexdigest()
+          assert sha==r['new_world_sha256']
+          with ZipFile(w) as z:
+              idx=json.loads(z.read('index.json'))
+              assert (idx['country_count'],idx['station_count'])==(224,48219)
+              assert sum(x['logos_found'] for x in idx['countries'].values())==39964
+              assert 48219-39964==8255
+          print("ONE TRUE GLOBAL 85 ORIGINAL PNG RECOVERY PASS",json.dumps({
+              'old_png_unchanged':39879,'new_original_png':85,
+              'countries_changed':len(r['countries_changed']),
+              'original_png_now':39964,'missing':8255,
+              'world_sha256':sha},sort_keys=True))
+          PY
+      - name: Retain new 224-country world and changed original country ZIPs as REVIEW ONLY
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-global-85-highres-originals-39964-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-85-originals-224-world-bulk/candidates/
+            /tmp/warder-85-originals-224-world-bulk/new-world/
+            /tmp/warder-85-originals-224-world-bulk/approval/
+          retention-days: 30
+          if-no-files-found: error
