@@ -4,7 +4,8 @@ import sys
 from pathlib import Path
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
-from recover_current_rtsh_radio_tirana_1 import source_verified, OFFICIAL_LOGO, OFFICIAL_PAGE
+from recover_current_rtsh_radio_tirana_1 import (source_verified, OFFICIAL_LOGO, OFFICIAL_PAGE,
+    strip_only_pinned_empty_xml_script, INERT_EMPTY_XML_SCRIPT)
 
 class RadioTiranaReviewTests(unittest.TestCase):
     def setUp(self):
@@ -24,6 +25,27 @@ class RadioTiranaReviewTests(unittest.TestCase):
         self.assertEqual(match['logo'],OFFICIAL_LOGO)
         self.assertEqual(match['proof_page'],OFFICIAL_PAGE)
         self.assertNotEqual(match['logo'],self.gap['source_logo_url'])
+
+    def test_only_one_exact_hash_pinned_empty_nonrendering_xml_element(self):
+        from hashlib import sha256
+        raw=(b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">'
+             b'<path d="M0 0L10 10" stroke="red"/>'
+             +INERT_EMPTY_XML_SCRIPT)
+        changed, did=strip_only_pinned_empty_xml_script(raw,sha256(raw).hexdigest())
+        self.assertTrue(did)
+        self.assertEqual(changed,raw.replace(INERT_EMPTY_XML_SCRIPT,b'</svg>'))
+        self.assertIn(b'<path d="M0 0L10 10"',changed)
+        unpinned, did=strip_only_pinned_empty_xml_script(raw)
+        self.assertFalse(did)
+        self.assertEqual(unpinned,raw)
+        for invalid in [raw.replace(b'<script xmlns=""/>',b'<script>run()</script>'),
+                        raw.replace(b'<script xmlns=""/>',b'<script xmlns=""/>'
+                                    b'<script xmlns=""/>')]:
+            with self.subTest(invalid=invalid):
+                unchanged,did=strip_only_pinned_empty_xml_script(
+                    invalid,sha256(invalid).hexdigest())
+                self.assertFalse(did)
+                self.assertEqual(unchanged,invalid)
 
     def test_official_webpage_jsonld_exact_logo_only(self):
         import json
