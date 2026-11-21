@@ -56,5 +56,6 @@
     "e23973a5-20ff-4bf1-b00d-7b9cdb1beaea": "Islamic Bulletin mark is not Quran for the Heart station artwork"
   },
   "review_scope": "Eight complete source-image contact sheets. Only original station-specific brand graphics with exact independent stream and name are accepted; 46 ambiguous, generic, wrong-station or incorrect-variant images rejected. Stage source JSON SHA pins each accepted UUID and normalized PNG image SHA; no old PNG overwrites.",
-  "publication": "DRAFT PR #52 REVIEW only; no release, main merge, feed, IPK or production."
+  "publication": "DRAFT PR #52 REVIEW only; no release, main merge, feed, IPK or production.",
+  "artifact_layout": "GitHub Actions source artifact has review/tunein-all-currently-missing-originals-REVIEW.json and review/unapproved-images; each SHA pinned"
 }
