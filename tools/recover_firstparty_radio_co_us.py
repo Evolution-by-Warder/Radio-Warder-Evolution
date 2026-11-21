@@ -24,7 +24,7 @@ from recover_missing_radio_logos import original_package, recover_country
 from recover_iprd_radio_logos import OriginalIPRDImages
 
 CODE = "US"
-STATION_FILE = re.compile(r"^/station_logos/(s[0-9a-f]{8,16})(?:\\.[0-9]{12,14})?\\.(?:png|jpe?g|webp)$", re.I)
+STATION_FILE = re.compile(r"^/station_logos/(s[0-9a-f]{8,16})(?:\.[0-9]{12,14})?\.(?:png|jpe?g|webp)$", re.I)
 SHA = re.compile(r"^[0-9a-f]{64}$")
 REPORT_SOURCE = "Radio.co station-owner public API v2"
 
