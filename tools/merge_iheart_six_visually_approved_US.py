@@ -73,7 +73,7 @@ def merge(world,old_root,stage,out):
         png=stage/"unapproved-images"/("US-"+uuid+".png")
         if (png.is_symlink() or not png.is_file() or
             sha256(png.read_bytes()).hexdigest()!=pngsha or
-            not png.read_bytes().startswith(b"\\x89PNG\\r\\n\\x1a\\n")):
+            not png.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")):
             raise ValueError("Visually verified station PNG bytes changed")
     store=LocalApprovedOwnerImages(stage,rows)
     rec=recover_country(world,index,"US",old_root,store,validator,out,workers=1)
