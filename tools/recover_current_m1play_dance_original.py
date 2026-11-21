@@ -96,7 +96,7 @@ def quality_download(url):
                 raise ValueError("Invalid first-party brand master size, content or format")
             # Avoid empty, single-colour or placeholder images.
             small = im.convert("RGB").resize((48,32))
-            if len(small.getcolors(maxcolors=1540) or []) < 12:
+            if len(set(small.getdata())) < 12:
                 raise ValueError("Flat/empty logo image")
             print("LT M1 PLAY ORIGINAL IMAGE QC", json.dumps({
                 "raw_sha256":hashlib.sha256(data).hexdigest(),
