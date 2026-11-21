@@ -1,0 +1,125 @@
+name: KWVNFM 107.7 HOT provider-owned station image exact-ID visual REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-kwvnfm-official-player-one-original-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  stage-current-station-owned-provider-logo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-kwvnfm-owner-image
+      WORLD_SHA: 932e17ad38080185e58b49ba376fc22425f529c5ccdd5908fe223204227336ab
+      SITE_SHA: 3ab3f5f0d590de9ae82e08e86d72ce1964ff55671dd51389d031cb8d3918e2dc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch only recorded source page EVIDENCE and signed current USA originals, no repeat homepage request
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{site,world,review}
+          test "$(gh run view 44899903936 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44902079769 --json conclusion -q .conclusion)" = success
+          gh run download 44899903936 -n radio-224-independent-broadcaster-homepages-contact-REVIEW-ONLY -D "$ROOT/site"
+          gh run download 44902079769 -n radio-iheart-six-verified-39873-world-REVIEW-ONLY -D "$ROOT/world"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json,hashlib,shutil
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          w=list((root/"world").rglob("radio-countries-bouquets.zip"))
+          assert len(w)==1
+          shutil.copyfile(w[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==39873
+          paths=list((root/"world").rglob("radio-country-US-REVIEW-NOT-PRODUCTION/logos/US.zip"))
+          assert len(paths)==1
+          shutil.copyfile(paths[0],root/"US.zip")
+          assert hashlib.sha256((root/"US.zip").read_bytes()).hexdigest()==idx["countries"]["US"]["logo_sha256"]
+          print("CURRENT ALL COUNTRIES AND US LOGO ZIP PINNED")
+          PY
+          rm -rf "$ROOT/world"
+      - name: Validate exact KWVNFM original image URL from FIRST homepage review without re-fetch
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from urllib.request import Request, urlopen
+          from urllib.parse import urlsplit
+          from io import BytesIO
+          import hashlib,json,os
+          from PIL import Image,ImageOps
+          root=Path(os.environ["ROOT"])
+          path=root/"site/review/firstparty-224-homepage-logo-stage-REVIEW.json"
+          assert hashlib.sha256(path.read_bytes()).hexdigest()==os.environ["SITE_SHA"]
+          stage=json.loads(path.read_bytes())
+          assert stage["countries_scanned"]==224 and stage["homepage_requests"]==240
+          assert stage["new_png_approved"]==0 and stage["review_only"]
+          records=[x for x in stage["results"] if x.get("stationuuid")=="84539d0f-8386-4302-a3f6-7d25dc44f0ff"]
+          assert len(records)==1
+          rec=records[0]
+          assert rec["country"]=="US" and rec["name"]=="107.7 HOT FM" and rec["exact_site_name"] is True
+          assert rec["homepage"]=="https://player.listenlive.co/28511/en"
+          assert rec["url"]=="https://playerservices.live.streamtheworld.com/api/livestream-redirect/KWVNFM.mp3"
+          asset="https://pwaimg.listenlive.co/KWVNFM_1267091_config_station_logo_image_1513288536.jpg"
+          assert rec["image_candidates"]==[asset]
+          assert rec["rejection"]=="missing_or_ambiguous_firstparty_same_host_image"
+          with ZipFile(root/"world.zip") as z:
+              country=json.loads(z.read("catalog/US.json"))["stations"]
+          matching=[r for r in country if r["stationuuid"]==rec["stationuuid"]]
+          assert len(matching)==1
+          row=matching[0]
+          assert all(row[key]==rec[key] for key in ("name","stem","url","homepage"))
+          with ZipFile(root/"US.zip") as z:existing=set(z.namelist())
+          assert row["stem"]+".png" not in existing
+          assert len(existing)==5783
+          a=urlsplit(asset)
+          assert a.scheme=="https" and a.hostname=="pwaimg.listenlive.co" and not a.query
+          assert a.path=="/KWVNFM_1267091_config_station_logo_image_1513288536.jpg"
+          assert "/KWVNFM.mp3" in rec["url"] and "/KWVNFM_" in asset
+          req=Request(asset,headers={"Accept":"image/jpeg","User-Agent":"WarderRadioOwnerLogoQA/1.0"})
+          with urlopen(req,timeout=12) as response:
+              assert response.status==200 and response.headers.get("Content-Type","").lower().startswith("image/")
+              raw=response.read(1800001)
+          assert 300<=len(raw)<=1800000
+          with Image.open(BytesIO(raw)) as im:
+              assert im.format in ("JPEG","PNG","WEBP") and 64<=im.width<=4000 and 64<=im.height<=4000
+              pic=ImageOps.exif_transpose(im).convert("RGBA")
+              pic.thumbnail((320,320))
+              b=BytesIO();pic.save(b,format="PNG");png=b.getvalue()
+          assert png.startswith(b"\\x89PNG\\r\\n\\x1a\\n") and 256<len(png)<=512000
+          path=root/"review/US-84539d0f-8386-4302-a3f6-7d25dc44f0ff.png"
+          path.write_bytes(png)
+          pic.save(root/"review/KWVNFM-current-owner-visual.png")
+          report={"schema":1,"review_only":True,"approved":False,
+            "source":"recorded listenlive.co station-owner configuration logo, not nowplaying/album art",
+            "source_world_sha256":os.environ["WORLD_SHA"],"source_stage_sha256":os.environ["SITE_SHA"],
+            "country":"US","stationuuid":row["stationuuid"],"name":row["name"],
+            "stream":row["url"],"homepage":row["homepage"],"stem":row["stem"],
+            "owner_stream_id":"KWVNFM","owner_image_url":asset,
+            "image_original_sha256":hashlib.sha256(raw).hexdigest(),
+            "normalized_png_sha256":hashlib.sha256(png).hexdigest(),
+            "image_bytes":len(raw),"visual_review_required":True,
+            "existing_5783_US_PNG_unchanged":True,"new_png_counted":0}
+          (root/"review/kwvnfm-owner-logo-REVIEW.json").write_text(
+              json.dumps(report,sort_keys=True,indent=2)+"\n")
+          print("EXACT FULL STATION NAME AND OWNER CODE IMAGE STAGED FOR VISUAL QA",json.dumps(report,sort_keys=True))
+          PY
+      - name: Save only one source image for visual inspection; no changes to world or packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-KWVNFM-official-player-logo-visual-source-REVIEW-ONLY
+          path: /tmp/warder-kwvnfm-owner-image/review/
+          retention-days: 30
+          if-no-files-found: error
