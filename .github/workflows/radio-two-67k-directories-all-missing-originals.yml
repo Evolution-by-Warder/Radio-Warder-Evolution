@@ -99,11 +99,11 @@ jobs:
           print("ALL 224 PREVIOUS ORIGINAL COUNTRY LOGO ZIPS SHA VERIFIED",dict(chosen),flush=True)
           PY
           rm -rf "$ROOT/current" "$ROOT/prior40086" "$ROOT/prior40013" "$ROOT/prior39979" "$ROOT/prior39964" "$ROOT/prior39879" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/canonical"
-      - name: ONE complete two-independent-source 7826-gap pass; 67k ICE catalogue plus RadioNet searchable owner-logo/stream registry
+      - name: ONE complete radio.net first-party 7826-gap pass; ICE full-directory source temporarily excluded for rate limits
         run: |
           set -euo pipefail
           PYTHONPATH=src:tools python3 -B tools/stage_two_independent_radio_directories_all_7826.py \
-            --world "$ROOT/world.zip" --old-root "$ROOT/old" --out "$ROOT/review" --workers 10
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" --out "$ROOT/review" --workers 10 --skip-ice
       - name: Verify all 224 catalogues, no existing original reused/replaced, staged logo images have source identity/PNG SHA
         run: |
           set -euo pipefail
@@ -119,8 +119,8 @@ jobs:
           assert r["countries_scanned"]==r["all_country_source_logo_ZIPs_verified"]==224
           assert r["stations_scanned"]==48219 and r["missing_station_refs_scanned"]==7826
           assert r["original_png_before"]==40393 and r["missing_before"]==7826
-          assert r["ice_catalogue_summary"]["source_total_stations"]>=50000
-          assert r["ice_catalogue_summary"]["pages"]>=500
+          assert r["ice_catalogue_summary"]["pages"]==0
+          assert r["ice_catalogue_summary"]["skipped_reason"]
           assert r["radionet_catalogue_summary"]["unique_name_country_queries"]>=3000
           assert all(not item["approved"] and item["visual_review_required"] for item in r["images"])
           assert len(r["images"])==r["new_station_original_images_for_visual_review"]
@@ -139,7 +139,7 @@ jobs:
       - name: Upload one global collection of all new artwork and visual sheets - never publish any unapproved image
         uses: actions/upload-artifact@v4
         with:
-          name: radio-all-7826-two-independent-directories-original-UNAPPROVED-REVIEW
+          name: radio-all-7826-radionet-firstparty-UNAPPROVED-REVIEW
           path: /tmp/warder-7826-two-independent-radio-owner-directories/review/
           retention-days: 30
           compression-level: 0
