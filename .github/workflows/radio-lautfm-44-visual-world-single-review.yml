@@ -1,0 +1,133 @@
+name: ONE BIG BLOCK - 44 visually verified laut.fm radio originals in full 224-country REVIEW world
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-lautfm-44-visual-world-single-review.yml
+      - tools/merge_lautfm_bulk_44_visual_originals.py
+      - tests/test_merge_lautfm_bulk_44_visual_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-world-review-rebuild-for-44-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-lautfm-44-visual-world
+      WORLD_SHA: 253ea0bd203acd84fb28dfa15b4d437040c64cfde4d7aae190f287eaa7211885
+      STAGE_SHA: 91d363f8be61e3d4a662cae80f497e80b77c8bbf51dcf008c6b5b4354873219e
+    steps:
+      - uses: actions/checkout@v4
+      - name: One large batch negative tests for identity, visual whitelist, 21 quarantines and immutable PNG copies
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_lautfm_bulk_44_visual_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_lautfm_all_world_missing_bulk.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Download only SHA-pinned current 39821 world, DE ES originals and immutable 167-owner station-image source stage
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{worldsource,oldsource,stage,old}
+          test "$(gh run view 44897612492 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44891211396 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44898602240 --json conclusion -q .conclusion)" = success
+          gh run download 44897612492 \
+            -n radio-qingting-90-visual-originals-39821-complete-world-REVIEW-ONLY \
+            -D "$ROOT/worldsource"
+          gh run download 44891211396 \
+            -n radiojar-global-three-verified-39707-world-REVIEW-ONLY \
+            -D "$ROOT/oldsource"
+          gh run download 44898602240 \
+            -n radio-lautfm-one-large-224-country-original-owner-REVIEW-ONLY \
+            -D "$ROOT/stage"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ['ROOT'])
+          files=list((root/'worldsource').rglob('radio-countries-bouquets.zip'))
+          assert len(files)==1
+          shutil.copyfile(files[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(v['logos_found'] for v in idx['countries'].values())==39821
+          assert idx['countries']['DE']['logos_found']==4056
+          assert idx['countries']['ES']['logos_found']==948
+          for cc in ('DE','ES'):
+              candidates=list((root/'oldsource').rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              assert len(candidates)==1,(cc,len(candidates))
+              src=candidates[0]
+              old=src/'logos'/f'{cc}.zip'
+              sha=hashlib.sha256(old.read_bytes()).hexdigest()
+              assert sha==idx['countries'][cc]['logo_sha256'],(cc,sha)
+              shutil.copytree(src,root/'old'/src.name)
+              print('PRIOR STATION ORIGINAL COUNTRY ZIP SHA PASS',cc,sha)
+          stage=root/'stage/laut-fm-bulk-224-original-owner-stage-REVIEW.json'
+          assert hashlib.sha256(stage.read_bytes()).hexdigest()==os.environ['STAGE_SHA']
+          print('SHA-PINNED 224 WORLD AND COMPLETE 65 NEW LOGO SOURCE ARTIFACT PASS')
+          PY
+          rm -rf "$ROOT/worldsource" "$ROOT/oldsource"
+      - name: ONE BULK DE/ES original-country merge of exactly 44 visually verified stations, not 21 generic/quarantined
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_lautfm_bulk_44_visual_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: ONE full 224-country world rebuild; verify 39865 originals and ALL 39821 preceding PNGs byte-identical
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries DE,ES --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          source=json.loads((root/'review/laut-fm-44-visual-approved-originals-proof.json').read_text())
+          whole=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert source['review_only'] and whole['review_only']
+          assert source['station_originals_approved']==whole['logos_added']==44
+          assert source['source_images_reviewed']==65 and source['quarantined_ambiguous_images']==21
+          assert len(source['approved_originals'])==44
+          assert len(source['quarantine_owner_slugs'])==21
+          assert source['source_world_sha256']==whole['original_world_sha256']==os.environ['WORLD_SHA']
+          assert whole['country_count']==224 and whole['station_count']==48219
+          changes={x['country']:(x['previous'],x['current'],x['added']) for x in whole['countries_changed']}
+          assert changes=={'DE':(4056,4099,43),'ES':(948,949,1)},changes
+          newest=root/'new-world/radio-countries-bouquets.zip'
+          sha=hashlib.sha256(newest.read_bytes()).hexdigest()
+          assert sha==whole['new_world_sha256']
+          with ZipFile(newest) as z:
+              index=json.loads(z.read('index.json'))
+              assert index['country_count']==224 and index['station_count']==48219
+              assert sum(x['logos_found'] for x in index['countries'].values())==39865
+              assert index['countries']['DE']['logos_found']==4099
+              assert index['countries']['ES']['logos_found']==949
+              assert 48219-39865==8354
+          print('ONE BIG LAUTFM 44 RADIO ORIGINALS WHOLE WORLD PASS',json.dumps({
+              'new_original_png':44,'total_original_png':39865,
+              'all_previous_39821_png_preserved':True,'still_missing_png':8354,
+              'world_sha256':sha,'only_changed_country_ZIPs':changes,
+              'ambiguous_images_quarantined':21
+          },sort_keys=True))
+          PY
+      - name: Save ONLY one 39865-original complete REVIEW archive and DE ES country ZIPs, no main/Release/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-lautfm-44-visual-world/review/
+            /tmp/warder-lautfm-44-visual-world/new-world/
+          retention-days: 30
+          if-no-files-found: error
