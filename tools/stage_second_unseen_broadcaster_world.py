@@ -46,7 +46,13 @@ def verify_previous(path):
         p=urlsplit(rec["homepage"])
         if not p.hostname: raise ValueError("Lost previous host")
         hosts.add(p.hostname.casefold().rstrip("."))
-    # The old source recorded 240 distinct raw hosts but two different site entries\n    # canonically resolve to akashvani.gov.in; exclude the normalized domain once.\n    from collections import Counter\n    canonical=Counter((urlsplit(rec["homepage"]).hostname or "").casefold().rstrip(".") for rec in old["results"])\n    duplicates={host:n for host,n in canonical.items() if n>1}\n    if not (len(hosts)==240 or (len(hosts)==239 and duplicates=={"akashvani.gov.in":2})):\n        raise ValueError("Original 240 host list incomplete or unexpected duplicate")
+    # Two of the 240 source entries collapse onto the same normalized host:
+    # akashvani.gov.in. Exclude that host once, without inventing a new one.
+    canonical=Counter((urlsplit(rec["homepage"]).hostname or "").casefold().rstrip(".")
+                      for rec in old["results"])
+    duplicates={host:n for host,n in canonical.items() if n>1}
+    if not (len(hosts)==240 or (len(hosts)==239 and duplicates=={"akashvani.gov.in":2})):
+        raise ValueError("Original 240 host list incomplete or unexpected duplicate")
     return hosts
 
 def load_index(world):
