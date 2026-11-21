@@ -1,0 +1,125 @@
+name: All-country missing iHeart first-party logo IDs - disjoint bulk REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iheart-disjoint-missing-world-review.yml
+      - tools/stage_iheart_missing_unprobed_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  only-unqueried-and-missing-first-party:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-iheart-missing-224
+      WORLD_SHA: dc04766992e47566abec68de7221169d41ee3d41914f1465fc83ae4a6f0fc12f
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline negative identity tests, source syntax and strict country SHA guards
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_probe_iheart_224_firstparty_owner.py
+          python3 -m py_compile tools/stage_iheart_missing_unprobed_world.py
+      - name: Download only pinned existing source reviews, never refetch historical broadcaster pages
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,old-audit,us,shards,originals}
+          test "$(gh run view 44900502836 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44901265602 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895332419 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44901265602 -n radio-iheart-224-independent-original-source-REVIEW-ONLY -D "$ROOT/old-audit"
+          gh run download 44895332419 -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/us"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil,sys
+          root=Path(os.environ["ROOT"])
+          matches=list((root/"source").rglob("radio-countries-bouquets.zip"))
+          assert len(matches)==1,matches
+          shutil.copyfile(matches[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39867
+          old=root/"old-audit/iheart-224-firstparty-station-audit-REVIEW.json"
+          assert old.is_file()
+          prior=json.loads(old.read_text())
+          assert prior["requests"]==240 and prior["new_png_approved"]==0
+          us=list((root/"us").rglob("radio-country-US-REVIEW-NOT-PRODUCTION"))
+          assert len(us)==1
+          assert hashlib.sha256((us[0]/"logos/US.zip").read_bytes()).hexdigest()==idx["countries"]["US"]["logo_sha256"]
+          shutil.copytree(us[0],root/"originals"/us[0].name)
+          sys.path.insert(0,"tools")
+          import probe_iheart_224_firstparty_owner as p
+          owners=set()
+          with ZipFile(root/"world.zip") as z:
+              for cc in sorted(idx["countries"]):
+                  cat=json.loads(z.read("catalog/"+cc+".json"))["stations"]
+                  if any(p.DIRECT_ID.search(r.get("homepage") or "") or p.stream_id(r.get("url")) for r in cat):
+                      owners.add(cc)
+          shard={sorted(idx["countries"]).index(cc)//8 for cc in owners if cc!="US"}
+          (root/"shard-ids.txt").write_text("".join(f"{i:02d}\n" for i in sorted(shard)))
+          print("ALL 224 SOURCE CHECKED; OWNER COUNTRIES",sorted(owners),"SHARDS",sorted(shard))
+          PY
+          rm -rf "$ROOT/source" "$ROOT/us"
+      - name: Reuse canonical original country shards and automatically reject stale SHA
+        run: |
+          set -euo pipefail
+          while IFS= read -r n; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$n-REVIEW" -D "$ROOT/shards/$n"
+          done < "$ROOT/shard-ids.txt"
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          root=Path(os.environ["ROOT"])
+          for d in sorted((root/"shards").rglob("radio-country-*-REVIEW-NOT-PRODUCTION")):
+              dest=root/"originals"/d.name
+              if dest.exists():continue
+              shutil.copytree(d,dest)
+          print("SOURCE ORIGINAL COUNTRY FOLDERS",len(list((root/"originals").glob("radio-country-*-REVIEW-NOT-PRODUCTION"))))
+          PY
+          rm -rf "$ROOT/shards"
+      - name: ONE SHA-verified worldwide missing-only probe; skip ALL 240 already probed IDs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_iheart_missing_unprobed_world.py \
+            --world "$ROOT/world.zip" --originals "$ROOT/originals" \
+            --previous "$ROOT/old-audit/iheart-224-firstparty-station-audit-REVIEW.json" \
+            --out "$ROOT/review"
+      - name: Prove only new missing station owner images were staged (nothing published)
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=Path(os.environ["ROOT"])
+          p=json.loads((r/"review/iheart-missing-only-unqueried-world-REVIEW.json").read_text())
+          assert p["review_only"] and p["new_png_approved"]==0
+          assert p["world_sha256"]==os.environ["WORLD_SHA"]
+          assert p["stations_scanned"]==48219 and p["countries_scanned"]==224
+          assert p["previous_owner_ids_excluded"]==240
+          assert 0<=p["requests"]<=360 and len(p["results"])==p["requests"]
+          old=json.loads((r/"old-audit/iheart-224-firstparty-station-audit-REVIEW.json").read_text())
+          assert not ({x["owner_id"] for x in p["results"]}&{x["owner_id"] for x in old["results"]})
+          assert all(x["country"] in p["verified_original_countries"] for x in p["results"])
+          assert not list((r/"review").rglob("radio-countries-bouquets.zip"))
+          print("DISJOINT WORLD FIRST-PARTY ORIGINAL QA PASS",json.dumps({
+            k:p[k] for k in ("verified_original_countries","requests","candidate_images_unapproved","preflight","rejections")
+          },sort_keys=True))
+          PY
+      - name: Preserve unapproved visual contact sheets and evidence, no world/Release/main/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-iheart-disjoint-missing-only-source-REVIEW-ONLY
+          path: /tmp/warder-iheart-missing-224/review/
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,105 @@
+name: Qingting all missing unique official station IDs - one big 224-country REVIEW block
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-qingting-all-unprobed-cn-originals-bulk-review.yml
+      - tools/recover_qingting_bulk_224_missing_stage.py
+      - tests/test_recover_qingting_bulk_224_missing_stage.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  process-all-unprobed-stations-in-one-block:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-qingting-all-new-owners
+      WORLD_SHA: 550b05b266bbd136361befe5679672309ff345ddbaed79151213a24f5e67f371
+      SOURCE_CN_ZIP_SHA: 1abcebea56968b9071444b9e7cf6e85754f248bfc9959d04997878fc66c0cc62
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test-only Pillow and run strict 224-country source safety regressions
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_recover_qingting_bulk_224_missing_stage.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_qingting_verified_eight_cn_owner_logo.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_qingting_cn_firstparty_station_logos.py
+      - name: Fetch last verified 39731-world, latest CN ZIP and old 24-ID source JSON - NO 39731 PNG redownload
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,old,prior}
+          test "$(gh run view 44896321090 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895785955 --json conclusion -q .conclusion)" = success
+          gh run download 44896321090 -n radio-cn-qingting-seven-39731-world-original-logos-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44895785955 -n radio-cn-qingting-firstparty-missing-originals-UNAPPROVED -D "$ROOT/prior"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,hashlib,shutil,json
+          root=Path(os.environ['ROOT'])
+          world=list((root/'source').rglob('radio-countries-bouquets.zip'))
+          assert len(world)==1
+          shutil.copyfile(world[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:
+              idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39731
+          cn=list((root/'source').rglob('radio-country-CN-REVIEW-NOT-PRODUCTION'))
+          assert len(cn)==1
+          source=cn[0]/'logos/CN.zip'
+          assert hashlib.sha256(source.read_bytes()).hexdigest()==os.environ['SOURCE_CN_ZIP_SHA']
+          assert idx['countries']['CN']['logo_sha256']==os.environ['SOURCE_CN_ZIP_SHA']
+          shutil.copytree(cn[0],root/'old'/cn[0].name)
+          assert (root/'prior/qingting-china-official-radio-originals-review.json').is_file()
+          print('WORLD 224 COUNTRY / 39731 LOGOS; CN 1064 ORIGINAL ZIP SHA VERIFIED')
+          PY
+          rm -rf "$ROOT/source"
+      - name: ONE BULK PASS - every still-unchecked unique missing official Qingting CN station ID
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_qingting_bulk_224_missing_stage.py \
+            --world "$ROOT/world.zip" \
+            --old-root "$ROOT/old" \
+            --prior "$ROOT/prior/qingting-china-official-radio-originals-review.json" \
+            --out "$ROOT/review" --max-pages 400 --workers 12
+      - name: Validate all 224 station catalogues, 24 prior owner IDs excluded and ZERO original overwrites
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json
+          root=Path(os.environ['ROOT'])
+          r=json.loads((root/'review/qingting-all-unqueried-cn-owner-originals-REVIEW.json').read_text())
+          assert r['schema']==1 and r['review_only']
+          assert r['new_world_created'] is False and r['new_png_approved']==0
+          assert r['source_world_sha256']==os.environ['WORLD_SHA']
+          assert r['countries_scanned']==224 and r['stations_scanned']==48219
+          assert r['country_existing_png']==1064 and r['country_missing_png']==784
+          assert r['prior_owner_ids_excluded']==24
+          assert r['owner_pages_requested']==r['unique_unqueried_missing_ids']
+          assert r['owner_pages_requested']>=200
+          assert len(r['attempts'])==r['owner_pages_requested']
+          assert all(x['approved'] is False for x in r['attempts'])
+          assert r['owner_images_downloaded_for_visual_QA']<=r['owner_pages_requested']
+          assert not list((root/'review').rglob('radio-countries-bouquets.zip'))
+          print('SINGLE LARGE OFFICIAL CN STATION LOGO REVIEW PASS',json.dumps({
+            k:r[k] for k in ('owner_pages_requested','exact_name_and_alt_matches',
+              'owner_images_downloaded_for_visual_QA','unmatched_official_names',
+              'shared_image_groups','provider_errors')
+          },sort_keys=True))
+          PY
+      - name: Upload all newly discovered first-party raster images and paginated review sheets; no release/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-qingting-all-unprobed-224-world-originals-UNAPPROVED-BULK
+          path: /tmp/warder-qingting-all-new-owners/review/
+          retention-days: 30
+          if-no-files-found: error

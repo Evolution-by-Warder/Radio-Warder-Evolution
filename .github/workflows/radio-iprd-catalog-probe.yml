@@ -1,0 +1,53 @@
+name: Inspect external IPRD 24k-country radio station logos and exact stream metadata (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iprd-catalog-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch original public IPRD catalogue, no modifications or releases
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/warder-iprd-source
+          curl --fail --location --silent --show-error --compressed \
+            --connect-timeout 10 --max-time 140 --retry 3 \
+            --user-agent 'WarderRadioLogoAudit/0.1 (+https://github.com/Evolution-by-Warder/Radio-Warder-Evolution)' \
+            'https://raw.githubusercontent.com/iprd-org/iprd/main/docs/site_data/metadata/catalog.json' \
+            -o /tmp/warder-iprd-source/catalog.json
+          test "$(stat -c %s /tmp/warder-iprd-source/catalog.json)" -lt 30000000
+      - name: Inspect independently curated station identity and original image columns
+        run: |
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+          raw=Path('/tmp/warder-iprd-source/catalog.json').read_bytes()
+          obj=json.loads(raw)
+          print('ROOT TYPE',type(obj).__name__,'BYTES',len(raw))
+          print('ROOT KEYS',list(obj)[:30] if isinstance(obj,dict) else 'LIST')
+          for k,v in (obj.items() if isinstance(obj,dict) else []):
+              if isinstance(v,list):
+                  print('LIST FIELD',k,'ROWS',len(v))
+                  if v:
+                      print('EXAMPLE',str(v[0])[:1500])
+                  break
+          if isinstance(obj,list):
+              print('TOTAL',len(obj),'EXAMPLES',[str(v)[:1500] for v in obj[:2]])
+          PY
+      - name: Keep input and diagnostics as temporary review evidence, never main release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-iprd-external-catalog-review-source-20261120
+          path: /tmp/warder-iprd-source/catalog.json
+          if-no-files-found: error
+          retention-days: 7

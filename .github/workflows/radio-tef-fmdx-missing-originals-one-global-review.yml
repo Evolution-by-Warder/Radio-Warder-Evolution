@@ -1,0 +1,119 @@
+name: ONE 224-country original FM-DX radio logos missing-only visual stage
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-tef-fmdx-missing-originals-one-global-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  complete-missing-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-tef-fmdx-all-country-missing
+      WORLD_SHA: ddb09c0d953dff302c7b63452158c35e007fa61b602830d769ff4919b78db720
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact host/brand/country code and SVG safety
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_tef_fmdx_missing_radio_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_radio_svg_logos.py
+      - name: Read only immutable latest radio world and 79-directory source plan
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,plan,old,shards,patch13,patch7}
+          for id in 44911563049 44913222683 44801652426 44906253671 44907497364; do
+            test "$(gh run view "$id" --json conclusion -q .conclusion)" = success
+          done
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44913222683 -n radio-tef-fmdx-exact-station-owner-name-source-REVIEW-ONLY -D "$ROOT/plan"
+          cp "$(find "$ROOT/source" -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,os
+          root=Path(os.environ["ROOT"])
+          p=json.loads((root/"plan/tef-global-radio-original-logo-plan-REVIEW.json").read_text())
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert p["review_only"] and p["world_sha256"]==os.environ["WORLD_SHA"]
+          assert p["source_directories_read"]==79 and p["potential_exact_name_country_matches"]==201
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39964
+          codes=p["possible_country_codes"]
+          positions=sorted({sorted(idx["countries"]).index(cc)//8 for cc in codes})
+          (root/"shard-ids.txt").write_text("".join(f"{n:02d}\n" for n in positions))
+          print("CANONICAL SOURCE COUNTRY SHARDS",len(positions),"OWNER NAME MATCHES",len(p["selected"]))
+          PY
+      - name: Reuse immutable current source country logo ZIPs, no radio streams, no original download
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/shard-ids.txt"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,shutil,os
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          codes=json.loads((root/"plan/tef-global-radio-original-logo-plan-REVIEW.json").read_text())["possible_country_codes"]
+          resolved=[]
+          for cc in codes:
+              found=[]
+              for directory in ("source","patch7","patch13","shards"):
+                  for folder in (root/directory).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"):
+                      z=folder/"logos"/(cc+".zip")
+                      if z.is_file() and hashlib.sha256(z.read_bytes()).hexdigest()==idx["countries"][cc]["logo_sha256"]:
+                          found.append(folder)
+                  if found:break
+              if len(found)!=1:raise ValueError("Missing exact signed source original: "+cc)
+              shutil.copytree(found[0],root/"old"/found[0].name)
+              resolved.append(cc)
+          print("COUNTRY LOGO ZIP SHA VERIFIED",len(resolved),resolved)
+          PY
+          rm -rf "$ROOT/shards" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/source"
+      - name: ONE all-source missing-PNG scan, download ONLY new logo files that match complete station/country names
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_tef_fmdx_missing_radio_originals.py \
+            --world "$ROOT/world.zip" --plan "$ROOT/plan" --old-root "$ROOT/old" \
+            --out "$ROOT/review" --workers 8
+      - name: Verify no existing PNG, catalogue or one of 224 stations changed
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json
+          root=Path(os.environ["ROOT"])
+          r=json.loads((root/"review/tef-fmdx-224-missing-radio-owner-originals-REVIEW.json").read_text())
+          assert r["review_only"] and r["new_png_approved"]==0
+          assert r["world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["countries_scanned"]==224 and r["stations_scanned"]==48219
+          assert r["source_verified_country_zips"]==20
+          assert r["name_country_matches"]==201
+          assert len(r["images"])==r["new_images_for_visual_review"]
+          assert all(not x["approved"] and x["visual_review_required"] for x in r["images"])
+          assert not list((root/"review").rglob("radio-countries-bouquets.zip"))
+          print("TEF FM-DX ALL COUNTRY VISUAL PROOFS PASS",json.dumps({
+              k:r[k] for k in ("existing_original_png_skipped","missing_exact_country_name_candidates",
+                    "downloaded_distinct_logo_images","new_images_for_visual_review","skipped")},sort_keys=True))
+          PY
+      - name: Keep one joint first-party 224-country visual source audit, no public feed or IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-tef-fmdx-all-uncovered-originals-visual-REVIEW
+          path: /tmp/warder-tef-fmdx-all-country-missing/review/
+          retention-days: 30
+          if-no-files-found: error

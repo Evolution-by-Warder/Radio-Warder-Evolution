@@ -1,0 +1,141 @@
+name: laut.fm new 50 missing-station owner API checks in 5 priority countries - review stage only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-lautfm-50-missing-owner-priority-stage.yml
+      - tools/audit_stage_lautfm_missing_priority.py
+      - tests/test_audit_stage_lautfm_missing_priority.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  api-and-original-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-lautfm-priority-new-missing
+      WORLD_SHA: 9e6d8745979b25a352de4986202a5500a73a6a7935c88ccf1bdc9d82d4afa923
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test strict station identity, exclusion of previously queried source and generic image quarantine
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_audit_stage_lautfm_missing_priority.py
+          PYTHONPATH=src:tools python3 -B tests/test_recover_lautfm_pinned_official_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_lautfm_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install image conversion only in review CI, never user receiver
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Fetch only 39689 checksum-verified world and previously audited 24-owner JSON
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/worldsrc" "$ROOT/oldsrc" "$ROOT/old" "$ROOT/metasrc"
+          test "$(gh run view 44873272556 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44873505894 --json conclusion -q .conclusion)" = success
+          gh run download 44873272556 -n radio-co-crosscountry-8-fourth-originals-REVIEW-ONLY -D "$ROOT/worldsrc"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,shutil
+          root=Path(os.environ['ROOT'])
+          candidates=list((root/'worldsrc').rglob('radio-countries-bouquets.zip'))
+          assert len(candidates)==1
+          shutil.copyfile(candidates[0],root/'world.zip')
+          PY
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          gh run download 44873505894 -n radio-new-lautfm-firstparty-owner-sample-REVIEW-ONLY -D "$ROOT/metasrc"
+          test -f "$ROOT/metasrc/lautfm-firstparty-owner-metadata-224-country-REVIEW.json"
+          rm -rf "$ROOT/worldsrc"
+      - name: Restore ONLY latest exact country ZIPs for DE US FR GB GR - not historical sources
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44818364283 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44867416434 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44802603175 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44872449912 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44872651080 --json conclusion -q .conclusion)" = success
+          gh run download 44818364283 -n radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY -D "$ROOT/oldsrc/DE"
+          gh run download 44867416434 -n radio-US-RadioCo-original-logos-REVIEW-ONLY -D "$ROOT/oldsrc/US"
+          gh run download 44802603175 -n radio-224-39655-independent-source-originals-REVIEW-ONLY -D "$ROOT/oldsrc/FR"
+          gh run download 44872449912 -n radio-co-crosscountry-8-priority-new-originals-REVIEW-ONLY -D "$ROOT/oldsrc/GB"
+          gh run download 44872651080 -n radio-co-crosscountry-12-additional-originals-REVIEW-ONLY -D "$ROOT/oldsrc/GR"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(c['logos_found'] for c in idx['countries'].values())==39689
+          for cc in ("DE","US","FR","GB","GR"):
+              candidates=list((root/'oldsrc'/cc).rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              assert len(candidates)==1,(cc,len(candidates))
+              src=candidates[0]
+              zipfile=src/'logos'/f'{cc}.zip'
+              assert zipfile.is_file()
+              assert hashlib.sha256(zipfile.read_bytes()).hexdigest()==idx['countries'][cc]['logo_sha256'],cc
+              shutil.copytree(src,root/'old'/src.name)
+          print('FIVE LAST-SNAPSHOT COUNTRY LOGO SHA CHECKS PASS')
+          PY
+          rm -rf "$ROOT/oldsrc"
+      - name: Check only genuinely missing station slugs, skip 24 old API IDs, query at most 50
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/audit_stage_lautfm_missing_priority.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior "$ROOT/metasrc/lautfm-firstparty-owner-metadata-224-country-REVIEW.json" \
+            --out "$ROOT/review" --workers 6
+      - name: Validate original PNG bytes remain untouched and new logos are review-only
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          d=json.loads((root/'review/new-lautfm-missing-originals-priority-review.json').read_text())
+          assert d['review_only'] and d['publish'] is False
+          assert d['new_world_created'] is False and d['awaiting_visual_image_QA'] is True
+          assert d['world_sha256']==os.environ['WORLD_SHA']
+          assert d['countries_scanned']==224 and d['catalogue_stations']==48219
+          assert 0<d['api_requests']<=50 and d['old_source_slug_excluded']==24
+          assert len(d['country_reports'])==5
+          total=0
+          for report in d['country_reports']:
+              cc=report['country']
+              assert report['unchanged_existing_pngs']
+              assert report['new_downloads']==len(report['new_originals'])
+              assert report['recovered_total']==report['new_downloads']+report['cloned_exact']
+              old=root/'old'/f'radio-country-{cc}-REVIEW-NOT-PRODUCTION/logos/{cc}.zip'
+              updated=root/'review'/f'radio-country-{cc}-REVIEW-NOT-PRODUCTION/logos/{cc}.zip'
+              if report['recovered_total']:
+                  with ZipFile(old) as before,ZipFile(updated) as after:
+                      assert all(before.read(k)==after.read(k) for k in before.namelist())
+                      assert len(after.namelist())-len(before.namelist())==report['recovered_total']
+              else:
+                  assert not updated.exists()
+              for uuid,source in report['new_originals'].items():
+                  png=root/'review/staged-png'/cc/(uuid+'.png')
+                  assert png.is_file()
+                  assert hashlib.sha256(png.read_bytes()).hexdigest()==source['sha256']
+                  total+=1
+          assert total==d['new_owner_pngs_for_visual_review']
+          print('LAUTFM STRICT STAGING PASS',json.dumps({
+              'api_requests':d['api_requests'],
+              'actual_owner_pngs_staged_for_visual_QA':total,
+              'preexisting_logos_overwritten':0,
+              'new_world_published':False
+          },sort_keys=True))
+          PY
+      - name: Upload only real new PNG previews, provenance and review country packages (no release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-lautfm-50-new-missing-owner-review-staged-only
+          path: /tmp/warder-lautfm-priority-new-missing/review/
+          if-no-files-found: error
+          retention-days: 30

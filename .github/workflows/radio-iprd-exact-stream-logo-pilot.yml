@@ -1,0 +1,101 @@
+name: Independent IPRD original-radio logo recovery from exact streams - SK CZ DE review-only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iprd-exact-stream-logo-pilot.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  exact-source-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 38
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-iprd-exact-sources
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline source-identity verification before external image requests
+        run: |
+          PYTHONPATH=src python3 -B tests/test_iprd_radio_logo_recovery.py
+          PYTHONPATH=src python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: CI-only image decoder dependencies
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Fetch SHA-pinned independent radio logo source (24,434 entries)
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source" "$ROOT/world" "$ROOT/sk" "$ROOT/cz" \
+                   "$ROOT/de" "$ROOT/old"
+          curl --fail --location --silent --show-error --compressed \
+            --connect-timeout 8 --max-time 100 --retry 3 \
+            --user-agent 'WarderRadioLogoReview/0.1 (https://github.com/Evolution-by-Warder/Radio-Warder-Evolution)' \
+            'https://raw.githubusercontent.com/iprd-org/iprd/bbfff7fcfd1b29b39f6d8b0ec3c874737e00e478/docs/site_data/metadata/catalog.json' \
+            -o "$ROOT/source/catalog.json"
+          printf '%s  %s\n' 'bfa3a4399301c6f21519a57b8a44c61de13c129618e697cd67e1423510ca283e' "$ROOT/source/catalog.json" | sha256sum --check -
+      - name: Read current verified 39150 original world and only three original country ZIPs
+        run: |
+          set -euo pipefail
+          gh run download 44781162459 \
+            -n radio-world-224-39150-station-originals-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44780870898 \
+            -n radio-SK-curated-six-profiles-REVIEW-ONLY -D "$ROOT/sk"
+          gh run download 44762776607 \
+            -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/cz"
+          gh run download 44776112474 \
+            -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/de"
+          cp -a "$ROOT/sk/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/cz/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/de/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+      - name: Fetch only new original image sources proven by exact stream or full homepage
+        run: |
+          set -euo pipefail
+          python3 -B tools/recover_iprd_radio_logos.py \
+            --world "$ROOT/world/new-world/radio-countries-bouquets.zip" \
+            --world-sha256 a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74 \
+            --source "$ROOT/source/catalog.json" \
+            --old-root "$ROOT/old" --countries SK,CZ,DE \
+            --workers 7 --out "$ROOT/recovered"
+      - name: Ensure previously verified images remain byte-identical
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'recovered/iprd-independent-radio-logo-review.json').read_text())
+          assert report['review_only'] is True
+          assert report['stations']==123+229+4863
+          assert report['original_logos']==117+205+3963
+          assert report['logos_after']==report['original_logos']+report['logos_added']
+          assert report['candidate_matches']>=report['logos_added']
+          for r in report['countries']:
+              assert r['unchanged_existing_pngs']
+              assert len(r['new_station_originals'])==r['new_downloads']
+              assert r['actual_image_attempts']>=r['new_downloads']
+              code=r['country']
+              before=root/'old'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              after=root/'recovered'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              if r['recovered_total']:
+                  with ZipFile(before) as old,ZipFile(after) as new:
+                      for name in old.namelist():
+                          assert old.read(name)==new.read(name),name
+              else:
+                  assert not after.exists()
+          print('IPRD EXACT IDENTITY PILOT REVIEW',{
+              'new_logos':report['logos_added'],
+              'source_candidates':report['candidate_matches'],
+              'actual_image_attempts':report['attempted_network_images'],
+              'still_missing':report['stations']-report['logos_after']})
+          PY
+      - name: Keep only review candidates and matching evidence (no production feed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-IPRD-independent-exact-SK-CZ-DE-originals-REVIEW-ONLY
+          path: /tmp/warder-iprd-exact-sources/recovered/
+          retention-days: 30
+          if-no-files-found: error

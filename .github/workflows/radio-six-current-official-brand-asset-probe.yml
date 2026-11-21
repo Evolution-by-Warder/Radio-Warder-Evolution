@@ -1,0 +1,74 @@
+name: Six missing radio logos - current official broadcaster asset probe (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-six-current-official-brand-asset-probe.yml
+      - tools/probe_six_official_radio_brand_assets.py
+      - tests/test_probe_six_official_radio_brand_assets.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  targeted-official-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-six-official-brand-review
+      WORLD_SHA: 1b0c79812d988ac4aaa368033d966de117d11e3ef5c9db66331afc5c9c750c8b
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline strict broadcaster-only identity tests
+        run: PYTHONPATH=tools python3 -B tests/test_probe_six_official_radio_brand_assets.py
+      - name: Download signed six-PNG gaps and pinned current world; no Radio Browser recrawl
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{gaps,old-world,official-pages}
+          test "$(gh run view 44830949401 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44818364283 --json conclusion -q .conclusion)" = success
+          gh run download 44830949401 -n radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY -D "$ROOT/gaps"
+          gh run download 44818364283 -n radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY -D "$ROOT/old-world"
+          mapfile -t zipfiles < <(find "$ROOT/old-world" -type f -name radio-countries-bouquets.zip)
+          test "${#zipfiles[@]}" -eq 1
+          cp "${zipfiles[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          test -f "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json"
+      - name: Fetch six broadcaster-owned current pages (never legacy external 2024 pictures)
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,re,subprocess,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools')
+          from probe_six_official_radio_brand_assets import SITES
+          root=Path(os.environ['ROOT'])/'official-pages'
+          for (code,name),(url,domain) in sorted(SITES.items()):
+              path=root/(code+'-'+re.sub('[^a-z0-9]+','-',name.casefold()).strip('-')+'.html')
+              r=subprocess.run(['curl','--fail','--silent','--show-error','--location','--compressed',
+                  '--proto-redir','=https','--retry','1','--connect-timeout','8','--max-time','35',
+                  '--max-filesize','2097152','--user-agent','WarderRadioOfficialBrandAudit/1.0',
+                  url,'-o',str(path)],capture_output=True,text=True,timeout=48)
+              if r.returncode: path.unlink(missing_ok=True)
+              print('CURRENT FIRST-PARTY PAGE',code,name,'exit',r.returncode,
+                  'bytes',path.stat().st_size if path.exists() else 0,
+                  'error',r.stderr[:180],flush=True)
+          PY
+      - name: Match exact six original UUIDs and report site-owned image candidates only
+        run: |
+          set -euo pipefail
+          PYTHONPATH=tools python3 -B tools/probe_six_official_radio_brand_assets.py \
+            --gaps "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json" \
+            --world "$ROOT/world.zip" --pages "$ROOT/official-pages" \
+            --out "$ROOT/review"
+      - name: Upload only tiny review JSON (NO image/ZIP/release/IPK publication)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-six-broadcaster-current-logo-assets-REVIEW-ONLY
+          path: /tmp/warder-six-official-brand-review/review/
+          retention-days: 30
+          if-no-files-found: error

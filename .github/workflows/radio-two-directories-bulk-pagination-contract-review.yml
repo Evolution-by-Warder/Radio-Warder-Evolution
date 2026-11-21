@@ -1,0 +1,48 @@
+name: 67k-radio bulk pagination and radio.net owner-logo full-stream match contract REVIEW
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-two-directories-bulk-pagination-contract-review.yml]
+permissions:
+  contents: read
+jobs:
+  two-different-owner-catalogs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check 67k whole-directory pagination, independent RadioNet logo URL, country and primary stream fields
+        run: |
+          python3 - <<'PY'
+          import json,hashlib
+          from urllib.request import Request,urlopen
+          urls=[
+            'https://ice.radio.fm/api/v1/stations?per_page=100&page=1',
+            'https://ice.radio.fm/api/v1/stations?per_page=100&page=2',
+            'https://ice.radio.fm/api/v1/stations?per_page=300&page=1',
+            'https://ice.radio.fm/api/v1/stations?page=2&limit=10',
+            'https://prod.radio-api.net/stations/search?query=Radio%20Silesia&count=20&offset=0',
+            'https://prod.radio-api.net/stations/search?query=BBC%20Radio%201&count=10&offset=0'
+          ]
+          for url in urls:
+            out={'url':url}
+            try:
+              with urlopen(Request(url,headers={'User-Agent':'WarderRadioWholeGlobalOriginalCatalogReview/1.0','Accept':'application/json'}),timeout=14) as r:
+                raw=r.read(1200000)
+                out['status']=r.status
+              j=json.loads(raw)
+              out['sha256']=hashlib.sha256(raw).hexdigest()
+              out['total_bytes']=len(raw)
+              out['keys']=list(j)
+              if 'data' in j:
+                out['rows']=len(j['data'])
+                out['meta']=j.get('meta')
+                out['first_uuids']=[r.get('uuid') for r in j['data'][:5]]
+                out['sample']={k:j['data'][0].get(k) for k in ('id','uuid','name','metadata','homepage','favicon','country','streams')}
+              else:
+                out['rows']=len(j.get('playables',[]))
+                out['totalCount']=j.get('totalCount')
+                out['first']={k:j['playables'][0].get(k) for k in ('id','name','country','streams','logo300x300','logo175x175')} if j.get('playables') else None
+            except Exception as e:out['error']=type(e).__name__+':'+str(e)[:180]
+            print('MASS WORLD LOGO CATALOG CONTRACT',json.dumps(out,ensure_ascii=False,sort_keys=True)[:7000],flush=True)
+          PY

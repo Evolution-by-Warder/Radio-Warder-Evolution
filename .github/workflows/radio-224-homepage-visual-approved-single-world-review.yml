@@ -1,0 +1,144 @@
+name: ONE 240-homepage source block → two visual BR CL originals → full 224-country REVIEW rebuild
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-224-homepage-visual-approved-single-world-review.yml
+      - tools/merge_224_firstparty_homepage_visual_originals.py
+      - tests/test_merge_224_firstparty_homepage_visual_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-224-world-review-for-new-independently-verified-radio-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-homepages-240-world
+      WORLD_SHA: 7218bb72aedfc06f1850d36dd4868f68c6456903677756447278024a19f0da8c
+      STAGE_SHA: 3ab3f5f0d590de9ae82e08e86d72ce1964ff55671dd51389d031cb8d3918e2dc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test fail-closed pinned first-party picture SHA and original station references
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_224_firstparty_homepage_visual_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Download only current SHA-pinned full world and one complete 240-host source contact review
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{worldsource,stage,shards,old}
+          test "$(gh run view 44898959277 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44899903936 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44898959277 -n radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY -D "$ROOT/worldsource"
+          gh run download 44899903936 -n radio-224-independent-broadcaster-homepages-contact-REVIEW-ONLY -D "$ROOT/stage"
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          world=list((root/"worldsource").rglob("radio-countries-bouquets.zip"))
+          assert len(world)==1,world
+          shutil.copyfile(world[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z:index=json.loads(z.read("index.json"))
+          assert (index["country_count"],index["station_count"])==(224,48219)
+          assert sum(x["logos_found"] for x in index["countries"].values())==39865
+          path=root/"stage/review/firstparty-224-homepage-logo-stage-REVIEW.json"
+          assert hashlib.sha256(path.read_bytes()).hexdigest()==os.environ["STAGE_SHA"]
+          s=json.loads(path.read_bytes())
+          assert s["homepage_requests"]==240 and s["downloaded_unique_images_for_manual_contact_QA"]==2
+          assert s["new_png_approved"]==0 and s["new_world_created"] is False
+          codes=sorted(index["countries"])
+          shards=sorted({codes.index(cc)//8 for cc in ("BR","CL")})
+          (root/"need-shards.txt").write_text("\n".join("%02d"%x for x in shards)+"\n")
+          print("CURRENT FULL 39865 WORLD SHA VERIFIED; SOURCE STAGE 240 SITES VERIFIED")
+          PY
+          rm -rf "$ROOT/worldsource"
+      - name: Recover only correct old BR/CL country originals from unchanged canonical shards
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 \
+              -n "radio-canonical-39643-country-shard-$shard-REVIEW" \
+              -D "$ROOT/shards/$shard"
+          done < "$ROOT/need-shards.txt"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:index=json.loads(z.read("index.json"))
+          for cc in ("BR","CL"):
+              matches=list((root/"shards").rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              valid=[]
+              for folder in matches:
+                  path=folder/"logos"/(cc+".zip")
+                  if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==index["countries"][cc]["logo_sha256"]:
+                      valid.append(folder)
+              assert len(valid)==1,(cc,len(valid))
+              shutil.copytree(valid[0],root/"old"/valid[0].name)
+              print("OLD EXISTING COUNTRY VERIFIED AND PINNED",cc,index["countries"][cc]["logos_found"])
+          PY
+          rm -rf "$ROOT/shards"
+      - name: Finalize one combined visually reviewed 240-homepage stage for two exact station brands
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_224_firstparty_homepage_visual_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/candidates"
+      - name: ONE full 224-country world rebuild; 39865 original logo bytes unchanged
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/candidates" \
+            --countries BR,CL --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          s=json.loads((root/"candidates/homepage-big-bulk-two-visual-approved-proof.json").read_text())
+          p=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert s["source_stage_sha256"]==os.environ["STAGE_SHA"]
+          assert s["homepage_requests"]==240 and s["approved_station_logos"]==2
+          assert s["quarantined_or_not_proven"]==238
+          assert p["country_count"]==224 and p["station_count"]==48219
+          assert p["logos_added"]==2 and p["original_world_sha256"]==os.environ["WORLD_SHA"]
+          changed={x["country"]:x for x in p["countries_changed"]}
+          assert set(changed)=={"BR","CL"} and all(x["added"]==1 for x in changed.values())
+          latest=root/"new-world/radio-countries-bouquets.zip"
+          assert hashlib.sha256(latest.read_bytes()).hexdigest()==p["new_world_sha256"]
+          with ZipFile(latest) as z:
+              index=json.loads(z.read("index.json"))
+              assert index["country_count"]==224 and index["station_count"]==48219
+              assert sum(x["logos_found"] for x in index["countries"].values())==39867
+              assert 48219-39867==8352
+          print("ONE BIG SOURCE STAGE, ONE WORLD BUILD",json.dumps({
+              "firstparty_owner_sites_checked":240,
+              "country_brands_visually_approved":2,
+              "quarantined_or_unproven":238,
+              "new_world_original_png":39867,
+              "missing_original_png":8352,
+              "unchanged_preceding_png":39865,
+              "new_world_sha256":p["new_world_sha256"],
+              "changes":changed
+          },sort_keys=True))
+          PY
+      - name: Upload only one 224-country original REVIEW world and two SHA-verified country files
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-240-firstparty-sites-two-visual-originals-39867-complete-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-homepages-240-world/candidates/
+            /tmp/warder-homepages-240-world/new-world/
+          retention-days: 30
+          if-no-files-found: error

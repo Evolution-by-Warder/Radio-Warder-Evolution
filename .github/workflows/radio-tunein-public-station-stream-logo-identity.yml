@@ -1,0 +1,53 @@
+name: Test exact source-stream identity and station-only logos from TuneIn public OPML
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-tunein-public-station-stream-logo-identity.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  explicit-search-and-stream-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check exact owner image and stream equality on missing and known radio stations
+        run: |
+          python3 - <<'PY'
+          from urllib.request import Request,urlopen
+          from urllib.parse import urlencode,urlsplit
+          from xml.etree import ElementTree
+          import json,re
+          tests=['100.7 KGBI','103.9 WYAB','105.9 FM The Monkey','0nlineradio 50s',
+                 'Radio Eurostar','Radio Priboy','Radio Silesia']
+          def get(url,maxbytes=250000):
+              with urlopen(Request(url,headers={'User-Agent':'WarderRadioLogoOriginalSourceReview/1.0'}),timeout=15) as r:
+                  if r.status!=200:raise OSError('HTTP '+str(r.status))
+                  return r.read(maxbytes)
+          for target in tests:
+              rec={'target':target}
+              try:
+                  url='https://opml.radiotime.com/Search.ashx?'+urlencode({'query':target})
+                  raw=get(url)
+                  doc=ElementTree.fromstring(raw)
+                  matches=[x.attrib for x in doc.findall('.//outline')
+                      if x.get('item')=='station' and x.get('guide_id','').startswith('s')]
+                  key=lambda s:''.join(x for x in s.lower() if x.isalnum())
+                  exact=[x for x in matches if key(x.get('text',''))==key(target)]
+                  rec.update(search_count=len(matches),exact_station_titles=len(exact),
+                     titles=[x.get('text') for x in matches[:8]],
+                     exact_samples=exact[:3])
+                  if len(exact)==1:
+                      uid=exact[0]['guide_id']
+                      stream_raw=get('https://opml.radiotime.com/Tune.ashx?'+urlencode({'id':uid,'render':'json'}))
+                      doc=json.loads(stream_raw)
+                      rec['tune_meta']={'keys':list(doc)[:8] if isinstance(doc,dict) else [],
+                          'body':str(doc.get('body') or '')[:1500] if isinstance(doc,dict) else str(doc)[:1500]}
+                      descr=get('https://opml.radiotime.com/Describe.ashx?'+urlencode({'id':uid}))
+                      rec['describe_meta']=descr[:500].decode('utf8','replace')
+              except Exception as ex:rec['error']=type(ex).__name__+':'+str(ex)[:250]
+              print('TUNEIN EXACT RADIO STATION ID STREAM',json.dumps(rec,ensure_ascii=False)[:5000])
+          PY

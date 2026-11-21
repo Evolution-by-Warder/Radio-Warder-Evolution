@@ -1,0 +1,81 @@
+name: One-time audit of missing original radio logos from pinned world artifacts
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-logos-missing-source-audit.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      REVIEW_DIR: /tmp/warder-missing-original-logos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate audit code offline
+        run: |
+          python3 -B tests/test_radio_country_release_assets.py
+      - name: Download only the approved pinned world and index artifacts
+        run: |
+          mkdir -p "$REVIEW_DIR/world" "$REVIEW_DIR/index" "$REVIEW_DIR/batches"
+          gh run download 44583128017 -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$REVIEW_DIR/world"
+          gh run download 44598970492 -n radio-all-224-audit-39110-logos-REVIEW-NOT-PRODUCTION -D "$REVIEW_DIR/index"
+      - name: Retrieve previously verified country logo archive assets (do not regenerate)
+        run: |
+          gh run download 44583128017 -p 'radio-original-logos-batch-*-REVIEW' -D "$REVIEW_DIR/batches"
+      - name: Collect read-only country archive paths
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          root=Path(os.environ['REVIEW_DIR'])
+          batches=root/'batches'
+          target=root/'shards'
+          target.mkdir()
+          countries={}
+          for folder in sorted(batches.rglob('radio-country-??-REVIEW-NOT-PRODUCTION')):
+              if not folder.is_dir() or folder.is_symlink():
+                  raise SystemExit('Invalid country archive folder')
+              code=folder.name.split('-')[2]
+              if code in countries or len(code)!=2 or not code.isalpha():
+                  raise SystemExit('Duplicate or malformed country archive')
+              countries[code]=folder
+              folder.rename(target/folder.name)
+          if len(countries)!=224:
+              raise SystemExit('Missing country archive assets: '+str(len(countries)))
+          print('Existing complete country logo assets:',len(countries))
+          PY
+      - name: Compare all real PNG identities with full country catalogues
+        run: |
+          python3 -B tools/audit_radio_country_release_assets.py \
+            --world "$REVIEW_DIR/world/radio-countries-bouquets.zip" \
+            --index "$REVIEW_DIR/index/latest.json" \
+            --shards "$REVIEW_DIR/shards" > "$REVIEW_DIR/missing-source-audit.json"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads((Path(os.environ['REVIEW_DIR'])/'missing-source-audit.json').read_text())
+          if [data['country_count'],data['station_count'],data['logo_count'],data['logo_missing']] != [224,48219,39110,9109]:
+              raise SystemExit('Pinned world review count mismatch')
+          count=data['missing_source_breakdown']
+          if sum(v for k,v in count.items() if k!='svg_favicon_candidates')!=9109:
+              raise SystemExit('Incomplete 9,109 source metadata classifications')
+          print('All missing-original-logo metadata categories:',json.dumps(count,sort_keys=True))
+          print('Top 20 missing countries:',sorted(data['missing_by_country'].items(),
+                            key=lambda p:p[1]['missing'],reverse=True)[:20])
+          PY
+      - name: Upload tiny diagnostic results only — never a public release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-224-missing-original-logo-categories-REVIEW-ONLY
+          path: ${{ env.REVIEW_DIR }}/missing-source-audit.json
+          if-no-files-found: error
+          retention-days: 30

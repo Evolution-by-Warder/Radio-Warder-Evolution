@@ -1,0 +1,119 @@
+name: Six branded Live365 US originals - 39724 PNG complete world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-live365-final-six-39724-world-review.yml
+      - tools/merge_live365_final_six_39718.py
+      - tests/test_merge_live365_final_six_39718.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  six-original-logo-brand-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-live365-39724-six
+      WORLD_SHA: b9a2ac03b5a5fe220c27f8ed8615066a0ccea2fab4e3e7ec0c4dc3629ddb7257
+      STAGE_SHA: ca917d992a91c7c4f9a914c616e03bdb931af054d53af39a6aa800a3fd94aa17
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow offline original conversion and negative image/identity tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_live365_final_six_39718.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_live365_missing_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Restore only last SHA-pinned 39718 world, current original US ZIP and third 15-owner source stage
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,old,stage}
+          test "$(gh run view 44894826484 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895097576 --json conclusion -q .conclusion)" = success
+          gh run download 44894826484 \
+            -n radio-live365-nine-visual-originals-39718-world-REVIEW-ONLY \
+            -D "$ROOT/source"
+          gh run download 44895097576 \
+            -n live365-third-disjoint-39718-unseen-broadcaster-originals-REVIEW \
+            -D "$ROOT/stage"
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          import hashlib,json,os,shutil
+          root=Path(os.environ['ROOT'])
+          found=list((root/'source').rglob('radio-countries-bouquets.zip'))
+          assert len(found)==1
+          shutil.copyfile(found[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(v['logos_found'] for v in idx['countries'].values())==39718
+          matches=list((root/'source').rglob('radio-country-US-REVIEW-NOT-PRODUCTION'))
+          assert len(matches)==1
+          old=matches[0]/'logos/US.zip'
+          digest=hashlib.sha256(old.read_bytes()).hexdigest()
+          assert digest==idx['countries']['US']['logo_sha256']
+          assert idx['countries']['US']['logos_found']==5771
+          shutil.copytree(matches[0],root/'old'/matches[0].name)
+          proof=root/'stage/live365-third-disjoint-owner-39718-review.json'
+          assert hashlib.sha256(proof.read_bytes()).hexdigest()==os.environ['STAGE_SHA']
+          print('LATEST 39718 WORLD, CURRENT US 5771 ORIGINALS, 8 STAGED RASTERS SHA PASS')
+          PY
+          rm -rf "$ROOT/source"
+      - name: Attach ONLY 6 completely branded original radio logos by exact UUID/owner name/stream and image SHAs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_live365_final_six_39718.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Rebuild 224-country world and verify 39724 PNGs, old members intact, only US changed
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries US --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          approved=json.loads((root/'review/live365-third-six-approved-originals-proof.json').read_text())
+          report=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert approved['visual_approved_new_png']==report['logos_added']==6
+          assert approved['review_only'] and report['review_only']
+          assert len(approved['approved'])==6 and len(approved['quarantined'])==2
+          assert approved['source_world_sha256']==report['original_world_sha256']==os.environ['WORLD_SHA']
+          assert report['country_count']==224 and report['station_count']==48219
+          changed={x['country']:(x['previous'],x['current'],x['added']) for x in report['countries_changed']}
+          assert changed=={'US':(5771,5777,6)}
+          world=root/'new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==report['new_world_sha256']
+          with ZipFile(world) as z:
+              idx=json.loads(z.read('index.json'))
+              assert idx['country_count']==224 and idx['station_count']==48219
+              assert sum(x['logos_found'] for x in idx['countries'].values())==39724
+              assert 48219-39724==8495
+              assert idx['countries']['US']['logos_found']==5777
+          print('LIVE365 6 ORIGINAL BRAND LOGOS FULL WORLD PASS',json.dumps({
+              'new_total':39724,'remaining_missing':8495,
+              'world_sha256':report['new_world_sha256'],'country_changes':changed
+          },sort_keys=True))
+          PY
+      - name: Store only 39724 REVIEW world + new original US country ZIP, never release/IPK/main
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-live365-third-six-originals-39724-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-live365-39724-six/review/
+            /tmp/warder-live365-39724-six/new-world/
+          retention-days: 30
+          if-no-files-found: error

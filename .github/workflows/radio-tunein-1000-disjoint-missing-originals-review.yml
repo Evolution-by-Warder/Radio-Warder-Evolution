@@ -1,0 +1,128 @@
+name: Second DISJOINT 1000 missing station TuneIn first-party radio logo source REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-tunein-1000-disjoint-missing-originals-review.yml
+      - tools/stage_tunein_second_disjoint_1000_world.py
+      - tests/test_stage_tunein_second_disjoint_1000_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-1000-unqueried-source-batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-tunein-1000-disjoint-owner-original
+      WORLD_SHA: e3e06d6cfdae9ebacfc676e6780a317c767529e304e2899c81d68862ac5da86f
+      PRIOR_SHA: a93bde7174d9ac6edaf7d170355e87f4ddba1eb969d19412008906a7f71d1be2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Negative station stream URL, provider logo, source UUID and request-budget tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_tunein_second_disjoint_1000_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_tunein_exact_stream_world_missing.py
+          python3 -m py_compile tools/stage_tunein_second_disjoint_1000_world.py
+      - name: Pin newest 40013 world and exact immutable 400 already processed TuneIn station source IDs
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world,first400,old,baseline,prior39979,prior39964,prior39867,patch13,patch7}
+          for id in 44914701701 44914331569 44913642417 44911563049 44900502836 44906253671 44907497364 44801652426; do
+            test "$(gh run view "$id" --json conclusion -q .conclusion)" = success
+          done
+          gh run download 44914701701 -n radio-tunein-34-visual-originals-40013-world-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44914331569 -n radio-tunein-400-missing-exact-owner-station-PNG-UNAPPROVED-REVIEW -D "$ROOT/first400"
+          cp "$(find "$ROOT/world" -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          echo "$PRIOR_SHA  $ROOT/first400/tunein-all-country-missing-station-originals-REVIEW.json" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,os
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==40013
+          priority=sorted(idx["countries"],key=lambda c:(idx["countries"][c]["logos_found"]-idx["countries"][c]["stations"],c))[:35]
+          shards=sorted({sorted(idx["countries"]).index(c)//8 for c in priority})
+          (root/"priority-country-codes.json").write_text(json.dumps(priority))
+          (root/"shards-needed.txt").write_text("".join(f"{sh:02d}\n" for sh in shards))
+          print("NEXT 35 MISSING ORIGINAL COUNTRY PRIORITIES",priority)
+          PY
+      - name: Reuse signed current original country ZIPs; never redownload 40013 prior station images
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/baseline/$shard"
+          done < "$ROOT/shards-needed.txt"
+          gh run download 44913642417 -n radio-tef-15-visual-approved-39979-world-REVIEW-ONLY -D "$ROOT/prior39979"
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/prior39964"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/prior39867"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          codes=json.loads((root/"priority-country-codes.json").read_text())
+          sources=("world","prior39979","prior39964","prior39867","patch7","patch13","baseline")
+          for cc in codes:
+              matches=[]
+              for folder in sources:
+                  for src in (root/folder).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"):
+                      path=src/"logos"/(cc+".zip")
+                      if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==idx["countries"][cc]["logo_sha256"]:
+                          matches.append(src)
+                  if matches:break
+              if len(matches)!=1:raise ValueError("Missing latest SHA original country ZIP "+cc+": "+str(len(matches)))
+              shutil.copytree(matches[0],root/"old"/matches[0].name)
+          print("ALL 35 PRIORITY COUNTRY ORIGINAL LOGO ZIP SHA PASS; OLD LOGOS NEVER REFETCHED")
+          PY
+          rm -rf "$ROOT/world" "$ROOT/prior39979" "$ROOT/prior39964" "$ROOT/prior39867" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/baseline"
+      - name: ONE 1000 new actual TuneIn station names; skip every previously queried UUID and require exact audio stream
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_tunein_second_disjoint_1000_world.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior "$ROOT/first400/tunein-all-country-missing-station-originals-REVIEW.json" \
+            --out "$ROOT/review" --limit 1000 --workers 5
+      - name: Check 400 old UUIDs completely omitted, previous original PNG and all catalogues unchanged
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path(os.environ["ROOT"])
+          r=json.loads((root/"review/tunein-second-disjoint-missing-originals-REVIEW.json").read_text())
+          a=json.loads((root/"first400/tunein-all-country-missing-station-originals-REVIEW.json").read_text())
+          assert r["review_only"] and r["world_unchanged"] and r["new_png_approved"]==0
+          assert r["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["previous_source_sha256"]==os.environ["PRIOR_SHA"]
+          assert r["country_count"]==224 and r["station_count"]==48219
+          assert r["world_originals_before"]==40013 and r["excluded_previous_queries"]==400
+          assert r["countries_with_exact_original_ZIP"]==35
+          assert 0<=r["new_distinct_station_queries"]<=1000
+          assert len(r["results"])==r["new_distinct_station_queries"]
+          assert not ({x["stationuuid"] for x in r["results"]}&{x["stationuuid"] for x in a["results"]})
+          assert all(not x["approved"] for x in r["results"])
+          assert not list((root/"review").rglob("radio-countries-bouquets.zip"))
+          print("DISJOINT 1000-TUNEIN SOURCE WORLD PASS",json.dumps({
+              k:r[k] for k in ("new_distinct_station_queries","new_original_images_for_visual_QA",
+                  "quarantined_or_unavailable","selection_skips")},sort_keys=True))
+          PY
+      - name: Retain one complete 1000-query visual original-image source artifact (no public radio packages)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-tunein-second-1000-disjoint-original-images-REVIEW-ONLY
+          path: /tmp/warder-tunein-1000-disjoint-owner-original/review/
+          retention-days: 30
+          if-no-files-found: error

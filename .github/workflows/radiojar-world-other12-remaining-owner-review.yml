@@ -1,0 +1,149 @@
+name: Radiojar 224-country unprobed owners in remaining 12 countries - 45 IDs excluded (review)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radiojar-world-other12-remaining-owner-review.yml
+      - tools/stage_radiojar_world_remaining_second_pass.py
+      - tests/test_stage_radiojar_world_remaining_second_pass.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  other-12-pinned-countries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radiojar-global-other12
+      WORLD_SHA: 41e0b024aa56e2149da76270479dd41558a505388635531810d3185de3d65042
+      CODES: MX,AL,AE,BS,CH,CY,DZ,EE,GE,GH,MS,NO
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pillow only on CI, source SHA and old 45 owner rejection tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_radiojar_world_remaining_second_pass.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_radiojar_missing_world_224_disjoint.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_radiojar_firstparty_source_224.py
+      - name: Download exactly last full 39707 review-world ZIP and three OLD owner metadata proofs
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world-source" "$ROOT/prior24" "$ROOT/prior16" "$ROOT/prior5" "$ROOT/old" "$ROOT/shards" "$ROOT/newal" "$ROOT/newgh"
+          test "$(gh run view 44891211396 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44885850408 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44889385623 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44890993374 --json conclusion -q .conclusion)" = success
+          gh run download 44891211396 -n radiojar-global-three-verified-39707-world-REVIEW-ONLY -D "$ROOT/world-source"
+          gh run download 44885850408 -n radio-new-Radiojar-owner-images-224-world-REVIEW-UNAPPROVED -D "$ROOT/prior24"
+          gh run download 44889385623 -n radiojar-next-24-missing-owner-images-UNAPPROVED-REVIEW -D "$ROOT/prior16"
+          gh run download 44890993374 -n radiojar-224-world-disjoint-new-owner-original-images-UNAPPROVED -D "$ROOT/prior5"
+          mapfile -t world < <(find "$ROOT/world-source" -type f -name radio-countries-bouquets.zip)
+          test "${#world[@]}" -eq 1
+          cp "${world[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          test -f "$ROOT/prior24/radiojar-firstparty-source-224-review.json"
+          test -f "$ROOT/prior16/radiojar-new-ids-priority-country-review.json"
+          test -f "$ROOT/prior5/radiojar-224-world-unprobed-owners-REVIEW.json"
+          rm -rf "$ROOT/world-source"
+      - name: Download only 10 needed canonical country shards plus newer AL and GH archive proofs
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44845517605 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44871624970 --json conclusion -q .conclusion)" = success
+          gh run download 44845517605 -n radio-AL-RTSH-firstparty-original-REVIEW-ONLY -D "$ROOT/newal"
+          gh run download 44871624970 -n radio-8-countries-RadioCo-firstparty-original-REVIEW-ONLY -D "$ROOT/newgh"
+          python3 - <<'PY' > "$ROOT/shards-needed.txt"
+          from zipfile import ZipFile
+          import os,json
+          with ZipFile(os.environ['ROOT']+'/world.zip') as z: idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39707
+          candidates=[x for x in os.environ['CODES'].split(',') if x not in ('AL','GH')]
+          print(*sorted({f"{sorted(idx['countries']).index(cc)//8:02d}" for cc in candidates}),sep='\n')
+          PY
+          while read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/shards-needed.txt"
+      - name: SHA-check every country against actual current 39707-world, skip any outdated shard safely
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          codes=os.environ['CODES'].split(',')
+          valid=[];blocked=[]
+          for cc in codes:
+              source=root/('newal' if cc=='AL' else 'newgh' if cc=='GH' else 'shards')
+              found=list(source.rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              if len(found)!=1:
+                  blocked.append({'country':cc,'reason':'source_country_not_available','matches':len(found)})
+                  continue
+              old=found[0]/'logos'/f'{cc}.zip'
+              if not old.is_file():
+                  blocked.append({'country':cc,'reason':'country_zip_missing'});continue
+              actual=hashlib.sha256(old.read_bytes()).hexdigest()
+              expected=idx['countries'][cc]['logo_sha256']
+              if actual!=expected:
+                  blocked.append({'country':cc,'reason':'outdated_country_shard','expected_sha':expected,
+                                  'stale_source_sha':actual})
+                  continue
+              shutil.copytree(found[0],root/'old'/found[0].name)
+              valid.append(cc)
+              print('LAST CURRENT COUNTRY LOGO SHA-256 PASS',cc,expected)
+          assert valid and len(valid)+len(blocked)==len(codes)
+          (root/'valid-codes.txt').write_text(','.join(valid))
+          (root/'country-shard-blockers.json').write_text(json.dumps(blocked,indent=2)+'\n')
+          print('COUNTRIES VERIFIED',len(valid),'SAFELY SKIPPED OUTDATED',len(blocked))
+          PY
+          rm -rf "$ROOT/shards" "$ROOT/newal" "$ROOT/newgh"
+      - name: Only unprobed unique owner images for genuinely MISSING original PNGs; 224-country scan
+        run: |
+          set -euo pipefail
+          validated="$(cat "$ROOT/valid-codes.txt")"
+          PYTHONPATH=src:tools python3 -B tools/stage_radiojar_world_remaining_second_pass.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior24 "$ROOT/prior24/radiojar-firstparty-source-224-review.json" \
+            --prior16 "$ROOT/prior16/radiojar-new-ids-priority-country-review.json" \
+            --prior5 "$ROOT/prior5/radiojar-224-world-unprobed-owners-REVIEW.json" \
+            --countries "$validated" --max-probes 24 --out "$ROOT/review"
+          cp "$ROOT/country-shard-blockers.json" "$ROOT/review/country-shard-blockers.json"
+      - name: Reject any publication or old PNG overwrite, account for all prior 45 source IDs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          o=json.loads((root/'review/radiojar-224-world-unprobed-owners-REVIEW.json').read_text())
+          assert o['review_only'] and o['original_png_added']==0 and o['world_created'] is False
+          assert o['source_world_sha256']==os.environ['WORLD_SHA']
+          assert o['countries_scanned']==224 and o['stations_scanned']==48219
+          assert o['baseline_original_png']==39707 and o['previous_owner_ids_never_queried']==45
+          assert o['original_zip_countries_verified']==(root/'valid-codes.txt').read_text().split(',')
+          assert o['new_owner_image_requests']<=24
+          assert len(o['attempts'])==o['new_owner_image_requests']
+          assert all(a.get('approved') is False for a in o['attempts'])
+          assert not list((root/'review').rglob('radio-countries-bouquets.zip'))
+          print('SECOND WORLD RADIOJAR OWNER GAP AUDIT PASS',json.dumps({
+            k:o[k] for k in ('unprobed_distinct_owner_ids','distinct_unprobed_countries',
+              'verified_country_stats','new_owner_image_requests','raw_originals_for_visual_QA',
+              'shared_image_groups','provider_failures')
+          },sort_keys=True))
+          PY
+      - name: Upload only genuine new station image evidence and review contact sheet
+        uses: actions/upload-artifact@v4
+        with:
+          name: radiojar-world-second-45excluded-missing-source-images-REVIEW
+          path: /tmp/warder-radiojar-global-other12/review/
+          if-no-files-found: error
+          retention-days: 30

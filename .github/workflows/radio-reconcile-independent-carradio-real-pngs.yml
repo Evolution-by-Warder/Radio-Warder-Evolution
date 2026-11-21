@@ -1,0 +1,122 @@
+name: Archived CarRadio 71 exact matches vs actual PNGs (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/reconcile_independent_carradio_real_pngs.py
+      - tests/test_reconcile_independent_carradio_real_pngs.py
+      - .github/workflows/radio-reconcile-independent-carradio-real-pngs.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-carradio-actual-png
+      WORLD_SHA: 1b0c79812d988ac4aaa368033d966de117d11e3ef5c9db66331afc5c9c750c8b
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict source and inventory regression
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_reconcile_independent_carradio_real_pngs.py
+          PYTHONPATH=src:tools python3 -B tests/test_independent_carradio_world.py
+      - name: Obtain exact 71 candidates and already verified 39661 world inventory
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,world,updated,old,shards}
+          test "$(gh run view 44821959556 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44818364283 --json conclusion -q .conclusion)" = success
+          gh run download 44821959556 -n radio-independent-CarRadio-224-country-source-matches-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44818364283 -n radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY -D "$ROOT/updated"
+          mapfile -t archive < <(find "$ROOT/updated" -type f -name radio-countries-bouquets.zip)
+          test "${#archive[@]}" -eq 1
+          cp "${archive[0]}" "$ROOT/world/radio-countries-bouquets.zip"
+          echo "$WORLD_SHA  $ROOT/world/radio-countries-bouquets.zip" | sha256sum --check
+          test -f "$ROOT/source/carradio-new-source-world-metadata-review.json"
+      - name: Identify ONLY required canonical 8-country shard numbers (no recrawl)
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          r=Path(os.environ["ROOT"])
+          metadata=json.loads((r/"source/carradio-new-source-world-metadata-review.json").read_text())
+          with ZipFile(r/"world/radio-countries-bouquets.zip") as archive:
+              world=json.loads(archive.read("index.json"))
+          countries=sorted(world["countries"])
+          codes={v["country"] for v in metadata["source_evidence"].values()}
+          assert len(codes)==19 and len(countries)==224
+          # DE is from the newest official DAB operator result.
+          # FR and NL come from the newer independent-source 39655 artifact.
+          canonical=codes-{"DE","FR","NL"}
+          required=sorted({countries.index(code)//8 for code in canonical})
+          (r/"required-shards.txt").write_text("\n".join(f"{x:02d}" for x in required)+"\n")
+          (r/"required-countries.txt").write_text("\n".join(sorted(canonical))+"\n")
+          print("REQUIRED SHARDS",required,"for",sorted(canonical),flush=True)
+          PY
+      - name: Download ONLY relevant SHA-verified canonical country originals
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          while read -r shard; do
+            echo "Original 8-country shard $shard"
+            mkdir -p "$ROOT/shards/$shard"
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-${shard}-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/required-shards.txt"
+          while read -r code; do
+            mapfile -t folders < <(find "$ROOT/shards" -type d -name "radio-country-${code}-REVIEW-NOT-PRODUCTION")
+            test "${#folders[@]}" -eq 1
+            cp -a "${folders[0]}" "$ROOT/old/"
+          done < "$ROOT/required-countries.txt"
+      - name: Bring FR/NL and DE forward to their latest verified asset versions
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44802603175 --json conclusion -q .conclusion)" = success
+          gh run download 44802603175 -n radio-224-39655-independent-source-originals-REVIEW-ONLY -D "$ROOT/updated-39655"
+          for code in FR NL; do
+            mapfile -t folders < <(find "$ROOT/updated-39655" -type d -name "radio-country-${code}-REVIEW-NOT-PRODUCTION")
+            test "${#folders[@]}" -eq 1
+            cp -a "${folders[0]}" "$ROOT/old/"
+          done
+          mapfile -t de < <(find "$ROOT/updated" -type d -name "radio-country-DE-REVIEW-NOT-PRODUCTION")
+          test "${#de[@]}" -eq 1
+          cp -a "${de[0]}" "$ROOT/old/"
+          test "$(find "$ROOT/old" -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq 19
+      - name: Reconcile 71 exact archived matches against REAL logo ZIP members, per-country SHA
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/reconcile_independent_carradio_real_pngs.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --old-root "$ROOT/old" \
+            --carradio-audit "$ROOT/source/carradio-new-source-world-metadata-review.json" \
+            --out "$ROOT/review"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=Path(os.environ["ROOT"])
+          p=json.loads((r/"review/carradio-71-exact-matches-vs-real-country-png-review.json").read_text())
+          assert p["review_only"] and p["world_sha256"]==os.environ["WORLD_SHA"]
+          assert p["country_zip_count"]==19 and p["station_exact_matches"]==71
+          assert p["previously_covered"]+p["still_missing_exact_matches"]==71
+          assert p["new_logos_verified"]==0 and p["current_brand_verified"]==0
+          assert all(x["already_had_png"]+len(x["missing_png_candidates"])==x["source_exact_matches"] for x in p["countries"])
+          print("CARRADIO VERIFIED SOURCE-TO-PNG GAP RESULTS",json.dumps({
+             "already_existing":p["previously_covered"],
+             "actual_missing_candidates":p["still_missing_exact_matches"],
+             "affected_countries":sum(bool(x["missing_png_candidates"]) for x in p["countries"])
+          },sort_keys=True))
+          PY
+      - name: Upload ONLY small missing-candidate evidence, never images or public packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY
+          path: /tmp/warder-carradio-actual-png/review/
+          retention-days: 30
+          if-no-files-found: error

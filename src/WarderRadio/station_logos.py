@@ -15,6 +15,8 @@ from urllib.parse import quote, urljoin, urlsplit
 from .cache import prune, write_atomic
 from .model import search_key, stream_url
 from .radio_browser import USER_AGENT
+from .homepage_logos import homepage_icon_candidates, station_domain
+from .logo_source_guard import mismatched_source
 
 MAX_INPUT = 512 * 1024
 MAX_PIXELS = 1024 * 1024
@@ -122,22 +124,32 @@ def public_domain(url):
 
 
 def website_icons(item):
-    domain = public_domain(item.get('homepage') or item.get('favicon') or '')
+    # A social-platform or generic image-CDN favicon is not a radio logo.
+    # Website fallbacks require the broadcaster's own homepage host.
+    domain = station_domain(item.get('homepage') or '')
     if not domain:
         return []
     return [
         'https://' + domain + '/apple-touch-icon.png',
+        # Try the station's own standard favicon before generic icon proxies.
+        # Strict public-IP and image size checks still apply in request_logo().
+        'https://' + domain + '/favicon.ico',
         'https://www.google.com/s2/favicons?domain=' + quote(domain, safe='') + '&sz=128',
         'https://icons.duckduckgo.com/ip3/' + quote(domain, safe='') + '.ico',
     ]
 
 
 class StationLogos:
-    def __init__(self, directory, download=request_logo, clock=time.time, alternatives=None):
+    def __init__(self, directory, download=request_logo, clock=time.time,
+                 alternatives=None, bulk_mode=False):
         self.directory = os.path.join(directory, 'station-logo-cache')
         self.download, self.clock = download, clock
         self.alternatives = alternatives or self.find_alternatives
         self.catalogue_root = directory
+        # The offline 224-country builder has several readers at once. Do not
+        # prune another worker's returned PNG before it enters the country ZIP.
+        # Normal receiver/plugin caching stays strictly bounded by default.
+        self.bulk_mode = bool(bulk_mode)
 
     def find_alternatives(self, item):
         """Only exact name and country matches from the public Radio Browser API."""
@@ -165,6 +177,11 @@ class StationLogos:
         if not key or os.path.islink(self.directory):
             return None
         station = item if isinstance(item, dict) else {'favicon': item}
+        if self.bulk_mode and mismatched_source(station) is not None:
+            # Do not turn a shared website favicon into the logo of an
+            # unrelated or differently branded station. Future valid source
+            # replacements are accepted automatically.
+            return None
         prefix = hashlib.sha256(key.encode('utf-8')).hexdigest()
         path = os.path.join(self.directory, prefix + '.png')
         miss = os.path.join(self.directory, prefix + '.miss')
@@ -178,7 +195,7 @@ class StationLogos:
             return None
 
         best, quality, checked = None, 0, set()
-        deadline = time.monotonic() + LOOKUP_BUDGET
+        deadline = time.monotonic() + (20 if self.bulk_mode else LOOKUP_BUDGET)
 
         def consider(url):
             nonlocal best, quality
@@ -186,18 +203,52 @@ class StationLogos:
                 return
             checked.add(url)
             try:
-                png, value = normalized_logo(self.download(url))
+                source = self.download(url)
+                if self.bulk_mode and source.lstrip().startswith((b'<svg', b'<?xml')):
+                    # No CairoSVG requirement in the installed receiver plugin.
+                    # Only the isolated offline builder may rasterize SVG.
+                    from .svg_logos import render_svg
+                    png, value = render_svg(source)
+                else:
+                    png, value = normalized_logo(source)
                 if value > quality:
                     best, quality = png, value
             except (OSError, ValueError, ImportError, http.client.HTTPException):
                 pass
 
         consider(station.get('favicon'))
+        if self.bulk_mode and quality < 64 and isinstance(item, dict):
+            # Six independently identified broadcaster logos also belong in
+            # future 14-day GitHub builds, not just the first curated ZIP.
+            # No additional network requests are introduced on the receiver.
+            from .curated_station_logos import verified_logo_url
+            source_url = verified_logo_url(item)
+            if source_url:
+                consider(source_url)
         if quality < 64 and isinstance(item, dict):
-            for url in website_icons(item):
-                consider(url)
-                if quality >= 64:
-                    break
+            website = website_icons(item)
+            if self.bulk_mode:
+                # Official on-site icon URLs first, then bounded same-origin
+                # HTML icon declarations, then generic icon proxies.
+                for url in website[:2]:
+                    consider(url)
+                    if quality >= 64:
+                        break
+                if quality < 64 and time.monotonic() < deadline:
+                    for url in homepage_icon_candidates(item.get('homepage'), self.download):
+                        consider(url)
+                        if quality >= 64:
+                            break
+                if quality < 64:
+                    for url in website[2:]:
+                        consider(url)
+                        if quality >= 64:
+                            break
+            else:
+                for url in website:
+                    consider(url)
+                    if quality >= 64:
+                        break
         if quality < 64 and isinstance(item, dict) and time.monotonic() < deadline:
             for url in self.alternatives(item)[:4]:
                 consider(url)
@@ -210,12 +261,14 @@ class StationLogos:
                 write_atomic(path, best)
                 if os.path.isfile(miss):
                     os.unlink(miss)
-                prune(self.directory, PATTERN, 128, 4 * 1024 * 1024, keep=(path,))
+                if not self.bulk_mode:
+                    prune(self.directory, PATTERN, 128, 4 * 1024 * 1024, keep=(path,))
                 return path
             if not present:
                 os.makedirs(self.directory, exist_ok=True, mode=0o700)
                 write_atomic(miss, b'')
-                prune(self.directory, MISS_PATTERN, 128, 1024 * 1024)
+                if not self.bulk_mode:
+                    prune(self.directory, MISS_PATTERN, 128, 1024 * 1024)
         except OSError:
             pass
         return path if present else None

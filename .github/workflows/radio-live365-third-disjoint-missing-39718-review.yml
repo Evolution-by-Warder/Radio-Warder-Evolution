@@ -1,0 +1,110 @@
+name: Live365 third disjoint exact 39718 original world - 31 prior IDs excluded REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-live365-third-disjoint-missing-39718-review.yml
+      - tools/stage_live365_unseen_final_39718.py
+      - tests/test_stage_live365_unseen_final_39718.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  third-disjoint-live365:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-live365-unseen-third
+      WORLD_SHA: b9a2ac03b5a5fe220c27f8ed8615066a0ccea2fab4e3e7ec0c4dc3629ddb7257
+      PRIOR19_SHA: 545a8e8dbd2a2c7ee7ec8fe3b9143ba49a837041e5c0267d4ddd8aee18e64b6f
+    steps:
+      - uses: actions/checkout@v4
+      - name: Third-disjoint identity, first-party URLs and raster security tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_live365_unseen_final_39718.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_live365_missing_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_live365_firstparty_world.py
+      - name: Fetch immutable 39718 complete world and ONLY source-candidate countries US GB
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{latest,prior12,prior19,old}
+          test "$(gh run view 44894826484 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44894594574 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44872856973 --json conclusion -q .conclusion)" = success
+          gh run download 44894826484 -n radio-live365-nine-visual-originals-39718-world-REVIEW-ONLY -D "$ROOT/latest"
+          gh run download 44894594574 -n radio-live365-new-missing-owner-originals-224-UNAPPROVED-REVIEW -D "$ROOT/prior19"
+          gh run download 44872856973 -n radio-new-independent-Live365-broadcaster-probe-REVIEW-ONLY -D "$ROOT/prior12"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,hashlib,shutil
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"latest").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1,worlds
+          shutil.copyfile(worlds[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z: index=json.loads(z.read("index.json"))
+          assert index["country_count"]==224 and index["station_count"]==48219
+          assert sum(v["logos_found"] for v in index["countries"].values())==39718
+          for cc in ("US","GB"):
+              found=list((root/"latest").rglob(f"radio-country-{cc}-REVIEW-NOT-PRODUCTION"))
+              assert len(found)==1,(cc,found)
+              src=found[0]
+              p=src/"logos"/f"{cc}.zip"
+              assert p.exists()
+              sha=hashlib.sha256(p.read_bytes()).hexdigest()
+              assert sha==index["countries"][cc]["logo_sha256"],(cc,sha)
+              shutil.copytree(src,root/"old"/src.name)
+              print("39718 SOURCE CURRENT COUNTRY SHA PASS",cc,index["countries"][cc]["logos_found"],sha)
+          prior=root/"prior19/live365-224-new-missing-firstparty-originals-REVIEW.json"
+          assert hashlib.sha256(prior.read_bytes()).hexdigest()==os.environ["PRIOR19_SHA"]
+          print("CURRENT WORLD VERIFIED",os.environ["WORLD_SHA"])
+          PY
+          rm -rf "$ROOT/latest"
+      - name: Check entire 224 country stream catalogue; request only unprobed station owner profiles with absent original PNG
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_live365_unseen_final_39718.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior12 "$ROOT/prior12/live365-firstparty-world-224-metadata-REVIEW.json" \
+            --prior19 "$ROOT/prior19/live365-224-new-missing-firstparty-originals-REVIEW.json" \
+            --out "$ROOT/review" --max-probes 30
+      - name: Prove first 31 ID profiles untouched and all new official graphics remain unapproved
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path(os.environ["ROOT"])
+          proof=json.loads((root/"review/live365-third-disjoint-owner-39718-review.json").read_text())
+          assert proof["schema"]==1 and proof["review_only"] is True
+          assert proof["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert proof["baseline_png"]==39718 and proof["countries_scanned"]==224
+          assert proof["stations_scanned"]==48219
+          assert proof["previous_owner_profiles_excluded"]==31
+          assert proof["selected_countries"]==["US","GB"]
+          assert proof["new_png_approved"]==0 and proof["new_world_created"] is False
+          assert proof["new_owner_profiles_requested"]==len(proof["attempts"])
+          assert proof["new_owner_profiles_requested"]<=30
+          assert all(x["approved"] is False for x in proof["attempts"])
+          assert len({x["owner_id"] for x in proof["attempts"]})==len(proof["attempts"])
+          print("LIVE365 THIRD DISJOINT 39718 WORLD SAFE",json.dumps({
+            key:proof[key] for key in ("candidate_missing_after_exclusions",
+             "new_owner_profiles_requested","exact_name_matches",
+             "new_image_candidates_for_visual_review","provider_errors")
+          },sort_keys=True))
+          PY
+      - name: Preserve original station-owner images for REVIEW only, no IPK, release or main
+        uses: actions/upload-artifact@v4
+        with:
+          name: live365-third-disjoint-39718-unseen-broadcaster-originals-REVIEW
+          path: /tmp/warder-live365-unseen-third/review/
+          retention-days: 30
+          if-no-files-found: error

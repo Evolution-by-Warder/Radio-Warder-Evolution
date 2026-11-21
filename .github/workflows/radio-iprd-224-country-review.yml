@@ -1,0 +1,189 @@
+name: Full 224-country IPRD station-logo rescue - review ONLY
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-iprd-224-country-review.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      batches: ${{ steps.matrix.outputs.batches }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          PYTHONPATH=src python3 -B tests/test_iprd_radio_logo_recovery.py
+          PYTHONPATH=src python3 -B tests/test_missing_radio_logo_recovery.py
+      - id: matrix
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/world
+          gh run download 44781162459 -n radio-world-224-39150-station-originals-REVIEW-ONLY -D /tmp/world
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,os,zipfile
+          f=Path('/tmp/world/new-world/radio-countries-bouquets.zip')
+          assert hashlib.sha256(f.read_bytes()).hexdigest()=='a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74'
+          with zipfile.ZipFile(f) as z: index=json.loads(z.read('index.json'))
+          codes=sorted(index['countries'])
+          assert len(codes)==224 and index['station_count']==48219
+          assert sum(r['logos_found'] for r in index['countries'].values())==39150
+          batches=[{'id':f'{i//8:02d}','codes':','.join(codes[i:i+8])} for i in range(0,224,8)]
+          with open(os.environ['GITHUB_OUTPUT'],'a') as o:
+              o.write('batches='+json.dumps(batches,separators=(',',':'))+'\n')
+          print('WORLD SHARDS',len(batches))
+          PY
+
+  countries:
+    needs: index
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        batch: ${{ fromJSON(needs.index.outputs.batches) }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/iprd-shard
+      BATCH_ID: ${{ matrix.batch.id }}
+      COUNTRY_CODES: ${{ matrix.batch.codes }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Pin independent catalogue and original eight-country SHA evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source" "$ROOT/world" "$ROOT/old"
+          curl -fsSL --compressed --connect-timeout 10 --max-time 130 --retry 3 \
+            --user-agent 'WarderRadioLogoReview/0.1' \
+            'https://raw.githubusercontent.com/iprd-org/iprd/bbfff7fcfd1b29b39f6d8b0ec3c874737e00e478/docs/site_data/metadata/catalog.json' \
+            -o "$ROOT/source/catalog.json"
+          printf '%s  %s\n' 'bfa3a4399301c6f21519a57b8a44c61de13c129618e697cd67e1423510ca283e' "$ROOT/source/catalog.json" | sha256sum -c -
+          gh run download 44781162459 -n radio-world-224-39150-station-originals-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44583128017 -n "radio-original-logos-batch-$BATCH_ID-REVIEW" -D "$ROOT/old"
+          if [[ ",$COUNTRY_CODES," == *",SK,"* ]]; then
+            mkdir -p "$ROOT/overlay"
+            gh run download 44780870898 -n radio-SK-curated-six-profiles-REVIEW-ONLY -D "$ROOT/overlay"
+            rm -rf "$ROOT/old/radio-country-SK-REVIEW-NOT-PRODUCTION"
+            cp -a "$ROOT/overlay/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          fi
+          if [[ ",$COUNTRY_CODES," == *",CZ,"* ]]; then
+            mkdir -p "$ROOT/overlay-cz"
+            gh run download 44762776607 -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/overlay-cz"
+            rm -rf "$ROOT/old/radio-country-CZ-REVIEW-NOT-PRODUCTION"
+            cp -a "$ROOT/overlay-cz/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          fi
+          if [[ ",$COUNTRY_CODES," == *",DE,"* ]]; then
+            mkdir -p "$ROOT/overlay-de"
+            gh run download 44776112474 -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/overlay-de"
+            rm -rf "$ROOT/old/radio-country-DE-REVIEW-NOT-PRODUCTION"
+            cp -a "$ROOT/overlay-de/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          fi
+      - name: Download only validated missing original station images, keep old bytes
+        run: |
+          set -euo pipefail
+          python3 -B tools/recover_iprd_radio_logos.py \
+            --world "$ROOT/world/new-world/radio-countries-bouquets.zip" \
+            --world-sha256 a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74 \
+            --source "$ROOT/source/catalog.json" \
+            --old-root "$ROOT/old" --countries "$COUNTRY_CODES" \
+            --workers 6 --out "$ROOT/recovered"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          r=json.loads((root/'recovered/iprd-independent-radio-logo-review.json').read_text())
+          assert r['review_only'] and len(r['countries'])==8
+          assert r['logos_after']==r['original_logos']+r['logos_added']
+          for c in r['countries']:
+              assert c['unchanged_existing_pngs'] and c['new_downloads']==len(c['new_station_originals'])
+              code=c['country']
+              old=root/'old'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              new=root/'recovered'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION/logos/{code}.zip'
+              if c['recovered_total']:
+                  with ZipFile(old) as a, ZipFile(new) as b:
+                      for name in a.namelist():
+                          assert a.read(name)==b.read(name),name
+                      assert len(b.namelist())==c['logos_found']
+              else:
+                  assert not new.exists()
+          print('IPRD VERIFIED SHARD',os.environ['BATCH_ID'],r['stations'],r['logos_added'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-iprd-original-logos-${{ matrix.batch.id }}-REVIEW
+          path: /tmp/iprd-shard/recovered/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-iprd-report-${{ matrix.batch.id }}-REVIEW
+          path: /tmp/iprd-shard/recovered/iprd-independent-radio-logo-review.json
+          if-no-files-found: error
+          retention-days: 30
+
+  summary:
+    needs: [index,countries]
+    runs-on: ubuntu-latest
+    if: always() && needs.countries.result == 'success'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: radio-iprd-report-*-REVIEW
+          path: /tmp/radio-iprd-results
+      - name: Check exact 224 countries, all original 39150 PNGs and new sources
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          files=sorted(Path('/tmp/radio-iprd-results').rglob('iprd-independent-radio-logo-review.json'))
+          assert len(files)==28, 'Missing source shard report'
+          result={'schema':1,'review_only':True,'country_count':224,
+                  'station_count':0,'original_logo_count':0,
+                  'added_logo_candidates':0,'source_matches':0,
+                  'image_requests':0,'countries':{}}
+          for file in files:
+              p=json.loads(file.read_text())
+              assert p['review_only'] is True and p['world_sha256']=='a4afab819f28b877804cae17d58b6ade0a5f2911ecea6068c735efdd306a4e74'
+              assert p['iprd_source_sha256']=='bfa3a4399301c6f21519a57b8a44c61de13c129618e697cd67e1423510ca283e'
+              result['source_matches']+=p['candidate_matches']
+              result['image_requests']+=p['attempted_network_images']
+              for row in p['countries']:
+                  code=row['country']
+                  assert code not in result['countries'] and row['unchanged_existing_pngs']
+                  result['station_count']+=row['stations']
+                  result['original_logo_count']+=row['original_logos']
+                  result['added_logo_candidates']+=row['recovered_total']
+                  result['countries'][code]={
+                      'stations':row['stations'],'prior':row['original_logos'],
+                      'new':row['recovered_total'],'current':row['logos_found'],
+                      'new_sources':row['new_station_originals']}
+          assert len(result['countries'])==224
+          assert result['station_count']==48219 and result['original_logo_count']==39150
+          result['candidate_logo_count']=39150+result['added_logo_candidates']
+          result['remaining_missing']=48219-result['candidate_logo_count']
+          Path('/tmp/iprd-224-summary.json').write_text(
+              json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
+          print('IPRD WORLD 224 SOURCES',json.dumps({k:v for k,v in result.items() if k!='countries'},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-IPRD-world-224-logo-source-summary-REVIEW-ONLY
+          path: /tmp/iprd-224-summary.json
+          if-no-files-found: error
+          retention-days: 30

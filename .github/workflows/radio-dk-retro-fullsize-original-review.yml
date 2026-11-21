@@ -1,0 +1,127 @@
+name: DK Retro-Radio 600px first-party logo recovery (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-dk-retro-fullsize-original-review.yml
+      - tools/recover_current_retro_radio_original.py
+      - tests/test_recover_current_retro_radio_original.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-retro-current-review
+      WORLD_SHA: ebd8205c099bfa30fae0721722b10d7c6e80187210e90506f337a970a7c031c1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline exact station and source-identity regressions
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_recover_current_retro_radio_original.py
+          PYTHONPATH=src:tools python3 -B tests/test_recover_two_current_official_radio_logos.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install image validator ONLY inside review runner
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Load exact latest 39663 world and immutable historical stream-name match report
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-artifact,gaps,old,shards,official-pages}
+          test "$(gh run view 44845517605 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44830949401 --json conclusion -q .conclusion)" = success
+          gh run download 44845517605 -n radio-AL-RTSH-firstparty-original-REVIEW-ONLY -D "$ROOT/world-artifact"
+          mapfile -t zipfiles < <(find "$ROOT/world-artifact" -type f -name radio-countries-bouquets.zip)
+          test "${#zipfiles[@]}" -eq 1
+          cp "${zipfiles[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          gh run download 44830949401 -n radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY -D "$ROOT/gaps"
+          test -f "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json"
+      - name: Download ONLY DK's old immutable country ZIP and signed manifest
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          shard=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          from zipfile import ZipFile
+          with ZipFile(Path(os.environ['ROOT'])/'world.zip') as z:
+              idx=json.loads(z.read('index.json'))
+          assert idx['station_count']==48219 and idx['country_count']==224
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39663
+          assert idx['countries']['DK']['logos_found']==161
+          print(f"{sorted(idx['countries']).index('DK')//8:02d}")
+          PY
+          )
+          gh run download 44801652426 -n "radio-canonical-39643-country-shard-${shard}-REVIEW" -D "$ROOT/shards"
+          mapfile -t folders < <(find "$ROOT/shards" -type d -name "radio-country-DK-REVIEW-NOT-PRODUCTION")
+          test "${#folders[@]}" -eq 1
+          cp -a "${folders[0]}" "$ROOT/old/"
+      - name: Verify CURRENT Retro-Radio broadcaster page and direct live-audio proof
+        run: |
+          set -euo pipefail
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 \
+            --user-agent 'WarderRadioOfficialBrandAudit/1.0' \
+            'https://retro-radio.dk/' -o "$ROOT/official-pages/retro-homepage.html"
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 \
+            --user-agent 'WarderRadioOfficialBrandAudit/1.0' \
+            'https://retro-radio.dk/hvordan-lytter-jeg/' -o "$ROOT/official-pages/retro-listen.html"
+          test "$(wc -c < "$ROOT/official-pages/retro-homepage.html")" -lt 2097152
+          test "$(wc -c < "$ROOT/official-pages/retro-listen.html")" -lt 2097152
+          sha256sum "$ROOT/official-pages/"*.html
+      - name: Recover ONLY first-party 600px branded station master, no old logo overwrite
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_current_retro_radio_original.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --gaps "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json" \
+            --homepage "$ROOT/official-pages/retro-homepage.html" \
+            --listen "$ROOT/official-pages/retro-listen.html" \
+            --out "$ROOT/review"
+      - name: Reassemble exact 224-country REVIEW world only if original PNG gained
+        run: |
+          set -euo pipefail
+          gained=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ['ROOT'])/'review/dk-current-retro-radio-firstparty-review.json').read_text())
+          assert r['review_only'] and r['unchanged_existing_pngs']
+          assert r['source_world_sha256']==os.environ['WORLD_SHA']
+          print(r['recovered_total'])
+          PY
+          )
+          if test "$gained" -gt 0; then
+            test "$gained" -eq 1
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries DK --out "$ROOT/new-world"
+            python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ['ROOT'])/'new-world/world-recovery-review.json').read_text())
+          assert r['review_only'] and r['station_count']==48219 and r['country_count']==224
+          assert r['logos_added']==1 and len(r['countries_changed'])==1
+          assert r['countries_changed'][0]['country']=='DK'
+          assert r['countries_changed'][0]['previous']==161
+          assert r['countries_changed'][0]['current']==162
+          print('DK VERIFIED WORLD +1 ORIGINAL PNG',json.dumps(r,sort_keys=True),flush=True)
+          PY
+          else
+            echo 'Official image rejected or absent: retain previous world; do not count a new PNG'
+          fi
+      - name: Upload review-only DK country and optional new worldwide ZIP, never publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-DK-retro-firstparty-600px-REVIEW-ONLY
+          path: |
+            /tmp/warder-retro-current-review/review/
+            /tmp/warder-retro-current-review/new-world/
+          retention-days: 30
+          if-no-files-found: error

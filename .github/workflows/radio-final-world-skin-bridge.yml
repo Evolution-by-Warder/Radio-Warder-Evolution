@@ -1,0 +1,58 @@
+name: Verify FINAL 224-country Warder Radio world and exact original logo ZIPs in skin
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/verify_final_world_radio_skin_bridge.py
+      - .github/workflows/radio-final-world-skin-bridge.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout independently reviewed FullHDGlass GUI runtime
+        uses: actions/checkout@v4
+        with:
+          repository: Evolution-by-Warder/FullHDGlass-Warder-Evolution
+          ref: 5fd2df4deb18701c589f578f4337cb3d7dd9c4d6
+          path: skin
+          sparse-checkout: |
+            source/package-root/usr/lib/enigma2/python/Plugins/Extensions/setupGlass17/
+          sparse-checkout-cone-mode: false
+      - name: Download exact FINAL world with 224 completed PNG manifests
+        uses: actions/download-artifact@v4
+        with:
+          name: radio-world-224-with-original-logo-checks-REVIEW-ONLY
+          run-id: 44583128017
+          github-token: ${{ github.token }}
+          path: build/world
+      - name: Download current original Slovak radio PNG archive
+        uses: actions/download-artifact@v4
+        with:
+          name: radio-original-logos-batch-22-REVIEW
+          run-id: 44583128017
+          github-token: ${{ github.token }}
+          path: build/sk
+      - name: Download current original Czech radio PNG archive
+        uses: actions/download-artifact@v4
+        with:
+          name: radio-original-logos-batch-06-REVIEW
+          run-id: 44583128017
+          github-token: ${{ github.token }}
+          path: build/cz
+      - name: Verify 224-country GUI, SHA, local activation and 313 original PNGs without Enigma
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/verify_final_world_radio_skin_bridge.py
+          python3 -B tools/verify_final_world_radio_skin_bridge.py \
+            --world build/world/radio-countries-bouquets.zip \
+            --sk build/sk/radio-country-SK-REVIEW-NOT-PRODUCTION \
+            --cz build/cz/radio-country-CZ-REVIEW-NOT-PRODUCTION \
+            --skin-runtime skin/source/package-root/usr/lib/enigma2/python

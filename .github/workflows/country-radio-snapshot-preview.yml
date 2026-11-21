@@ -1,0 +1,188 @@
+name: Warder Radio country bouquets and logo ZIPs (candidate)
+
+on:
+  push:
+    branches:
+      - feature/radio-browser-country-bouquets-and-logo-zips-20261119
+    paths:
+      - tools/build_country_radio_packages.py
+      - tests/test_country_radio_packages.py
+      - .github/workflows/country-radio-snapshot-preview.yml
+  workflow_dispatch:
+    inputs:
+      countries:
+        description: ISO country codes (ALL for complete inventory)
+        required: true
+        default: ET,FR
+        type: string
+      max_stations:
+        description: Preview station limit; 0 means no preview limit
+        default: '60'
+        type: string
+      max_logos:
+        description: Preview logo limit; 0 means all original plugin logos
+        default: '8'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: python3 -m py_compile tools/build_country_radio_packages.py tests/test_country_radio_packages.py
+      - name: Validate native service stems, country lists and original logos
+        run: |
+          python3 -B tests/test_country_radio_packages.py
+
+  live-preview:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable same image decoding as standalone Warder Radio
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Generate real Radio Browser per-country sample, without publishing
+        shell: bash
+        env:
+          COUNTRIES: ${{ inputs.countries || 'ET,FR' }}
+          STATIONS: ${{ inputs.max_stations || '60' }}
+          LOGOS: ${{ inputs.max_logos || '8' }}
+        run: |
+          set -euo pipefail
+          args=(--countries "$COUNTRIES" --out build/country-radio)
+          if [ "$STATIONS" != 0 ]; then args+=(--max-stations "$STATIONS"); fi
+          if [ "$LOGOS" != 0 ]; then args+=(--max-logos "$LOGOS"); fi
+          python3 -B tools/build_country_radio_packages.py "${args[@]}"
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          root = pathlib.Path('build/country-radio')
+          manifest = json.loads((root/'manifest.json').read_text())
+          for item in manifest['countries']:
+              for rel, evidence in item['files'].items():
+                  assert hashlib.sha256((root/rel).read_bytes()).hexdigest() == evidence['sha256'], rel
+          print('Sample file hashes verified:', len(manifest['countries']))
+          PY
+      - name: Upload partial review artifacts only (NOT a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: warder-radio-country-preview-NOT-PRODUCTION
+          path: build/country-radio/
+          if-no-files-found: error
+          retention-days: 14
+
+  full-ethiopia:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Warder Radio image codec
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Build ALL Ethiopian stations and attempt ALL original logos
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_country_radio_packages.py \
+            --countries ET --out build/ethiopia-full --workers 4
+          python3 -B tools/build_country_radio_packages.py --list-countries > build/ethiopia-full/available-countries.json
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          root = pathlib.Path('build/ethiopia-full')
+          manifest = json.loads((root/'manifest.json').read_text())
+          assert manifest['complete'], 'Complete country scan and all logo attempts are required'
+          assert len(manifest['countries']) == 1
+          detail = manifest['countries'][0]
+          assert detail['country'] == 'ET'
+          assert detail['catalogue_complete']
+          assert detail['logo_package_complete']
+          assert detail['logo_attempted'] == detail['stations']
+          for path, v in detail['files'].items():
+              assert hashlib.sha256((root/path).read_bytes()).hexdigest() == v['sha256']
+          with zipfile.ZipFile(root/'logos/ET.zip') as logos:
+              assert len(logos.namelist()) == detail['logos_found']
+          print('FULL ET country and original logo scan PASS:', detail['stations'],
+                'stations,', detail['logos_found'], 'logos')
+          PY
+      - name: Upload verified full Ethiopian sample for review (NOT production)
+        uses: actions/upload-artifact@v4
+        with:
+          name: warder-country-ET-full-candidate-NOT-PRODUCTION
+          path: build/ethiopia-full/
+          if-no-files-found: error
+          retention-days: 30
+
+  full-france-bouquet:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install plugin image decoder
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Build complete French station catalogue, sample original logos
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_country_radio_packages.py --countries FR --max-logos 8 --out build/france-full
+          python3 - <<'PY'
+          import json,pathlib,hashlib
+          p=pathlib.Path('build/france-full')
+          m=json.loads((p/'manifest.json').read_text())
+          d=m['countries'][0]
+          assert d['country']=='FR' and d['catalogue_complete'],d
+          assert d['logo_attempted']==8 and not d['logo_package_complete']
+          for rel,meta in d['files'].items():
+              assert hashlib.sha256((p/rel).read_bytes()).hexdigest()==meta['sha256'],rel
+          print('FULL FR catalogue:',d['stations'],'stations; sample',d['logos_found'],'logos')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warder-radio-FR-full-bouquet-logo-sample-NOT-PRODUCTION
+          path: build/france-full/
+          if-no-files-found: error
+          retention-days: 30
+
+  full-slovak-czech:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install original Radio plugin image decoder
+        run: python3 -m pip install 'Pillow>=10,<13'
+      - name: Fetch EVERY Slovak and Czech station and try its original logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B tools/build_country_radio_packages.py \
+            --countries SK,CZ --out build/sk-cz-full --workers 8
+          python3 - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          root=pathlib.Path('build/sk-cz-full')
+          report=json.loads((root/'manifest.json').read_text())
+          assert report['complete'] and len(report['countries'])==2,report
+          for c in report['countries']:
+              assert c['country'] in ('SK','CZ')
+              assert c['catalogue_complete'] and c['logo_package_complete']
+              assert c['logo_attempted']==c['stations']
+              for path,evidence in c['files'].items():
+                  assert hashlib.sha256((root/path).read_bytes()).hexdigest()==evidence['sha256']
+                  assert len((root/path).read_bytes())==evidence['bytes']
+              with zipfile.ZipFile(root/'logos'/(c['country']+'.zip')) as z:
+                  assert len(z.namelist())==c['logos_found']
+              print(c['country'],c['stations'],'stations,',
+                    c['logos_found'],'found logos,',c['logos_missing'],'unavailable')
+          print('FULL SK + CZ candidate PASS; review-only')
+          PY
+      - name: Upload verified complete Slovak and Czech country packages for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: warder-country-SK-CZ-complete-logo-attempts-REVIEW-NOT-PRODUCTION
+          path: build/sk-cz-full/
+          if-no-files-found: error
+          retention-days: 30

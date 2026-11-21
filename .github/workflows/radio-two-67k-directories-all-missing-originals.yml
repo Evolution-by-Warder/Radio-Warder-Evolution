@@ -1,0 +1,146 @@
+name: ONE BULK 224 countries 7826 missing station logos vs full ICE 67k and RadioNet independent REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-two-67k-directories-all-missing-originals.yml
+      - tools/stage_two_independent_radio_directories_all_7826.py
+      - tests/test_stage_two_independent_radio_directories_all_7826.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-bulk-all-missing-source-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-7826-two-independent-radio-owner-directories
+      WORLD_SHA: 77046ae8486360552fac917977dfd165fcca2af133a3d669227b07ba86258633
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prove two-directory exact owner-country/stream and unsafe-image refusal, before remote requests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'pycountry>=24,<30' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_two_independent_radio_directories_all_7826.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          python3 -m py_compile tools/stage_two_independent_radio_directories_all_7826.py
+      - name: Fetch only latest signed 40393 original radio world, no first-party station images repeated
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{current,prior40086,prior40013,prior39979,prior39964,prior39879,patch7,patch13,canonical,old}
+          for id in 44919526717 44915726977 44914701701 44913642417 44911563049 44907110543 44907497364 44906253671 44801652426; do
+            test "$(gh run view "$id" --json conclusion -q .conclusion)" = success
+          done
+          gh run download 44919526717 -n radio-all-8133-gaps-one-global-visually-approved-world-REVIEW-ONLY -D "$ROOT/current"
+          cp "$(find "$ROOT/current" -type f -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as archive:
+              index=json.loads(archive.read("index.json"))
+              assert (index["country_count"],index["station_count"])==(224,48219)
+              assert sum(v["logos_found"] for v in index["countries"].values())==40393
+              assert 48219-40393==7826
+          print("ONE SOURCE PASS INPUT VERIFIED: 224 COUNTRIES 7826 MISSING",flush=True)
+          PY
+      - name: Restore entire 224-country current ORIGINAL ZIP inventory from historic signed review artifacts, no individual PNG refetches
+        run: |
+          set -euo pipefail
+          gh run download 44801652426 -p 'radio-canonical-39643-country-shard-*-REVIEW' -D "$ROOT/canonical"
+          gh run download 44915726977 -n radio-tunein-second-73-visual-40086-world-REVIEW-ONLY -D "$ROOT/prior40086"
+          gh run download 44914701701 -n radio-tunein-34-visual-originals-40013-world-REVIEW-ONLY -D "$ROOT/prior40013"
+          gh run download 44913642417 -n radio-tef-15-visual-approved-39979-world-REVIEW-ONLY -D "$ROOT/prior39979"
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/prior39964"
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/prior39879"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from collections import Counter
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as archive:
+              idx=json.loads(archive.read("index.json"))
+          order=("current","prior40086","prior40013","prior39979","prior39964",
+                 "prior39879","patch7","patch13","canonical")
+          available={}
+          for source in order:
+              inventory={}
+              for folder in (root/source).rglob("radio-country-??-REVIEW-NOT-PRODUCTION"):
+                  cc=folder.name.split("-")[2]
+                  f=folder/"logos"/(cc+".zip")
+                  if f.is_file() and not f.is_symlink():inventory.setdefault(cc,[]).append((folder,f))
+              available[source]=inventory
+          chosen=Counter()
+          for cc,meta in sorted(idx["countries"].items()):
+              selected=[]
+              for source in order:
+                  for folder,f in available[source].get(cc,[]):
+                      if hashlib.sha256(f.read_bytes()).hexdigest()==meta["logo_sha256"]:
+                          selected.append((source,folder,f))
+                  if selected:break
+              if len(selected)!=1:raise ValueError("No single current approved original country ZIP "+cc+":"+str(len(selected)))
+              source,folder,f=selected[0]
+              with ZipFile(f) as z:
+                  if len(z.namelist())!=meta["logos_found"] or len(z.namelist())!=len(set(z.namelist())):
+                      raise ValueError("Corrupt prior country original PNG ZIP "+cc)
+              shutil.copytree(folder,root/"old"/folder.name)
+              chosen[source]+=1
+          assert sum(chosen.values())==224
+          print("ALL 224 PREVIOUS ORIGINAL COUNTRY LOGO ZIPS SHA VERIFIED",dict(chosen),flush=True)
+          PY
+          rm -rf "$ROOT/current" "$ROOT/prior40086" "$ROOT/prior40013" "$ROOT/prior39979" "$ROOT/prior39964" "$ROOT/prior39879" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/canonical"
+      - name: ONE complete radio.net first-party 7826-gap pass; ICE full-directory source temporarily excluded for rate limits
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_two_independent_radio_directories_all_7826.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" --out "$ROOT/review" --workers 10 --skip-ice
+      - name: Verify all 224 catalogues, no existing original reused/replaced, staged logo images have source identity/PNG SHA
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          f=root/"review/all-7826-two-directory-original-images-REVIEW.json"
+          r=json.loads(f.read_bytes())
+          assert r["schema"]==1 and r["review_only"] and r["world_unchanged"]
+          assert r["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["countries_scanned"]==r["all_country_source_logo_ZIPs_verified"]==224
+          assert r["stations_scanned"]==48219 and r["missing_station_refs_scanned"]==7826
+          assert r["original_png_before"]==40393 and r["missing_before"]==7826
+          assert r["ice_catalogue_summary"]["pages"]==0
+          assert r["ice_catalogue_summary"]["skipped_reason"]
+          assert r["radionet_catalogue_summary"]["unique_name_country_queries"]>=3000
+          assert all(not item["approved"] and item["visual_review_required"] for item in r["images"])
+          assert len(r["images"])==r["new_station_original_images_for_visual_review"]
+          assert len({x["stationuuid"] for x in r["images"]})==len(r["images"])
+          assert not list((root/"review").rglob("radio-countries-bouquets.zip"))
+          with ZipFile(root/"world.zip") as z:
+              idx=json.loads(z.read("index.json"))
+              assert (idx["country_count"],idx["station_count"])==(224,48219)
+              assert sum(v["logos_found"] for v in idx["countries"].values())==40393
+          print("ALL-COUNTRY TWO LARGE INDEPENDENT DIRECTORY ORIGINAL LOGO STAGE VERIFIED",
+              json.dumps({"staged":len(r["images"]),
+                 "ice_pages":r["ice_catalogue_summary"]["pages"],
+                 "radionet_name_country_queries":r["radionet_catalogue_summary"]["unique_name_country_queries"],
+                 "source_JSON_SHA":hashlib.sha256(f.read_bytes()).hexdigest()},sort_keys=True),flush=True)
+          PY
+      - name: Upload one global collection of all new artwork and visual sheets - never publish any unapproved image
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-all-7826-radionet-firstparty-UNAPPROVED-REVIEW
+          path: /tmp/warder-7826-two-independent-radio-owner-directories/review/
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error

@@ -1,0 +1,111 @@
+name: Radio.co first-party original PNG recovery in 8 further countries (review only)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-firstparty-radio-co-extra-country-recovery.yml
+      - tools/recover_firstparty_radio_co_remaining.py
+      - tests/test_recover_firstparty_radio_co_remaining.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  eight-country-verified-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-eight-radio-co-recovery
+      CODES: GY,HN,LC,SV,GH,MW,KH,XK
+      WORLD_SHA: 55a557a950e07947db11046405cf45804c0926e869415c6327e43edd864b11ff
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict owner, immutable PNG and cross-station negative tests
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_recover_firstparty_radio_co_remaining.py
+          PYTHONPATH=src:tools python3 -B tests/test_audit_remaining_firstparty_radio_co.py
+          PYTHONPATH=src:tools python3 -B tests/test_recover_firstparty_radio_co_us.py
+      - name: Install pinned-compatible PNG conversion
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Download only SHA-verified current REVIEW world and independent owner metadata
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-evidence,metadata,shards,old}
+          test "$(gh run view 44867416434 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44871442656 --json conclusion -q .conclusion)" = success
+          gh run download 44867416434 -n radio-US-RadioCo-original-logos-REVIEW-ONLY -D "$ROOT/world-evidence"
+          test "$(find "$ROOT/world-evidence" -type f -name radio-countries-bouquets.zip | wc -l)" -eq 1
+          cp "$(find "$ROOT/world-evidence" -type f -name radio-countries-bouquets.zip)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          gh run download 44871442656 -n radio-co-disjoint-remaining-batch-1-REVIEW-ONLY -D "$ROOT/metadata"
+          test -f "$ROOT/metadata/radio-co-remaining-batch-1-metadata-REVIEW.json"
+          rm -rf "$ROOT/world-evidence"
+      - name: Download only needed immutable original country shards
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          python3 - <<'PY' > "$ROOT/shards-needed.txt"
+          import os,json
+          from zipfile import ZipFile
+          with ZipFile(os.environ['ROOT']+'/world.zip') as z: idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          codes=os.environ['CODES'].split(',')
+          assert len(codes)==len(set(codes))==8 and all(c in idx['countries'] for c in codes)
+          print(*sorted({f"{sorted(idx['countries']).index(c)//8:02d}" for c in codes}),sep='\n')
+          PY
+          while read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/shards-needed.txt"
+          for country in $(echo "$CODES" | tr ',' ' '); do
+            test "$(find "$ROOT/shards" -type d -name "radio-country-$country-REVIEW-NOT-PRODUCTION" | wc -l)" -eq 1
+            cp -a "$(find "$ROOT/shards" -type d -name "radio-country-$country-REVIEW-NOT-PRODUCTION")" "$ROOT/old/"
+          done
+          rm -rf "$ROOT/shards"
+      - name: Recover only missing exact provider-station images, protect every old PNG
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_firstparty_radio_co_remaining.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --metadata "$ROOT/metadata/radio-co-remaining-batch-1-metadata-REVIEW.json" \
+            --countries "$CODES" --out "$ROOT/review"
+      - name: Create and verify a new 224-country world only if actual originals were recovered
+        run: |
+          set -euo pipefail
+          changed=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ['ROOT'])/'review/radio-co-remaining-firstparty-country-recovery.json').read_text())
+          assert r['review_only'] and r['original_pngs_intact']
+          assert r['world_sha256']==os.environ['WORLD_SHA']
+          assert set(r['countries_attempted'])==set(os.environ['CODES'].split(','))
+          assert r['added_logos']==r['actual_new_downloads']+r['cloned_exact']
+          print(','.join(r['countries_changed']))
+          PY
+          )
+          if test -n "$changed"; then
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries "$changed" --out "$ROOT/new-world"
+            python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=json.loads((Path(os.environ['ROOT'])/'new-world/world-recovery-review.json').read_text())
+          assert r['review_only'] and r['country_count']==224 and r['station_count']==48219
+          assert r['original_world_sha256']==os.environ['WORLD_SHA'] and r['logos_added']>0
+          print('WORLD ORIGINAL RECOVERY PASS',json.dumps(r,sort_keys=True))
+          PY
+          else
+            echo "No new qualifying owner PNG; world remains 39673/48219"
+          fi
+      - name: Upload only REVIEW country and world evidence (never publish)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-8-countries-RadioCo-firstparty-original-REVIEW-ONLY
+          path: |
+            /tmp/warder-eight-radio-co-recovery/review/
+            /tmp/warder-eight-radio-co-recovery/new-world/
+          retention-days: 30
+          if-no-files-found: error

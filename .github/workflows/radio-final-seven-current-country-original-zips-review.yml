@@ -1,0 +1,102 @@
+name: Complete exact SHA reconciliation of final seven radio country ZIPs - 224 signed originals REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-final-seven-current-country-original-zips-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  seven-exact-current-country-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-final-seven-radio-country-signed-originals
+      WORLD_SHA: c6733fffcb6008322550785ae06007ed00a565e6ed29f62e2cdf7a72930f7019
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download only signed new 39879 world and previously approved original source assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world,inputs,selected}
+          for id in 44907110543 44845517605 44891665963 44894826484 44872651080 44857390683; do
+            test "$(gh run view "$id" --json conclusion -q .conclusion)" = success
+          done
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44845517605 -n radio-AL-RTSH-firstparty-original-REVIEW-ONLY -D "$ROOT/inputs/AL"
+          gh run download 44891665963 -n radiojar-swiss-norway-two-39709-world-REVIEW-ONLY -D "$ROOT/inputs/CH_NO"
+          gh run download 44894826484 -n radio-live365-nine-visual-originals-39718-world-REVIEW-ONLY -D "$ROOT/inputs/GB"
+          gh run download 44872651080 -n radio-co-crosscountry-12-additional-originals-REVIEW-ONLY -D "$ROOT/inputs/GR_ZM"
+          gh run download 44857390683 -n radio-LT-M1PLAY-current-firstparty-REVIEW-ONLY -D "$ROOT/inputs/LT"
+      - name: Check each country against exact latest all-world original SHA, count and manifest
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          import json,os,hashlib,shutil
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"world").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1,worlds
+          world=worlds[0]
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(world) as z:
+              idx=json.loads(z.read("index.json"))
+              assert (idx["country_count"],idx["station_count"])==(224,48219)
+              assert sum(x["logos_found"] for x in idx["countries"].values())==39879
+              world_manifest={cc:z.read("manifests/"+cc+".json") for cc in ("AL","CH","GB","GR","LT","NO","ZM")}
+          sources={"AL":"AL","CH":"CH_NO","NO":"CH_NO","GB":"GB",
+                   "GR":"GR_ZM","ZM":"GR_ZM","LT":"LT"}
+          verified=[];unmatched=[]
+          for cc,dir_ in sources.items():
+              valid=[];found=0;rejected=[]
+              for folder in (root/"inputs"/dir_).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"):
+                  logo=folder/"logos"/(cc+".zip")
+                  if not logo.is_file():continue
+                  found+=1
+                  h=hashlib.sha256(logo.read_bytes()).hexdigest()
+                  if h!=idx["countries"][cc]["logo_sha256"]:
+                      rejected.append(h[:12]);continue
+                  with ZipFile(logo) as z:
+                      names=z.namelist()
+                      if len(names)!=len(set(names)) or len(names)!=idx["countries"][cc]["logos_found"]:
+                          raise ValueError("Original ZIP inventory corrupt: "+cc)
+                  manifest=folder/"manifests"/(cc+".json")
+                  assert manifest.is_file()
+                  # Source original manifest must match the latest world pinned manifest byte-for-byte.
+                  if manifest.read_bytes()!=world_manifest[cc]:
+                      raise ValueError("Old original manifest is not current signed world: "+cc)
+                  valid.append((folder,h,len(names)))
+              if not valid:
+                  unmatched.append({"country":cc,"expected_SHA":idx["countries"][cc]["logo_sha256"],
+                      "attempted_prior_originals":found,"different_shas":rejected})
+                  continue
+              chosen=valid[0]
+              dst=root/"selected"/chosen[0].name
+              shutil.copytree(chosen[0],dst)
+              assert hashlib.sha256((dst/"logos"/(cc+".zip")).read_bytes()).hexdigest()==chosen[1]
+              verified.append({"country":cc,"logos":chosen[2],"sha256":chosen[1],
+                  "reused_from":str(chosen[0].relative_to(root)),"matches":len(valid)})
+          report={"schema":1,"review_only":True,"world_sha256":os.environ["WORLD_SHA"],
+              "countries":224,"stations":48219,"logos":39879,
+              "remaining_before":7,"recovered":len(verified),"still_unmatched":unmatched,
+              "current_original_country_assets":verified,
+              "no_logo_reprocessing":True,"no_station_or_production_modification":True}
+          (root/"selected/final-seven-country-original-zip-SHA-REVIEW.json").write_text(
+              json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n")
+          print("FINAL SEVEN COUNTRIES RECONCILED",json.dumps(verified,sort_keys=True))
+          print("FINAL SEVEN UNMATCHED",json.dumps(unmatched,sort_keys=True))
+          assert len(verified)+len(unmatched)==7
+          PY
+      - name: Retain only country source SHA provenance and verified originals - review only
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-final-seven-current-country-SHA-originals-REVIEW-ONLY
+          path: /tmp/warder-final-seven-radio-country-signed-originals/selected/
+          retention-days: 30
+          if-no-files-found: error

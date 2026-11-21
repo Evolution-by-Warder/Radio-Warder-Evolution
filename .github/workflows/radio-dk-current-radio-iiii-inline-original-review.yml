@@ -1,0 +1,96 @@
+name: DK official RADIO IIII original 194px inline SVG recovery (review only)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-dk-current-radio-iiii-inline-original-review.yml
+      - tools/recover_current_radio_iiii_inline_logo.py
+      - tests/test_recover_current_radio_iiii_inline_logo.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover-original:
+    runs-on: ubuntu-latest
+    timeout-minutes: 32
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-dk-radioiiii-official-review
+      WORLD_SHA: 04dbf8bee8101da8af6042f236f86e7949635826550b2d506f1f45cf7886e95d
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard against ambiguous logo, misleading branding, wrong UUID and malicious SVG
+        run: |
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_recover_current_radio_iiii_inline_logo.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_radio_svg_logos.py
+      - name: Reuse signed 39665 world, last verified DK 162-logo ZIP and exact independent stream gap
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-source,dk-source,old,gaps,pages}
+          test "$(gh run view 44857390683 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44851765176 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44830949401 --json conclusion -q .conclusion)" = success
+          gh run download 44857390683 -n radio-LT-M1PLAY-current-firstparty-REVIEW-ONLY -D "$ROOT/world-source"
+          test "$(find "$ROOT/world-source" -type f -name radio-countries-bouquets.zip | wc -l)" -eq 1
+          find "$ROOT/world-source" -type f -name radio-countries-bouquets.zip -exec cp {} "$ROOT/world.zip" \;
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum -c
+          gh run download 44851765176 -n radio-DK-retro-firstparty-600px-REVIEW-ONLY -D "$ROOT/dk-source"
+          test "$(find "$ROOT/dk-source" -type d -name radio-country-DK-REVIEW-NOT-PRODUCTION | wc -l)" -eq 1
+          find "$ROOT/dk-source" -type d -name radio-country-DK-REVIEW-NOT-PRODUCTION -exec cp -a {} "$ROOT/old/" \;
+          gh run download 44830949401 -n radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY -D "$ROOT/gaps"
+          test -f "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json"
+      - name: Read only two LIVE broadcaster pages, not directory/favicons/marketing pictures
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --compressed \
+            --proto-redir '=https' --retry 1 --connect-timeout 8 --max-time 35 --max-filesize 1500000 \
+            --user-agent 'WarderRadioOfficialSVGReview/1.0' \
+            'https://radio4.dk/' --output "$ROOT/pages/home.html"
+          curl --fail --silent --show-error --location --compressed \
+            --proto-redir '=https' --retry 1 --connect-timeout 8 --max-time 35 --max-filesize 1500000 \
+            --user-agent 'WarderRadioOfficialSVGReview/1.0' \
+            'https://radio4.dk/om-radio4/' --output "$ROOT/pages/about.html"
+          sha256sum "$ROOT/pages/"*.html
+      - name: Use exact official 9-path header vector only when page, UUID and stream match
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_current_radio_iiii_inline_logo.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --gaps "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json" \
+            --homepage "$ROOT/pages/home.html" --about "$ROOT/pages/about.html" \
+            --out "$ROOT/review"
+      - name: Assemble and verify a new 224-country world only if exact logo was actually added
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries DK --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          r=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert r["review_only"] and r["station_count"]==48219 and r["country_count"]==224
+          assert r["logos_added"]==1 and len(r["countries_changed"])==1
+          change=r["countries_changed"][0]
+          assert change["country"]=="DK" and change["previous"]==162 and change["current"]==163
+          with ZipFile(root/"new-world/radio-countries-bouquets.zip") as z:
+              idx=json.loads(z.read("index.json"))
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39666
+          assert idx["countries"]["DK"]["logos_found"]==163
+          print("DK RADIO IIII NEW ORIGINAL VALIDATED",json.dumps(r,sort_keys=True),flush=True)
+          PY
+      - name: Upload only checksum-verified review additions (no Release or production)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-DK-RADIOIIII-official-inline-SVG-REVIEW-ONLY
+          path: |
+            /tmp/warder-dk-radioiiii-official-review/review/
+            /tmp/warder-dk-radioiiii-official-review/new-world/
+          retention-days: 30
+          if-no-files-found: error

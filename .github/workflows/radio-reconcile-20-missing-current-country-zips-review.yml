@@ -1,0 +1,114 @@
+name: Reconcile 20 stale country original ZIPs from immutable history - REVIEW only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-reconcile-20-missing-current-country-zips-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  country-SHA-reconciliation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-20-stale-country-SHA-reconciliation
+      WORLD_SHA: 932e17ad38080185e58b49ba376fc22425f529c5ccdd5908fe223204227336ab
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch latest pinned world and confirm expected country original SHA from its own index
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world,inputs,selected}
+          test "$(gh run view 44902079769 --json conclusion -q .conclusion)" = success
+          gh run download 44902079769 -n radio-iheart-six-verified-39873-world-REVIEW-ONLY -D "$ROOT/world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,hashlib,os
+          root=Path(os.environ["ROOT"])
+          results=list((root/"world").rglob("radio-countries-bouquets.zip"))
+          assert len(results)==1
+          path=results[0]
+          assert hashlib.sha256(path.read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(path) as z: idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==39873
+          (root/"index.json").write_text(json.dumps(idx,sort_keys=True,indent=2))
+          print("39873 SIGNED WORLD ORIGINAL ASSET INDEX PASS")
+          PY
+      - name: Fetch disjoint approved past source artifacts once, no stream network or current PNG redownload
+        run: |
+          set -euo pipefail
+          gh run download 44802603175 -n radio-224-39655-independent-source-originals-REVIEW-ONLY -D "$ROOT/inputs/r39655"
+          gh run download 44862475699 -n radio-DK-RADIOIIII-official-inline-SVG-REVIEW-ONLY -D "$ROOT/inputs/rDK"
+          gh run download 44871624970 -n radio-8-countries-RadioCo-firstparty-original-REVIEW-ONLY -D "$ROOT/inputs/rRadioCoA"
+          gh run download 44872449912 -n radio-co-crosscountry-8-priority-new-originals-REVIEW-ONLY -D "$ROOT/inputs/rRadioCoB"
+          gh run download 44872973659 -n radio-co-crosscountry-12-third-originals-REVIEW-ONLY -D "$ROOT/inputs/rRadioCoC"
+          gh run download 44873272556 -n radio-co-crosscountry-8-fourth-originals-REVIEW-ONLY -D "$ROOT/inputs/rRadioCoD"
+          gh run download 44889673492 -n radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY -D "$ROOT/inputs/rRadiojar"
+          gh run download 44895332419 -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/inputs/rLive365"
+          gh run download 44898959277 -n radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY -D "$ROOT/inputs/rLautfm"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/inputs/rBRCL"
+      - name: SHA-resolve all 20 original country ZIPs and quarantine stale source revisions
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          idx=json.loads((root/"index.json").read_text())
+          blocked=("AL","AU","BE","CA","CH","DK","FR","GB","GH","GR","GY","IE","KH","LT","NL","NO","PL","PT","UA","ZM")
+          assert len(blocked)==len(set(blocked))==20
+          found=[];missing=[]
+          for cc in blocked:
+              matches=[];candidates=0
+              for folder in (root/"world",root/"inputs"):
+                  for p in folder.rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION/logos/"+cc+".zip"):
+                      candidates+=1
+                      if p.is_symlink() or not p.is_file():continue
+                      h=hashlib.sha256(p.read_bytes()).hexdigest()
+                      if h==idx["countries"][cc]["logo_sha256"]:
+                          with ZipFile(p) as z:
+                              names=z.namelist()
+                              if len(names)!=len(set(names)) or len(names)!=idx["countries"][cc]["logos_found"]:
+                                  raise ValueError("Bad matched original archive "+cc)
+                          matches.append(p)
+              if matches:
+                  f=sorted(matches)[-1]
+                  origin=f.parent.parent
+                  target=root/"selected"/origin.name
+                  shutil.copytree(origin,target)
+                  if hashlib.sha256((target/"logos"/(cc+".zip")).read_bytes()).hexdigest()!=idx["countries"][cc]["logo_sha256"]:
+                      raise ValueError("Copied original archive changed SHA")
+                  found.append({"country":cc,"original_png":idx["countries"][cc]["logos_found"],
+                                "sha256":idx["countries"][cc]["logo_sha256"],
+                                "recovered_from":str(f.relative_to(root)),
+                                "matching_revisions":len(matches)})
+              else:
+                  missing.append({"country":cc,"original_png":idx["countries"][cc]["logos_found"],
+                                  "expected_sha256":idx["countries"][cc]["logo_sha256"],
+                                  "historical_candidate_ZIPs":candidates})
+          report={"schema":1,"review_only":True,"world_sha256":os.environ["WORLD_SHA"],
+            "country_count":224,"station_count":48219,"logo_count":39873,
+            "blocked_country_codes_before":list(blocked),"sha_recovered":len(found),
+            "remaining_unmatched":len(missing),"restored_countries":found,"unmatched":missing,
+            "no_station_or_logo_data_modified":True}
+          (root/"selected/reconciled-20-country-zip-SHA-REVIEW.json").write_text(
+              json.dumps(report,ensure_ascii=False,indent=2,sort_keys=True)+"\n")
+          assert report["sha_recovered"] + report["remaining_unmatched"]==20
+          print("RESTORED PREVIOUSLY STALE COUNTRY ZIPS",len(found),json.dumps([r["country"] for r in found]))
+          print("STILL BLOCKED COUNTRY ZIPS",len(missing),json.dumps([r["country"] for r in missing]))
+          PY
+      - name: Keep signed country originals only as review source; do not replace production assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY
+          path: /tmp/warder-20-stale-country-SHA-reconciliation/selected/
+          retention-days: 30
+          if-no-files-found: error

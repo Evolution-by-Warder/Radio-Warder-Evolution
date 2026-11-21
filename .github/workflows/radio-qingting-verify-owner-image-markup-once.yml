@@ -1,0 +1,35 @@
+name: Qingting first-party Chinese station thumbnail HTML attribution - single targeted diagnostic
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-qingting-verify-owner-image-markup-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-one-official-station-page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Single official channel ID 20450 HTML image source diagnosis, no image or original PNG fetched
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B - <<'PY'
+          from probe_qingting_cn_firstparty_station_logos import (
+              owner_page_get,StationHTML,norm,safe_image)
+          raw=owner_page_get("20450")
+          doc=StationHTML();doc.feed(raw.decode("utf-8","replace"))
+          print("FIRSTPARTY H1",doc.names)
+          for row in doc.images[:15]:
+              src=row.get("url") or ""
+              print("FIRSTPARTY IMG",{
+                  "alt":row.get("alt"),"src":src[:310],
+                  "alt_matches":norm(row.get("alt"))==norm("三亚天涯之声"),
+                  "strict_safe_image":bool(safe_image(src))
+              })
+          print("FIRSTPARTY HTML SAMPLE OK, body bytes",len(raw))
+          PY

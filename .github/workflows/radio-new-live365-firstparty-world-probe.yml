@@ -1,0 +1,70 @@
+name: New independent Live365 broadcaster logo source - 224-country metadata probe
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-live365-firstparty-world-probe.yml
+      - tools/probe_live365_firstparty_world.py
+      - tests/test_probe_live365_firstparty_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  only-metadata-no-image-downloads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-new-independent-live365
+      WORLD_SHA: 5372419e4f0173e2d3f5712f4aa3d6b8872b1312552dba14b2549b84f7d83bd0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate independent stream ID extraction and prevent album art publication
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_probe_live365_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_world_country_original_logos.py
+      - name: Retrieve previously verified CURRENT 39687 review world, not station images
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/evidence"
+          test "$(gh run view 44872651080 --json conclusion -q .conclusion)" = success
+          gh run download 44872651080 -n radio-co-crosscountry-12-additional-originals-REVIEW-ONLY -D "$ROOT/evidence"
+          mapfile -t files < <(find "$ROOT/evidence" -type f -name radio-countries-bouquets.zip)
+          test "${#files[@]}" -eq 1
+          cp "${files[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          rm -rf "$ROOT/evidence"
+      - name: Scan 224-country inventory, probe only 12 real broadcaster profiles
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_live365_firstparty_world.py \
+            --world "$ROOT/world.zip" --max-probes 12 --out "$ROOT/review"
+      - name: Confirm NO logo was treated as downloaded or verified
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          r=json.loads((Path(os.environ['ROOT'])/'review/live365-firstparty-world-224-metadata-REVIEW.json').read_text())
+          assert r['review_only'] and r['metadata_only'] and r['original_png_added']==0
+          assert r['world_sha256']==os.environ['WORLD_SHA']
+          assert r['countries_scanned']==224 and r['stations_scanned']==48219
+          assert r['live365_stream_rows']>100 and 12<=r['countries_with_live365_streams']<=224
+          assert len(r['attempts'])==r['owner_ids_requested']==12
+          assert not any('accepted_original' in x for x in r['attempts'])
+          print('LIVE365 INDEPENDENT SOURCE EVIDENCE PASS',json.dumps({
+              k:r[k] for k in ('live365_stream_rows','countries_with_live365_streams',
+              'owner_ids_requested','profile_name_matches','profile_image_candidates','provider_errors')
+          },sort_keys=True))
+          PY
+      - name: Keep compact independent source evidence only, never Release/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-independent-Live365-broadcaster-probe-REVIEW-ONLY
+          path: /tmp/warder-new-independent-live365/review/
+          if-no-files-found: error
+          retention-days: 30

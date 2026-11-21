@@ -1,0 +1,41 @@
+name: Single bulk radio.net station catalog pagination and country owner-logo feasibility
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-radionet-bulk-catalog-pagination-review.yml]
+permissions:
+  contents: read
+jobs:
+  public-catalog-paging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test supported broad indexed directory instead of thousands of repeated name requests
+        run: |
+          python3 - <<'PY'
+          import json
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+          variants=[
+            ("empty-100",{"query":"","count":100,"offset":0}),
+            ("empty-100-next",{"query":"","count":100,"offset":100}),
+            ("single-letter-100",{"query":"radio","count":100,"offset":0}),
+            ("single-letter-100-next",{"query":"radio","count":100,"offset":100}),
+            ("country-search",{"query":"Germany","count":100,"offset":0}),
+          ]
+          for name,params in variants:
+            url="https://prod.radio-api.net/stations/search?"+urlencode(params)
+            rec={"name":name,"url":url}
+            try:
+              with urlopen(Request(url,headers={"User-Agent":"WarderRadioBulkCatalogReview/1.0","Accept":"application/json"}),timeout=13) as r:
+                data=r.read(800000)
+                rec["status"]=r.status
+              j=json.loads(data)
+              r=j.get("playables",[])
+              rec.update(total=j.get("totalCount"),count=len(r),
+                 first=[{"id":x.get("id"),"name":x.get("name"),"country":x.get("country")} for x in r[:3]],
+                 bytes=len(data))
+            except Exception as e:rec["error"]=type(e).__name__+":"+str(e)[:140]
+            print("RADIONET ORIGINAL LOGO BULK INDEX CAPABILITY",json.dumps(rec,sort_keys=True),flush=True)
+          PY

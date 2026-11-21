@@ -1,0 +1,77 @@
+name: Retry only previously missing original German SVG station logos (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-de-direct-svg-logo-review.yml
+      - src/WarderRadio/svg_logos.py
+      - tests/test_radio_svg_logos.py
+      - tests/test_missing_radio_logo_recovery.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  svg-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radio-direct-svg-originals
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SVG tools only on the review runner (never on receiver)
+        run: python3 -m pip install --quiet Pillow CairoSVG defusedxml
+      - name: SVG safety and no-existing-PNG-request tests
+        run: |
+          python3 -B tests/test_radio_svg_logos.py
+          python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Retrieve signed original world and 3954-logo German candidate
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/original" "$ROOT/old" "$ROOT/new"
+          gh run download 44583128017 \
+            -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44764518185 \
+            -n radio-224-exact-original-logo-reuse-REVIEW-ONLY -D "$ROOT/original"
+          cp -a "$ROOT/original/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          python3 - <<'PY'
+          import hashlib,os
+          from pathlib import Path
+          f=Path(os.environ['ROOT'])/'old/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip'
+          assert hashlib.sha256(f.read_bytes()).hexdigest()=='36216cc217cc9dd8a3ab14882615e0df2e79383ff691cb9a2d3ba549fc86759f'
+          PY
+      - name: Recover only absent SVG URLs already supplied for the exact DE UUID
+        run: |
+          set -euo pipefail
+          python3 -B tools/recover_missing_radio_logos.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --world-sha256 669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38 \
+            --old-root "$ROOT/old" \
+            --countries DE \
+            --svg-only \
+            --out "$ROOT/new" \
+            --workers 6
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['ROOT'])/'new/missing-logo-recovery-report.json').read_text())
+          assert len(report['results'])==1
+          row=report['results'][0]
+          assert row['country']=='DE' and row['original_logos']==3954
+          assert row['stations']==4863 and row['unchanged_existing_pngs'] is True
+          assert 0<=row['network_attempts']<=32
+          assert row['new_downloads']==row['recovered_total']
+          assert row['logos_found']>=3954
+          print('DE DIRECT SVG ORIGINALS:',json.dumps(report,sort_keys=True))
+          PY
+      - name: Archive only new signed country ZIP and summary — no publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-DE-real-SVG-originals-REVIEW-ONLY
+          path: /tmp/warder-radio-direct-svg-originals/new/
+          retention-days: 30
+          if-no-files-found: error

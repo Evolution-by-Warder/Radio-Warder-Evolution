@@ -1,0 +1,152 @@
+name: ONE BIG 224-country independent broadcaster homepage originals source review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-224-broadcaster-homepage-big-review.yml
+      - tools/stage_224_broadcaster_homepage_originals.py
+      - tests/test_stage_224_broadcaster_homepage_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  firstparty-bulk-independent-national-homepage-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-224-homepage-bulk
+      WORLD_SHA: 7218bb72aedfc06f1850d36dd4868f68c6456903677756447278024a19f0da8c
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict code and negative tests; do not publish, no authorisation changes
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          python3 -B tests/test_stage_224_broadcaster_homepage_originals.py
+          python3 -m py_compile tools/stage_224_broadcaster_homepage_originals.py
+      - name: Verify complete latest 39865 PNG world SHA and locate top 28 deficits
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{latest,US,CN,shards,originals}
+          test "$(gh run view 44898959277 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895332419 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44897612492 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44898959277 -n radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY -D "$ROOT/latest"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,hashlib,os,shutil
+          root=Path(os.environ["ROOT"])
+          hits=list((root/"latest").rglob("radio-countries-bouquets.zip"))
+          assert len(hits)==1,hits
+          shutil.copyfile(hits[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z: idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==39865
+          codes=sorted(idx["countries"])
+          priority=sorted(codes,key=lambda cc:(idx["countries"][cc]["logos_found"]-idx["countries"][cc]["stations"],cc))
+          target=priority[:28]
+          shards=sorted({codes.index(cc)//8 for cc in target})
+          assert len(shards)<=24
+          (root/"priority.json").write_text(json.dumps({"priority":target,"shards":shards},indent=2))
+          print("CURRENT FULL REVIEW WORLD SHA PASS",os.environ["WORLD_SHA"])
+          print("PRIORITY 28 COUNTRIES",json.dumps(target))
+          print("SOURCE SHARDS TO REUSE",json.dumps(shards))
+          PY
+      - name: Reuse only targeted immutable country shards and newer US CN source ZIPs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > "$ROOT/shards.txt"
+          import json,os
+          for i in json.load(open(os.environ["ROOT"]+"/priority.json"))["shards"]:
+              print("%02d"%i)
+          PY
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/shards.txt"
+          gh run download 44895332419 -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/US"
+          gh run download 44897612492 -n radio-qingting-90-visual-originals-39821-complete-world-REVIEW-ONLY -D "$ROOT/CN"
+      - name: Select latest per-country originals ONLY by exact 39865 index SHA; reject stale shards
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          targets=json.loads((root/"priority.json").read_text())["priority"]
+          verified=[];blocked={}
+          for cc in targets:
+              options=[]
+              if cc in ("DE","ES"):
+                  options+=list((root/"latest").rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              if cc=="CN":
+                  options+=list((root/"CN").rglob("radio-country-CN-REVIEW-NOT-PRODUCTION"))
+              if cc=="US":
+                  options+=list((root/"US").rglob("radio-country-US-REVIEW-NOT-PRODUCTION"))
+              options+=list((root/"shards").rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              good=[]
+              for folder in options:
+                  original=folder/"logos"/(cc+".zip")
+                  if not original.is_file():continue
+                  digest=hashlib.sha256(original.read_bytes()).hexdigest()
+                  if digest==idx["countries"][cc]["logo_sha256"]:good.append(folder)
+              if not good:
+                  blocked[cc]="no_current_country_zip_sha_match";continue
+              src=good[0]
+              shutil.copytree(src,root/"originals"/src.name)
+              verified.append(cc)
+              print("CURRENT STATION-ORIGINAL ZIP VERIFIED",cc,idx["countries"][cc]["logos_found"])
+          assert all(x in verified for x in ("US","DE","CN")),verified
+          assert len(verified)>=12,(verified,blocked)
+          (root/"countries-verified.json").write_text(json.dumps({"verified":verified,"blocked":blocked},sort_keys=True,indent=2))
+          print("VERIFIED FIRSTPARTY SOURCE COUNTRIES",len(verified),"STALE SKIPPED",len(blocked))
+          PY
+          rm -rf "$ROOT/shards" "$ROOT/US" "$ROOT/CN" "$ROOT/latest"
+      - name: ONE 224-country priority scan across independent broadcaster websites, bounded to 240 unique domains
+        run: |
+          set -euo pipefail
+          python3 -B tools/stage_224_broadcaster_homepage_originals.py \
+            --world "$ROOT/world.zip" --originals "$ROOT/originals" \
+            --out "$ROOT/review" --max-pages 240 --workers 6
+      - name: Check source stage is review-only and no existing image, station ID or world was modified
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path(os.environ["ROOT"])
+          p=json.loads((root/"review/firstparty-224-homepage-logo-stage-REVIEW.json").read_text())
+          assert p["schema"]==1 and p["review_only"] is True
+          assert p["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert p["countries_scanned"]==224 and p["stations_scanned"]==48219
+          assert p["current_png_before"]==39865 and p["missing_png_before"]==8354
+          assert p["new_world_created"] is False and p["new_png_approved"]==0
+          assert 0<=p["homepage_requests"]<=240
+          assert p["unique_homepage_hosts"]==p["homepage_requests"]
+          assert len(p["results"])==p["homepage_requests"]
+          assert len({(x["country"],x["stationuuid"]) for x in p["results"]})==len(p["results"])
+          assert all(x["approved"] is False for x in p["results"])
+          assert p["verified_original_country_zip_count"]>=12
+          assert not list((root/"review").rglob("radio-countries-bouquets.zip"))
+          print("INDEPENDENT 224-COUNTRY SOURCE REVIEW PASS",json.dumps({
+              key:p[key] for key in ("homepage_requests","countries_with_requests",
+              "downloaded_unique_images_for_manual_contact_QA","quarantines")
+          },sort_keys=True))
+          PY
+      - name: Save one joint first-party visual source review only; no latest.json, Release, main, IPK or plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-224-independent-broadcaster-homepages-contact-REVIEW-ONLY
+          path: |
+            /tmp/warder-224-homepage-bulk/review/
+            /tmp/warder-224-homepage-bulk/countries-verified.json
+          retention-days: 30
+          if-no-files-found: error

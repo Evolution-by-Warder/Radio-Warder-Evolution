@@ -1,0 +1,134 @@
+name: 480 new websites and one KWVNFM original - six-country-logo 39879 world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-six-broadcaster-originals-39879-world-review.yml
+      - tools/merge_verified_broadcaster_owner_20261121.py
+      - tests/test_merge_verified_broadcaster_owner_20261121.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-world-six-independent-station-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-six-new-verified-radio-broadcaster-world
+      WORLD_SHA: 932e17ad38080185e58b49ba376fc22425f529c5ccdd5908fe223204227336ab
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test six explicit original brand allowlist, album quarantine, no overwrites and world regression
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_verified_broadcaster_owner_20261121.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          python3 -m py_compile tools/merge_verified_broadcaster_owner_20261121.py
+      - name: Fetch only latest pinned world, new 480-site source proof and exact KWVNFM source bitmap
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{worldsource,stage480,stagehot,shards,old}
+          test "$(gh run view 44902079769 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44906005252 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44906536960 --json conclusion -q .conclusion)" = success
+          gh run download 44902079769 -n radio-iheart-six-verified-39873-world-REVIEW-ONLY -D "$ROOT/worldsource"
+          gh run download 44906005252 -n radio-second-480-new-independent-broadcaster-sites-REVIEW-ONLY -D "$ROOT/stage480"
+          gh run download 44906536960 -n radio-KWVNFM-official-player-logo-visual-source-REVIEW-ONLY -D "$ROOT/stagehot"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,shutil,os
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"worldsource").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert (idx["country_count"],idx["station_count"])==(224,48219)
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39873
+          us=list((root/"worldsource").rglob("radio-country-US-REVIEW-NOT-PRODUCTION"))
+          assert len(us)==1
+          assert hashlib.sha256((us[0]/"logos/US.zip").read_bytes()).hexdigest()==idx["countries"]["US"]["logo_sha256"]
+          shutil.copytree(us[0],root/"old"/us[0].name)
+          codes=("CD","LK","MY","RO")
+          positions=sorted({sorted(idx["countries"]).index(cc)//8 for cc in codes})
+          (root/"shard-ids.txt").write_text("".join(f"{n:02d}\n" for n in positions))
+          print("PREVIOUS 39873 RADIO ORIGINAL PNGS SHA LOCKED",os.environ["WORLD_SHA"])
+          PY
+      - name: Retrieve only 4 exact original country ZIPs from immutable source shards (US from latest build)
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shards/$shard"
+          done < "$ROOT/shard-ids.txt"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          for cc in ("CD","LK","MY","RO"):
+              folders=list((root/"shards").rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              good=[f for f in folders if hashlib.sha256((f/"logos"/(cc+".zip")).read_bytes()).hexdigest()==idx["countries"][cc]["logo_sha256"]]
+              assert len(good)==1,(cc,folders)
+              shutil.copytree(good[0],root/"old"/good[0].name)
+              print("SHA-MATCHED OLD COUNTRY",cc,idx["countries"][cc]["logos_found"])
+          PY
+          rm -rf "$ROOT/shards" "$ROOT/worldsource"
+      - name: Import ONLY five visually branded station homepages plus exact KWVNFM original
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_verified_broadcaster_owner_20261121.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage-480 "$ROOT/stage480" --stage-hot "$ROOT/stagehot" \
+            --out "$ROOT/candidates"
+      - name: ONE new full 224-country ZIP, exact 6 PNG addition and no other changes
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/candidates" \
+            --countries CD,LK,MY,RO,US --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,hashlib,os
+          root=Path(os.environ["ROOT"])
+          p=json.loads((root/"candidates/six-independent-broadcaster-originals-visual-merge-REVIEW.json").read_text())
+          s=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert p["review_only"] and s["review_only"]
+          assert p["new_original_png"]==s["logos_added"]==6
+          assert p["old_png_untouched"]==39873
+          assert s["country_count"]==224 and s["station_count"]==48219
+          assert s["original_world_sha256"]==os.environ["WORLD_SHA"]
+          changed={x["country"]:(x["previous"],x["current"],x["added"]) for x in s["countries_changed"]}
+          assert changed=={"CD":(10,11,1),"LK":(45,46,1),"MY":(64,65,1),"RO":(716,717,1),"US":(5783,5785,2)}
+          w=root/"new-world/radio-countries-bouquets.zip"
+          sha=hashlib.sha256(w.read_bytes()).hexdigest()
+          assert sha==s["new_world_sha256"]
+          with ZipFile(w) as z:
+              idx=json.loads(z.read("index.json"))
+              assert (idx["country_count"],idx["station_count"])==(224,48219)
+              assert sum(v["logos_found"] for v in idx["countries"].values())==39879
+              assert 48219-39879==8340
+          print("SIX NEW OWNER ORIGINALS WORLD REVIEW PASS",json.dumps({
+              "new_originals":39879,"missing":8340,"world_sha256":sha,
+              "all_previous_39873_png_preserved":True,
+              "country_changes":changed},sort_keys=True))
+          PY
+      - name: Save only 39879 world REVIEW and 5 changed original country ZIPs, no release or production
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-six-visual-owner-originals-39879-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-six-new-verified-radio-broadcaster-world/candidates/
+            /tmp/warder-six-new-verified-radio-broadcaster-world/new-world/
+          retention-days: 30
+          if-no-files-found: error

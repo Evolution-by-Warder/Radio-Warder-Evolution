@@ -1,0 +1,168 @@
+name: ONE GLOBAL 224-COUNTRY PASS of ALL 8133 missing radio originals - no micro-batches
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-all-8133-missing-one-world-source-review.yml
+      - tools/stage_tunein_one_pass_all_8133_missing.py
+      - tests/test_stage_tunein_one_pass_all_8133_missing.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  all-missing-exact-source-logos-at-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-one-block-all-8133-radio-logo-gaps
+      WORLD_SHA: 19d621d8ac85ce456b8ffb568f41b338c9e0eefe40b6319267617b99111ef84b
+      FIRST_SHA: a93bde7174d9ac6edaf7d170355e87f4ddba1eb969d19412008906a7f71d1be2
+      SECOND_SHA: c631147533bf9818445cdb8ed6cfba334bf8b074dfa158076b5ea113c80cd666
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prevent previous 1400 station re-queries, altered source hashes and unbounded requests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_tunein_one_pass_all_8133_missing.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_tunein_exact_stream_world_missing.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          python3 -m py_compile tools/stage_tunein_one_pass_all_8133_missing.py
+      - name: Fetch immutable latest 40086 radio world plus the earlier 1400 queried UUID proofs
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{newest,prior400,prior1000,old,source40013,source39979,source39964,source39879,patch13,patch7,canonical}
+          for id in 44915726977 44914331569 44915159802 44914701701 44913642417 44911563049 44907110543 44906253671 44907497364 44801652426; do
+            test "$(gh run view "$id" --json conclusion -q .conclusion)" = success
+          done
+          gh run download 44915726977 -n radio-tunein-second-73-visual-40086-world-REVIEW-ONLY -D "$ROOT/newest"
+          gh run download 44914331569 -n radio-tunein-400-missing-exact-owner-station-PNG-UNAPPROVED-REVIEW -D "$ROOT/prior400"
+          gh run download 44915159802 -n radio-tunein-second-1000-disjoint-original-images-REVIEW-ONLY -D "$ROOT/prior1000"
+          cp "$(find "$ROOT/newest" -type f -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          echo "$FIRST_SHA  $ROOT/prior400/tunein-all-country-missing-station-originals-REVIEW.json" | sha256sum --check
+          echo "$SECOND_SHA  $ROOT/prior1000/tunein-second-disjoint-missing-originals-REVIEW.json" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:
+              idx=json.loads(z.read("index.json"))
+              assert (idx["country_count"],idx["station_count"])==(224,48219)
+              assert sum(c["logos_found"] for c in idx["countries"].values())==40086
+              assert 48219-40086==8133
+          print("START ONE COMPLETE 224-COUNTRY SOURCE PASS, EXACTLY 8133 MISSING PNG",flush=True)
+          PY
+      - name: Restore all 224 SHA-matched source original ZIPs once from the existing reviewed snapshots
+        run: |
+          set -euo pipefail
+          gh run download 44801652426 -p 'radio-canonical-39643-country-shard-*-REVIEW' -D "$ROOT/canonical"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/source39879"
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/source39964"
+          gh run download 44913642417 -n radio-tef-15-visual-approved-39979-world-REVIEW-ONLY -D "$ROOT/source39979"
+          gh run download 44914701701 -n radio-tunein-34-visual-originals-40013-world-REVIEW-ONLY -D "$ROOT/source40013"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:
+              idx=json.loads(z.read("index.json"))
+              assert idx["country_count"]==224 and idx["station_count"]==48219
+          priority=("newest","source40013","source39979","source39964",
+                    "source39879","patch7","patch13","canonical")
+          snapshots={}
+          for label in priority:
+              values={}
+              for folder in (root/label).rglob("radio-country-??-REVIEW-NOT-PRODUCTION"):
+                  code=folder.name.split("-")[2]
+                  file=folder/"logos"/(code+".zip")
+                  if file.is_file() and not file.is_symlink():
+                      values.setdefault(code,[]).append((folder,file))
+              snapshots[label]=values
+          chosen={}
+          for cc,info in sorted(idx["countries"].items()):
+              matches=[]
+              for label in priority:
+                  for folder,file in snapshots[label].get(cc,[]):
+                      if hashlib.sha256(file.read_bytes()).hexdigest()==info["logo_sha256"]:
+                          matches.append((folder,file,label))
+                  if matches:break
+              if len(matches)!=1:
+                  raise ValueError("Unsigned or ambiguous current radio original ZIP: "+cc+" count "+str(len(matches)))
+              folder,file,label=matches[0]
+              with ZipFile(file) as original:
+                  names=original.namelist()
+                  if len(names)!=len(set(names)) or len(names)!=info["logos_found"]:
+                      raise ValueError("Original PNG count corrupt "+cc)
+              shutil.copytree(folder,root/"old"/folder.name)
+              chosen[cc]={"source":label,"logos":len(names),"sha256":info["logo_sha256"]}
+          assert len(chosen)==224 and sum(x["logos"] for x in chosen.values())==40086
+          (root/"original-source-reconciliation.json").write_text(
+              json.dumps({"schema":1,"review_only":True,"world_sha256":os.environ["WORLD_SHA"],
+                 "country_count":224,"original_png":40086,"countries":chosen},
+                 indent=2,sort_keys=True)+"\n")
+          print("ALL 224 COUNTRY ORIGINAL ZIP EXACT SHA MATCH; ALL 40086 EXISTING PNG PRESERVED",
+                json.dumps({k:len([cc for cc,x in chosen.items() if x["source"]==k]) for k in priority}),flush=True)
+          PY
+          rm -rf "$ROOT/newest" "$ROOT/source40013" "$ROOT/source39979" "$ROOT/source39964" "$ROOT/source39879" "$ROOT/patch13" "$ROOT/patch7" "$ROOT/canonical"
+      - name: ONE source pass across all 8133 missing station entries, excluding the 1400 prior source requests
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_tunein_one_pass_all_8133_missing.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior "$ROOT/prior400/tunein-all-country-missing-station-originals-REVIEW.json" \
+            --prior-second "$ROOT/prior1000/tunein-second-disjoint-missing-originals-REVIEW.json" \
+            --out "$ROOT/review" --limit 8133 --workers 14
+      - name: Validate that every source station was missing, 1400 old UUIDs excluded, no old PNG changed
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,os,hashlib
+          root=Path(os.environ["ROOT"])
+          report=json.loads((root/"review/tunein-all-currently-missing-originals-REVIEW.json").read_text())
+          previous=json.loads((root/"prior400/tunein-all-country-missing-station-originals-REVIEW.json").read_text())
+          old2=json.loads((root/"prior1000/tunein-second-disjoint-missing-originals-REVIEW.json").read_text())
+          before={x["stationuuid"] for x in previous["results"]}|{x["stationuuid"] for x in old2["results"]}
+          requested={x["stationuuid"] for x in report["results"]}
+          assert len(before)==1400 and not before&requested
+          assert report["review_only"] and report["world_unchanged"] and report["new_png_approved"]==0
+          assert report["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert report["previous_source_sha256"]==os.environ["FIRST_SHA"]
+          assert report["second_source_sha256"]==os.environ["SECOND_SHA"]
+          assert report["country_count"]==224 and report["station_count"]==48219
+          assert report["world_originals_before"]==40086
+          assert report["countries_with_exact_original_ZIP"]==224
+          assert report["excluded_previous_queries"]==1400
+          assert len(requested)==report["new_distinct_station_queries"]
+          assert 0<=len(requested)<=8133
+          assert all(row["approved"] is False for row in report["results"])
+          assert not list((root/"review").rglob("radio-countries-bouquets.zip"))
+          with ZipFile(root/"world.zip") as z:
+              idx=json.loads(z.read("index.json"))
+              assert idx["country_count"]==224 and idx["station_count"]==48219
+              assert sum(c["logos_found"] for c in idx["countries"].values())==40086
+          print("ALL-COUNTRY ONE SHARED RADIO SOURCE BLOCK PASS",json.dumps({
+             k:report[k] for k in ("new_distinct_station_queries",
+                 "new_original_images_for_visual_QA","unqueried_missing_station_candidates",
+                 "selection_skips","quarantined_or_unavailable")},sort_keys=True),flush=True)
+          PY
+      - name: Store one complete visual review archive for every newly sourced original, no release or production changes
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-all-8133-gaps-one-source-pass-UNAPPROVED-REVIEW-ONLY
+          path: |
+            /tmp/warder-one-block-all-8133-radio-logo-gaps/review/
+            /tmp/warder-one-block-all-8133-radio-logo-gaps/original-source-reconciliation.json
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error

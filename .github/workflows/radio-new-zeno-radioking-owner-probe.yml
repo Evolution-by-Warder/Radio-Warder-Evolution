@@ -1,0 +1,75 @@
+name: New Zeno RadioKing broadcaster-owned station image identity probe REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-zeno-radioking-owner-probe.yml
+      - tools/probe_new_zeno_radioking_owner_world.py
+      - tests/test_probe_new_zeno_radioking_owner_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  source-evidence-no-logo-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-zeno-radioking-source
+      WORLD_SHA: f5a550d39f79957778f357296bc85102023ffc96f89bfb2daffbd1f87cf5bd49
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exact stream and branding safety tests
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_probe_new_zeno_radioking_owner_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_live365_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_lautfm_firstparty_world.py
+      - name: Load latest approved 39698-logo REVIEW world from existing artifact by SHA
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source"
+          test "$(gh run view 44876454750 --json conclusion -q .conclusion)" = success
+          gh run download 44876454750 \
+            -n radio-lautfm-nine-visual-approved-originals-39698-REVIEW-ONLY \
+            -D "$ROOT/source"
+          test "$(find "$ROOT/source" -type f -name radio-countries-bouquets.zip | wc -l)" -eq 1
+          cp "$(find "$ROOT/source" -type f -name radio-countries-bouquets.zip)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          rm -rf "$ROOT/source"
+      - name: Scan 224 country identity maps, probe bounded never-used broadcaster pages
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_new_zeno_radioking_owner_world.py \
+            --world "$ROOT/world.zip" --out "$ROOT/review"
+      - name: Ensure no logo image downloaded or counted without visual QA and new world build
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads((Path(os.environ["ROOT"])/
+            "review/new-independent-zeno-radioking-owner-audit-REVIEW.json").read_text())
+          assert r["review_only"] and r["metadata_only"] and r["new_verified_png"]==0
+          assert r["countries_scanned"]==224 and r["stations_scanned"]==48219
+          assert r["world_sha256"]==os.environ["WORLD_SHA"]
+          assert 0<=r["pages_queried"]<=18
+          assert sum(r["owner_streams"].values())>0
+          assert all(x.get("evidence",{}).get("metadata_only",True)
+                     for x in r["attempts"])
+          print("INDEPENDENT OWNER SOURCE AUDIT PASS",json.dumps({
+            k:r[k] for k in ("owner_streams","candidate_pages","pages_queried",
+              "exact_identity_image_review_candidates","provider_errors")
+          },sort_keys=True))
+          PY
+      - name: Preserve evidence only (no country/world ZIP or release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-independent-Zeno-RadioKing-owner-metadata-REVIEW-ONLY
+          path: /tmp/warder-zeno-radioking-source/review/
+          if-no-files-found: error
+          retention-days: 30

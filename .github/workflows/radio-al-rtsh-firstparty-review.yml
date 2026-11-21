@@ -1,0 +1,118 @@
+name: First-party Radio Tirana 1 original vector recovery (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-al-rtsh-firstparty-review.yml
+      - tools/recover_current_rtsh_radio_tirana_1.py
+      - tests/test_recover_current_rtsh_radio_tirana_1.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-al-firstparty-review
+      WORLD_SHA: 77ef033cfb0257d0b0be78fc8911b8bf69adf0cb00af904ff90b95970cf4a9d3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline strict identity, HTML and source guarding regressions
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_recover_current_rtsh_radio_tirana_1.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_six_official_radio_brand_assets.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Install SVG renderer only on the review runner
+        run: python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+      - name: Load verified newer 39662 world and pinned CarRadio exact stream/name gaps
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-artifact,gaps,old,shards,official-page}
+          test "$(gh run view 44838788045 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44830949401 --json conclusion -q .conclusion)" = success
+          gh run download 44838788045 -n radio-DK-LT-first-party-originals-REVIEW-ONLY -D "$ROOT/world-artifact"
+          mapfile -t zipfiles < <(find "$ROOT/world-artifact" -type f -name radio-countries-bouquets.zip)
+          test "${#zipfiles[@]}" -eq 1
+          cp "${zipfiles[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          gh run download 44830949401 -n radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY -D "$ROOT/gaps"
+          test -f "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json"
+      - name: Get ONLY the original immutable AL country ZIP shard, no existing logo recrawl
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          shard=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          from zipfile import ZipFile
+          with ZipFile(Path(os.environ['ROOT'])/'world.zip') as z:
+              index=json.loads(z.read('index.json'))
+          assert index['station_count']==48219 and index['country_count']==224
+          assert sum(c['logos_found'] for c in index['countries'].values())==39662
+          print(f"{sorted(index['countries']).index('AL')//8:02d}")
+          PY
+          )
+          gh run download 44801652426 -n "radio-canonical-39643-country-shard-${shard}-REVIEW" -D "$ROOT/shards"
+          mapfile -t folders < <(find "$ROOT/shards" -type d -name "radio-country-AL-REVIEW-NOT-PRODUCTION")
+          test "${#folders[@]}" -eq 1
+          cp -a "${folders[0]}" "$ROOT/old/"
+      - name: Read current Radio Tirana 1 official channel; never use archive artwork
+        run: |
+          set -euo pipefail
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 --user-agent 'WarderRadioOfficialBrandAudit/1.0' \
+            'https://rtsh.al/radio/kanale/radio-tirana-1/' -o "$ROOT/official-page/radio-tirana-1.html"
+          test "$(wc -c < "$ROOT/official-page/radio-tirana-1.html")" -lt 2097152
+          sha256sum "$ROOT/official-page/radio-tirana-1.html"
+      - name: Fetch one exact broadcaster SVG and safely render ONLY if identity passes
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/recover_current_rtsh_radio_tirana_1.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --gaps "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json" \
+            --page "$ROOT/official-page/radio-tirana-1.html" --out "$ROOT/review"
+      - name: Reassemble all 224 country references only for genuine net new original
+        run: |
+          set -euo pipefail
+          gained=$(python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          report=json.loads((Path(os.environ['ROOT'])/'review/al-radio-tirana-1-firstparty-review.json').read_text())
+          assert report['review_only'] and report['unchanged_existing_pngs']
+          assert report['world_sha256']==os.environ['WORLD_SHA']
+          print(report['recovered_total'])
+          PY
+          )
+          if test "$gained" -gt 0; then
+            test "$gained" -eq 1
+            PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+              --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+              --old-root "$ROOT/old" --candidates "$ROOT/review" \
+              --countries AL --out "$ROOT/new-world"
+            python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['ROOT'])/'new-world/world-recovery-review.json').read_text())
+          assert report['review_only'] and report['country_count']==224
+          assert report['station_count']==48219 and report['logos_added']==1
+          assert len(report['countries_changed'])==1
+          assert report['countries_changed'][0]['country']=='AL'
+          print('NEW OFFICIAL WORLD AL',json.dumps(report,sort_keys=True))
+          PY
+          else
+            echo 'Official artwork rejected or currently absent; review result only, world unchanged.'
+          fi
+      - name: Preserve evidence as isolated review artifacts without release or IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-AL-RTSH-firstparty-original-REVIEW-ONLY
+          path: |
+            /tmp/warder-al-firstparty-review/review/
+            /tmp/warder-al-firstparty-review/new-world/
+          retention-days: 30
+          if-no-files-found: error

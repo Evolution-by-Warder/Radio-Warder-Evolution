@@ -1,0 +1,94 @@
+name: Build 39150 verified original radio logo world with six Slovak additions - REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-world-39150-slovak-additions-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verify-and-assemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-world-39150-verified
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source-only logo recovery and non-destructive world assembly tests
+        run: |
+          python3 -B tests/test_verified_station_directory.py
+          python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Download only pinned previous verified world plus six original SK logos
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/baseline" "$ROOT/sk" "$ROOT/old" "$ROOT/candidates"
+          gh run download 44780198931 \
+            -n radio-world-224-recovered-all-direct-SVG-REVIEW-ONLY \
+            -D "$ROOT/baseline"
+          gh run download 44780870898 \
+            -n radio-SK-curated-six-profiles-REVIEW-ONLY \
+            -D "$ROOT/sk"
+          cp -a "$ROOT/baseline/candidates/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/sk/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/candidates/"
+      - name: Verify source file integrity and preserve existing original SK PNGs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          old_world=root/'baseline/new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(old_world.read_bytes()).hexdigest()=='d9825300b54e98859117bfc860102e8ae48a7209c481dbded6efae3346cc24f0'
+          report=json.loads((root/'sk/curated-source-report.json').read_text())
+          assert report['new_logos']==6 and report['candidate_logo_count']==117
+          assert len(report['sources'])==6 and report['source_errors']=={}
+          before=root/'old/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip'
+          after=root/'candidates/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip'
+          with ZipFile(before) as old,ZipFile(after) as new:
+              assert len(old.namelist())==114 and len(new.namelist())==117
+              for name in old.namelist():
+                  assert old.read(name)==new.read(name),name
+          print('SK SOURCE-CHECKED: 114 -> 117, no existing PNGs modified')
+          PY
+      - name: Reassemble signed all-world data with only new SK manifest
+        run: |
+          set -euo pipefail
+          python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/baseline/new-world/radio-countries-bouquets.zip" \
+            --world-sha256 d9825300b54e98859117bfc860102e8ae48a7209c481dbded6efae3346cc24f0 \
+            --old-root "$ROOT/old" \
+            --candidates "$ROOT/candidates" \
+            --countries SK \
+            --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          world=root/'new-world/radio-countries-bouquets.zip'
+          assert report['review_only'] is True and report['logos_added']==3
+          assert report['country_count']==224 and report['station_count']==48219
+          with ZipFile(world) as z:
+              index=json.loads(z.read('index.json'))
+              assert len(index['countries'])==224
+              assert sum(c['stations'] for c in index['countries'].values())==48219
+              assert sum(c['logos_found'] for c in index['countries'].values())==39150
+              assert index['countries']['SK']['logos_found']==117
+          print('Verified world 224 / 48219 / 39150:',json.dumps(report,sort_keys=True))
+          PY
+      - name: Archive only changed country ZIP and small worldwide catalogue (NOT LIVE)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-39150-station-originals-REVIEW-ONLY
+          path: |
+            /tmp/warder-world-39150-verified/new-world/
+            /tmp/warder-world-39150-verified/candidates/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip
+          retention-days: 30
+          if-no-files-found: error

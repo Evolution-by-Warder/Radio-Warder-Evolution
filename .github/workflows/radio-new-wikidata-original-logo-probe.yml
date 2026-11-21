@@ -1,0 +1,51 @@
+name: Probe completely new Wikidata Commons radio station logos by official website
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-new-wikidata-original-logo-probe.yml]
+permissions: {contents: read}
+jobs:
+  public-knowledge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read only original radio-station logo files and verified official websites
+        run: |
+          python3 - <<'PY'
+          import json, urllib.parse,urllib.request
+          from pathlib import Path
+          query="""SELECT ?item ?itemLabel ?homepage ?logo WHERE {
+             ?item wdt:P31 wd:Q14350 ;
+                   wdt:P154 ?logo ;
+                   wdt:P856 ?homepage .
+             SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+          } LIMIT 3000"""
+          url="https://query.wikidata.org/sparql?"+urllib.parse.urlencode({
+              'query':query,'format':'json'})
+          req=urllib.request.Request(url,headers={
+              'User-Agent':'WarderRadioLogoAudit/0.1 (https://github.com/Evolution-by-Warder/Radio-Warder-Evolution)',
+              'Accept':'application/sparql-results+json'})
+          try:
+              with urllib.request.urlopen(req,timeout=90) as res:
+                  raw=res.read(18_000_000)
+              data=json.loads(raw)
+              rows=data.get('results',{}).get('bindings',[])
+              print('WIKIDATA DIRECT RADIO STATION LOGO/WEBSITE ROWS',len(rows))
+              for r in rows[:8]:
+                  print('WIKIDATA SOURCE SAMPLE',[(k,v.get('value','')[:130]) for k,v in r.items()])
+              Path('/tmp/wikidata-radios.json').write_text(json.dumps({
+                  'schema':1,'query':'radio_stations_P31_Q14350_P856_P154','count':len(rows),
+                  'results':rows},ensure_ascii=False))
+          except Exception as exc:
+              print('WIKIDATA PROBE UNAVAILABLE:',type(exc).__name__,str(exc)[:500])
+              Path('/tmp/wikidata-radios.json').write_text(json.dumps({
+                  'schema':1,'error_type':type(exc).__name__,'count':0}))
+          PY
+      - name: Archive only source matching evidence; no PNG distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-Wikidata-Commons-official-branding-REVIEW-ONLY
+          path: /tmp/wikidata-radios.json
+          if-no-files-found: error
+          retention-days: 15

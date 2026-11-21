@@ -1,0 +1,71 @@
+name: Radio.co station-owner first-party logos across 224 countries (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-firstparty-radio-co-224-review.yml
+      - tools/audit_firstparty_radio_co_world.py
+      - tests/test_audit_firstparty_radio_co_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  radio-co-firstparty-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radio-co-firstparty-world
+      WORLD_SHA: bde7de03fcb203da1440c43b1bf7c62ede43699894ce53f232e7bc25d76cf353
+    steps:
+      - uses: actions/checkout@v4
+      - name: Negative tests for cross-brand images, forbidden streams, spoofed hosts
+        run: |
+          PYTHONPATH=src:tools python3 -B tests/test_audit_firstparty_radio_co_world.py
+      - name: Fetch pinned latest 39666-original world ZIP from SUCCESS review artifact
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{artifact,review}
+          test "$(gh run view 44862475699 --json conclusion -q .conclusion)" = success
+          gh run download 44862475699 -n radio-DK-RADIOIIII-official-inline-SVG-REVIEW-ONLY -D "$ROOT/artifact"
+          mapfile -t archives < <(find "$ROOT/artifact" -type f -name radio-countries-bouquets.zip)
+          test "${#archives[@]}" -eq 1
+          cp "${archives[0]}" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+      - name: Inspect EVERY fixed country catalog, query only station-identified Radio.co provider URLs
+        run: |
+          set -euo pipefail
+          rm -rf "$ROOT/review"
+          PYTHONPATH=src:tools python3 -B tools/audit_firstparty_radio_co_world.py --world "$ROOT/world.zip" --out "$ROOT/review"
+      - name: Check coverage, source and zero released/accepted PNG
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          x=json.loads((Path(os.environ["ROOT"])/"review/radio-co-first-party-world-224-metadata-review.json").read_text())
+          assert x["world_sha256"]==os.environ["WORLD_SHA"]
+          assert x["review_only"] and x["metadata_only"] and x["new_png_verified"]==0
+          assert x["countries_scanned"]==224 and x["stations_scanned"]==48219
+          assert len(x["country_coverage"])==224
+          assert sum(r["logos_found"] for r in x["country_coverage"])==39666
+          assert sum(r["missing"] for r in x["country_coverage"])==8553
+          assert len(x["candidate_rows"])+x["unprobed_records"]==x["radio_co_stream_matches"]
+          print("RADIO.CO FIRST PARTY SOURCE REVIEW PASS", json.dumps({
+            "countries":224,"stations":48219,"firstparty_stream_matches":x["radio_co_stream_matches"],
+            "provider_ids":x["provider_ids_requested"],
+            "exact_brand_and_logo":x["exact_provider_brand_and_logo_candidates"],
+            "rejected_or_failed":x["probe_failures"],
+            "net_new_png":0,"all_existing_originals":39666},sort_keys=True))
+          PY
+      - name: Upload small review metadata only; NO logo ZIP, manifest or release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-224-country-RadioCo-station-firstparty-REVIEW-ONLY
+          path: /tmp/warder-radio-co-firstparty-world/review/
+          retention-days: 30
+          if-no-files-found: error

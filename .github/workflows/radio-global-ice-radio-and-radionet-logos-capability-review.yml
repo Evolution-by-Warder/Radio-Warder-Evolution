@@ -1,0 +1,60 @@
+name: One independent 67k-radio catalogue and owner-stream logo source capability REVIEW
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-global-ice-radio-and-radionet-logos-capability-review.yml]
+permissions:
+  contents: read
+jobs:
+  bulk-directory-source-capability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit whole-directory catalog and station image/stream identity capabilities, not 5 individual broadcaster websites
+        run: |
+          python3 - <<'PY'
+          from urllib.request import Request,urlopen
+          from urllib.error import HTTPError,URLError
+          from hashlib import sha256
+          from urllib.parse import urlsplit
+          from html.parser import HTMLParser
+          import json,re
+          urls=[
+           "https://ice.radio.fm/llms.txt",
+           "https://ice.radio.fm/sitemap.xml",
+           "https://ice.radio.fm/sitemap_index.xml",
+           "https://ice.radio.fm/radio",
+           "https://ice.radio.fm/stations",
+           "https://ice.radio.fm/api/stations?limit=10",
+           "https://ice.radio.fm/api/v1/stations?limit=10",
+           "https://ice.radio.fm/country/germany",
+           "https://prod.radio-api.net/stations/local?count=10&offset=0",
+           "https://prod.radio-api.net/stations/search?query=Radio%20Silesia",
+           "https://prod.radio-api.net/stations?query=Radio%20Silesia",
+           "https://www.radio.net/search?query=Radio%20Silesia",
+           "https://www.radio.net/s/bbc1"
+          ]
+          for url in urls:
+            out={'url':url,'review_only':True}
+            try:
+              request=Request(url,headers={'User-Agent':'WarderRadioGlobalOriginalLogoSourceAudit/1.0',
+                'Accept':'application/json,application/xml,text/html,text/plain'})
+              with urlopen(request,timeout=9) as r:
+                data=r.read(500000)
+                out.update(status=r.status,final_url=r.geturl(),content_type=r.headers.get('Content-Type',''),
+                           bytes=len(data),sha256=sha256(data).hexdigest())
+              text=data.decode('utf-8','replace')
+              out['sample']=text[:1300]
+              out['station_image_mentions']=len(re.findall('logo|image|favicon',text,re.I))
+              out['audio_stream_mentions']=len(re.findall('streamURL|stream_url|url_resolved|streamUrl',text,re.I))
+              if text.lstrip().startswith(('{','[')):
+                try:
+                  v=json.loads(text)
+                  out['json_structure']=(list(v)[:20] if isinstance(v,dict) else
+                     ('array',len(v),list(v[0])[:20] if v and isinstance(v[0],dict) else []))
+                except Exception:pass
+            except Exception as ex:
+              out['error']=type(ex).__name__+':'+str(ex)[:180]
+            print('WORLD RADIO OWNER LOGO SOURCE CAPABILITY',json.dumps(out,ensure_ascii=False)[:2500],flush=True)
+          PY

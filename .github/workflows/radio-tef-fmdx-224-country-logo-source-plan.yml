@@ -1,0 +1,72 @@
+name: Global TEF FM-DX 77-country-source original radio logo exact-name candidate plan
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-tef-fmdx-224-country-logo-source-plan.yml
+      - tools/stage_tef_fmdx_missing_radio_originals.py
+      - tests/test_stage_tef_fmdx_missing_radio_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-country-code-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-tef-fmdx-global-picon-owner-review
+      WORLD_SHA: ddb09c0d953dff302c7b63452158c35e007fa61b602830d769ff4919b78db720
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test 224-country origin, only exact country/brand IDs and no generic default PNGs
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_tef_fmdx_missing_radio_originals.py
+          python3 -m py_compile tools/stage_tef_fmdx_missing_radio_originals.py
+      - name: Fetch only the latest 39964 original radio world from signed GitHub artifact
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source"
+          test "$(gh run view 44911563049 --json conclusion -q .conclusion)" = success
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/source"
+          cp "$(find "$ROOT/source" -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          rm -rf "$ROOT/source"
+      - name: ONE original country+PI+exact broadcast station-name source scan over public FM logo directory
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_tef_fmdx_missing_radio_originals.py \
+            --world "$ROOT/world.zip" --out "$ROOT/plan" --plan-only --workers 8
+      - name: Verify complete 224-country audit, source country codes and no automatic artwork approval
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          path=Path(os.environ["ROOT"])/"plan/tef-global-radio-original-logo-plan-REVIEW.json"
+          obj=json.loads(path.read_bytes())
+          assert obj["schema"]==1 and obj["review_only"]
+          assert obj["world_sha256"]==os.environ["WORLD_SHA"]
+          assert obj["countries_scanned"]==224 and obj["stations_scanned"]==48219
+          assert obj["source_directories_attempted"]>=70
+          assert obj["source_directories_read"]>=30
+          assert obj["new_png_approved"]==0 and obj["new_world_created"] is False
+          assert len(obj["selected"])==obj["potential_exact_name_country_matches"]
+          assert len({r["stationuuid"] for r in obj["selected"]})==len(obj["selected"])
+          print("TEF GLOBAL SOURCE PLAN SUCCESS",json.dumps({
+             k:obj[k] for k in ("source_directories_attempted","source_directories_read",
+               "source_unique_name_keys","potential_exact_name_country_matches",
+               "possible_country_codes","source_errors")},sort_keys=True))
+          PY
+      - name: Store one SHA-evidenced all-country source index, no PNG download or world changes
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-tef-fmdx-exact-station-owner-name-source-REVIEW-ONLY
+          path: /tmp/warder-tef-fmdx-global-picon-owner-review/plan/
+          retention-days: 30
+          if-no-files-found: error

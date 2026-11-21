@@ -1,0 +1,98 @@
+name: Qingting CN eight exact official station logo candidates - new secure transport review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-cn-qingting-eight-verified-owner-recovery-review.yml
+      - tools/probe_qingting_verified_eight_cn_owner_logo.py
+      - tests/test_probe_qingting_verified_eight_cn_owner_logo.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  safe-eight-firstparty-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-qingting-cn-recheck-eight
+      WORLD_SHA: 355981b1112fd96e5ef4e7022f6162f588e2be799b2af42852670d10f4e8cebb
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow and test exact official broadcaster name/image-alt URL conversion only
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_probe_qingting_verified_eight_cn_owner_logo.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_qingting_cn_firstparty_station_logos.py
+      - name: SHA-verify last 39724-world + existing CN original shard and the first 24-owner source evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-source,old,source24,shard}
+          test "$(gh run view 44895332419 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895785955 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44895332419 -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/world-source"
+          gh run download 44895785955 -n radio-cn-qingting-firstparty-missing-originals-UNAPPROVED -D "$ROOT/source24"
+          gh run download 44801652426 -n radio-canonical-39643-country-shard-05-REVIEW -D "$ROOT/shard"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,shutil,hashlib
+          root=Path(os.environ['ROOT'])
+          worlds=list((root/'world-source').rglob('radio-countries-bouquets.zip'))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39724
+          cn=list((root/'shard').rglob('radio-country-CN-REVIEW-NOT-PRODUCTION'))
+          assert len(cn)==1
+          assert hashlib.sha256((cn[0]/'logos/CN.zip').read_bytes()).hexdigest()==idx['countries']['CN']['logo_sha256']
+          shutil.copytree(cn[0],root/'old'/cn[0].name)
+          p=root/'source24/qingting-china-official-radio-originals-review.json'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='641650c10099f12f840304d717bc636197c877fd7487fcc75b5193a16622fc71'
+          print('QINGTING SOURCE AND CURRENT WORLD/COUNTRY SHA VERIFIED')
+          PY
+          rm -rf "$ROOT/world-source" "$ROOT/shard"
+      - name: Recover original image URLs ONLY for eight previously proven same-name broadcaster pages (16 name mismatches excluded)
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_qingting_verified_eight_cn_owner_logo.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior "$ROOT/source24/qingting-china-official-radio-originals-review.json" \
+            --out "$ROOT/review"
+      - name: Verify exact 8 target IDs, image provenance, old PNG immutable and visual-approval gate
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json
+          root=Path(os.environ['ROOT'])
+          d=json.loads((root/'review/qingting-eight-exact-name-originals-review.json').read_text())
+          assert d['schema']==1 and d['review_only'] and d['pngs_added']==0
+          assert d['world_rebuilt'] is False and d['world_sha256']==os.environ['WORLD_SHA']
+          assert d['countries_scanned']==224 and d['stations_scanned']==48219
+          assert d['country']=='CN' and d['country_originals_before']==1057
+          assert d['previous_24_pages_not_recrawled']==16
+          assert d['targeted_same_name_owner_pages']==len(d['attempts'])==8
+          assert d['firstparty_originals_staged']<=8
+          assert all(x['approved'] is False for x in d['attempts'])
+          assert not list((root/'review').rglob('radio-countries-bouquets.zip'))
+          print('CN QINGTING 8 VERIFIED-OWNER IMAGE SOURCE REVIEW',json.dumps({
+              k:d[k] for k in ('targeted_same_name_owner_pages','firstparty_originals_staged',
+                  'duplicated_image_groups','errors')
+          },sort_keys=True))
+          PY
+      - name: Upload only eight CN station original image candidates and hashes, no release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-cn-qingting-eight-owner-art-UNAPPROVED-REVIEW
+          path: /tmp/warder-qingting-cn-recheck-eight/review/
+          retention-days: 30
+          if-no-files-found: error

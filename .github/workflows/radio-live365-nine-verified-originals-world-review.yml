@@ -1,0 +1,123 @@
+name: Nine original Live365 broadcaster logos - 39718 complete 224-country world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-live365-nine-verified-originals-world-review.yml
+      - tools/merge_live365_nine_visually_confirmed_world.py
+      - tests/test_merge_live365_nine_visually_confirmed_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  nine-original-images-with-immutable-catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-live365-nine-originals
+      WORLD_SHA: 8cf1a780d5537d5973c61c70a0d0216e4e7f4d4e06fb0822c8be2b6b0f05e12a
+      STAGE_SHA: 545a8e8dbd2a2c7ee7ec8fe3b9143ba49a837041e5c0267d4ddd8aee18e64b6f
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned-compatible original logo converter and run all identity regressions
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_live365_nine_visually_confirmed_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_live365_missing_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Restore signed 39709 world, prior station-owner originals and current GB and US country ZIPs
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{worldsrc,stage,us,gb,old}
+          test "$(gh run view 44891665963 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44894594574 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44889673492 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44886213146 --json conclusion -q .conclusion)" = success
+          gh run download 44891665963 -n radiojar-swiss-norway-two-39709-world-REVIEW-ONLY -D "$ROOT/worldsrc"
+          gh run download 44894594574 -n radio-live365-new-missing-owner-originals-224-UNAPPROVED-REVIEW -D "$ROOT/stage"
+          gh run download 44889673492 -n radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY -D "$ROOT/us"
+          gh run download 44886213146 -n radio-two-visual-approved-Radiojar-originals-39700-REVIEW-ONLY -D "$ROOT/gb"
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          import hashlib,os,json,shutil
+          root=Path(os.environ['ROOT'])
+          worlds=list((root/'worldsrc').rglob('radio-countries-bouquets.zip'))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39709
+          for cc,folder in (('US','us'),('GB','gb')):
+              found=list((root/folder).rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              assert len(found)==1,(cc,len(found))
+              src=found[0]
+              logo=src/'logos'/f'{cc}.zip'
+              sha=hashlib.sha256(logo.read_bytes()).hexdigest()
+              assert sha==idx['countries'][cc]['logo_sha256'],cc
+              shutil.copytree(src,root/'old'/src.name)
+              print('CURRENT VERIFIED ORIGINAL COUNTRY ZIP',cc,idx['countries'][cc]['logos_found'],sha)
+          source=root/'stage/live365-224-new-missing-firstparty-originals-REVIEW.json'
+          assert hashlib.sha256(source.read_bytes()).hexdigest()==os.environ['STAGE_SHA']
+          print('224 COUNTRY WORLD, 11 MISSING SOURCE PNGS, 9 EXACT BRAND APPROVAL CHECK')
+          PY
+          rm -rf "$ROOT/worldsrc" "$ROOT/us" "$ROOT/gb"
+      - name: Recover only nine visually verified original Live365 station logo PNGs from existing evidence
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_live365_nine_visually_confirmed_world.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Rebuild all 224 countries and prove 39718 originals, old PNGs and catalog identities unchanged
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries GB,US --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          approved=json.loads((root/'review/live365-nine-firstparty-visual-approved-proof.json').read_text())
+          world=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert approved['visual_approved_new_png']==world['logos_added']==9
+          assert approved['review_only'] and world['review_only']
+          assert len(approved['quarantined'])==2
+          assert approved['source_world_sha256']==world['original_world_sha256']==os.environ['WORLD_SHA']
+          assert world['country_count']==224 and world['station_count']==48219
+          delta={x['country']:(x['previous'],x['current'],x['added']) for x in world['countries_changed']}
+          assert delta=={'GB':(1566,1567,1),'US':(5763,5771,8)},delta
+          p=root/'new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==world['new_world_sha256']
+          with ZipFile(p) as z:
+              idx=json.loads(z.read('index.json'))
+              assert idx['country_count']==224 and idx['station_count']==48219
+              assert sum(v['logos_found'] for v in idx['countries'].values())==39718
+              assert 48219-39718==8501
+              assert idx['countries']['GB']['logos_found']==1567
+              assert idx['countries']['US']['logos_found']==5771
+          print('NINE EXACT LIVE365 FIRSTPARTY RADIO ORIGINALS WORLD PASS',json.dumps({
+              'new_png':9,'total_png':39718,'remaining_missing':8501,
+              'new_world_sha256':world['new_world_sha256'],
+              'countries':delta
+          },sort_keys=True))
+          PY
+      - name: Preserve REVIEW-ONLY world and changed country originals, never release/IPK/main
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-live365-nine-visual-originals-39718-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-live365-nine-originals/review/
+            /tmp/warder-live365-nine-originals/new-world/
+          retention-days: 30
+          if-no-files-found: error

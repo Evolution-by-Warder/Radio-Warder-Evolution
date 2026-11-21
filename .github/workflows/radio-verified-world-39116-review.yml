@@ -1,0 +1,97 @@
+name: Verify new 224-country radio world with 39126 original logos (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-verified-world-39116-review.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-39116-verified-world
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline signed-world and logo-preservation regression
+        run: |
+          python3 -B tests/test_assemble_recovered_radio_world.py
+          python3 -B tests/test_verified_station_directory.py
+          python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Retrieve only existing pinned world and source-reviewed country assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/old-sk" "$ROOT/old-czde" \
+                   "$ROOT/new-sk" "$ROOT/new-cz" "$ROOT/new-de" \
+                   "$ROOT/old" "$ROOT/candidates"
+          gh run download 44583128017 \
+            -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44583128017 \
+            -n radio-original-logos-batch-22-REVIEW -D "$ROOT/old-sk"
+          gh run download 44583128017 \
+            -n radio-original-logos-batch-06-REVIEW -D "$ROOT/old-czde"
+          gh run download 44775154653 \
+            -n radio-SK-curated-jazz-topolcany-party-REVIEW-ONLY -D "$ROOT/new-sk"
+          gh run download 44762776607 \
+            -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/new-cz"
+          gh run download 44776112474 \
+            -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/new-de"
+          cp -a "$ROOT/old-sk/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/old-czde/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/old-czde/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/old/"
+          cp -a "$ROOT/new-sk/radio-country-SK-REVIEW-NOT-PRODUCTION" "$ROOT/candidates/"
+          cp -a "$ROOT/new-cz/radio-country-CZ-REVIEW-NOT-PRODUCTION" "$ROOT/candidates/"
+          cp -a "$ROOT/new-de/radio-country-DE-REVIEW-NOT-PRODUCTION" "$ROOT/candidates/"
+      - name: Verify exact third-party source UUID provenance before merge
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          proof=json.loads((root/'new-sk/curated-source-report.json').read_text())
+          assert proof['source_world_sha256']=='669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38'
+          assert proof['new_logos']==3 and proof['candidate_logo_count']==114
+          assert set(proof['sources'])=={
+              '7ee66666-7361-468c-ace4-1f7a357b58f6',
+              '913b7498-8e2d-420b-8c3b-dbacdf9597c4',
+              '8e94c1a0-d37c-4f3a-aa1a-0911a57fbc30'}
+          PY
+      - name: Assemble all 224 complete bouquets with only three changed logo manifests
+        run: |
+          set -euo pipefail
+          python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --world-sha256 669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38 \
+            --old-root "$ROOT/old" \
+            --candidates "$ROOT/candidates" \
+            --countries SK,CZ,DE \
+            --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert report['country_count']==224 and report['station_count']==48219
+          assert report['logos_added']==16 and report['review_only']
+          counts={r['country']:(r['previous'],r['current']) for r in report['countries_changed']}
+          assert counts=={'SK':(111,114),'CZ':(202,205),'DE':(3953,3963)}
+          print('WORLD 39126 TOTAL original PNGs — review verified',json.dumps(report,sort_keys=True))
+          PY
+      - name: Archive the new world and only three changed country ZIPs
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-39126-logos-REVIEW-ONLY
+          path: |
+            /tmp/warder-39116-verified-world/new-world/
+            /tmp/warder-39116-verified-world/candidates/radio-country-SK-REVIEW-NOT-PRODUCTION/logos/SK.zip
+            /tmp/warder-39116-verified-world/candidates/radio-country-CZ-REVIEW-NOT-PRODUCTION/logos/CZ.zip
+            /tmp/warder-39116-verified-world/candidates/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip
+          retention-days: 30
+          if-no-files-found: error

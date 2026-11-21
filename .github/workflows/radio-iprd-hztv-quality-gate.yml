@@ -1,0 +1,71 @@
+name: Exclude three inspected HZTV TV logos from 224-country original radio review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iprd-hztv-quality-gate.yml
+      - tools/quarantine_iprd_wrong_hztv.py
+      - tests/test_reconcile_iprd_224_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  brand-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radio-hztv-quality
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only syntax and source candidate trust gate
+        run: |
+          python3 -B -m py_compile tools/quarantine_iprd_wrong_hztv.py
+          PYTHONPATH=src python3 -B tests/test_reconcile_iprd_224_world.py
+      - name: Download latest 224-country SHA-verified IPRD review (no raw re-download)
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/review"
+          gh run download 44792849587 \
+            -n radio-world-224-iprd-reconciled-source-logos-REVIEW-ONLY \
+            -D "$ROOT/review"
+      - name: Delete only three proven misbranded television graphics in a NEW candidate
+        run: |
+          python3 -B tools/quarantine_iprd_wrong_hztv.py \
+            --source "$ROOT/review" --out "$ROOT/filtered"
+      - name: Verify entire 224-country dataset and preserve other source PNGs
+        run: |
+          python3 - <<'PY'
+          import json,os,hashlib,sys
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          file=root/'filtered/iprd-final-quality-review.json'
+          report=json.loads(file.read_text(encoding='utf-8'))
+          world=root/'filtered/radio-countries-bouquets.zip'
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==report['new_world_sha256']
+          assert report['country_count']==224 and report['station_count']==48219
+          assert report['total_logos']==39643 and report['missing_logos']==8576
+          assert report['iprd_accepted_originals']==493
+          assert len(report['new_misbrand_quarantine'])==3
+          assert report['old_misbrand_quarantine']==13
+          print('FINAL VERIFIED RADIO LOGOS:',json.dumps({
+               'world_sha256':report['new_world_sha256'],
+               'new_correct_originals':493,
+               'stations':report['station_count'],
+               'countries':report['country_count'],
+               'total_logos':report['total_logos'],
+               'missing':report['missing_logos'],
+               'quarantined_new_incorrect_icons':3
+          },sort_keys=True))
+          PY
+      - name: Save final quality-review world and corrected CN ZIP; never publish live
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-224-39643-verified-logos-HZTV-corrected-REVIEW-ONLY
+          path: /tmp/warder-radio-hztv-quality/filtered/
+          retention-days: 30
+          if-no-files-found: error

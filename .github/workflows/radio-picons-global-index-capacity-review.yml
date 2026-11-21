@@ -1,0 +1,81 @@
+name: One-pass 224-country original logo name-index bulk capacity check
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths: [.github/workflows/radio-picons-global-index-capacity-review.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  check-all-station-names-against-current-highres-radio-brand-library:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-bulk-library-name-index
+      WORLD_SHA: c6733fffcb6008322550785ae06007ed00a565e6ed29f62e2cdf7a72930f7019
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load only signed new 224-country 39879 world
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,review}
+          test "$(gh run view 44907110543 --json conclusion -q .conclusion)" = success
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/source"
+          cp "$(find "$ROOT/source" -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum -c
+      - name: Match all 48219 exact station brand names to independently maintained name-to-logo index without downloading 1 original yet
+        run: |
+          set -euo pipefail
+          curl -fsSL --max-time 45 --retry 2 https://raw.githubusercontent.com/picons/picons/master/build-source/utf8snp.index -o "$ROOT/utf8snp.index"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from collections import Counter,defaultdict
+          import hashlib,json,os,unicodedata
+          root=Path(os.environ['ROOT'])
+          world=root/'world.zip'
+          with ZipFile(world) as z:
+              index=json.loads(z.read('index.json'))
+              assert index['country_count']==224 and index['station_count']==48219
+              assert sum(c['logos_found'] for c in index['countries'].values())==39879
+              entries=[(cc,r) for cc in index['countries']
+                 for r in json.loads(z.read('catalog/'+cc+'.json'))['stations']]
+          def norm(s):
+              return ''.join(c for c in unicodedata.normalize('NFKD',str(s).casefold())
+                             if c.isalnum() and not unicodedata.combining(c))
+          raw_index=(root/'utf8snp.index').read_bytes()
+          aliases=defaultdict(set)
+          for line in raw_index.decode('utf8').splitlines():
+              if '=' not in line:continue
+              name,logo=line.split('=',1)
+              if norm(name) and logo.strip():aliases[norm(name)].add(logo.strip())
+          names=Counter(norm(r['name']) for cc,r in entries)
+          selected=[];ambiguous=0
+          for cc,r in entries:
+              norm_name=norm(r['name'])
+              logo=aliases.get(norm_name,set())
+              if len(logo)!=1 or names[norm_name]>1 or len(norm_name)<5:
+                  if logo:ambiguous+=1
+                  continue
+              selected.append({'country':cc,'stationuuid':r['stationuuid'],'name':r['name'],
+                               'stem':r['stem'],'logo_stem':next(iter(logo))})
+          grouped=Counter(r['country'] for r in selected)
+          report={'review_only':True,'world_sha256':os.environ['WORLD_SHA'],
+                  'index_sha256':hashlib.sha256(raw_index).hexdigest(),
+                  'country_count':224,'stations_scanned':len(entries),
+                  'library_name_mappings':len(aliases),
+                  'unique_exact_brand_potential_before_existing_png_filter':len(selected),
+                  'ambiguous_matches_skipped':ambiguous,'matched_countries':dict(grouped),
+                  'examples':selected[:75]}
+          (root/'review/picons-224-world-exact-logo-index-review.json').write_text(
+               json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('BULK ORIGINAL HIGHRES LIBRARY MATCH',json.dumps({
+              k:v for k,v in report.items() if k!='examples'},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-224-exact-name-logo-library-bulk-capacity-REVIEW
+          path: /tmp/warder-bulk-library-name-index/review/
+          retention-days: 30
+          if-no-files-found: error

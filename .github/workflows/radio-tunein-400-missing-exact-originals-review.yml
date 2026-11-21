@@ -1,0 +1,119 @@
+name: 400 missing station TuneIn owner logos - exact station audio identity across 224 countries REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-tunein-400-missing-exact-originals-review.yml
+      - tools/stage_tunein_exact_stream_world_missing.py
+      - tests/test_stage_tunein_exact_stream_world_missing.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-multicountry-station-owner-bulk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-tunein-original-missing-multicountry
+      WORLD_SHA: 2edfced0a9866c07bff0c83017f73bb09927c94cc99fd82ac859b8734f31149b
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exact source station name, URL owner and audio stream negative tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_tunein_exact_stream_world_missing.py
+          python3 -m py_compile tools/stage_tunein_exact_stream_world_missing.py
+      - name: Read only 39979 signed world ZIP and identify 25 high-deficit countries
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,prior39964,baseline,patch13,patch7,old}
+          test "$(gh run view 44913642417 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44911563049 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44913642417 -n radio-tef-15-visual-approved-39979-world-REVIEW-ONLY -D "$ROOT/source"
+          cp "$(find "$ROOT/source" -type f -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:index=json.loads(z.read("index.json"))
+          assert (index["country_count"],index["station_count"])==(224,48219)
+          assert sum(x["logos_found"] for x in index["countries"].values())==39979
+          codes=sorted(index["countries"],key=lambda x:(index["countries"][x]["logos_found"]-index["countries"][x]["stations"],x))[:25]
+          shards=sorted({sorted(index["countries"]).index(x)//8 for x in codes})
+          (root/"country-codes.json").write_text(json.dumps(codes))
+          (root/"shard-ids.txt").write_text("".join(f"{n:02d}\n" for n in shards))
+          print("TUNEIN TOP SOURCE ORIGINAL MISSING COUNTRIES",codes)
+          print("SOURCE SHARDS",shards)
+          PY
+      - name: Reuse signed current originals exactly, never download existing 39979 PNG individually
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/baseline/$shard"
+          done < "$ROOT/shard-ids.txt"
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/prior39964"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/prior39867"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          import json,os,shutil,hashlib
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          codes=json.loads((root/"country-codes.json").read_text())
+          priority=("source","prior39964","prior39867","patch7","patch13","baseline")
+          for cc in codes:
+              matching=[]
+              for directory in priority:
+                  for folder in (root/directory).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"):
+                      logo=folder/"logos"/(cc+".zip")
+                      if logo.is_file() and hashlib.sha256(logo.read_bytes()).hexdigest()==idx["countries"][cc]["logo_sha256"]:
+                          matching.append(folder)
+                  if matching:break
+              if len(matching)!=1:raise ValueError(f"Unverified radio country ZIP {cc}: {len(matching)}")
+              shutil.copytree(matching[0],root/"old"/matching[0].name)
+          print("ALL TOP 25 RADIO ORIGINAL COUNTRY ZIP SHA VERIFIED")
+          PY
+          rm -rf "$ROOT/baseline" "$ROOT/patch13" "$ROOT/patch7" "$ROOT/prior39964" "$ROOT/prior39867" "$ROOT/source"
+      - name: ONE high-priority all-country missing-name TuneIn search, verify exact source audio and downloadable own logo
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_tunein_exact_stream_world_missing.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" --out "$ROOT/review" \
+            --limit 400 --workers 4
+      - name: Validate original 224-country index, immutable current logos and no unverified source logos counted
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          r=json.loads((Path(os.environ["ROOT"])/"review/tunein-all-country-missing-station-originals-REVIEW.json").read_text())
+          assert r["review_only"] and r["approved_new_png"]==0 and r["world_rebuilt"] is False
+          assert r["world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["world_countries_scanned"]==224 and r["world_stations_scanned"]==48219
+          assert r["world_originals_before"]==39979 and r["missing_before"]==8240
+          assert r["SHA_verified_country_zips"]==25
+          assert 0<=r["unique_search_requests"]<=400 and len(r["results"])==r["unique_search_requests"]
+          assert all(x["approved"] is False for x in r["results"])
+          assert len([x for x in r["results"] if x.get("png_sha256") and not x.get("rejected")])==r["exact_stream_original_images_for_visual_review"]
+          assert not list((Path(os.environ["ROOT"])/"review").rglob("radio-countries-bouquets.zip"))
+          print("ALL-COUNTRY TUNEIN EXACT-STREAM ORIGINAL SOURCE PASS",json.dumps({
+              k:r[k] for k in ("unique_search_requests","exact_stream_original_images_for_visual_review",
+                  "selection_skips","source_errors")},sort_keys=True))
+          PY
+      - name: Retain only radio owner-source pictures for one combined brand visual approval, not production
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-tunein-400-missing-exact-owner-station-PNG-UNAPPROVED-REVIEW
+          path: /tmp/warder-tunein-original-missing-multicountry/review/
+          retention-days: 30
+          if-no-files-found: error

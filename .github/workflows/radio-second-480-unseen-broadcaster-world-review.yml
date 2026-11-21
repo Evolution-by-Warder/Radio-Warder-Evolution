@@ -1,0 +1,140 @@
+name: Second 480 unseen broadcaster sites across 224 radio countries - evidence REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-second-480-unseen-broadcaster-world-review.yml
+      - tools/stage_second_unseen_broadcaster_world.py
+      - tests/test_stage_second_unseen_broadcaster_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  world-480-disjoint-firstparty-broadcasters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-new-480-station-owner-websites
+      WORLD_SHA: 932e17ad38080185e58b49ba376fc22425f529c5ccdd5908fe223204227336ab
+      OLD_SOURCE_SHA: 3ab3f5f0d590de9ae82e08e86d72ce1964ff55671dd51389d031cb8d3918e2dc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Negative tests prevent overbudget scans, repeated host queries and unsafe source hashes
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_second_unseen_broadcaster_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_224_broadcaster_homepage_originals.py
+          python3 -m py_compile tools/stage_second_unseen_broadcaster_world.py
+      - name: Fetch exactly signed 39873-world and original 240-site exclusion evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,old-sites,originals,baseline,newer-39867,newer-39865,newer-CN}
+          test "$(gh run view 44902079769 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44899903936 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44902079769 -n radio-iheart-six-verified-39873-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44899903936 -n radio-224-independent-broadcaster-homepages-contact-REVIEW-ONLY -D "$ROOT/old-sites"
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"source").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1,worlds
+          shutil.copyfile(worlds[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z:index=json.loads(z.read("index.json"))
+          assert index["country_count"]==224 and index["station_count"]==48219
+          assert sum(v["logos_found"] for v in index["countries"].values())==39873
+          previous=root/"old-sites/review/firstparty-224-homepage-logo-stage-REVIEW.json"
+          assert previous.is_file()
+          assert hashlib.sha256(previous.read_bytes()).hexdigest()==os.environ["OLD_SOURCE_SHA"]
+          print("39873 WORLD SIGNED; PREVIOUS 240 HOSTS SIGNED")
+          PY
+      - name: Recover authenticated original country PNGs once, without re-downloading individual station logos
+        run: |
+          set -euo pipefail
+          gh run download 44801652426 -p 'radio-canonical-39643-country-shard-*-REVIEW' -D "$ROOT/baseline"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/newer-39867"
+          gh run download 44898959277 -n radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY -D "$ROOT/newer-39865"
+          gh run download 44897612492 -n radio-qingting-90-visual-originals-39821-complete-world-REVIEW-ONLY -D "$ROOT/newer-CN"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,shutil,hashlib,json
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:index=json.loads(z.read("index.json"))
+          priority=("source","newer-39867","newer-39865","newer-CN","baseline")
+          count=0;missing=[]
+          for cc,meta in sorted(index["countries"].items()):
+              match=None;count_all=0
+              for directory in priority:
+                  for folder in (root/directory).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"):
+                      file=folder/"logos"/(cc+".zip")
+                      if file.is_file():
+                          count_all+=1
+                          if hashlib.sha256(file.read_bytes()).hexdigest()==meta["logo_sha256"]:
+                              match=folder
+                              break
+                  if match:break
+              if match:
+                  shutil.copytree(match,root/"originals"/match.name)
+                  count+=1
+              else:missing.append({"country":cc,"expected_sha":meta["logo_sha256"],
+                                   "logos":meta["logos_found"],"candidates":count_all})
+          (root/"country-SHA-preflight.json").write_text(json.dumps({
+            "signed_world_sha256":os.environ["WORLD_SHA"],
+            "verified_original_country_zips":count,
+            "stale_or_unavailable_country_archives":missing,
+            "review_only":True},sort_keys=True,indent=2)+"\n")
+          assert count>=150, (count,missing)
+          print("REUSED CURRENT COUNTRY PNG SHARDS",count,"STALE",len(missing))
+          print("BLOCKED OLD COUNTRY SHARDS",json.dumps([x["country"] for x in missing]))
+          PY
+          rm -rf "$ROOT/source" "$ROOT/baseline" "$ROOT/newer-39867" "$ROOT/newer-39865" "$ROOT/newer-CN"
+      - name: One global 480-site scan, exclude every original site and already-filled PNG
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_second_unseen_broadcaster_world.py \
+            --world "$ROOT/world.zip" --old-originals "$ROOT/originals" \
+            --previous "$ROOT/old-sites/review/firstparty-224-homepage-logo-stage-REVIEW.json" \
+            --out "$ROOT/review" --max-pages 480 --workers 8
+      - name: Validate source job is visual-only, 240 old domains untouched, current PNGs preserved
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ["ROOT"])
+          r=json.loads((root/"review/independent-broadcaster-second-unseen-224-REVIEW.json").read_text())
+          assert r["review_only"] and r["world_unchanged"] and r["new_png_approved"]==0
+          assert r["source_world_sha256"]==os.environ["WORLD_SHA"]
+          assert r["previous_240_sites_sha256"]==os.environ["OLD_SOURCE_SHA"]
+          assert r["countries_scanned"]==224 and r["stations_scanned"]==48219
+          assert r["source_png_before"]==39873 and r["missing_before"]==8346
+          assert 239 <= r["previous_homepage_hosts_excluded"] <= 240
+          assert r["country_originals_verified"]>=150
+          assert r["new_homepage_requests"]<=480
+          assert len(r["results"])==r["new_homepage_requests"]
+          assert len({x["country"]+"-"+x["stationuuid"] for x in r["results"]})==len(r["results"])
+          assert all(x["approved"] is False for x in r["results"])
+          assert not list((root/"review").rglob("radio-countries-bouquets.zip"))
+          print("480 DISJOINT BROADCASTER ORIGINAL SOURCE PASS",
+            json.dumps({k:r[k] for k in ("new_homepage_requests",
+              "candidate_unique_images_for_visual_review","selected_country_counts",
+              "source_rejections","country_originals_verified")},sort_keys=True))
+          PY
+      - name: Preserve one review-only source audit and visual sheets; never create world, Release or IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-second-480-new-independent-broadcaster-sites-REVIEW-ONLY
+          path: |
+            /tmp/warder-new-480-station-owner-websites/review/
+            /tmp/warder-new-480-station-owner-websites/country-SHA-preflight.json
+          retention-days: 30
+          if-no-files-found: error

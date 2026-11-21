@@ -1,0 +1,138 @@
+name: All 224-country original SVG rescue and signed world candidate (NO PUBLICATION)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-world-224-direct-svg-review.yml
+      - tools/recover_direct_svg_radio_logos.py
+      - tests/test_direct_svg_radio_logos.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-svg-world-224
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated bulk-only SVG engine
+        run: python3 -m pip install --quiet Pillow CairoSVG defusedxml
+      - name: All-world direct SVG and prior SHA-verified source regression
+        run: |
+          python3 -B tests/test_direct_svg_radio_logos.py
+          python3 -B tests/test_radio_svg_logos.py
+          python3 -B tests/test_missing_radio_logo_recovery.py
+          python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Retrieve the exact original 224-country archive and 28 signed logo shards
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world" "$ROOT/batches" "$ROOT/over-sk" "$ROOT/over-cz" \
+                   "$ROOT/over-de" "$ROOT/original" "$ROOT/current" \
+                   "$ROOT/candidates"
+          gh run download 44583128017 \
+            -n radio-world-224-with-original-logo-checks-REVIEW-ONLY -D "$ROOT/world"
+          gh run download 44583128017 \
+            -p 'radio-original-logos-batch-*-REVIEW' -D "$ROOT/batches"
+          gh run download 44775154653 \
+            -n radio-SK-curated-jazz-topolcany-party-REVIEW-ONLY -D "$ROOT/over-sk"
+          gh run download 44762776607 \
+            -n radio-missing-logo-second-pass-SK-CZ-REVIEW-ONLY -D "$ROOT/over-cz"
+          gh run download 44776112474 \
+            -n radio-DE-real-SVG-originals-REVIEW-ONLY -D "$ROOT/over-de"
+      - name: Stage original files without byte modification and overlay 16 confirmed gains
+        run: |
+          python3 - <<'PY'
+          import json,os,shutil
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          folders=sorted((root/'batches').rglob('radio-country-??-REVIEW-NOT-PRODUCTION'))
+          if len(folders)!=224: raise SystemExit('Missing signed country artifacts')
+          codes=set()
+          for folder in folders:
+              code=folder.name.split('-')[2]
+              if code in codes or folder.is_symlink() or len(code)!=2:
+                  raise SystemExit('Duplicate or untrusted country')
+              codes.add(code)
+              source=root/'original'/folder.name
+              shutil.move(str(folder),str(source))
+              shutil.copytree(source,root/'current'/folder.name,copy_function=os.link)
+          for code,key in [('SK','over-sk'),('CZ','over-cz'),('DE','over-de')]:
+              old=root/'current'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+              incoming=root/key/old.name
+              assert incoming.is_dir() and not incoming.is_symlink()
+              shutil.rmtree(old)
+              shutil.copytree(incoming,old)
+          def count(directory):
+              n=0
+              for file in sorted(directory.glob('radio-country-??-REVIEW-NOT-PRODUCTION/manifests/??.json')):
+                  n+=json.loads(file.read_text())['logos_found']
+              return n
+          assert count(root/'original')==39110
+          assert count(root/'current')==39126
+          print('Original 39110, current 39126, signed 224 country inputs ready')
+          PY
+      - name: Recover only still absent authentic SVG favicon images worldwide
+        run: |
+          python3 -B tools/recover_direct_svg_radio_logos.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --old-root "$ROOT/current" \
+            --out "$ROOT/recovered"
+      - name: Build NEW verified world index including only newly changed country ZIPs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,shutil
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'recovered/all-world-direct-svg-review.json').read_text())
+          assert report['country_count']==224 and report['stations']==48219
+          assert report['logos_before']==39126 and report['review_only']
+          assert report['svg_network_attempts']>=report['svg_download_successes']
+          for code in ('SK','CZ','DE'):
+              source=root/'current'/f'radio-country-{code}-REVIEW-NOT-PRODUCTION'
+              shutil.copytree(source,root/'candidates'/source.name)
+          for src in (root/'recovered').glob('radio-country-??-REVIEW-NOT-PRODUCTION'):
+              dest=root/'candidates'/src.name
+              if dest.exists(): shutil.rmtree(dest)
+              shutil.copytree(src,dest)
+          codes=sorted(p.name.split('-')[2] for p in (root/'candidates').iterdir()
+                       if p.name.startswith('radio-country-'))
+          (root/'country-codes.txt').write_text(','.join(codes))
+          print('Changed / retained candidate countries:',codes)
+          PY
+          python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world/radio-countries-bouquets.zip" \
+            --world-sha256 669b3c2c32009c3a7d8e8552c8b5f077ceeb3a66b37947664229a8f46d94aa38 \
+            --old-root "$ROOT/original" \
+            --candidates "$ROOT/candidates" \
+            --countries "$(cat "$ROOT/country-codes.txt")" \
+            --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'recovered/all-world-direct-svg-review.json').read_text())
+          world=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert world['country_count']==224 and world['station_count']==48219
+          assert world['logos_added']==16+report['logos_recovered']
+          assert world['review_only'] is True
+          print('FINAL 224-COUNTRY PNG COUNT',39126+report['logos_recovered'])
+          print('WORLD SOURCE SHA',world['new_world_sha256'])
+          PY
+      - name: Save only verified changed country PNG assets and complete review summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-world-224-recovered-all-direct-SVG-REVIEW-ONLY
+          path: |
+            /tmp/warder-svg-world-224/new-world/
+            /tmp/warder-svg-world-224/recovered/all-world-direct-svg-review.json
+            /tmp/warder-svg-world-224/candidates/
+          retention-days: 30
+          if-no-files-found: error

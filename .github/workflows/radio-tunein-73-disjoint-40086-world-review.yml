@@ -1,0 +1,149 @@
+name: ONE 73 visual approved second TuneIn originals - 40086 WORLD REVIEW only
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-tunein-73-disjoint-40086-world-review.yml
+      - tools/merge_tunein_second_73_visual_originals.py
+      - tests/test_merge_tunein_second_73_visual_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-world-sha-pinned-73-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-tunein-73-second-owner-originals
+      WORLD_SHA: e3e06d6cfdae9ebacfc676e6780a317c767529e304e2899c81d68862ac5da86f
+      SOURCE_SHA: c631147533bf9818445cdb8ed6cfba334bf8b074dfa158076b5ea113c80cd666
+    steps:
+      - uses: actions/checkout@v4
+      - name: Negative tests prevent 13 wrong brands and all old original PNG modifications
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_tunein_second_73_visual_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          python3 -m py_compile tools/merge_tunein_second_73_visual_originals.py
+      - name: Download only current exact 40013 world and already downloaded 86 firstparty original station pictures
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{current,stage,old,previous39979,previous39964,previous39867,patch7,patch13,baseline}
+          for id in 44914701701 44915159802 44913642417 44911563049 44900502836 44907497364 44906253671 44801652426; do
+            test "$(gh run view "$id" --json conclusion -q .conclusion)" = success
+          done
+          gh run download 44914701701 -n radio-tunein-34-visual-originals-40013-world-REVIEW-ONLY -D "$ROOT/current"
+          gh run download 44915159802 -n radio-tunein-second-1000-disjoint-original-images-REVIEW-ONLY -D "$ROOT/stage"
+          cp "$(find "$ROOT/current" -type f -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          echo "$SOURCE_SHA  $ROOT/stage/tunein-second-disjoint-missing-originals-REVIEW.json" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,hashlib,os,sys
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z:index=json.loads(z.read('index.json'))
+          assert (index['country_count'],index['station_count'])==(224,48219)
+          assert sum(c['logos_found'] for c in index['countries'].values())==40013
+          sys.path.insert(0,'tools')
+          import merge_tunein_second_73_visual_originals as m
+          approved=m.source_approved(root/'stage')
+          countries=sorted(approved)
+          assert len(countries)==24
+          assert sum(map(len,approved.values()))==73
+          (root/'country-codes.txt').write_text(','.join(countries))
+          shard_ids=sorted({sorted(index['countries']).index(c)//8 for c in countries})
+          (root/'shard-ids.txt').write_text(''.join(f"{i:02d}\n" for i in shard_ids))
+          print("EXPLICIT VISUAL QA 73 ORIGINALS IN",len(countries),"COUNTRIES; COUNTRY SHARDS",len(shard_ids))
+          PY
+      - name: Fetch only required old signed country originals from last matching source (no 40013 old PNG individual downloads)
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/baseline/$shard"
+          done < "$ROOT/shard-ids.txt"
+          gh run download 44913642417 -n radio-tef-15-visual-approved-39979-world-REVIEW-ONLY -D "$ROOT/previous39979"
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/previous39964"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/previous39867"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,hashlib,shutil
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          sources=('current','previous39979','previous39964','previous39867',
+                   'patch7','patch13','baseline')
+          countries=(root/'country-codes.txt').read_text().split(',')
+          for cc in countries:
+              found=[]
+              for src in sources:
+                  for dir_ in (root/src).rglob('radio-country-'+cc+'-REVIEW-NOT-PRODUCTION'):
+                      image=dir_/'logos'/(cc+'.zip')
+                      if (image.is_file() and
+                          hashlib.sha256(image.read_bytes()).hexdigest()==idx['countries'][cc]['logo_sha256']):
+                          found.append(dir_)
+                  if found:break
+              if len(found)!=1:raise ValueError('Missing or conflicting current original country SHA '+cc+': '+str(len(found)))
+              shutil.copytree(found[0],root/'old'/found[0].name)
+          print('ALL COUNTRY ORIGINAL LOGO ZIP SHA-256 VERIFIED',len(countries))
+          PY
+          rm -rf "$ROOT/current" "$ROOT/previous39979" "$ROOT/previous39964" "$ROOT/previous39867" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/baseline"
+      - name: ONE additive batch of 73 precise branded original PNGs, quarantine 13 unrelated pictures
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_tunein_second_73_visual_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/candidates"
+      - name: ONE full 224-country REVIEW rebuild and independent 40086 coverage/UUID/SHA checks
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/candidates" \
+            --countries "$(cat "$ROOT/country-codes.txt")" --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          src=json.loads((root/'candidates/tunein-second-73-visual-approved-originals-REVIEW.json').read_text())
+          final=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert src['review_only'] and final['review_only']
+          assert src['source_stage_sha256']==os.environ['SOURCE_SHA']
+          assert src['source_images_audited']==86 and len(src['rejected'])==13
+          assert src['new_original_png']==final['logos_added']==73
+          assert src['old_world_original_png_byte_identical']==40013
+          assert src['expected_world_original_png']==40086
+          assert final['original_world_sha256']==os.environ['WORLD_SHA']
+          assert (final['country_count'],final['station_count'])==(224,48219)
+          assert len(final['countries_changed'])==24
+          zipfile=root/'new-world/radio-countries-bouquets.zip'
+          digest=hashlib.sha256(zipfile.read_bytes()).hexdigest()
+          assert digest==final['new_world_sha256']
+          with ZipFile(zipfile) as z:
+              idx=json.loads(z.read('index.json'))
+              assert (idx['country_count'],idx['station_count'])==(224,48219)
+              assert sum(x['logos_found'] for x in idx['countries'].values())==40086
+              assert 48219-40086==8133
+          print('GLOBAL 73 VISUAL FIRSTPARTY RADIO ORIGINALS SUCCESS',json.dumps({
+              'before':40013,'new_png':73,'now':40086,'missing':8133,
+              'countries_changed':len(final['countries_changed']),
+              'all_old_original_png_byte_identical':True,'world_sha256':digest},sort_keys=True))
+          PY
+      - name: Upload one complete 224-country 40086-original REVIEW world and changed country packages only
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-tunein-second-73-visual-40086-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-tunein-73-second-owner-originals/candidates/
+            /tmp/warder-tunein-73-second-owner-originals/new-world/
+          retention-days: 30
+          if-no-files-found: error

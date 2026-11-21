@@ -1,0 +1,100 @@
+name: New independent Qingting FM Chinese broadcaster logo source - 476 missing original images review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-qingting-china-original-firstparty-review.yml
+      - tools/probe_qingting_cn_firstparty_station_logos.py
+      - tests/test_probe_qingting_cn_firstparty_station_logos.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  chinese-owner-profile-logo-firstparty:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-new-qingting-china
+      WORLD_SHA: 355981b1112fd96e5ef4e7022f6162f588e2be799b2af42852670d10f4e8cebb
+    steps:
+      - uses: actions/checkout@v4
+      - name: Isolated Pillow and exact owner channel-ID/raster negative regressions
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_probe_qingting_cn_firstparty_station_logos.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Retrieve SHA-pinned last 39724 world and ONLY existing China country shard 05
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-source,cn-source,old}
+          test "$(gh run view 44895332419 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44895332419 -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/world-source"
+          gh run download 44801652426 -n radio-canonical-39643-country-shard-05-REVIEW -D "$ROOT/cn-source"
+          python3 - <<'PY'
+          import hashlib,os,shutil,json
+          from zipfile import ZipFile
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          worlds=list((root/'world-source').rglob('radio-countries-bouquets.zip'))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(v['logos_found'] for v in idx['countries'].values())==39724
+          sources=list((root/'cn-source').rglob('radio-country-CN-REVIEW-NOT-PRODUCTION'))
+          assert len(sources)==1
+          cn=sources[0]
+          original=cn/'logos/CN.zip'
+          assert hashlib.sha256(original.read_bytes()).hexdigest()==idx['countries']['CN']['logo_sha256']
+          assert idx['countries']['CN']['logos_found']==1057 and idx['countries']['CN']['stations']==1848
+          shutil.copytree(cn,root/'old'/cn.name)
+          print('LATEST WORLD AND CHINA COUNTRY ORIGINS SHA MATCH - 791 CN LOGOS MISSING')
+          PY
+          rm -rf "$ROOT/world-source" "$ROOT/cn-source"
+      - name: Probe only previously MISSING CN radio station owner pages; original audio ID and visual image alt must exactly match
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_qingting_cn_firstparty_station_logos.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --out "$ROOT/review" --max-probes 24
+      - name: Confirm all 224 country catalogues preserved, CN original SHA, NO new logos auto-approved
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          s=json.loads((root/'review/qingting-china-official-radio-originals-review.json').read_text())
+          assert s['schema']==1 and s['review_only'] and s['approved_new_png']==0
+          assert s['world_created'] is False and s['world_sha256']==os.environ['WORLD_SHA']
+          assert s['countries_scanned']==224 and s['stations_scanned']==48219
+          assert s['country']=='CN' and s['country_stations']==1848
+          assert s['country_existing_originals']==1057 and s['country_missing_originals']==791
+          assert s['source_inventory']['firstparty_stream_rows']>=900
+          assert s['source_inventory']['missing_original_png']>=350
+          assert s['unique_uncovered_owner_ids']>=200
+          assert s['official_pages_requested']==24 and len(s['attempts'])==24
+          assert all(a['approved'] is False for a in s['attempts'])
+          assert s['new_rasters_for_visual_review']<=24
+          assert not list((root/'review').rglob('radio-countries-bouquets.zip'))
+          print('NEW CN QINGTING FIRST-PARTY ORIGINAL LOGO METADATA PASS',json.dumps({
+              k:s[k] for k in ('source_inventory','unique_uncovered_owner_ids',
+                  'official_pages_requested','exact_name_and_image_alt_count',
+                  'new_rasters_for_visual_review','shared_source_image_groups','http_errors')
+          },sort_keys=True))
+          PY
+      - name: Keep only CN owner-original image evidence for visual REVIEW, no release or IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-cn-qingting-firstparty-missing-originals-UNAPPROVED
+          path: /tmp/warder-new-qingting-china/review/
+          retention-days: 30
+          if-no-files-found: error

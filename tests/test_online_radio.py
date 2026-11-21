@@ -355,6 +355,109 @@ class LogoTests(unittest.TestCase):
             self.assertEqual(logo_key(station_item), 'test-uuid')
 
     @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_missing_api_logo_tries_exact_public_homepage_favicon(self):
+        body = io.BytesIO()
+        Image.new('RGBA', (128, 128), (30, 120, 200, 255)).save(body, 'PNG')
+        calls = []
+
+        def retrieve(url):
+            calls.append(url)
+            if url == 'https://radio.example/favicon.ico':
+                return body.getvalue()
+            raise OSError('No icon on this source')
+
+        with tempfile.TemporaryDirectory() as temporary:
+            item = {'stationuuid': 'offline-test-uuid', 'name': 'Radio Example',
+                    'countrycode': 'SK', 'favicon': '',
+                    'homepage': 'https://radio.example/schedule'}
+            logos = StationLogos(temporary, download=retrieve,
+                                alternatives=lambda station: [])
+            path = logos.get(item)
+            self.assertIsNotNone(path)
+            self.assertEqual(calls, ['https://radio.example/apple-touch-icon.png',
+                                     'https://radio.example/favicon.ico'])
+            with Image.open(path) as image:
+                self.assertEqual(image.size, (128, 128))
+            self.assertEqual(logos.get(item), path)
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_review_bulk_mode_recovers_official_same_origin_html_icon(self):
+        from WarderRadio.homepage_logos import homepage_icon_candidates
+        html = (b'<!doctype html><html><head>'
+                b'<link rel="icon" href="https://unrelated.example/icons/logo.png">'
+                b'<link rel="shortcut icon" href="/assets/station-logo.png">'
+                b'<meta property="og:image" content="/stories/irrelevant-photo.jpg">'
+                b'<meta property="og:image" content="/assets/brand-logo.png">'
+                b'</head></html>')
+        expected = ['https://radio.example/assets/station-logo.png',
+                    'https://radio.example/assets/brand-logo.png']
+        self.assertEqual(homepage_icon_candidates('https://radio.example/listen',
+                         lambda url: html), expected)
+        self.assertEqual(homepage_icon_candidates('https://facebook.com/radio-page',
+                         lambda url: html), [])
+        self.assertEqual(homepage_icon_candidates('http://127.0.0.1/',
+                         lambda url: html), [])
+        self.assertEqual(homepage_icon_candidates('https://radio.example/',
+                         lambda url: b'\x89PNG\r\n\x1a\n'), [])
+        image = io.BytesIO()
+        Image.new('RGBA', (160, 160), (30, 70, 140, 255)).save(image, 'PNG')
+        calls = []
+        def retrieve(url):
+            calls.append(url)
+            if url == 'https://radio.example/listen':
+                return html
+            if url == expected[0]:
+                return image.getvalue()
+            raise OSError('Not found')
+        with tempfile.TemporaryDirectory() as temporary:
+            station = {'stationuuid': 'bulk-html-test', 'countrycode': 'SK',
+                       'name': 'Radio Test', 'homepage': 'https://radio.example/listen',
+                       'favicon': ''}
+            cache = StationLogos(temporary, download=retrieve, bulk_mode=True,
+                                 alternatives=lambda station: [])
+            path = cache.get(station)
+            self.assertIsNotNone(path)
+            self.assertEqual(calls, [
+                'https://radio.example/apple-touch-icon.png',
+                'https://radio.example/favicon.ico',
+                'https://radio.example/listen',
+                'https://radio.example/assets/station-logo.png'])
+            with Image.open(path) as logo:
+                self.assertEqual(logo.size, (160, 160))
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_verified_directory_source_survives_future_bulk_rebuild_only(self):
+        from WarderRadio.curated_station_logos import verified_logo_url
+        station = {'stationuuid':'12e9aa8b-996e-4cf0-aace-3a8addf4dd57',
+                   'countrycode':'SK','name':'Radio Bela',
+                   'homepage':'https://www.radiobela.zanet.sk/',
+                   'favicon':''}
+        source = 'https://www.radia.sk/_radia/loga/coverflow/bela.png'
+        self.assertEqual(verified_logo_url(station), source)
+        self.assertIsNone(verified_logo_url(dict(station,name='Other Station')))
+        self.assertIsNone(verified_logo_url(dict(station,countrycode='CZ')))
+        raw = io.BytesIO()
+        Image.new('RGBA',(150,150),(0,100,160,255)).save(raw,'PNG')
+        calls = []
+        def retrieve(url):
+            calls.append(url)
+            if url == source:
+                return raw.getvalue()
+            raise OSError('Not this exact verified source')
+
+        with tempfile.TemporaryDirectory() as temporary:
+            bulk = StationLogos(temporary,download=retrieve,bulk_mode=True,
+                                alternatives=lambda _: [])
+            self.assertIsNotNone(bulk.get(station))
+            self.assertEqual(calls,[source])
+        calls.clear()
+        with tempfile.TemporaryDirectory() as temporary:
+            ordinary = StationLogos(temporary,download=retrieve,bulk_mode=False,
+                                    alternatives=lambda _: [])
+            self.assertIsNone(ordinary.get(station))
+            self.assertNotIn(source,calls)
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
     def test_missing_favicon_uses_checked_alternative_station_record(self):
         with tempfile.TemporaryDirectory() as temporary:
             data = io.BytesIO()
@@ -369,6 +472,25 @@ class LogoTests(unittest.TestCase):
                                 alternatives=lambda station: ['https://station.example/alternate.png'])
             self.assertIsNotNone(logos.get(item))
             self.assertEqual(urls, ['https://station.example/alternate.png'])
+
+    @unittest.skipUnless(Image is not None, 'Pillow is needed for image decoding tests')
+    def test_offline_bulk_mode_does_not_prune_another_worker_png(self):
+        body = io.BytesIO()
+        Image.new('RGBA', (80, 80), (20, 120, 80, 255)).save(body, 'PNG')
+        with tempfile.TemporaryDirectory() as temporary:
+            with patch('WarderRadio.station_logos.prune') as prune:
+                bulk = StationLogos(temporary, download=lambda _: body.getvalue(),
+                                    alternatives=lambda station: [], bulk_mode=True)
+                first = bulk.get('https://images.example/first.png')
+                second = bulk.get('https://images.example/second.png')
+                self.assertNotEqual(first, second)
+                self.assertTrue(Path(first).is_file())
+                self.assertTrue(Path(second).is_file())
+                prune.assert_not_called()
+
+                standard = StationLogos(temporary, download=lambda _: body.getvalue())
+                standard.get('https://images.example/third.png')
+                self.assertTrue(prune.called)
 
     def test_bad_logo_caches_miss_and_never_uses_private_icon_domain(self):
         with tempfile.TemporaryDirectory() as temporary:

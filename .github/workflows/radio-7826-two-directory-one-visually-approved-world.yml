@@ -1,0 +1,159 @@
+name: ONE all-country shared REVIEW world with TWO independent original-radio catalogue logos after full visual QA
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - review/two-independent-directory-7826-original-logo-decisions.json
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-visual-all-world-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-two-bulk-directory-one-global-approved-world
+      CURRENT_WORLD_SHA: 77046ae8486360552fac917977dfd165fcca2af133a3d669227b07ba86258633
+      DECISIONS: review/two-independent-directory-7826-original-logo-decisions.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject unapproved logos, mismatched owner stream, stale image SHA and original-PNG overwrites
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'pycountry>=24,<30' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_two_directory_7826_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_two_independent_radio_directories_all_7826.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          python3 -m py_compile tools/merge_two_directory_7826_originals.py
+      - name: Download exact 40393 whole world and 7826 station two-directory original source evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{current,stage,old,canonical,prior40086,prior40013,prior39979,prior39964,prior39879,patch7,patch13}
+          test "$(gh run view 44919526717 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44923235008 --json conclusion -q .conclusion)" = success
+          gh run download 44919526717 -n radio-all-8133-gaps-one-global-visually-approved-world-REVIEW-ONLY -D "$ROOT/current"
+          gh run download 44923235008 -n radio-all-7826-radionet-firstparty-UNAPPROVED-REVIEW -D "$ROOT/stage"
+          cp "$(find "$ROOT/current" -type f -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$CURRENT_WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,sys
+          root=Path(os.environ["ROOT"])
+          decisions=Path(os.environ["DECISIONS"])
+          source=root/"stage/all-7826-two-directory-original-images-REVIEW.json"
+          assert source.is_file()
+          approval=json.loads(decisions.read_text())
+          assert approval["source_sha256"]==hashlib.sha256(source.read_bytes()).hexdigest()
+          assert approval["world_sha256"]==os.environ["CURRENT_WORLD_SHA"]
+          assert approval["review_only"] is True
+          sys.path.insert(0,"tools")
+          import merge_two_directory_7826_originals as m
+          source,decisions,approved=m.approved_images(root/"stage",os.environ["DECISIONS"])
+          count=sum(len(v) for v in approved.values())
+          assert count==len(decisions["approved"])>0
+          assert count+len(decisions["rejected"])==decisions["reviewed_images_count"]
+          codes=sorted(approved)
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert (idx["country_count"],idx["station_count"])==(224,48219)
+          assert sum(x["logos_found"] for x in idx["countries"].values())==40393
+          (root/"changed-country-codes.txt").write_text(",".join(codes))
+          shards=sorted({sorted(idx["countries"]).index(cc)//8 for cc in codes})
+          (root/"shard-ids.txt").write_text("".join(f"{n:02d}\n" for n in shards))
+          print("ONE JOINT VISUAL COUNTRY MERGE SOURCE",count,"APPROVED ORIGINALS",
+                len(decisions["rejected"]),"QUARANTINED",len(codes),"CHANGED COUNTRIES",
+                flush=True)
+          PY
+      - name: Reconcile only the original ZIPs for approved countries to full 40393 current world SHA, never re-download prior logos
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/canonical/$shard"
+          done < "$ROOT/shard-ids.txt"
+          gh run download 44915726977 -n radio-tunein-second-73-visual-40086-world-REVIEW-ONLY -D "$ROOT/prior40086"
+          gh run download 44914701701 -n radio-tunein-34-visual-originals-40013-world-REVIEW-ONLY -D "$ROOT/prior40013"
+          gh run download 44913642417 -n radio-tef-15-visual-approved-39979-world-REVIEW-ONLY -D "$ROOT/prior39979"
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/prior39964"
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/prior39879"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          codes=(root/"changed-country-codes.txt").read_text().split(",")
+          priority=("current","prior40086","prior40013","prior39979","prior39964","prior39879","patch7","patch13","canonical")
+          for cc in codes:
+              verified=[]
+              for base in priority:
+                  for folder in (root/base).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"):
+                      logo=folder/"logos"/(cc+".zip")
+                      if logo.is_file() and hashlib.sha256(logo.read_bytes()).hexdigest()==idx["countries"][cc]["logo_sha256"]:
+                          verified.append(folder)
+                  if verified:break
+              if len(verified)!=1:raise ValueError("Unsigned old original country ZIP "+cc)
+              shutil.copytree(verified[0],root/"old"/verified[0].name)
+          print("ALL PRE-EXISTING SOURCE COUNTRY ORIGINAL PNG ZIP SHA VERIFIED",len(codes),flush=True)
+          PY
+          rm -rf "$ROOT/current" "$ROOT/prior40086" "$ROOT/prior40013" "$ROOT/prior39979" "$ROOT/prior39964" "$ROOT/prior39879" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/canonical"
+      - name: ONE additive merge of every per-UUID visually approved original bitmap and actual independently supported broadcaster stream
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_two_directory_7826_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --decisions "$DECISIONS" --out "$ROOT/candidates"
+      - name: ONE all-224-country global review world rebuild and full 40393 old PNG preservation test
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$CURRENT_WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/candidates" \
+            --countries "$(cat "$ROOT/changed-country-codes.txt")" --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,hashlib,os
+          root=Path(os.environ["ROOT"])
+          approval=json.loads(Path(os.environ["DECISIONS"]).read_bytes())
+          results=json.loads((root/"candidates/new-two-provider-radio-originals-visual-merge-REVIEW.json").read_text())
+          fresh=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          count=results["images_approved"]
+          assert results["review_only"] and fresh["review_only"] and count>0
+          assert count==fresh["logos_added"]
+          assert results["previous_originals_byte_identical"]==40393
+          assert results["source_stage_sha256"]==approval["source_sha256"]
+          assert results["images_rejected"]==len(approval["rejected"])
+          assert results["source_images_reviewed"]==approval["reviewed_images_count"]
+          assert fresh["original_world_sha256"]==os.environ["CURRENT_WORLD_SHA"]
+          assert (fresh["country_count"],fresh["station_count"])==(224,48219)
+          assert len(fresh["countries_changed"])==len(results["country_changes"])
+          world=root/"new-world/radio-countries-bouquets.zip"
+          with ZipFile(world) as z:
+              idx=json.loads(z.read("index.json"))
+              assert (idx["country_count"],idx["station_count"])==(224,48219)
+              assert sum(x["logos_found"] for x in idx["countries"].values())==40393+count
+              assert 7826-count>=0
+          digest=hashlib.sha256(world.read_bytes()).hexdigest()
+          assert digest==fresh["new_world_sha256"]
+          print("ONE FULL WORLD SECOND-INDEPENDENT-CATALOG ORIGINALS PASS",json.dumps({
+              "old_original_png":40393,"new_approved_original_png":count,
+              "new_world_original_png":40393+count,"original_png_remaining":7826-count,
+              "countries_changed":len(fresh["countries_changed"]),
+              "all_previous_40393_station_logos_byte_identical":True,
+              "world_sha256":digest},sort_keys=True),flush=True)
+          PY
+      - name: Upload only one new complete 224-country REVIEW world plus changed country ZIPs, no Release/main/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-independent-two-67k-directories-one-global-visually-approved-REVIEW-ONLY
+          path: |
+            /tmp/warder-two-bulk-directory-one-global-approved-world/new-world/
+            /tmp/warder-two-bulk-directory-one-global-approved-world/candidates/
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,28 @@
+name: Warder Radio release asset audit — no publication
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - tools/audit_radio_country_release_assets.py
+      - tests/test_radio_country_release_assets.py
+      - .github/workflows/radio-country-release-assets-review.yml
+  pull_request:
+    paths:
+      - tools/audit_radio_country_release_assets.py
+      - tests/test_radio_country_release_assets.py
+      - .github/workflows/radio-country-release-assets-review.yml
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile offline auditor
+        run: python3 -m py_compile tools/audit_radio_country_release_assets.py tests/test_radio_country_release_assets.py
+      - name: Independently validate 200-country assets and non-overwriting review staging
+        run: python3 -B tests/test_radio_country_release_assets.py
