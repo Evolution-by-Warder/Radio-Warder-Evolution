@@ -89,7 +89,7 @@ def select(candidates,by_id):
     seen=set()
     reasons=Counter()
     for cc in COUNTRIES:
-        for row in candidates[cc]:
+        for row in candidates.get(cc, ()):
             sid=row["owner_id"]
             if sid in seen:
                 reasons["duplicate_owner_id"]+=1
