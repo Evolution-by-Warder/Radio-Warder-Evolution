@@ -1,0 +1,125 @@
+name: Live365 independent first-party station original logos - 224-country missing-only review
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-live365-new-missing-firstparty-world-review.yml
+      - tools/stage_live365_missing_firstparty_world.py
+      - tests/test_stage_live365_missing_firstparty_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  sample-only-new-first-party:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-live365-owner-new-missing
+      WORLD_SHA: 8cf1a780d5537d5973c61c70a0d0216e4e7f4d4e06fb0822c8be2b6b0f05e12a
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow only on isolated review CI, test image source and station identity guards
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_live365_missing_firstparty_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_live365_firstparty_world.py
+      - name: Fetch 39709 complete review world plus prior 12 profile evidence only
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{worldsrc,prior,us,gb,cnid,old}
+          test "$(gh run view 44891665963 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44872856973 --json conclusion -q .conclusion)" = success
+          gh run download 44891665963 -n radiojar-swiss-norway-two-39709-world-REVIEW-ONLY -D "$ROOT/worldsrc"
+          gh run download 44872856973 -n radio-new-independent-Live365-broadcaster-probe-REVIEW-ONLY -D "$ROOT/prior"
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,os,shutil
+          root=Path(os.environ['ROOT'])
+          sources=list((root/'worldsrc').rglob('radio-countries-bouquets.zip'))
+          assert len(sources)==1
+          shutil.copyfile(sources[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          assert (root/'prior/live365-firstparty-world-224-metadata-REVIEW.json').is_file()
+          print('LATEST 224 COUNTRY 39709 WORLD SHA PASS')
+          PY
+          rm -rf "$ROOT/worldsrc"
+      - name: Download only latest US and GB country original ZIPs, never rescan 39 thousand PNGs
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44889673492 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44886213146 --json conclusion -q .conclusion)" = success
+          gh run download 44889673492 -n radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY -D "$ROOT/us"
+          gh run download 44886213146 -n radio-two-visual-approved-Radiojar-originals-39700-REVIEW-ONLY -D "$ROOT/gb"
+      - name: Fetch only CN and ID canonical country shards and reject stale source SHA
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          for shard in 05 11; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/cnid/$shard"
+          done
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z: idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39709
+          for cc,folder in (('US','us'),('GB','gb'),('CN','cnid'),('ID','cnid')):
+              sources=list((root/folder).rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              assert len(sources)==1,(cc,len(sources))
+              src=sources[0]
+              zipfile=src/'logos'/f'{cc}.zip'
+              assert zipfile.is_file()
+              sha=hashlib.sha256(zipfile.read_bytes()).hexdigest()
+              assert sha==idx['countries'][cc]['logo_sha256'],(cc,sha,idx['countries'][cc]['logo_sha256'])
+              shutil.copytree(src,root/'old'/src.name)
+              print('IMMUTABLE CURRENT LOGO COUNTRY SHA PASS',cc,idx['countries'][cc]['logos_found'])
+          PY
+          rm -rf "$ROOT/us" "$ROOT/gb" "$ROOT/cnid"
+      - name: Request max 24 NEVER-QUERIED Live365 owner profiles with truly missing station PNG
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_live365_missing_firstparty_world.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --prior "$ROOT/prior/live365-firstparty-world-224-metadata-REVIEW.json" \
+            --out "$ROOT/review" --max-probes 24
+      - name: Validate old 12 excluded and zero images pre-approved or published
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path(os.environ['ROOT'])
+          r=json.loads((root/'review/live365-224-new-missing-firstparty-originals-REVIEW.json').read_text())
+          assert r['schema']==1 and r['review_only']
+          assert r['new_png_approved']==0 and r['world_zip_created'] is False
+          assert r['source_world_sha256']==os.environ['WORLD_SHA']
+          assert r['countries_scanned']==224 and r['stations_scanned']==48219
+          assert r['baseline_original_png']==39709
+          assert r['source_country_originals_checked']==['US','CN','ID','GB']
+          assert r['previous_12_owner_ids_not_requeried']==12
+          assert 0<r['new_owner_profile_requests']<=24
+          assert len(r['attempts'])==r['new_owner_profile_requests']
+          assert all(x['approved'] is False for x in r['attempts'])
+          assert not list((root/'review').rglob('radio-countries-bouquets.zip'))
+          print('LIVE365 NEW MISSING-ONLY WORLD SOURCE PASS',json.dumps({
+              k:r[k] for k in ('live365_rows_world','live365_distinct_owner_ids',
+               'verified_missing_only_candidates','new_owner_profile_requests',
+               'exact_name_matches','new_owner_image_downloads_for_visual_QA',
+               'shared_image_hash_groups','provider_errors')
+          },sort_keys=True))
+          PY
+      - name: Keep first-party original pictures only for visual REVIEW, never a release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-live365-new-missing-owner-originals-224-UNAPPROVED-REVIEW
+          path: /tmp/warder-live365-owner-new-missing/review/
+          retention-days: 30
+          if-no-files-found: error
