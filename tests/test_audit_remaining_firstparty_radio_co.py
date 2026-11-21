@@ -84,7 +84,7 @@ class RemainingRadioCoTests(unittest.TestCase):
             prev=root/"old.json"
             prev.write_text(json.dumps(self.first))
             with patch.object(target,"scan_catalogs",return_value=(self.rows,{"GB":99})):
-                report=target.audit(root/"unused.zip",prev,root/"out",0,downloader=fake)
+                report=target.audit(root/"unused.zip",prev,root/"out",0,downloader=fake,expected_old_ids=2)
             self.assertEqual(set(calls),{self.rows[2]["radio_co_id"],self.rows[3]["radio_co_id"]})
             self.assertEqual(report["new_png_verified"],0)
             self.assertEqual(report["exact_brand_and_logo_candidates"],2)
