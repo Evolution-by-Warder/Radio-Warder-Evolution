@@ -1,0 +1,160 @@
+name: Independently verify one full 40393-original 224-country radio REVIEW archive
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-independent-40393-world-byte-audit.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  independent-one-world-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-one-global-40393-independent-proof
+      OLD_SHA: 19d621d8ac85ce456b8ffb568f41b338c9e0eefe40b6319267617b99111ef84b
+      NEW_SHA: 77046ae8486360552fac917977dfd165fcca2af133a3d669227b07ba86258633
+      SOURCE_SHA: 640acf1de852700d1c569b081b8f53b208e287234dbeb5ecd43a1c77404cbfd1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate 307 explicit image approvals, 46 rejection reasons and all old PNG safety regressions
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_one_global_missing_radio_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Retrieve the actual completed 634MB world and preceding 40086-world from SHA-pinned existing review artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{old,new,stage,proof}
+          test "$(gh run view 44919526717 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44915726977 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44918377369 --json conclusion -q .conclusion)" = success
+          gh run download 44919526717 -n radio-all-8133-gaps-one-global-visually-approved-world-REVIEW-ONLY -D "$ROOT/new"
+          gh run download 44915726977 -n radio-tunein-second-73-visual-40086-world-REVIEW-ONLY -D "$ROOT/old"
+          gh run download 44918377369 -n radio-all-8133-gaps-one-source-pass-UNAPPROVED-REVIEW-ONLY -D "$ROOT/stage"
+      - name: Independently compare every world ZIP member, 64 country original ZIPs, approved UUID PNG hashes and all station references
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,hashlib,os,sys
+          root=Path(os.environ["ROOT"])
+          old_paths=list((root/"old").rglob("radio-countries-bouquets.zip"))
+          new_paths=list((root/"new").rglob("radio-countries-bouquets.zip"))
+          assert len(old_paths)==len(new_paths)==1,(old_paths,new_paths)
+          old_world,new_world=old_paths[0],new_paths[0]
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open("rb") as f:
+                  for chunk in iter(lambda:f.read(262144),b""):h.update(chunk)
+              return h.hexdigest()
+          assert sha(old_world)==os.environ["OLD_SHA"]
+          assert sha(new_world)==os.environ["NEW_SHA"]
+          report_files=list((root/"new").rglob("world-recovery-review.json"))
+          merge_files=list((root/"new").rglob("one-global-missing-radio-visual-originals-merge-REVIEW.json"))
+          assert len(report_files)==len(merge_files)==1
+          report=json.loads(report_files[0].read_text())
+          merge=json.loads(merge_files[0].read_text())
+          assert report["logos_added"]==merge["approved_new_original_png"]==307
+          assert report["country_count"]==224 and report["station_count"]==48219
+          assert merge["source_stage_sha256"]==os.environ["SOURCE_SHA"]
+          assert merge["source_images_audited"]==353 and merge["quarantined_with_reason"]==46
+          sys.path.insert(0,"tools")
+          import merge_one_global_missing_radio_originals as m
+          source,approval,images=m.verified_decisions(root/"stage/review","review/one-global-radio-visual-originals-20261121.json")
+          assert len(approval["approved"])==307 and len(approval["rejected"])==46
+          assert len(images)==64
+          changed={x["country"]:x for x in report["countries_changed"]}
+          assert set(changed)==set(images)
+          member_changed=[]
+          PNG_HEAD=bytes.fromhex("89504e470d0a1a0a")
+          with ZipFile(old_world) as old,ZipFile(new_world) as new:
+              old_names=old.namelist()
+              new_names=new.namelist()
+              assert len(old_names)==len(set(old_names))
+              assert len(new_names)==len(set(new_names))
+              assert set(old_names)==set(new_names)
+              old_idx=json.loads(old.read("index.json"))
+              new_idx=json.loads(new.read("index.json"))
+              assert (old_idx["country_count"],old_idx["station_count"])==(224,48219)
+              assert (new_idx["country_count"],new_idx["station_count"])==(224,48219)
+              assert set(old_idx["countries"])==set(new_idx["countries"])
+              assert sum(v["logos_found"] for v in old_idx["countries"].values())==40086
+              assert sum(v["logos_found"] for v in new_idx["countries"].values())==40393
+              for name in old_names:
+                  if old.read(name)!=new.read(name):
+                      member_changed.append(name)
+              expected_changed={"index.json"}|{"manifests/"+cc+".json" for cc in changed}
+              assert set(member_changed)==expected_changed,(set(member_changed)^expected_changed)
+              for cc,meta in old_idx["countries"].items():
+                  current=new_idx["countries"][cc]
+                  if cc not in changed:
+                      assert current==meta
+                  else:
+                      assert current["stations"]==meta["stations"]
+                      assert current["logos_found"]-meta["logos_found"]==changed[cc]["added"]
+                  assert old.read("catalog/"+cc+".json")==new.read("catalog/"+cc+".json")
+                  assert old.read("bouquets/"+cc+".radio")==new.read("bouquets/"+cc+".radio")
+          current_zip_reports={}
+          for cc,items in sorted(images.items()):
+              dirs=list((root/"new").rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              good=[]
+              for folder in dirs:
+                  archive=folder/"logos"/(cc+".zip")
+                  if archive.is_file() and sha(archive)==new_idx["countries"][cc]["logo_sha256"]:
+                      good.append(archive)
+              assert len(good)==1,(cc,dirs)
+              with ZipFile(good[0]) as archive:
+                  names=archive.namelist()
+                  assert len(names)==len(set(names))==new_idx["countries"][cc]["logos_found"]
+                  for row,expected_png in items:
+                      member=row["stem"]+".png"
+                      actual=archive.read(member)
+                      assert actual==expected_png
+                      assert actual.startswith(PNG_HEAD)
+                      assert hashlib.sha256(actual).hexdigest()==approval["approved"][row["stationuuid"]]
+              current_zip_reports[cc]={
+                  "before":old_idx["countries"][cc]["logos_found"],
+                  "after":new_idx["countries"][cc]["logos_found"],
+                  "added":len(items),
+                  "new_country_original_zip_sha256":new_idx["countries"][cc]["logo_sha256"]
+              }
+          assert sum(x["added"] for x in current_zip_reports.values())==307
+          details={
+              "schema":1,"review_only":True,
+              "full_original_world_downloaded_and_sha_verified":True,
+              "source_world_sha256":os.environ["OLD_SHA"],
+              "new_world_sha256":os.environ["NEW_SHA"],
+              "countries":224,"stations":48219,
+              "old_original_png":40086,"new_original_png":40393,
+              "new_approved_station_originals":307,
+              "still_missing":7826,
+              "source_images_reviewed":353,
+              "wrong_or_generic_station_images_quarantined":46,
+              "changed_original_country_zips":current_zip_reports,
+              "all_original_world_members_other_than_index_and_64_changed_manifests_byte_identical":True,
+              "unchanged_member_count":len(old_names)-len(member_changed),
+              "changed_member_count":len(member_changed),
+              "all_new_station_logo_PNG_bytes_match_pinned_visual_QA_source":True,
+              "existing_original_PNG_preservation_independently_checked_by_merge_workflow":True,
+              "publication":"Draft PR #52 REVIEW only, main/feed/Release/IPK unchanged"
+          }
+          (root/"proof/one-global-world-40393-independent-audit.json").write_text(
+              json.dumps(details,ensure_ascii=False,sort_keys=True,indent=2)+"\n")
+          print("INDEPENDENT REAL 40393 ORIGINAL WORLD PROOF PASS",json.dumps({
+              k:v for k,v in details.items() if k!="changed_original_country_zips"},sort_keys=True),flush=True)
+          PY
+      - name: Upload compact independent audit report only, no large binary re-upload or release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-40393-one-global-independent-SHA-proof-REVIEW-ONLY
+          path: /tmp/warder-one-global-40393-independent-proof/proof/
+          retention-days: 30
+          if-no-files-found: error
