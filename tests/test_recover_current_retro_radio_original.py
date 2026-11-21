@@ -72,7 +72,7 @@ class CurrentRetroRadioTests(unittest.TestCase):
                                        b'https://other.example/Retro_600-100x100.png')
         self.assertEqual(self.identity(home=wrong_host)[1],
                          'CURRENT_EXACT_RETRO_MASTER_PREVIEW_NOT_IN_HOMEPAGE')
-        wrong_title = self.home.replace(b'<title>Retro-Radio -', b'<title>Radio4 -')
+        wrong_title = self.home.replace(b'<title>Retro-Radio - Hele Danmarks Retro-Radio</title>', b'<title>Different Music</title>')
         self.assertEqual(self.identity(home=wrong_title)[1],
                          'CURRENT_BROADCASTER_HOMEPAGE_NOT_BRANDED')
 
