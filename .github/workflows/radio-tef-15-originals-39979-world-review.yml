@@ -1,0 +1,112 @@
+name: ONE 15 FM-DX owner-original logo import, 224-country 39979 world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-tef-15-originals-39979-world-review.yml
+      - tools/merge_tef_fmdx_15_visual_originals.py
+      - tests/test_merge_tef_fmdx_15_visual_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-world-rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-fmdx-15-visual-brands
+      WORLD_SHA: ddb09c0d953dff302c7b63452158c35e007fa61b602830d769ff4919b78db720
+      SOURCE_SHA: eb767841d35bf9690a85aa11f104a1ea5f5e714508db9731ba45e4d078c583c7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate individual exact radio station PNG approvals and no previous image overwrites
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_tef_fmdx_15_visual_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          python3 -m py_compile tools/merge_tef_fmdx_15_visual_originals.py
+      - name: Retrieve current 39964 world, original 16 QA PNGs and signed AL/GR archives
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,source-pictures,history,old}
+          for id in 44911563049 44913346792 44907497364; do
+            test "$(gh run view "$id" --json conclusion -q .conclusion)" = success
+          done
+          gh run download 44911563049 -n radio-global-85-highres-originals-39964-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44913346792 -n radio-tef-fmdx-all-uncovered-originals-visual-REVIEW -D "$ROOT/source-pictures"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/history"
+          cp "$(find "$ROOT/source" -type f -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          echo "$SOURCE_SHA  $ROOT/source-pictures/tef-fmdx-224-missing-radio-owner-originals-REVIEW.json" | sha256sum --check
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,hashlib,shutil
+          root=Path(os.environ["ROOT"])
+          with ZipFile(root/"world.zip") as z:idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==39964
+          for cc in ("AL","GR","IT","PL","RU"):
+              sources=root/("history" if cc in ("AL","GR") else "source")
+              folders=list(sources.rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              good=[p for p in folders if (p/"logos"/(cc+".zip")).is_file() and
+                  hashlib.sha256((p/"logos"/(cc+".zip")).read_bytes()).hexdigest()==idx["countries"][cc]["logo_sha256"]]
+              assert len(good)==1,(cc,folders)
+              shutil.copytree(good[0],root/"old"/good[0].name)
+              print("CURRENT ORIGINAL COUNTRY SHA PASS",cc,idx["countries"][cc]["logos_found"])
+          PY
+          rm -rf "$ROOT/source" "$ROOT/history"
+      - name: Merge 15 verified missing radio originals, quarantine unbranded Radio Caribrod operator icon
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_tef_fmdx_15_visual_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/source-pictures" --out "$ROOT/candidates"
+      - name: ONE 224-country world rebuild, byte-identical all 39964 existing PNGs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/candidates" \
+            --countries AL,GR,IT,PL,RU --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import json,os,hashlib
+          root=Path(os.environ["ROOT"])
+          proof=json.loads((root/"candidates/tef-fmdx-15-visual-original-logo-merge-REVIEW.json").read_text())
+          out=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert proof["visually_approved"]==out["logos_added"]==15
+          assert proof["sources_audited"]==16 and len(proof["quarantined"])==1
+          assert proof["existing_originals_unchanged"]
+          assert proof["source_stage_sha256"]==os.environ["SOURCE_SHA"]
+          assert out["original_world_sha256"]==os.environ["WORLD_SHA"]
+          assert out["country_count"]==224 and out["station_count"]==48219
+          assert {z["country"]:z["added"] for z in out["countries_changed"]}=={"AL":1,"GR":4,"IT":2,"PL":2,"RU":6}
+          archive=root/"new-world/radio-countries-bouquets.zip"
+          digest=hashlib.sha256(archive.read_bytes()).hexdigest()
+          assert digest==out["new_world_sha256"]
+          with ZipFile(archive) as z:
+              idx=json.loads(z.read("index.json"))
+              assert idx["country_count"]==224 and idx["station_count"]==48219
+              assert sum(x["logos_found"] for x in idx["countries"].values())==39979
+              assert 48219-39979==8240
+          print("ONE 15 ORIGINAL RADIO LOGO WORLD REVIEW PASS",json.dumps({
+              "total_png":39979,"new_originals":15,"missing_originals":8240,
+              "previous_39964_png_unchanged":True,"world_sha256":digest},sort_keys=True))
+          PY
+      - name: Keep only review results, no main/Release/latest.json/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-tef-15-visual-approved-39979-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-fmdx-15-visual-brands/candidates/
+            /tmp/warder-fmdx-15-visual-brands/new-world/
+          retention-days: 30
+          if-no-files-found: error
