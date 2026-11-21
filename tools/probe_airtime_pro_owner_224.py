@@ -106,14 +106,17 @@ def check_raster(raw):
     from PIL import Image
     if not isinstance(raw, bytes) or len(raw) > MAX_IMAGE:
         raise ValueError("Invalid station image bytes")
-    with Image.open(BytesIO(raw)) as im:
-        im.verify()
-    with Image.open(BytesIO(raw)) as im:
-        w,h = im.size
-        if im.format not in ("PNG", "JPEG", "WEBP") or min(w,h) < 64 or max(w,h) > 4096:
-            raise ValueError("Not a suitable station logo raster")
-        return {"format": im.format.lower(), "width": w, "height": h,
-                "sha256": sha256(raw).hexdigest(), "bytes": len(raw)}
+    try:
+        with Image.open(BytesIO(raw)) as im:
+            im.verify()
+        with Image.open(BytesIO(raw)) as im:
+            w,h = im.size
+            if im.format not in ("PNG", "JPEG", "WEBP") or min(w,h) < 64 or max(w,h) > 4096:
+                raise ValueError("Not a suitable station logo raster")
+            return {"format": im.format.lower(), "width": w, "height": h,
+                    "sha256": sha256(raw).hexdigest(), "bytes": len(raw)}
+    except (OSError, SyntaxError) as exc:
+        raise ValueError("Invalid or damaged raster image") from exc
 
 
 def collect(world):
