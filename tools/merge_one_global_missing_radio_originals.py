@@ -63,6 +63,19 @@ def verified_decisions(stage,approvals):
     byid={r["stationuuid"]:r for r in image_rows}
     if len(byid)!=len(image_rows):
         raise ValueError("Duplicate original source image identity")
+    # The complete 8-sheet visual QA uses one pinned 353-image contact review:
+    # all 353 images were personally inspected and exactly 46 are individually
+    # excluded by UUID. Every one of the 307 accepted per-image SHA values
+    # is still required to match the immutable 353-image source evidence.
+    if approval.get("approval_method")=="full_353_picture_visual_QA_except_explicit_46_rejections":
+        rejected=set(approval["rejected"])
+        if (len(image_rows)!=353 or approval["reviewed_images_count"]!=353
+            or approval.get("expected_approved_count")!=307
+            or len(rejected)!=46 or not rejected.issubset(byid)
+            or approval["approved"]!={}):
+            raise ValueError("Unrecognized complete 353-picture visual inspection outcome")
+        approval["approved"]={uid:row["png_sha256"]
+                              for uid,row in sorted(byid.items()) if uid not in rejected}
     approved_ids=set(approval["approved"])
     rejected_ids=set(approval["rejected"])
     if (not approved_ids or approved_ids&rejected_ids or
