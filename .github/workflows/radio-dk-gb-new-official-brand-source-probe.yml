@@ -1,0 +1,67 @@
+name: New first-party DK Radio IIII / Radioplayer and GB Big L logo source probe (review only)
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-dk-gb-new-official-brand-source-probe.yml
+      - tools/probe_dk_gb_new_radio_brand_sources.py
+      - tests/test_probe_dk_gb_new_radio_brand_sources.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radio-new-dk-gb-brands
+      WORLD_SHA: 04dbf8bee8101da8af6042f236f86e7949635826550b2d506f1f45cf7886e95d
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline tests of official image metadata and exact pinned world
+        run: PYTHONPATH=tools python3 -B tests/test_probe_dk_gb_new_radio_brand_sources.py
+      - name: Verify signed 39665-logo world and independent stream evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-source,gaps,pages}
+          test "$(gh run view 44857390683 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44830949401 --json conclusion -q .conclusion)" = success
+          gh run download 44857390683 -n radio-LT-M1PLAY-current-firstparty-REVIEW-ONLY -D "$ROOT/world-source"
+          test "$(find "$ROOT/world-source" -type f -name radio-countries-bouquets.zip | wc -l)" -eq 1
+          find "$ROOT/world-source" -type f -name radio-countries-bouquets.zip -exec cp {} "$ROOT/world.zip" \;
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum -c
+          gh run download 44830949401 -n radio-71-CarRadio-current-PNG-gap-REVIEW-ONLY -D "$ROOT/gaps"
+          test -f "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json"
+      - name: Fetch only seven NEW broadcaster/operator/designer pages
+        run: |
+          set -euo pipefail
+          PYTHONPATH=tools python3 - <<'PY'
+          import os,subprocess
+          from pathlib import Path
+          from probe_dk_gb_new_radio_brand_sources import PAGES
+          root=Path(os.environ["ROOT"])/"pages"
+          for name,url in PAGES.items():
+              path=root/(name+".html")
+              cmd=["curl","--fail","--silent","--show-error","--location","--compressed",
+                  "--proto-redir","=https","--connect-timeout","8","--max-time","35",
+                  "--max-filesize","5000000","--user-agent","WarderRadioBrandReview/1.0",
+                  url,"--output",str(path)]
+              r=subprocess.run(cmd,capture_output=True,text=True,timeout=45)
+              if r.returncode:path.unlink(missing_ok=True)
+              print("NEW BRAND SOURCE",name,r.returncode,path.stat().st_size if path.exists() else 0,r.stderr[:110],flush=True)
+          PY
+      - name: Compare original-logo candidates with exact pinned DK and GB station UUIDs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=tools python3 -B tools/probe_dk_gb_new_radio_brand_sources.py \
+            --world "$ROOT/world.zip" \
+            --gaps "$ROOT/gaps/carradio-71-exact-matches-vs-real-country-png-review.json" \
+            --pages "$ROOT/pages" --out "$ROOT/review"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-DK-GB-firstparty-sources-REVIEW-ONLY
+          path: /tmp/warder-radio-new-dk-gb-brands/review/
+          retention-days: 30
+          if-no-files-found: error
