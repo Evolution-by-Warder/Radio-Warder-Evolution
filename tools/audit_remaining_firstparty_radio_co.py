@@ -63,7 +63,7 @@ def plan_remaining(matches, first, expected_old_ids=FIRST_PASS_IDS):
             first.get("world_sha256") != PRIOR_WORLD_SHA or
             first.get("countries_scanned") != 224 or
             first.get("stations_scanned") != 48219 or
-            first.get("radio_co_stream_matches") != 306 or
+            first.get("radio_co_stream_matches") != len(matches) or
             first.get("provider_ids_requested") != expected_old_ids or
             first.get("review_only") is not True or
             first.get("metadata_only") is not True or
