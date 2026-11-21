@@ -8,6 +8,7 @@ Never accept a web favicon, old archived directory logo, or a sibling channel.
 import argparse
 import hashlib
 import json
+from html.parser import HTMLParser
 from pathlib import Path
 import tempfile
 from urllib.parse import urlsplit
@@ -23,7 +24,52 @@ NAME = 'Radio Tirana 1'
 CODE = 'AL'
 OFFICIAL_PAGE = 'https://rtsh.al/radio/kanale/radio-tirana-1/'
 OFFICIAL_LOGO = 'https://rtsh.al/radio/wp-content/uploads/2025/03/radio-tirana-1.svg'
-UUID_PLACEHOLDER = None  # Identity is loaded from the audited exact-stream gap, never guessed.
+
+class JsonLdScripts(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.inside = False
+        self.script = []
+        self.scripts = []
+    def handle_starttag(self, tag, attrs):
+        if tag == 'script' and dict(attrs).get('type', '').casefold() == 'application/ld+json':
+            self.inside = True
+            self.script = []
+    def handle_data(self, data):
+        if self.inside:
+            self.script.append(data)
+    def handle_endtag(self, tag):
+        if tag == 'script' and self.inside:
+            self.scripts.append(''.join(self.script))
+            self.inside = False
+
+def official_webpage_jsonld_image(page):
+    """Named WebPage's direct first-party thumbnail, never global site favicon."""
+    parser = JsonLdScripts()
+    parser.feed(page.decode('utf-8', 'replace'))
+    candidates = []
+    for raw in parser.scripts:
+        try:
+            document = json.loads(raw)
+        except (TypeError, ValueError):
+            continue
+        for record in (document.get('@graph', []) if isinstance(document, dict)
+                       else []):
+            if not isinstance(record, dict):
+                continue
+            types = record.get('@type', [])
+            if isinstance(types, str):
+                types = [types]
+            name = record.get('name', '')
+            if (not isinstance(types, list) or 'WebPage' not in types
+                or not isinstance(name, str)
+                or not name.casefold().startswith(NAME.casefold())
+                or 'rtsh' not in name.casefold()
+                or record.get('url') != OFFICIAL_PAGE
+                or record.get('thumbnailUrl') != OFFICIAL_LOGO):
+                continue
+            candidates.append(record)
+    return len(candidates) == 1
 
 def source_verified(row, gap, page):
     """Require pinned UUID/stem/name plus live station-specific RTSH alt and image."""
@@ -44,7 +90,7 @@ def source_verified(row, gap, page):
                x['url'] == OFFICIAL_LOGO and
                x['alt'].casefold().strip() == NAME.casefold() and
                x['source_tag'] == 'src']
-    if len(matches) != 1:
+    if len(matches) != 1 and not official_webpage_jsonld_image(page):
         # Only the public broadcaster page and its first-party image URLs;
         # no generic fallback, useful if WordPress changes its img attributes.
         html = page.decode('utf-8', 'replace')
