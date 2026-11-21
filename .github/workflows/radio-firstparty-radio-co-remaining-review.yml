@@ -1,0 +1,82 @@
+name: Radio.co remaining never-queried owner IDs - 224 countries (review only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-firstparty-radio-co-remaining-review.yml
+      - tools/audit_remaining_firstparty_radio_co.py
+      - tests/test_audit_remaining_firstparty_radio_co.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  remaining-firstparty-metadata:
+    strategy:
+      fail-fast: false
+      matrix:
+        batch: [0, 1]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/radio-co-remaining-${{ matrix.batch }}
+      WORLD_SHA: 55a557a950e07947db11046405cf45804c0926e869415c6327e43edd864b11ff
+    steps:
+      - uses: actions/checkout@v4
+      - name: Regression tests and strict exclusion invariants
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_audit_remaining_firstparty_radio_co.py
+          PYTHONPATH=src:tools python3 -B tests/test_audit_firstparty_radio_co_world.py
+      - name: Fetch ONLY current full REVIEW world and successful old owner-metadata artifact
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-evidence,prior}
+          test "$(gh run view 44867416434 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44867246914 --json conclusion -q .conclusion)" = success
+          gh run download 44867416434 -n radio-US-RadioCo-original-logos-REVIEW-ONLY -D "$ROOT/world-evidence"
+          mapfile -t archives < <(find "$ROOT/world-evidence" -type f -name radio-countries-bouquets.zip)
+          test "$(find "$ROOT/world-evidence" -type f -name radio-countries-bouquets.zip | wc -l)" -eq 1
+          cp "$(find "$ROOT/world-evidence" -type f -name radio-countries-bouquets.zip)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          gh run download 44867246914 -n radio-224-country-RadioCo-station-firstparty-REVIEW-ONLY -D "$ROOT/prior"
+          test -f "$ROOT/prior/radio-co-first-party-world-224-metadata-review.json"
+          rm -rf "$ROOT/world-evidence"
+      - name: Query ONLY provider IDs never requested in 120-ID old audit (max 120 distinct per job)
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/audit_remaining_firstparty_radio_co.py \
+            --world "$ROOT/world.zip" \
+            --previous-metadata "$ROOT/prior/radio-co-first-party-world-224-metadata-review.json" \
+            --batch "${{ matrix.batch }}" --out "$ROOT/review"
+      - name: Check that results are metadata-only and old 120 IDs were never queried
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          b=int(os.environ['ROOT'].split('-')[-1])
+          x=json.loads((root/'review'/f'radio-co-remaining-batch-{b}-metadata-REVIEW.json').read_text())
+          assert x['review_only'] and x['metadata_only'] and x['new_png_verified']==0
+          assert x['countries_scanned']==224 and x['stations_scanned']==48219
+          assert x['world_logos_found']==39673 and x['world_missing']==8546
+          assert x['previous_provider_ids_excluded']==120
+          assert 0<x['provider_ids_requested']<=120
+          assert x['batch']==b and x['batch_count']==2
+          assert x['world_sha256']==os.environ['WORLD_SHA']
+          print('DISJOINT RADIO.CO REVIEW PASS',json.dumps({k:v for k,v in x.items() if k in
+                ('batch','provider_ids_requested','exact_brand_and_logo_candidates','provider_failures',
+                 'unprobed_records_at_start','unprobed_unique_ids_at_start','world_missing')},sort_keys=True))
+          PY
+      - name: Upload ONLY compact independent metadata reports - NO publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-co-disjoint-remaining-batch-${{ matrix.batch }}-REVIEW-ONLY
+          path: /tmp/radio-co-remaining-${{ matrix.batch }}/review/
+          retention-days: 30
+          if-no-files-found: error
