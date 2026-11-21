@@ -1,0 +1,95 @@
+name: Second unseen Airtime Pro owner source sample 224-country REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-airtime-second-unseen-owner-review.yml
+      - tools/probe_airtime_pro_unseen_owners_224.py
+      - tests/test_probe_airtime_pro_unseen_owners_224.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  skip-proven-old-owner-ids:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-airtime-unseen-owner-224
+      WORLD_SHA: bb115a8f0fd0127990f2c22a3ed44cee526255b3599dc6db5c1bbf6b7ee65a97
+      PRIOR_SHA: 96c4cf413d63ce928a2d348090d133c42a787e6ddfb6cf2f8984194e3d120db6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install image validator for isolated unapproved contact sheet
+        run: python3 -m pip install --quiet 'Pillow>=10,<13'
+      - name: Skip already-audited firstparty owner IDs and original negative tests
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_probe_airtime_pro_unseen_owners_224.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_airtime_pro_owner_224.py
+      - name: Reuse SHA-verified 39704-logo world and prior 18-owner proof only
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44889673492 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44890625262 --json conclusion -q .conclusion)" = success
+          mkdir -p "$ROOT/world-source" "$ROOT/prior"
+          gh run download 44889673492 -n radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY -D "$ROOT/world-source"
+          gh run download 44890625262 -n radio-new-airtime-pro-firstparty-world-UNAPPROVED-REVIEW -D "$ROOT/prior"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,hashlib,json,shutil
+          root=Path(os.environ["ROOT"])
+          files=list((root/"world-source").rglob("radio-countries-bouquets.zip"))
+          assert len(files)==1
+          shutil.copyfile(files[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          old=root/"prior/airtime-pro-firstparty-224-UNAPPROVED.json"
+          assert hashlib.sha256(old.read_bytes()).hexdigest()==os.environ["PRIOR_SHA"]
+          with ZipFile(root/"world.zip") as z:
+              index=json.loads(z.read("index.json"))
+          assert index["country_count"]==224 and index["station_count"]==48219
+          assert sum(c["logos_found"] for c in index["countries"].values())==39704
+          print("PINNED WORLD AND PREVIOUS SOURCE PROOF PASSED")
+          PY
+          rm -rf "$ROOT/world-source"
+      - name: Query only previously unrequested owner metadata and original logo
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_airtime_pro_unseen_owners_224.py \
+            --world "$ROOT/world.zip" \
+            --prior "$ROOT/prior/airtime-pro-firstparty-224-UNAPPROVED.json" \
+            --out "$ROOT/review"
+      - name: Confirm no repeated owner and no published originals
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          r=Path(os.environ["ROOT"])
+          old=json.loads((r/"prior/airtime-pro-firstparty-224-UNAPPROVED.json").read_text())
+          s=json.loads((r/"review/airtime-second-owner-source-review.json").read_text())
+          ids={x["owner"] for x in old["attempts"]}
+          assert len(ids)==18 and s["previous_distinct_owners_excluded"]==18
+          assert not ids.intersection(x["owner"] for x in s["attempts"])
+          assert s["world_sha256"]==os.environ["WORLD_SHA"]
+          assert s["review_only"] and s["originals_approved"]==0 and s["world_created"] is False
+          assert s["countries_scanned"]==224 and s["stations_scanned"]==48219
+          assert s["original_png_count"]==39704
+          assert 0<s["new_owner_metadata_requests"]<=18
+          assert s["exact_identity_and_image_matches"]<=12
+          assert not list((r/"review").rglob("radio-countries-bouquets.zip"))
+          print("AIRTIME SECOND NEW OWNER ROUND PASS",s["new_owner_metadata_requests"],
+               s["exact_identity_and_image_matches"],s["errors"])
+          PY
+      - name: Upload isolated first-party unapproved source and visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: airtime-second-unseen-owner-images-224-UNAPPROVED-REVIEW
+          path: /tmp/warder-airtime-unseen-owner-224/review/
+          retention-days: 30
+          if-no-files-found: error
