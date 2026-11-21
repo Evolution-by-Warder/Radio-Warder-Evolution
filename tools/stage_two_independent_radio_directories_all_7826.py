@@ -302,12 +302,21 @@ def image_get(source):
     return png,{"original_url":url,"original_sha256":sha256(raw).hexdigest(),
                 "png_sha256":sha256(png).hexdigest(),"original_quality":quality}
 
-def run(world,oldroot,out,workers=MAX_WORKERS):
+def run(world,oldroot,out,workers=MAX_WORKERS,skip_ice=False):
     out=Path(out)
     if out.exists() or out.is_symlink():raise ValueError("Do not overwrite world sources or manual approvals")
     if not 1<=workers<=MAX_WORKERS:raise ValueError("Unbounded online station provider requests")
     missing,lookup,countries=inventory(world,oldroot)
-    ice,ice_summary=collect_ice(lookup,workers)
+    if skip_ice:
+        # The public API began throttling a prior bulk catalogue pass.
+        # Respect provider limits rather than bypassing them.
+        ice,ice_summary=defaultdict(list),{
+            "source":"ice.radio.fm","pages":0,"source_total_stations":0,
+            "station_matches":0,"unique_stations":0,"match_types":{},
+            "source_pages_sha256":[],
+            "skipped_reason":"public ICE full-directory API rate-limited a previous attempt"}
+    else:
+        ice,ice_summary=collect_ice(lookup,workers)
     radio,radio_summary=collect_radionet(lookup,workers)
     by_uuid={r["stationuuid"]:r for r in missing}
     chosen=[];ambiguous=Counter()
@@ -398,5 +407,6 @@ if __name__=="__main__":
     for arg in ("world","old-root","out"):
         p.add_argument("--"+arg,type=Path,required=True)
     p.add_argument("--workers",type=int,default=MAX_WORKERS)
+    p.add_argument("--skip-ice",action="store_true")
     a=p.parse_args()
-    run(a.world,a.old_root,a.out,a.workers)
+    run(a.world,a.old_root,a.out,a.workers,a.skip_ice)
