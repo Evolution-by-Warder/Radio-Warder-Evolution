@@ -1,0 +1,136 @@
+name: laut.fm ten visually verified originals into complete 224-country REVIEW world - no publication
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-lautfm-verified-10-original-world-merge.yml
+      - tools/promote_lautfm_vetted_world.py
+      - tests/test_promote_lautfm_vetted_world.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  merge-10-visual-verified-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-lautfm-10-approved-review
+      SOURCE_SHA: 9e6d8745979b25a352de4986202a5500a73a6a7935c88ccf1bdc9d82d4afa923
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify owner-brand allowlist, no new art for generic cassette and existing logo safeguards
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_promote_lautfm_vetted_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_audit_stage_lautfm_missing_priority.py
+          PYTHONPATH=src:tools python3 -B tests/test_recover_lautfm_pinned_official_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Fetch successful SHA-verified 39689 world and real visually reviewed 11 PNG stage
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/worldsrc" "$ROOT/stage" "$ROOT/oldsrc" "$ROOT/old"
+          test "$(gh run view 44873272556 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44876139455 --json conclusion -q .conclusion)" = success
+          gh run download 44873272556 -n radio-co-crosscountry-8-fourth-originals-REVIEW-ONLY -D "$ROOT/worldsrc"
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          paths=list((root/'worldsrc').rglob('radio-countries-bouquets.zip'))
+          assert len(paths)==1
+          shutil.copyfile(paths[0],root/'world.zip')
+          PY
+          echo "$SOURCE_SHA  $ROOT/world.zip" | sha256sum --check
+          gh run download 44876139455 -n radio-lautfm-50-new-missing-owner-review-staged-only -D "$ROOT/stage"
+          test -f "$ROOT/stage/new-lautfm-missing-originals-priority-review.json"
+          rm -rf "$ROOT/worldsrc"
+      - name: Restore only latest checksum-correct DE and US country originals
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44818364283 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44867416434 --json conclusion -q .conclusion)" = success
+          gh run download 44818364283 -n radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY -D "$ROOT/oldsrc/DE"
+          gh run download 44867416434 -n radio-US-RadioCo-original-logos-REVIEW-ONLY -D "$ROOT/oldsrc/US"
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z:
+              idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39689
+          for cc in ("DE","US"):
+              choices=list((root/'oldsrc'/cc).rglob(f'radio-country-{cc}-REVIEW-NOT-PRODUCTION'))
+              assert len(choices)==1,cc
+              logo=choices[0]/'logos'/f'{cc}.zip'
+              assert hashlib.sha256(logo.read_bytes()).hexdigest()==idx['countries'][cc]['logo_sha256'],cc
+              shutil.copytree(choices[0],root/'old'/choices[0].name)
+          print('LAUTFM TEN REVIEW BEFORE MERGE: current world and both country original SHA PASS')
+          PY
+          rm -rf "$ROOT/oldsrc"
+      - name: Filter one unbranded cassette image; preserve 39689 and merge 10 branded originals
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/promote_lautfm_vetted_world.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Verify every old PNG, country catalogue, bouquet, world SHA and index
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          from zipfile import ZipFile
+          from complete_world_country_original_logos import verify_source
+          from promote_lautfm_vetted_world import ACCEPT,QUARANTINE
+          root=Path(os.environ['ROOT'])
+          report=json.loads((root/'review/lautfm-verified-world-review.json').read_text())
+          assert report['review_only'] and report['no_production_release']
+          assert report['old_png']==39689 and report['validated_new_png']==10
+          assert report['new_png']==39699 and report['missing_png']==8520
+          assert len(report['visual_qc']['accepted_uuid'])==10
+          assert set(report['visual_qc']['quarantined_uuid'])==set(QUARANTINE)
+          dest=root/'review/review-world/radio-countries-bouquets.zip'
+          idx=verify_source(dest,report['new_world_sha256'])
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(x['logos_found'] for x in idx['countries'].values())==39699
+          with ZipFile(root/'world.zip') as oldworld,ZipFile(dest) as newworld:
+              assert set(oldworld.namelist())==set(newworld.namelist())
+              changed={f'manifests/{c}.json' for c in ('DE','US')}|{'index.json'}
+              assert all(newworld.read(k)==oldworld.read(k) for k in oldworld.namelist() if k not in changed)
+              for cc in idx['countries']:
+                  old=json.loads(oldworld.read('index.json'))['countries'][cc]
+                  new=idx['countries'][cc]
+                  if cc not in ('DE','US'):
+                      assert old==new,cc
+          accepted=set(ACCEPT)
+          for cc in ('DE','US'):
+              old=root/'old'/f'radio-country-{cc}-REVIEW-NOT-PRODUCTION/logos/{cc}.zip'
+              new=root/'review/approved-country'/f'radio-country-{cc}-REVIEW-NOT-PRODUCTION/logos/{cc}.zip'
+              with ZipFile(old) as before,ZipFile(new) as after:
+                  assert all(before.read(k)==after.read(k) for k in before.namelist()),cc
+                  assert len(after.namelist())-len(before.namelist())==sum(x[0]==cc for x in ACCEPT.values())
+              updated=idx['countries'][cc]
+              assert hashlib.sha256(new.read_bytes()).hexdigest()==updated['logo_sha256'],cc
+          print('LAUTFM ALL PNG BYTE-FOR-BYTE PRESERVED +10 OWN BRAND ORIGINALS PASS')
+          print('REVIEW WORLD SHA-256', report['new_world_sha256'])
+          print('NEW COMPLETE WORLD',json.dumps({
+            'countries':224,'stations':48219,'new_png':39699,
+            'missing_png':8520,'validated_new_originals':10,
+            'generic_quarantined':1,'production_published':False
+          },sort_keys=True))
+          PY
+      - name: Upload ONLY reviewed world, DE and US country originals and evidence, not production
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-lautfm-10-approved-originals-world-39699-REVIEW-ONLY
+          path: /tmp/warder-lautfm-10-approved-review/review/
+          retention-days: 30
+          if-no-files-found: error
