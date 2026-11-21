@@ -1,0 +1,113 @@
+name: Merge nine visually verified laut.fm station original logos into 224-country REVIEW world
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-lautfm-9-visual-approved-world-review.yml
+      - tools/merge_visual_approved_lautfm_originals.py
+      - tests/test_merge_visual_approved_lautfm_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  visual-approval-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-lautfm-approved-nine
+      WORLD_SHA: 9e6d8745979b25a352de4986202a5500a73a6a7935c88ccf1bdc9d82d4afa923
+      SOURCE_STAGE_SHA: 11ba449aeb12a522b1ba2628a93ecce06f81b9c975dd65b9d3d21caa1246e6f7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline regression for pinned PNG SHA, original-country no-overwrite
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_merge_visual_approved_lautfm_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_recover_lautfm_pinned_official_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Download 39689 checksum-pinned world and existing correctly branded German country ZIP
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world-source" "$ROOT/old-source" "$ROOT/stage" "$ROOT/old"
+          test "$(gh run view 44873272556 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44818364283 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44876139455 --json conclusion -q .conclusion)" = success
+          gh run download 44873272556 -n radio-co-crosscountry-8-fourth-originals-REVIEW-ONLY -D "$ROOT/world-source"
+          gh run download 44818364283 -n radio-independent-MediaBroadcast-DE-originals-REVIEW-ONLY -D "$ROOT/old-source"
+          gh run download 44876139455 -n radio-lautfm-50-new-missing-owner-review-staged-only -D "$ROOT/stage"
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os,shutil,hashlib
+          from zipfile import ZipFile
+          root=Path(os.environ['ROOT'])
+          worlds=list((root/'world-source').rglob('radio-countries-bouquets.zip'))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:
+              index=json.loads(z.read('index.json'))
+          assert index['country_count']==224 and index['station_count']==48219
+          assert sum(x['logos_found'] for x in index['countries'].values())==39689
+          de=list((root/'old-source').rglob('radio-country-DE-REVIEW-NOT-PRODUCTION'))
+          assert len(de)==1
+          shutil.copytree(de[0],root/'old'/de[0].name)
+          old=(root/'old/radio-country-DE-REVIEW-NOT-PRODUCTION/logos/DE.zip')
+          assert hashlib.sha256(old.read_bytes()).hexdigest()==index['countries']['DE']['logo_sha256']
+          proof=root/'stage/new-lautfm-missing-originals-priority-review.json'
+          assert hashlib.sha256(proof.read_bytes()).hexdigest()==os.environ['SOURCE_STAGE_SHA']
+          print('PINNED WORLD, APPROVED SOURCE EVIDENCE, ORIGINAL DE PNG PASS')
+          PY
+          rm -rf "$ROOT/world-source" "$ROOT/old-source"
+      - name: Reconstruct new German ZIP using ONLY 9 visual-QA-approved PNGs with pinned bytes
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_visual_approved_lautfm_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Assemble complete world only if nine approved additions preserved all 39689 originals
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries DE --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          stage=json.loads((root/'review/lautfm-visual-approved-merge-proof.json').read_text())
+          w=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert stage['new_approved_logos']==w['logos_added']==9
+          assert len(stage['approved_stations'])==9 and len(stage['quarantined'])==2
+          assert w['review_only'] and w['country_count']==224 and w['station_count']==48219
+          assert w['original_world_sha256']==os.environ['WORLD_SHA']
+          assert len(w['countries_changed'])==1 and w['countries_changed'][0]['country']=='DE'
+          assert w['countries_changed'][0]['previous']==4041
+          assert w['countries_changed'][0]['current']==4050
+          nextzip=root/'new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(nextzip.read_bytes()).hexdigest()==w['new_world_sha256']
+          with ZipFile(nextzip) as z:
+              idx=json.loads(z.read('index.json'))
+              assert idx['country_count']==224 and idx['station_count']==48219
+              assert sum(x['logos_found'] for x in idx['countries'].values())==39698
+              assert idx['countries']['DE']['logos_found']==4050
+              assert idx['countries']['US']['logos_found']==5762
+          print('APPROVED NINE RADIO LOGOS WORLD REVIEW PASS',json.dumps(w,sort_keys=True))
+          print('GENERIC CASSETTE AND INCOMPLETE US EMO BRAND REMAIN UNPUBLISHED')
+          PY
+      - name: Save complete 39698-logo REVIEW world and changed DE country only - no releases/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-lautfm-nine-visual-approved-originals-39698-REVIEW-ONLY
+          path: |
+            /tmp/warder-lautfm-approved-nine/review/
+            /tmp/warder-lautfm-approved-nine/new-world/
+          retention-days: 30
+          if-no-files-found: error
