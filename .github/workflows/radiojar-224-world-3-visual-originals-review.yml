@@ -1,0 +1,147 @@
+name: Radiojar three new visual-confirmed originals DE ES - 39707 world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radiojar-224-world-3-visual-originals-review.yml
+      - tools/merge_radiojar_224_visual_three.py
+      - tests/test_merge_radiojar_224_visual_three.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verified-three-new-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radiojar-global-three
+      WORLD_SHA: bb115a8f0fd0127990f2c22a3ed44cee526255b3599dc6db5c1bbf6b7ee65a97
+      STAGE_SHA: e6262eef9956ad9b79eabaf06a237562c2b57cd174dec11480ecd570fa015a7e
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline strict exact stream/brand, generic logo quarantine and SHA regressions
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_radiojar_224_visual_three.py
+          PYTHONPATH=src:tools python3 -B tests/test_stage_radiojar_missing_world_224_disjoint.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Fetch last full 39704-world, German original ZIP, pinned reviewed 5-owner evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source" "$ROOT/old" "$ROOT/stage" "$ROOT/shard"
+          test "$(gh run view 44889673492 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44890993374 --json conclusion -q .conclusion)" = success
+          gh run download 44889673492 \
+            -n radiojar-next-four-visual-approved-39704-world-REVIEW-ONLY \
+            -D "$ROOT/source"
+          gh run download 44890993374 \
+            -n radiojar-224-world-disjoint-new-owner-original-images-UNAPPROVED \
+            -D "$ROOT/stage"
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"source").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as z: idx=json.loads(z.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(v["logos_found"] for v in idx["countries"].values())==39704
+          de=list((root/"source").rglob("radio-country-DE-REVIEW-NOT-PRODUCTION"))
+          assert len(de)==1
+          shutil.copytree(de[0],root/"old"/de[0].name)
+          logo=root/"old"/de[0].name/"logos/DE.zip"
+          assert hashlib.sha256(logo.read_bytes()).hexdigest()==idx["countries"]["DE"]["logo_sha256"]
+          proof=root/"stage/radiojar-224-world-unprobed-owners-REVIEW.json"
+          assert hashlib.sha256(proof.read_bytes()).hexdigest()==os.environ["STAGE_SHA"]
+          print("LAST WORLD, DE COUNTRY ZIP, FIVE SOURCE PNG SHA PASS")
+          PY
+          rm -rf "$ROOT/source"
+      - name: Download only ORIGINAL ES country shard (not the other 223 countries)
+        run: |
+          set -euo pipefail
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          shard=$(python3 - <<'PY'
+          import json,os
+          from zipfile import ZipFile
+          with ZipFile(os.environ["ROOT"]+"/world.zip") as z:
+              idx=json.loads(z.read("index.json"))
+          print(f"{sorted(idx['countries']).index('ES')//8:02d}")
+          PY
+          )
+          gh run download 44801652426 \
+            -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/shard"
+          python3 - <<'PY'
+          import hashlib,json,os,shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          src=list((root/"shard").rglob("radio-country-ES-REVIEW-NOT-PRODUCTION"))
+          assert len(src)==1
+          with ZipFile(root/"world.zip") as z: idx=json.loads(z.read("index.json"))
+          f=src[0]/"logos/ES.zip"
+          assert hashlib.sha256(f.read_bytes()).hexdigest()==idx["countries"]["ES"]["logo_sha256"]
+          assert idx["countries"]["ES"]["logos_found"]==947
+          shutil.copytree(src[0],root/"old"/src[0].name)
+          print("CURRENT ES ZIP SHA PASS, EXISTING 947 PNGS IMMUTABLE")
+          PY
+          rm -rf "$ROOT/shard"
+      - name: Normalize only three manually confirmed unique owner images, preserve old bytes
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_radiojar_224_visual_three.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Rebuild new 224-country world and confirm exactly 3 PNG added and nothing removed
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries DE,ES --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          approved=json.loads((root/"review/radiojar-global-visual-approved-three-review.json").read_text())
+          out=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert approved["new_original_png"]==out["logos_added"]==3
+          assert approved["review_only"] and out["review_only"]
+          assert approved["source_world_sha256"]==out["original_world_sha256"]==os.environ["WORLD_SHA"]
+          assert len(approved["quarantined"])==2
+          assert out["country_count"]==224 and out["station_count"]==48219
+          assert {x["country"]:(x["previous"],x["current"],x["added"]) for x in out["countries_changed"]}=={
+              "DE":(4054,4056,2),"ES":(947,948,1)
+          }
+          world=root/"new-world/radio-countries-bouquets.zip"
+          assert hashlib.sha256(world.read_bytes()).hexdigest()==out["new_world_sha256"]
+          with ZipFile(world) as z:
+              idx=json.loads(z.read("index.json"))
+              assert idx["country_count"]==224 and idx["station_count"]==48219
+              assert sum(v["logos_found"] for v in idx["countries"].values())==39707
+              assert 48219-39707==8512
+          print("GLOBAL RADIOJAR THREE VISUAL ORIGINALS WORLD PASS",json.dumps({
+              "new_png":3,"old_png_preserved":39704,
+              "world_zip_sha256":out["new_world_sha256"],
+              "changed_countries":out["countries_changed"]
+          },sort_keys=True))
+          PY
+      - name: Store only complete 39707-logo REVIEW world and DE ES country logos - NO release
+        uses: actions/upload-artifact@v4
+        with:
+          name: radiojar-global-three-verified-39707-world-REVIEW-ONLY
+          path: |
+            /tmp/warder-radiojar-global-three/review/
+            /tmp/warder-radiojar-global-three/new-world/
+          retention-days: 30
+          if-no-files-found: error
