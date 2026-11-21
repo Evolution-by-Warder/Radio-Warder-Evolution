@@ -11,7 +11,7 @@ def fixture():
          +b'<path d="M0 0h1v32H0z"/>'*9+b'</svg>')
     home=b'<title>RADIO IIII</title><audio src="'+LIVE_AUDIO+b'"></audio><a href="/" class="logo">'+svg+b'</a>'
     about=b'<title>Om RADIO IIII</title><audio src="'+LIVE_AUDIO+b'"></audio><a href="/" class="logo">'+svg+b'</a>'
-    return svg,home,about
+    return svg,home+b' '*1600,about+b' '*1600
 def identity():
     row={"stationuuid":UUID,"countrycode":CODE,"name":LEGACY_NAME,
        "stem":"4097_0_2_123_0_0_0_0_0_0","url":PINNED_AUDIO,"homepage":SOURCE_PAGE}
