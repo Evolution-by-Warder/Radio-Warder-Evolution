@@ -65,6 +65,9 @@ jobs:
           done < "$ROOT/shard-ids.txt"
           gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
           gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/newer39867"
+          gh run download 44898959277 -n radio-lautfm-44-visual-originals-39865-complete-world-REVIEW-ONLY -D "$ROOT/newer39865"
+          gh run download 44897612492 -n radio-qingting-90-visual-originals-39821-complete-world-REVIEW-ONLY -D "$ROOT/newerCN"
           python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
@@ -72,7 +75,7 @@ jobs:
           root=Path(os.environ['ROOT'])
           with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
           codes=json.loads((root/'selected-countries.json').read_text())
-          previous=['source','patch7','patch13','baseline']
+          previous=['source','newer39867','newer39865','newerCN','patch7','patch13','baseline']
           chosen=[]
           for cc in codes:
               good=[]
@@ -88,7 +91,7 @@ jobs:
           assert chosen==codes
           print("CURRENT ORIGINAL COUNTRY LOGO ZIPS SHA VERIFIED",len(chosen),"OLD ORIGINALS NEVER DOWNLOADED AS IMAGES")
           PY
-          rm -rf "$ROOT/baseline" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/source"
+          rm -rf "$ROOT/baseline" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/source" "$ROOT/newer39867" "$ROOT/newer39865" "$ROOT/newerCN"
       - name: ONE large disjoint original logo retrieval; only exact unique names and currently missing country ZIP entries
         run: |
           set -euo pipefail
