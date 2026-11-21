@@ -15,7 +15,7 @@ class HomepageSourceSafety(unittest.TestCase):
     def test_pinned_current_world_and_bounded_audit(self):
         self.assertEqual(m.WORLD_SHA, "7218bb72aedfc06f1850d36dd4868f68c6456903677756447278024a19f0da8c")
         self.assertEqual((m.MAX_PAGES, m.MAX_WORKERS, m.MAX_PER_COUNTRY), (240,6,15))
-        self.assertEqual(m.norm("Rádió Živé FM!"), "rádioživéfm")
+        self.assertEqual(m.norm("Rádió Živé FM!"), "rádióživéfm")
         self.assertNotEqual(m.norm("Radio One"), m.norm("Radio Two"))
     def test_ssrf_and_nonpublic_rejected_without_dns(self):
         for u in ("file:///etc/passwd", "http://localhost/private", "http://127.0.0.1/",
