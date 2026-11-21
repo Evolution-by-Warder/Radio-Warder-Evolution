@@ -1,0 +1,93 @@
+name: New Nepal Hamro Patro original station logo source with exact stream IDs (probe only)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-new-nepal-hamropatro-exact-stream-images-probe.yml
+      - tools/probe_hamropatro_nepal_official_logo_id.py
+      - tests/test_probe_hamropatro_nepal_official_logo_id.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  nepali-first-party-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-nepal-hamropatro-owner
+      WORLD_SHA: f5a550d39f79957778f357296bc85102023ffc96f89bfb2daffbd1f87cf5bd49
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline reject non-official and non-numeric station IDs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_probe_hamropatro_nepal_official_logo_id.py
+      - name: Fetch previously signed 39698-logo world, do not regenerate any station
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/source" "$ROOT/pages"
+          test "$(gh run view 44876454750 --json conclusion -q .conclusion)" = success
+          gh run download 44876454750 -n radio-lautfm-nine-visual-approved-originals-39698-REVIEW-ONLY -D "$ROOT/source"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,shutil
+          root=Path(os.environ['ROOT'])
+          files=list((root/'source').rglob('radio-countries-bouquets.zip'))
+          assert len(files)==1
+          shutil.copyfile(files[0],root/'world.zip')
+          PY
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum --check
+          rm -rf "$ROOT/source"
+      - name: Fetch new independent Hamro Patro public station inventory - no image downloads
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --compressed --retry 1 \
+            --connect-timeout 10 --max-time 55 \
+            --user-agent 'WarderRadioReview/0.1 (Nepal own radio stream logo evidence)' \
+            'https://www.hamropatro.com/radio' -o "$ROOT/pages/radio.html"
+          curl --fail --location --silent --show-error --compressed --retry 1 \
+            --connect-timeout 10 --max-time 45 \
+            --user-agent 'WarderRadioReview/0.1 (Nepal own station logo evidence)' \
+            'https://www.hamropatro.com/en/radio' -o "$ROOT/pages/en-radio.html"
+          curl --fail --location --silent --show-error --compressed --retry 1 \
+            --connect-timeout 10 --max-time 45 \
+            --user-agent 'WarderRadioReview/0.1 (Nepal own station logo evidence)' \
+            'https://www.hamropatro.com/radio/ACORAB' -o "$ROOT/pages/acorab.html"
+          test -s "$ROOT/pages/radio.html"
+          test -s "$ROOT/pages/en-radio.html"
+          test -s "$ROOT/pages/acorab.html"
+      - name: Compare exact API stream IDs against own first-party Nepal station logo markup
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/probe_hamropatro_nepal_official_logo_id.py \
+            --world "$ROOT/world.zip" --out "$ROOT/review" \
+            --pages "$ROOT/pages/radio.html" "$ROOT/pages/en-radio.html" "$ROOT/pages/acorab.html"
+      - name: Only metadata can be counted; do not create or alter any country PNG
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json
+          root=Path(os.environ['ROOT'])
+          r=json.loads((root/'review/nepal-hamropatro-own-stream-image-source-probe.json').read_text())
+          assert r['metadata_only'] and r['review_only'] and r['new_png_verified']==0
+          assert r['world_sha256']==os.environ['WORLD_SHA']
+          assert r['countries_scanned']==224 and r['stations_scanned']==48219
+          assert r['NP_stations']==146 and r['NP_existing_logos']==20 and r['NP_missing_logos']==126
+          assert r['NP_provider_stream_ids']>=50
+          assert r['images_seen']>=10
+          print('NEPAL NEW SOURCE FIRST-PARTY OWN STREAM ID REPORT',json.dumps({
+              k:v for k,v in r.items() if k not in ('pages',)
+          },sort_keys=True))
+          PY
+      - name: Save small source-schema evidence, no logos/Release/IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-new-Nepal-HamroPatro-own-stream-logo-probe-REVIEW-ONLY
+          path: /tmp/warder-nepal-hamropatro-owner/review/
+          retention-days: 30
+          if-no-files-found: error
