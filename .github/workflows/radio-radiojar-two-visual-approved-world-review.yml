@@ -1,0 +1,123 @@
+name: Add TWO visual-verified first-party Radiojar originals to 224-country world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-radiojar-two-visual-approved-world-review.yml
+      - tools/merge_visual_approved_radiojar_two.py
+      - tests/test_merge_visual_approved_radiojar_two.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  two-originals-and-immutable-world:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-radiojar-two-visual-approved
+      WORLD_SHA: f5a550d39f79957778f357296bc85102023ffc96f89bfb2daffbd1f87cf5bd49
+      DE_SHA: 03c4fc914a2f9152633b4ba66edc9f77a5e014e1679b48ae9b67f70f87618a02
+      GB_SHA: 66276568eab278e7890dfcd3ae289abc7d34dfa8e321d6256705dfb1649ea5d7
+      STAGE_SHA: 4f6d23acf8f6f078c774240939a46e168e0bb7e757d603f8ae2990813914fdbe
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image conversion only inside isolated review CI
+        run: python3 -m pip install --quiet 'Pillow>=10,<13'
+      - name: Verify explicit two visual-approved owner images and no-overwrite regression
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tests/test_merge_visual_approved_radiojar_two.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_radiojar_firstparty_source_224.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+      - name: Restore only SHA-pinned latest 39698 world and original DE and GB country shards
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT/world-source" "$ROOT/gb-source" "$ROOT/stage" "$ROOT/old"
+          test "$(gh run view 44876454750 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44872449912 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44885850408 --json conclusion -q .conclusion)" = success
+          gh run download 44876454750 \
+            -n radio-lautfm-nine-visual-approved-originals-39698-REVIEW-ONLY -D "$ROOT/world-source"
+          gh run download 44872449912 \
+            -n radio-co-crosscountry-8-priority-new-originals-REVIEW-ONLY -D "$ROOT/gb-source"
+          gh run download 44885850408 \
+            -n radio-new-Radiojar-owner-images-224-world-REVIEW-UNAPPROVED -D "$ROOT/stage"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import os,json,hashlib,shutil
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"world-source").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          with ZipFile(root/"world.zip") as w:
+              idx=json.loads(w.read("index.json"))
+          assert idx["country_count"]==224 and idx["station_count"]==48219
+          assert sum(x["logos_found"] for x in idx["countries"].values())==39698
+          for cc,folder,env_sha in (("DE","world-source","DE_SHA"),("GB","gb-source","GB_SHA")):
+              found=list((root/folder).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"))
+              assert len(found)==1,(cc,len(found))
+              shutil.copytree(found[0],root/"old"/found[0].name)
+              target=root/"old"/found[0].name/"logos"/(cc+".zip")
+              digest=hashlib.sha256(target.read_bytes()).hexdigest()
+              assert digest==idx["countries"][cc]["logo_sha256"]==os.environ[env_sha],cc
+          evidence=root/"stage/radiojar-firstparty-source-224-review.json"
+          assert hashlib.sha256(evidence.read_bytes()).hexdigest()==os.environ["STAGE_SHA"]
+          print("CURRENT WORLD, TWO ORIGINAL COUNTRY SHA, RADIOJAR EVIDENCE PASSED")
+          PY
+          rm -rf "$ROOT/world-source" "$ROOT/gb-source"
+      - name: Merge ONLY two owner-originals with manual visual-QA pins and unchanged old PNGs
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_visual_approved_radiojar_two.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Rebuild full 224-country world and audit all immutable original bytes
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries DE,GB --out "$ROOT/new-world"
+          python3 - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          from zipfile import ZipFile
+          root=Path(os.environ["ROOT"])
+          source=json.loads((root/"review/radiojar-two-firstparty-visual-approved-REVIEW.json").read_text())
+          report=json.loads((root/"new-world/world-recovery-review.json").read_text())
+          assert source["visually_verified_new_png"]==report["logos_added"]==2
+          assert source["existing_pngs_unchanged"]
+          assert report["review_only"] and report["original_world_sha256"]==os.environ["WORLD_SHA"]
+          assert report["country_count"]==224 and report["station_count"]==48219
+          changed={x["country"]:(x["previous"],x["current"],x["added"]) for x in report["countries_changed"]}
+          assert changed=={"DE":(4050,4051,1),"GB":(1565,1566,1)},changed
+          zipfile=root/"new-world/radio-countries-bouquets.zip"
+          assert hashlib.sha256(zipfile.read_bytes()).hexdigest()==report["new_world_sha256"]
+          with ZipFile(zipfile) as archive:
+              idx=json.loads(archive.read("index.json"))
+              assert idx["country_count"]==224 and idx["station_count"]==48219
+              assert sum(v["logos_found"] for v in idx["countries"].values())==39700
+              assert 48219-39700==8519
+              assert idx["countries"]["DE"]["logos_found"]==4051
+              assert idx["countries"]["GB"]["logos_found"]==1566
+          print("TWO EXACT RADIOJAR OWNER LOGOS 224-COUNTRY WORLD PASS",json.dumps(
+            {"added":2,"logos_after":39700,"missing_after":8519,
+             "world_sha256":report["new_world_sha256"],"country_changes":changed},sort_keys=True))
+          PY
+      - name: Preserve review-only world, DE and GB country revisions - NEVER a release or IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-two-visual-approved-Radiojar-originals-39700-REVIEW-ONLY
+          path: |
+            /tmp/warder-radiojar-two-visual-approved/review/
+            /tmp/warder-radiojar-two-visual-approved/new-world/
+          if-no-files-found: error
+          retention-days: 30
