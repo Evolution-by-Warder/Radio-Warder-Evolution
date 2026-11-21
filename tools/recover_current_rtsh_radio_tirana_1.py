@@ -45,6 +45,17 @@ def source_verified(row, gap, page):
                x['alt'].casefold().strip() == NAME.casefold() and
                x['source_tag'] == 'src']
     if len(matches) != 1:
+        # Only the public broadcaster page and its first-party image URLs;
+        # no generic fallback, useful if WordPress changes its img attributes.
+        html = page.decode('utf-8', 'replace')
+        anchor = html.casefold().find('radio-tirana-1.svg')
+        print('RTSH ORIGINAL HTML DIAGNOSTIC', json.dumps({
+            'page_title':view['page_title'], 'candidate_count':view['candidate_total'],
+            'candidate_urls':[{'url':x['url'],'alt':x['alt'],'source_tag':x['source_tag']}
+                              for x in view['candidates'][:8]],
+            'target_asset_mentioned':anchor>=0,
+            'target_html_context':html[max(0,anchor-240):anchor+170] if anchor>=0 else ''
+        },sort_keys=True),flush=True)
         return None, 'NO_UNIQUE_DIRECT_CURRENT_CHANNEL_ORIGINAL'
     # The independently audited archived directory agrees on the EXACT AUDIO
     # STREAM and FULL station name. Its archived IMAGE is deliberately ignored.
