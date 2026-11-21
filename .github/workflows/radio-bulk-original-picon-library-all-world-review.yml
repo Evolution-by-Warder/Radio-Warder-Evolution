@@ -1,0 +1,129 @@
+name: BULK 224-country exact-brand high-res ORIGINAL picon recovery - missing only REVIEW
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-bulk-original-picon-library-all-world-review.yml
+      - tools/stage_world_picons_exact_missing_originals.py
+      - tests/test_stage_world_picons_exact_missing_originals.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  one-global-original-artwork-bulk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-all-world-highres-original-bulk
+      WORLD_SHA: c6733fffcb6008322550785ae06007ed00a565e6ed29f62e2cdf7a72930f7019
+      INDEX_SHA: 63da3e86a8d3504929b1bf85167b9b5633cac3f7a28ea92aa15d25c6df8de879
+      PINNED_LOGO_COMMIT: fe3211115fbabb525e3798c09840358211399f26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict offline original-brand, ambiguous-name, SVG safety and no-guess regression tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13' 'CairoSVG>=2.7,<3' 'defusedxml>=0.7,<1'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_world_picons_exact_missing_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+          PYTHONPATH=src:tools python3 -B tests/test_svg_logos.py
+          python3 -m py_compile tools/stage_world_picons_exact_missing_originals.py
+      - name: Pin full existing 39879 world and EXACT high-resolution official logo index once
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,baseline,patch13,patch7,old,review}
+          test "$(gh run view 44907110543 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44906253671 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44907497364 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          gh run download 44907110543 -n radio-six-visual-owner-originals-39879-world-REVIEW-ONLY -D "$ROOT/source"
+          cp "$(find "$ROOT/source" -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
+          echo "$WORLD_SHA  $ROOT/world.zip" | sha256sum -c
+          curl -fsSL --retry 2 --max-time 40 "https://raw.githubusercontent.com/picons/picons/$PINNED_LOGO_COMMIT/build-source/utf8snp.index" -o "$ROOT/picon-index.txt"
+          echo "$INDEX_SHA  $ROOT/picon-index.txt" | sha256sum -c
+          python3 - <<'PY'
+          import os,sys,json
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          sys.path.insert(0,str(Path.cwd()/'tools'))
+          from stage_world_picons_exact_missing_originals import load_index,potential
+          idx,cats,selected,skipped=potential(root/'world.zip',load_index(root/'picon-index.txt'))
+          codes=sorted(selected)
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert len(codes)>=40
+          positions=sorted({sorted(idx['countries']).index(cc)//8 for cc in codes})
+          (root/'shard-ids.txt').write_text(''.join(f"{i:02d}\n" for i in positions))
+          (root/'selected-countries.json').write_text(json.dumps(codes))
+          print('GLOBAL HIGHRES ORIGINAL CANDIDATE COUNTRIES',len(codes),'STATION MATCHES',sum(len(v) for v in selected.values()),'COUNTRY SHARDS',len(positions))
+          PY
+      - name: Fetch once only the signed country original shards containing matched station names
+        run: |
+          set -euo pipefail
+          while IFS= read -r shard; do
+            gh run download 44801652426 -n "radio-canonical-39643-country-shard-$shard-REVIEW" -D "$ROOT/baseline/$shard"
+          done < "$ROOT/shard-ids.txt"
+          gh run download 44906253671 -n radio-reconciled-20-stale-country-original-sha-REVIEW-ONLY -D "$ROOT/patch13"
+          gh run download 44907497364 -n radio-final-seven-current-country-SHA-originals-REVIEW-ONLY -D "$ROOT/patch7"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,shutil,os
+          root=Path(os.environ['ROOT'])
+          with ZipFile(root/'world.zip') as z:idx=json.loads(z.read('index.json'))
+          codes=json.loads((root/'selected-countries.json').read_text())
+          previous=['source','patch7','patch13','baseline']
+          chosen=[]
+          for cc in codes:
+              good=[]
+              for base in previous:
+                  for folder in (root/base).rglob("radio-country-"+cc+"-REVIEW-NOT-PRODUCTION"):
+                      logo=folder/"logos"/(cc+".zip")
+                      if logo.is_file() and hashlib.sha256(logo.read_bytes()).hexdigest()==idx['countries'][cc]['logo_sha256']:
+                          good.append(folder)
+                  if good:break
+              if len(good)!=1:raise ValueError(f"No unique source SHA for {cc}: {len(good)}")
+              shutil.copytree(good[0],root/'old'/good[0].name)
+              chosen.append(cc)
+          assert chosen==codes
+          print("CURRENT ORIGINAL COUNTRY LOGO ZIPS SHA VERIFIED",len(chosen),"OLD ORIGINALS NEVER DOWNLOADED AS IMAGES")
+          PY
+          rm -rf "$ROOT/baseline" "$ROOT/patch7" "$ROOT/patch13" "$ROOT/source"
+      - name: ONE large disjoint original logo retrieval; only exact unique names and currently missing country ZIP entries
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_world_picons_exact_missing_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --index "$ROOT/picon-index.txt" --out "$ROOT/review" \
+            --workers 10 --limit 1000
+      - name: Review source provenance, 224 catalogues, brand identities and unchanged original world
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          root=Path(os.environ['ROOT'])
+          r=json.loads((root/'review/radio-global-picons-exact-missing-originals-REVIEW.json').read_text())
+          assert r['review_only'] and r['new_world_created'] is False and r['new_png_approved']==0
+          assert r['source_world_sha256']==os.environ['WORLD_SHA']
+          assert r['source_logo_index_sha256']==os.environ['INDEX_SHA']
+          assert r['source_picons_commit']==os.environ['PINNED_LOGO_COMMIT']
+          assert r['countries_scanned']==224 and r['stations_scanned']==48219
+          assert r['current_png_before']==39879 and r['missing_before']==8340
+          assert 0<=r['new_unique_originals_for_visual_review']<=r['missing_exact_logo_names']
+          assert len(r['images'])==r['new_unique_originals_for_visual_review']
+          assert all(not i['approved'] and i['visual_review_required'] for i in r['images'])
+          assert not list((root/'review').rglob('radio-countries-bouquets.zip'))
+          print("ALL-WORLD BULK ORIGINAL SOURCE COVERAGE",json.dumps({
+              k:r[k] for k in ('matched_countries_with_original_ZIP','potential_exact_names_before_PNG_check',
+                'missing_exact_logo_names','distinct_remote_source_logo_requests',
+                'downloaded_distinct_original_sources','new_unique_originals_for_visual_review','skipped')
+          },sort_keys=True))
+          PY
+      - name: Upload ALL new-source original logos and one visual contact-sheet series for single shared QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-bulk-picons-original-missing-world-UNAPPROVED-REVIEW
+          path: /tmp/warder-all-world-highres-original-bulk/review/
+          retention-days: 30
+          if-no-files-found: error
