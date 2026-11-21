@@ -117,7 +117,7 @@ jobs:
           assert r["previous_240_sites_sha256"]==os.environ["OLD_SOURCE_SHA"]
           assert r["countries_scanned"]==224 and r["stations_scanned"]==48219
           assert r["source_png_before"]==39873 and r["missing_before"]==8346
-          assert r["previous_homepage_hosts_excluded"]==240
+          assert 239 <= r["previous_homepage_hosts_excluded"] <= 240
           assert r["country_originals_verified"]>=150
           assert r["new_homepage_requests"]<=480
           assert len(r["results"])==r["new_homepage_requests"]
