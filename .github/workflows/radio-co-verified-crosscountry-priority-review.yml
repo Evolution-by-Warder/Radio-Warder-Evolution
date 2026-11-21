@@ -5,8 +5,6 @@ on:
     branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
     paths:
       - .github/workflows/radio-co-verified-crosscountry-priority-review.yml
-      - tools/recover_radio_co_verified_crosscountry.py
-      - tests/test_recover_radio_co_verified_crosscountry.py
 
 permissions:
   contents: read
