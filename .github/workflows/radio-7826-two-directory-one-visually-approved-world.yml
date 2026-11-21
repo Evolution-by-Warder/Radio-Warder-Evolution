@@ -34,9 +34,9 @@ jobs:
           set -euo pipefail
           mkdir -p "$ROOT"/{current,stage,old,canonical,prior40086,prior40013,prior39979,prior39964,prior39879,patch7,patch13}
           test "$(gh run view 44919526717 --json conclusion -q .conclusion)" = success
-          test "$(gh run view 44922346739 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44923235008 --json conclusion -q .conclusion)" = success
           gh run download 44919526717 -n radio-all-8133-gaps-one-global-visually-approved-world-REVIEW-ONLY -D "$ROOT/current"
-          gh run download 44923172841 -n radio-all-7826-radionet-firstparty-UNAPPROVED-REVIEW -D "$ROOT/stage"
+          gh run download 44923235008 -n radio-all-7826-radionet-firstparty-UNAPPROVED-REVIEW -D "$ROOT/stage"
           cp "$(find "$ROOT/current" -type f -name radio-countries-bouquets.zip | head -1)" "$ROOT/world.zip"
           echo "$CURRENT_WORLD_SHA  $ROOT/world.zip" | sha256sum --check
           python3 - <<'PY'
