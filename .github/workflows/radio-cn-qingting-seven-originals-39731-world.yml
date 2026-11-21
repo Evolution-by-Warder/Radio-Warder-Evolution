@@ -1,0 +1,121 @@
+name: Seven visual-confirmed Qingting FM CN originals - complete 39731 world REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-cn-qingting-seven-originals-39731-world.yml
+      - tools/merge_qingting_seven_cn_official_originals.py
+      - tests/test_merge_qingting_seven_cn_official_originals.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  chinese-station-firstparty-original-seven:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: Evolution-by-Warder/Radio-Warder-Evolution
+      ROOT: /tmp/warder-qingting-cn-seven
+      WORLD_SHA: 355981b1112fd96e5ef4e7022f6162f588e2be799b2af42852670d10f4e8cebb
+      STAGE_SHA: 47d940cb1235392385e98a8d338dc847e4b44f9468837870b1d702309ceb6e87
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow and prove exact Chinese owner ID/brand/image SHA allowlist
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_merge_qingting_seven_cn_official_originals.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_qingting_verified_eight_cn_owner_logo.py
+          PYTHONPATH=src:tools python3 -B tests/test_assemble_recovered_radio_world.py
+          PYTHONPATH=src:tools python3 -B tests/test_missing_radio_logo_recovery.py
+      - name: Restore only latest signed 39724 source world, untouched CN country ZIP, and 8 original image evidence files
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{source,cn,stage,old}
+          test "$(gh run view 44895332419 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44801652426 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44896078155 --json conclusion -q .conclusion)" = success
+          gh run download 44895332419 \
+            -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/source"
+          gh run download 44801652426 \
+            -n radio-canonical-39643-country-shard-05-REVIEW -D "$ROOT/cn"
+          gh run download 44896078155 \
+            -n radio-cn-qingting-eight-owner-art-UNAPPROVED-REVIEW -D "$ROOT/stage"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os,shutil
+          root=Path(os.environ['ROOT'])
+          worlds=list((root/'source').rglob('radio-countries-bouquets.zip'))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/'world.zip')
+          assert hashlib.sha256((root/'world.zip').read_bytes()).hexdigest()==os.environ['WORLD_SHA']
+          with ZipFile(root/'world.zip') as z:
+              idx=json.loads(z.read('index.json'))
+          assert idx['country_count']==224 and idx['station_count']==48219
+          assert sum(v['logos_found'] for v in idx['countries'].values())==39724
+          cn=list((root/'cn').rglob('radio-country-CN-REVIEW-NOT-PRODUCTION'))
+          assert len(cn)==1
+          old=cn[0]/'logos/CN.zip'
+          assert hashlib.sha256(old.read_bytes()).hexdigest()==idx['countries']['CN']['logo_sha256']
+          assert idx['countries']['CN']['logos_found']==1057
+          shutil.copytree(cn[0],root/'old'/cn[0].name)
+          proof=root/'stage/qingting-eight-exact-name-originals-review.json'
+          assert hashlib.sha256(proof.read_bytes()).hexdigest()==os.environ['STAGE_SHA']
+          print('39724 WORLD, CN ORIGINAL 1057 LOGOS, 8 OWNER ARTWORK EVIDENCE SHA VERIFIED')
+          PY
+          rm -rf "$ROOT/source" "$ROOT/cn"
+      - name: Offline-merge ONLY seven verified Chinese radio brand originals, not generic Wuhai broadcaster umbrella art
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/merge_qingting_seven_cn_official_originals.py \
+            --world "$ROOT/world.zip" --old-root "$ROOT/old" \
+            --stage "$ROOT/stage" --out "$ROOT/review"
+      - name: Assemble true 224-country review world and SHA/UUID/PNG byte-preservation audit
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/assemble_recovered_radio_world.py \
+            --world "$ROOT/world.zip" --world-sha256 "$WORLD_SHA" \
+            --old-root "$ROOT/old" --candidates "$ROOT/review" \
+            --countries CN --out "$ROOT/new-world"
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json,os
+          root=Path(os.environ['ROOT'])
+          approved=json.loads((root/'review/qingting-seven-visual-approved-originals-proof.json').read_text())
+          out=json.loads((root/'new-world/world-recovery-review.json').read_text())
+          assert approved['approved_png_count']==out['logos_added']==7
+          assert approved['review_only'] and out['review_only']
+          assert approved['prior_originals_preserved'] and len(approved['approved'])==7
+          assert len(approved['quarantined'])==1
+          assert approved['source_world_sha256']==out['original_world_sha256']==os.environ['WORLD_SHA']
+          assert out['country_count']==224 and out['station_count']==48219
+          changed={x['country']:(x['previous'],x['current'],x['added']) for x in out['countries_changed']}
+          assert changed=={'CN':(1057,1064,7)},changed
+          newworld=root/'new-world/radio-countries-bouquets.zip'
+          assert hashlib.sha256(newworld.read_bytes()).hexdigest()==out['new_world_sha256']
+          with ZipFile(newworld) as z:
+              idx=json.loads(z.read('index.json'))
+              assert idx['country_count']==224 and idx['station_count']==48219
+              assert sum(x['logos_found'] for x in idx['countries'].values())==39731
+              assert idx['countries']['CN']['logos_found']==1064
+              assert 48219-39731==8488
+          print('QINGTING SEVEN EXACT ORIGINALS 224 COUNTRY WORLD PASS',json.dumps({
+              'world_sha256':out['new_world_sha256'],'total_logos':39731,
+              'missing_originals':8488,'changed_country':changed
+          },sort_keys=True))
+          PY
+      - name: Save new 39731 REVIEW world ZIP and changed CN original country only - no production
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-cn-qingting-seven-39731-world-original-logos-REVIEW-ONLY
+          path: |
+            /tmp/warder-qingting-cn-seven/review/
+            /tmp/warder-qingting-cn-seven/new-world/
+          retention-days: 30
+          if-no-files-found: error
