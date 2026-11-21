@@ -138,18 +138,21 @@ def fetch_image(url):
     return raw
 
 def check_image(raw):
-    from PIL import Image
+    from PIL import Image,UnidentifiedImageError
     if not isinstance(raw,bytes) or not 150<=len(raw)<=MAX_IMAGE:
         raise ValueError("Invalid image bytes")
-    with Image.open(BytesIO(raw)) as im:
-        if (im.format not in ("WEBP","PNG","JPEG") or
-            not 64<=im.width<=4096 or not 64<=im.height<=4096 or
-            im.width*im.height>4096*4096):
-            raise ValueError("Invalid station-owned profile image format/size")
-        data={"format":im.format.lower(),"width":im.width,"height":im.height,
-              "image_sha256":sha256(raw).hexdigest()}
-        im.verify()
-    return data
+    try:
+        with Image.open(BytesIO(raw)) as im:
+            if (im.format not in ("WEBP","PNG","JPEG") or
+                not 64<=im.width<=4096 or not 64<=im.height<=4096 or
+                im.width*im.height>4096*4096):
+                raise ValueError("Invalid station-owned profile image format/size")
+            data={"format":im.format.lower(),"width":im.width,"height":im.height,
+                  "image_sha256":sha256(raw).hexdigest()}
+            im.verify()
+        return data
+    except (UnidentifiedImageError,OSError) as exc:
+        raise ValueError("Unrecognized official station image") from exc
 
 def audit(world,oldroot,previous,out,max_get=MAX_GET,profile_get=fetch_page,image_get=fetch_image):
     out=Path(out)
