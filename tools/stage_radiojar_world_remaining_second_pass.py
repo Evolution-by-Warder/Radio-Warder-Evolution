@@ -20,10 +20,10 @@ NEW_STAGE_SHA="e6262eef9956ad9b79eabaf06a237562c2b57cd174dec11480ecd570fa015a7e"
 COUNTRY_CODES=("MX","AL","AE","BS","CH","CY","DZ","EE","GE","GH","MS","NO")
 EXPECTED_BASELINE=39707
 
-def old_three(paths):
+def old_three(paths, base_reader=original.previous_probes):
     if len(paths)!=3:raise ValueError("Expected three exact old source proofs")
     # Reuse old strict 24+16 audit first, never request these again.
-    ids,pictures=original.previous_probes(paths[:2])
+    ids,pictures=base_reader(paths[:2])
     new=Path(paths[2])
     if new.is_symlink() or not new.is_file() or not 1000<new.stat().st_size<500000:
         raise ValueError("Missing previous 5-ID stage proof")
