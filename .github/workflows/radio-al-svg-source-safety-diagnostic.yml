@@ -1,0 +1,48 @@
+name: RTSH SVG source safety diagnosis (no downloaded logo publishing)
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-al-svg-source-safety-diagnostic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read ONLY the broadcaster SVG, not 224-country assets
+        run: |
+          curl --fail --location --compressed --silent --show-error --retry 1 --connect-timeout 8 --max-time 40 \
+            'https://rtsh.al/radio/wp-content/uploads/2025/03/radio-tirana-1.svg' -o /tmp/rtsh-al-source.svg
+          test "$(wc -c < /tmp/rtsh-al-source.svg)" -lt 524288
+          sha256sum /tmp/rtsh-al-source.svg
+      - name: Report only SVG security guard patterns and safe structure
+        run: |
+          python3 - <<'PY'
+          import os,sys,re,hashlib,json
+          from pathlib import Path
+          sys.path.insert(0, 'src')
+          from WarderRadio.svg_logos import DISALLOWED
+          data=Path('/tmp/rtsh-al-source.svg').read_bytes()
+          matching=[]
+          for index,regex in enumerate(DISALLOWED):
+              hit=regex.search(data)
+              if hit:
+                  matching.append({'rule':index,'pattern':regex.pattern.decode('ascii','replace'),
+                                   'matched':hit.group(0).decode('utf-8','replace')[:80],
+                                   'offset':hit.start()})
+          print('OFFICIAL SVG SAFETY FINDINGS',json.dumps({
+              'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),
+              'matched':matching,
+              'image_element_count':len(re.findall(rb'<\s*image\b',data,re.I)),
+              'font_face_count':len(re.findall(rb'@font-face',data,re.I)),
+              'external_http_references':len(re.findall(rb'https?://',data,re.I)),
+              'has_png_data_uri':b'data:image/png;base64,' in data,
+              'has_jpeg_data_uri':b'data:image/jpeg;base64,' in data,
+              'root_prefix':data[:145].decode('utf-8','replace')},ensure_ascii=False,sort_keys=True),flush=True)
+          PY
