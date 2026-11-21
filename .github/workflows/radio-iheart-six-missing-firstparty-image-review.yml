@@ -1,0 +1,85 @@
+name: Six missing exact iHeart original images visual source REVIEW
+
+on:
+  push:
+    branches: [feature/radio-browser-country-bouquets-and-logo-zips-20261119]
+    paths:
+      - .github/workflows/radio-iheart-six-missing-firstparty-image-review.yml
+      - tools/stage_iheart_six_missing_exact_brand.py
+      - tests/test_stage_iheart_six_missing_exact_brand.py
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  six-exact-station-owner-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROOT: /tmp/warder-iheart-six-originals
+      WORLD_SHA: dc04766992e47566abec68de7221169d41ee3d41914f1465fc83ae4a6f0fc12f
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict known first-party image URL and brand stream tests
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet 'Pillow>=10,<13'
+          PYTHONPATH=src:tools python3 -B tests/test_stage_iheart_six_missing_exact_brand.py
+          PYTHONPATH=src:tools python3 -B tests/test_probe_iheart_224_firstparty_owner.py
+          python3 -m py_compile tools/stage_iheart_six_missing_exact_brand.py
+      - name: Fetch unchanged signed world, exact recent first-party API metadata, signed 5777 US originals
+        run: |
+          set -euo pipefail
+          mkdir -p "$ROOT"/{world-input,prior,US}
+          test "$(gh run view 44900502836 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44901530633 --json conclusion -q .conclusion)" = success
+          test "$(gh run view 44895332419 --json conclusion -q .conclusion)" = success
+          gh run download 44900502836 -n radio-two-firstparty-broadcaster-39867-world-REVIEW-ONLY -D "$ROOT/world-input"
+          gh run download 44901530633 -n radio-iheart-disjoint-missing-only-source-REVIEW-ONLY -D "$ROOT/prior"
+          gh run download 44895332419 -n radio-live365-third-six-originals-39724-world-REVIEW-ONLY -D "$ROOT/US"
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,os,shutil
+          root=Path(os.environ["ROOT"])
+          worlds=list((root/"world-input").rglob("radio-countries-bouquets.zip"))
+          assert len(worlds)==1
+          shutil.copyfile(worlds[0],root/"world.zip")
+          assert hashlib.sha256((root/"world.zip").read_bytes()).hexdigest()==os.environ["WORLD_SHA"]
+          zs=list((root/"US").rglob("radio-country-US-REVIEW-NOT-PRODUCTION/logos/US.zip"))
+          assert len(zs)==1
+          shutil.copyfile(zs[0],root/"US.zip")
+          assert (root/"prior/iheart-missing-only-unqueried-world-REVIEW.json").is_file()
+          PY
+          rm -rf "$ROOT/US" "$ROOT/world-input"
+      - name: Retrieve only six current station-brand originals after URL canonicalization and visual staging
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src:tools python3 -B tools/stage_iheart_six_missing_exact_brand.py \
+            --world "$ROOT/world.zip" --us-zip "$ROOT/US.zip" \
+            --prior "$ROOT/prior/iheart-missing-only-unqueried-world-REVIEW.json" \
+            --out "$ROOT/review"
+      - name: Assert only new brand image QA files; no new world or production files
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path(os.environ["ROOT"])
+          r=json.loads((root/"review/iheart-six-exact-missing-source-REVIEW.json").read_text())
+          assert r["world_sha256"]==os.environ["WORLD_SHA"] and r["review_only"]
+          assert r["six_missing_exact_owner_proofs"]==6 and r["new_png_approved"]==0
+          assert r["stations_scanned"]==48219 and r["countries_scanned"]==224
+          assert 0<=r["downloaded_for_visual_review"]<=6
+          assert len(list((root/"review/unapproved-images").glob("US-*.png")))==r["downloaded_for_visual_review"] if r["downloaded_for_visual_review"] else True
+          assert not list((root/"review").rglob("radio-countries-bouquets.zip"))
+          print("SIX-FIRSTPARTY BRAND SOURCES VISUAL CHECK PASS",r["downloaded_for_visual_review"])
+          PY
+      - name: Archive six source images only for direct visual review (no release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-iheart-six-exact-missing-firstparty-PNG-UNAPPROVED
+          path: /tmp/warder-iheart-six-originals/review/
+          retention-days: 30
+          if-no-files-found: error
