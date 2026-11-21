@@ -97,6 +97,7 @@ def choose(index,catalogues,originals,excluded,limit):
     for cc in ordered:
         originals_cc=originals[cc]
         for row in catalogues[cc]:
+            if len(candidates[cc]) >= MAX_PER_COUNTRY: break
             if row["stem"]+".png" in originals_cc:
                 counters["already_has_original"]+=1;continue
             home=row.get("homepage") or ""
