@@ -87,7 +87,7 @@ class StationHTML(HTMLParser):
         if self._title:self._head.append(data)
 
 def exact_owner_picture(page,expected):
-    if not isinstance(page,bytes) or not 100<=len(page)<=MAX_HTML:
+    if not isinstance(page,bytes) or not 30<=len(page)<=MAX_HTML:
         raise ValueError("Unsafe Qingting first-party HTML")
     doc=StationHTML()
     doc.feed(page.decode("utf-8","replace"))
