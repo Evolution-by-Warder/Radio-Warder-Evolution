@@ -75,7 +75,15 @@ def render_pinned_inline_svg(data):
         raise ValueError("SVG differs from pinned official current logo")
     cleaned = data.replace(WIDTH_FIX, WIDTH_REPLACEMENT, 1)
     from WarderRadio.svg_logos import render_svg
-    png, size = render_svg(cleaned)
+    try:
+        png, size = render_svg(cleaned)
+    except (ValueError, OSError) as exc:
+        print("DK RADIO IIII STRICT SVG REJECTED",json.dumps({
+            "reason":str(exc),"raw_svg_sha256":PINNED_BRAND_SVG,
+            "normal_svg_sha256":hashlib.sha256(cleaned).hexdigest(),
+            "raw_svg_bytes":len(data),"normal_svg_bytes":len(cleaned),
+            "header":cleaned[:260].decode("utf-8","replace")},sort_keys=True),flush=True)
+        raise
     if not png.startswith(b'\x89PNG\r\n\x1a\n') or size != 224:
         raise ValueError("Invalid new station vector raster")
     print("DK RADIO IIII CURRENT SVG QUALITY", json.dumps({
@@ -122,6 +130,7 @@ def recover(world, old_root, gaps_path, homepage_path, about_path, out):
             "exact_audio":PINNED_AUDIO}},
             downloader=downloader,svg=render_pinned_inline_svg)
         result = recover_country(world,index,CODE,old_root,provider,validator,out,workers=1)
+        print("DK RADIO IIII PROVIDER DIAGNOSTICS",json.dumps({"attempted":provider.attempted,"success":provider.success,"failures":dict(provider.failures),"recovered_total":result.get("recovered_total"),"new_downloads":result.get("new_downloads"),"old_unchanged":result.get("unchanged_existing_pngs")},sort_keys=True),flush=True)
         if (not result["unchanged_existing_pngs"] or
                 result["new_downloads"] != 1 or result["recovered_total"] != 1 or
                 len(provider.success)!=1 or provider.failures):
