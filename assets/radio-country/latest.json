@@ -1,0 +1,3375 @@
+{
+  "complete": true,
+  "countries": {
+    "AD": {
+      "bouquet_sha256": "a2b8e8e5dd780d923e5fb1153eb4e8f23e6c60372c26b7ba1752968759d93f2f",
+      "catalog_sha256": "94279368598d73956fd1381ef08c94e8585c87520324685303521551abe8398b",
+      "logo_attempted": 5,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 143273,
+        "file": "AD.zip",
+        "sha256": "76831605ecc9b48f06b0cedac15f09dcd252216933fabd3e205df1e03c00409d"
+      },
+      "logos_found": 4,
+      "logos_missing": 1,
+      "name": "Andorra",
+      "stations": 5
+    },
+    "AE": {
+      "bouquet_sha256": "d47009e7d97c139eec3441aa6a8d7c4dec2ba48845cd2bcc156813d148bf2fe0",
+      "catalog_sha256": "1082d61372d695a66ae41495b18367fc78cab289df46266c8ce24965622383ec",
+      "logo_attempted": 602,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 15038518,
+        "file": "AE.zip",
+        "sha256": "99604663157cc14242350b391e5267e2e33847085ef0d84e2d8a383b68881b42"
+      },
+      "logos_found": 434,
+      "logos_missing": 168,
+      "name": "The United Arab Emirates",
+      "stations": 602
+    },
+    "AF": {
+      "bouquet_sha256": "22f81b23d64b4bf1e334517f90ee9bab375f323ed40bfa49f8988940ca50c83d",
+      "catalog_sha256": "fe701aa2f4ddee4969c97880a41e41a4a6edd9c448403e653f6f819437dc4dd9",
+      "logo_attempted": 93,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 749628,
+        "file": "AF.zip",
+        "sha256": "81ca814e95a58b22bef09817bcf84f251d90240efc83c16f9032a61b9dceb983"
+      },
+      "logos_found": 33,
+      "logos_missing": 60,
+      "name": "Afghanistan",
+      "stations": 93
+    },
+    "AG": {
+      "bouquet_sha256": "8db021e47b8b9f42829d11f41048249e89b723e2d930ef971a61e7cfd930d8da",
+      "catalog_sha256": "86e1b411b2c36907d3d917671a8f8b81ec522c18e133076e27112149e8bb3f85",
+      "logo_attempted": 6,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 93245,
+        "file": "AG.zip",
+        "sha256": "6ce849bc102c3d8321f7f5e01571fcc1ddf1883c2116779035125fe433644b1e"
+      },
+      "logos_found": 4,
+      "logos_missing": 2,
+      "name": "Antigua And Barbuda",
+      "stations": 6
+    },
+    "AI": {
+      "bouquet_sha256": "a5677e8c7dcca0b1dc6e26b5ca1b6b82a609f0844c285fb079dcafb4d7d221b5",
+      "catalog_sha256": "4e56a7591df982e2e83507f78201db074a68bbfc428d413db618b7274778298e",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 38269,
+        "file": "AI.zip",
+        "sha256": "369f3553b95d8f07f0959e5e6434b3e1be3df993dc20d0445442b0816194b2d9"
+      },
+      "logos_found": 4,
+      "logos_missing": 0,
+      "name": "Anguilla",
+      "stations": 4
+    },
+    "AL": {
+      "bouquet_sha256": "38c170c860c292f89cd1003c94e04766a091fa1e8aac4958edc9822daa0d880c",
+      "catalog_sha256": "deb444ef654977af83cb6736ead90bb966354ca6524d50447f8612e4e6896ef8",
+      "logo_attempted": 99,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1066004,
+        "file": "AL.zip",
+        "sha256": "6b9e4c04e64c1d3eb887806d0951a0760ce90390a7bcc30812b7433170c3cf47"
+      },
+      "logos_found": 85,
+      "logos_missing": 14,
+      "name": "Albania",
+      "stations": 99
+    },
+    "AM": {
+      "bouquet_sha256": "a845c41a51044fa73fdbc3c8947606ae1b3bcc4963dedc7379a0c87e3a23008b",
+      "catalog_sha256": "4d1d3730de02c449bf5d2b6e6ebf220cc6492946e24dc517566aa9d98debf236",
+      "logo_attempted": 10,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 118446,
+        "file": "AM.zip",
+        "sha256": "6271d3a40e8eb4f777835b89cee8bd62bf152f08ed94020b03181a029b646ee3"
+      },
+      "logos_found": 9,
+      "logos_missing": 1,
+      "name": "Armenia",
+      "stations": 10
+    },
+    "AO": {
+      "bouquet_sha256": "27f47a65c1e53bba7bb55c89c2586829b866a9cb58c3e3ed1a83eecbf055afcf",
+      "catalog_sha256": "e450a4a7f0c8adb65bfaf00b9d308383a7c8ff428426b74640c06c1c2d259cbf",
+      "logo_attempted": 63,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 575434,
+        "file": "AO.zip",
+        "sha256": "4aa2aaba63669271b94aa8083e547c2afc3da714440b93e482cce11a101eb2d3"
+      },
+      "logos_found": 48,
+      "logos_missing": 15,
+      "name": "Angola",
+      "stations": 63
+    },
+    "AQ": {
+      "bouquet_sha256": "f45cf14b46e4870e713c33a62b0dccc57a56f513c32704ffad397ba68590de62",
+      "catalog_sha256": "d3be8104b95ed16616fabc2110d9310989f96382d7ad0f3d9af8a9af2ff859da",
+      "logo_attempted": 9,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 293578,
+        "file": "AQ.zip",
+        "sha256": "4f91c27b3cf740bc65b0293447dc393da66b8123da4513d26f248496070c6dbd"
+      },
+      "logos_found": 6,
+      "logos_missing": 3,
+      "name": "Antarctica",
+      "stations": 9
+    },
+    "AR": {
+      "bouquet_sha256": "18736f2eea98f8460171c21286316e369f9eecff395f84139621198d57b62851",
+      "catalog_sha256": "614b97501759a2bae45bd43c75b574ec5c8b144a0629d6e523dd5292c0fd3c55",
+      "logo_attempted": 1006,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 17994512,
+        "file": "AR.zip",
+        "sha256": "5a83c04d34d3a377fb7cd01a58d9c1335f50596ce9f136b322345eec1f049df6"
+      },
+      "logos_found": 878,
+      "logos_missing": 128,
+      "name": "Argentina",
+      "stations": 1006
+    },
+    "AS": {
+      "bouquet_sha256": "3c4bdf30339f86bb6e54aaa52f95620197acc41f9b8a6f514f11668b6d869de8",
+      "catalog_sha256": "d4012e026413ac452b7a6bc065344c1764a5fd267a9ad93b8740c6dae00ee5ae",
+      "logo_attempted": 10,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 32334,
+        "file": "AS.zip",
+        "sha256": "c30fc952a369d69464c25c25c2c1c3da8d2a78a6133d207398ef5efec07ac0c6"
+      },
+      "logos_found": 6,
+      "logos_missing": 4,
+      "name": "American Samoa",
+      "stations": 10
+    },
+    "AT": {
+      "bouquet_sha256": "1591293f3f89ecb587f472fad75c38506563b66c587519f6a617bc14c0ffc34a",
+      "catalog_sha256": "88e338bf876e2cdf2830e8c40214f96f65ec5151a82030248fccf966a7982673",
+      "logo_attempted": 287,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3973850,
+        "file": "AT.zip",
+        "sha256": "3f16bb8b137f8cd0931462c40829f9792da28cf835ce5542186ddefb834f8305"
+      },
+      "logos_found": 249,
+      "logos_missing": 38,
+      "name": "Austria",
+      "stations": 287
+    },
+    "AU": {
+      "bouquet_sha256": "e0a278ec34367fbb55cb9c785456399336ff8b9c5127f77afb514fa66d05fdda",
+      "catalog_sha256": "aa481ce3d6b963968578266a1ea1ef868f18b01ac487908f1aff1753dde806b2",
+      "logo_attempted": 1527,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 33045600,
+        "file": "AU.zip",
+        "sha256": "28fd3956d260445af7079ef3106f2ffa0365aa86983273d3d87d557f44f4b283"
+      },
+      "logos_found": 1474,
+      "logos_missing": 53,
+      "name": "Australia",
+      "stations": 1527
+    },
+    "AW": {
+      "bouquet_sha256": "abc19c7afe6ade564f931464f61befc82ebc6be17b25f2b7887f81225a70f729",
+      "catalog_sha256": "da2874df40e449e750c8fb364b8cea1cda96fd2f4a183597f0190af732a74e4b",
+      "logo_attempted": 6,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 30048,
+        "file": "AW.zip",
+        "sha256": "963c7cd988dfadc850f41fe75d64eb04470078a5b48e04c2e578218910b51d67"
+      },
+      "logos_found": 3,
+      "logos_missing": 3,
+      "name": "Aruba",
+      "stations": 6
+    },
+    "AZ": {
+      "bouquet_sha256": "c1c827be47c87af16d93e7cebbbb98dd05937c138dea8492edb81f47f5d62aef",
+      "catalog_sha256": "5cf952bc4e50abf623b1b1ed2571769c28b4c289b805867f09ed3aeffd0b5367",
+      "logo_attempted": 29,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 524396,
+        "file": "AZ.zip",
+        "sha256": "11e4936520577c8a98763178dcd2ba938cf14d87ae8f89df6c4b5384b99fdd1e"
+      },
+      "logos_found": 24,
+      "logos_missing": 5,
+      "name": "Azerbaijan",
+      "stations": 29
+    },
+    "BA": {
+      "bouquet_sha256": "6255ff456ccc3081cc105893b3f42f2c2157ae0e5b959a4e9345a1fec8e5e1ab",
+      "catalog_sha256": "a17833d7f971ec1b34c99937745950b75356ddc1e050a6176d85bbb2c552e5f0",
+      "logo_attempted": 134,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1622488,
+        "file": "BA.zip",
+        "sha256": "7c702e0210aab71fe80a92c5b24c8fdd11b0a55afb23b0c6e897384b80c4c7c3"
+      },
+      "logos_found": 95,
+      "logos_missing": 39,
+      "name": "Bosnia And Herzegovina",
+      "stations": 134
+    },
+    "BB": {
+      "bouquet_sha256": "783e0ffb6e8f3cd278ecbd51fcecc1bf4d62942c06b6a733f867c3fd3fe2deff",
+      "catalog_sha256": "002d02725cbea766625dacf5473114084067a3dcfef731b359b18117f4ce9bb3",
+      "logo_attempted": 12,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 217505,
+        "file": "BB.zip",
+        "sha256": "d68925761f29d43d8043a95ad6e973b27ddd759fa5d466d38eb172e38f7eaecb"
+      },
+      "logos_found": 12,
+      "logos_missing": 0,
+      "name": "Barbados",
+      "stations": 12
+    },
+    "BD": {
+      "bouquet_sha256": "3b3f018524456c18a520f353c458c466ff27e70feafc7300a143ec5d6220a8b3",
+      "catalog_sha256": "f232689b83ec0fc0d9a1b38e4d14aaa90954843aa8192636187816e043b58679",
+      "logo_attempted": 25,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 369159,
+        "file": "BD.zip",
+        "sha256": "9fed288d627a4d764695d56910c2835eb1c731350b517db37a17d04e6b8b747c"
+      },
+      "logos_found": 20,
+      "logos_missing": 5,
+      "name": "Bangladesh",
+      "stations": 25
+    },
+    "BE": {
+      "bouquet_sha256": "7242e44e0d3c5ee5ebe76fe6213b825561e44c4e01778fe395882f4e23bd265d",
+      "catalog_sha256": "be480f5996d7548f805531790558665ffa6b8cb56655f44b47f7c322ac7b427f",
+      "logo_attempted": 405,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 5554497,
+        "file": "BE.zip",
+        "sha256": "21516d92e154c0776027b8ece2151ce772809de88e7a9917f965b4cc8ec22176"
+      },
+      "logos_found": 353,
+      "logos_missing": 52,
+      "name": "Belgium",
+      "stations": 405
+    },
+    "BF": {
+      "bouquet_sha256": "e282d88e7996f707ebcc998949f494b55d3dc373c8952555844bf847d9dfbbff",
+      "catalog_sha256": "984c71cc0848e63b5bc2d07d0d5d1279ce9c4d062ce83987f7a0a7adbe4e5b42",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 22879,
+        "file": "BF.zip",
+        "sha256": "600fab31e468daa89d4195b2fae8e031d6f28543615a25a80c4dce21e41a564b"
+      },
+      "logos_found": 3,
+      "logos_missing": 1,
+      "name": "Burkina Faso",
+      "stations": 4
+    },
+    "BG": {
+      "bouquet_sha256": "24a08c10df38427c5ba17d1acc3eb9d4c5329c8027305f6d41cb535a1696bcad",
+      "catalog_sha256": "ff67d5439f6d5bdcc6d73926e16d162b93ee941a81bb41dd39c4a13bab2cc77d",
+      "logo_attempted": 294,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3125639,
+        "file": "BG.zip",
+        "sha256": "4d89832d90641e8c63eedab058021fe80a7bdbc040b7fa71bca79eda052c1cc8"
+      },
+      "logos_found": 177,
+      "logos_missing": 117,
+      "name": "Bulgaria",
+      "stations": 294
+    },
+    "BH": {
+      "bouquet_sha256": "c15a0a9fb98cc8530c35b756ce661086ef260cb9009ce6d8dbdadfa28f6e27aa",
+      "catalog_sha256": "b0402884070cdda90749ee78f5554bf78f6dc2185bac0445773d62fa2e4baaac",
+      "logo_attempted": 12,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 41112,
+        "file": "BH.zip",
+        "sha256": "2656242749062048190eb0f7d3234101aea643d50bf99cd1c40000be1b7c48d4"
+      },
+      "logos_found": 4,
+      "logos_missing": 8,
+      "name": "Bahrain",
+      "stations": 12
+    },
+    "BI": {
+      "bouquet_sha256": "7375da40d2e8c4a4bad40e7f572f007f0248eb5416a79b8845f9e4a3440e5742",
+      "catalog_sha256": "bbef04a5bb535167ec4f79d1f1f25f51144e85878c2eb000b3795dbcba9d2da7",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 20595,
+        "file": "BI.zip",
+        "sha256": "781e290ca76cc509ef7239a789ea2517dad0f6eea842b12c5408e34c118cd0df"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "Burundi",
+      "stations": 2
+    },
+    "BJ": {
+      "bouquet_sha256": "f4a93314db7f064772707e0cff77c1053eebd2b0a883e68a77e1fa8f1d0bc67c",
+      "catalog_sha256": "428ee61a6dd0934362537563b52d8abc5cb9b6654b1be1d586d17d69f5d802ab",
+      "logo_attempted": 9,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 65468,
+        "file": "BJ.zip",
+        "sha256": "d1b86938f92eb0390cdbc1ce8696baabc9f72d4aa39b5abe9e92d1c3cdb63257"
+      },
+      "logos_found": 3,
+      "logos_missing": 6,
+      "name": "Benin",
+      "stations": 9
+    },
+    "BM": {
+      "bouquet_sha256": "0b7544da7cfee40a1d794cfd6a10d9ce826acca12b25dab4cd3818c1091c17e9",
+      "catalog_sha256": "3f9837b0a0478bda507a83edb9d8a8634661617e2a4aa053488fd092dc7730b6",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 36680,
+        "file": "BM.zip",
+        "sha256": "f44cf9fdc00489cd856421c077f168a4cacee1d534cf19fec23633a47c49de5c"
+      },
+      "logos_found": 4,
+      "logos_missing": 0,
+      "name": "Bermuda",
+      "stations": 4
+    },
+    "BN": {
+      "bouquet_sha256": "ba7353094aa19206f539b8443184dc8a7e3855ebf345f3117a1015481a56c712",
+      "catalog_sha256": "039c1bba4d06e357ef67bfa4bbc93f3333dd773b74c92a4e3d6bda4a44a080f2",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 20814,
+        "file": "BN.zip",
+        "sha256": "6ec111e3ba986be8990539c873c8c90f5aa8d08d62f4267a527ff61e9158bcb3"
+      },
+      "logos_found": 3,
+      "logos_missing": 0,
+      "name": "Brunei Darussalam",
+      "stations": 3
+    },
+    "BO": {
+      "bouquet_sha256": "5bf38281b910d99ed5a4d7e144451f6a350c7bd8e8990d71c6b0ef9462240139",
+      "catalog_sha256": "bf524cde71b0a943f2e2fa7b27c15f0909f13619d93e792f4db99e2e210bdee1",
+      "logo_attempted": 66,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1323103,
+        "file": "BO.zip",
+        "sha256": "17937ec4a007e3f689c30f1ff02e82a55d0a6ae47a21bcd33c4b48392690ab07"
+      },
+      "logos_found": 51,
+      "logos_missing": 15,
+      "name": "Bolivia",
+      "stations": 66
+    },
+    "BQ": {
+      "bouquet_sha256": "7adf5a4cd917fcd6a0ca5eebd1bf073bf984b4c5d816301081719eb53682e082",
+      "catalog_sha256": "6c39cd9303e9aee41a1f01e2831da769870285a61cd8651b37650e6b9d1428f0",
+      "logo_attempted": 10,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 163392,
+        "file": "BQ.zip",
+        "sha256": "fcc6aa5e60550210f6c4a5ed5bce8f65ddf41c3ee0d81e1942194d28203d1f0a"
+      },
+      "logos_found": 8,
+      "logos_missing": 2,
+      "name": "Bonaire",
+      "stations": 10
+    },
+    "BR": {
+      "bouquet_sha256": "96ab6d6f21aac4431b2ea8edf04a677c73381dc7be545333dfc6aef7bc35da48",
+      "catalog_sha256": "ca1004df409eec024ec20dde936ad02ade88f248b95ef37733353935f423b5ea",
+      "logo_attempted": 1397,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 25625758,
+        "file": "BR.zip",
+        "sha256": "49c50cdde5e9d99faa1a6ed92614989cdedb6d0c55b32211612184656ee84955"
+      },
+      "logos_found": 1193,
+      "logos_missing": 204,
+      "name": "Brazil",
+      "stations": 1397
+    },
+    "BS": {
+      "bouquet_sha256": "fe13a0aaa2b3e21ab8c89d8fcf1e7462ab9c4de5efe8c79db411fecb92851229",
+      "catalog_sha256": "685b5378f8eedcab24420c1d87717e68dadf3359bbd71277c74aa4ab8b3df36a",
+      "logo_attempted": 7,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 60371,
+        "file": "BS.zip",
+        "sha256": "8d19f881f89d1d32aa6cae85455cdda42dc4b1bd4cf222a8757b3ddf5673fe76"
+      },
+      "logos_found": 4,
+      "logos_missing": 3,
+      "name": "The Bahamas",
+      "stations": 7
+    },
+    "BT": {
+      "bouquet_sha256": "cbf2a711b1df103b079a0af7336df5daecf82c28870b6163af80228da61997f9",
+      "catalog_sha256": "5a73a8d9bf2694caaeb7d97df931292bf56ee44923292788da61531099991a08",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 56907,
+        "file": "BT.zip",
+        "sha256": "7fedf4839aa99705363372c7b95c7e78405cbca92d932b1641b61c0fbadb70bf"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Bhutan",
+      "stations": 1
+    },
+    "BW": {
+      "bouquet_sha256": "b79fd900fd4a90fb1a6d3e864136b43b7cbcd34a6664c9531f1ef1729e708206",
+      "catalog_sha256": "3601f8c4208b422c79d8e1a718aec247662e4a2b50a4deca36d92ae3c534bbee",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 40668,
+        "file": "BW.zip",
+        "sha256": "eb89a3226af23929ca8ad2c10ba03a204629c428d04c5ab401ab94619553ea15"
+      },
+      "logos_found": 2,
+      "logos_missing": 2,
+      "name": "Botswana",
+      "stations": 4
+    },
+    "BY": {
+      "bouquet_sha256": "9ae25017aa7de0ec65acd4be44924fa6066d50962f8041393779c4950ef3e325",
+      "catalog_sha256": "ad382e51d870dc57ad027533bdaf079deb4c5114521c9e5b4b6e5ab24f714674",
+      "logo_attempted": 55,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 442737,
+        "file": "BY.zip",
+        "sha256": "631563f95507f0e50b493cb25ca09c1e3b3477c211ff0fd08287bf0c444516b9"
+      },
+      "logos_found": 38,
+      "logos_missing": 17,
+      "name": "Belarus",
+      "stations": 55
+    },
+    "BZ": {
+      "bouquet_sha256": "4251a8087577178d72815628ac9b6ac9c0ab0ab8c9668b57988e4dc1fcb7cc24",
+      "catalog_sha256": "9597b489a0a574e7b0501733f2c653b7baf4cd5cf408a9037964e5eec49824e1",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 71194,
+        "file": "BZ.zip",
+        "sha256": "c39dc3dd520400d8bc1fc5e747c7a1f08cb5891dc8c30d074b196f4ab5f037e2"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "Belize",
+      "stations": 2
+    },
+    "CA": {
+      "bouquet_sha256": "a8bdd6ede5f3077a2c479fb625841b5f4ee7b138f8cd8fe5b7a48b0c5f59805b",
+      "catalog_sha256": "fad5923985e8c06345a28c5a7cb10228084e6090c3c7b2da2616cf9106cb28a0",
+      "logo_attempted": 1317,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 19340411,
+        "file": "CA.zip",
+        "sha256": "cef01c70acbb0b27b950acd2f71620e7bcd6d0dc2cd4185a81856c7cc6a4327b"
+      },
+      "logos_found": 1174,
+      "logos_missing": 143,
+      "name": "Canada",
+      "stations": 1317
+    },
+    "CC": {
+      "bouquet_sha256": "c5066d3fd8d75c29136af492080bbd8cd0cceae37c92da10ed7f50afbd465dba",
+      "catalog_sha256": "071df69706f748127b770323c2da9fe8310f313b28f9a5750b6b05aea4734492",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 19044,
+        "file": "CC.zip",
+        "sha256": "76a6af1ebd5ffda5d94ee482aab37aa558a4f9c621b3e52df7c6e02baa3c12b2"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "The Cocos Keeling Islands",
+      "stations": 1
+    },
+    "CD": {
+      "bouquet_sha256": "699e2bb4ffe8ff1aea4b74d83be26abc9ec60115592b66089f18b5c167f905a7",
+      "catalog_sha256": "cf476cd7d809e7bdf99d2acdb536e20beda0c321c3bea80271ebd80cce0f8b38",
+      "logo_attempted": 19,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 264467,
+        "file": "CD.zip",
+        "sha256": "dda5c78bcfa52a37c2c79ab12db7f7c5eb5a015735d23b0be775ba55a603d920"
+      },
+      "logos_found": 11,
+      "logos_missing": 8,
+      "name": "The Democratic Republic Of The Congo",
+      "stations": 19
+    },
+    "CF": {
+      "bouquet_sha256": "6ee60ffc09d92b6cc89c2847f30f6d623e0c4215eb9f1e4d9556ce9904839d10",
+      "catalog_sha256": "23e712de0a14a2b9315dd5bdfb9a2082c34d44541e040e002ba4ff8a96cb35a0",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 154900,
+        "file": "CF.zip",
+        "sha256": "6ae9fe553d664074193c4c0df802520893afee127e8f86488dad8f697d08c6fe"
+      },
+      "logos_found": 3,
+      "logos_missing": 0,
+      "name": "The Central African Republic",
+      "stations": 3
+    },
+    "CG": {
+      "bouquet_sha256": "6c5f854902b5b4da956c69acbcd9d509215af0d2f5fca95882387653aa331058",
+      "catalog_sha256": "a3900edfb6ed3c12447b47ad3c390b461fc313862f868f6c5261eff176553f4e",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 32922,
+        "file": "CG.zip",
+        "sha256": "c27c065cde875b534614c7eedb462dc70a6289064959f6ab42c826426aa86f7b"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Congo",
+      "stations": 1
+    },
+    "CH": {
+      "bouquet_sha256": "4d92b0473ad9d5a4cde0d4ce92e78cfa0a624ee5eb19848dd7f27113f4ff2274",
+      "catalog_sha256": "1178a4d16129dca04d948e0a7770a67de36a82db7775a2ffd5cc5742a148787c",
+      "logo_attempted": 438,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 4704927,
+        "file": "CH.zip",
+        "sha256": "9269ff5f070f862c6d68e2205d13ed5df1802cf82982d9cc42534c5c464d5705"
+      },
+      "logos_found": 406,
+      "logos_missing": 32,
+      "name": "Switzerland",
+      "stations": 438
+    },
+    "CI": {
+      "bouquet_sha256": "8c172edae210fc7ba97729d8dfa8c22a4df8f65589f0feda900b501301a94524",
+      "catalog_sha256": "191960dcb1e65f7684cad0a828066fad6b945dd3f7d75df513b6e8e2c7b7c60e",
+      "logo_attempted": 60,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 478187,
+        "file": "CI.zip",
+        "sha256": "68f757b0814572da3dacbec01870e9eeb58d19b2f8d2062d4f3a3027968b9c97"
+      },
+      "logos_found": 48,
+      "logos_missing": 12,
+      "name": "Coted Ivoire",
+      "stations": 60
+    },
+    "CL": {
+      "bouquet_sha256": "87da4d7a6af967e2d79eb7b7719811144a00cee28c56a3e2677cb99de23c6c70",
+      "catalog_sha256": "71b3f21bcee3e794ada69a55fe6c458ff59761361ee48bac03886340e0d5c470",
+      "logo_attempted": 480,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 6937752,
+        "file": "CL.zip",
+        "sha256": "0fcbcd8ed8e2284cef2844ecf7f1a71b15fddce844bc7bbd74ecd5f1db9e9fc4"
+      },
+      "logos_found": 397,
+      "logos_missing": 83,
+      "name": "Chile",
+      "stations": 480
+    },
+    "CM": {
+      "bouquet_sha256": "89be6fe5dc263113085c2a0462dc441af42bbfac11b981828035c42f56b502a4",
+      "catalog_sha256": "c30b0ec4d13ce3b6e5a562467609d388c4d72f43db10b764916749c069728ef3",
+      "logo_attempted": 52,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 480773,
+        "file": "CM.zip",
+        "sha256": "caebed9e23c375736066faa803816efd3fea1dc26cf8b767d1ad63e8d7fcb484"
+      },
+      "logos_found": 36,
+      "logos_missing": 16,
+      "name": "Cameroon",
+      "stations": 52
+    },
+    "CN": {
+      "bouquet_sha256": "c351a6aebfbda9980004b3f02cf361c14778b07252f333cf3a3d5098a3e353eb",
+      "catalog_sha256": "6b98d826f2656ffbc0489ec08ada08a5f3872da6c4f2e357b67952412bacbfbd",
+      "logo_attempted": 1848,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 37961645,
+        "file": "CN.zip",
+        "sha256": "c80bae533521d1c3e24978f4ed1ca96727f632746390284a28a519ad8f0def22"
+      },
+      "logos_found": 1155,
+      "logos_missing": 693,
+      "name": "China",
+      "stations": 1848
+    },
+    "CO": {
+      "bouquet_sha256": "30e770a7ea75c2da45d133fc5ae69ec12a30a30b58f2818f92875d2c1146b933",
+      "catalog_sha256": "b725e26744976550aef7ebc5cf85bff3b428268729ea6bc8d1756a676d17701d",
+      "logo_attempted": 648,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 12697344,
+        "file": "CO.zip",
+        "sha256": "ee1185009419c8f126afe7f6502906534bcbe50d23835c3ddc728766db7944cb"
+      },
+      "logos_found": 572,
+      "logos_missing": 76,
+      "name": "Colombia",
+      "stations": 648
+    },
+    "CR": {
+      "bouquet_sha256": "a9505e1ba678df4443540b2b59f1f3f0ff9fec09267be12319e65e1473db3467",
+      "catalog_sha256": "6f0bd6b78e538992e9682c9d018e73e2235f0ec81ecd8430d2fd1cda25a1832d",
+      "logo_attempted": 51,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 684905,
+        "file": "CR.zip",
+        "sha256": "075376345b404c34fc705a4767f94868c677fe0fe5f93490232d6aa7be69a037"
+      },
+      "logos_found": 47,
+      "logos_missing": 4,
+      "name": "Costa Rica",
+      "stations": 51
+    },
+    "CU": {
+      "bouquet_sha256": "b743d97bf97c741272591abcb91273f9f527ece560f841b091e0839e9b60aa36",
+      "catalog_sha256": "fe790271d22209bb58c7e6ef44d5c5575ce7c07a762e4632ca8cc07c9986f8aa",
+      "logo_attempted": 22,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 389830,
+        "file": "CU.zip",
+        "sha256": "911eac95550eafe49559be00f69530437b7170e871a19ba4c205c304c06912eb"
+      },
+      "logos_found": 19,
+      "logos_missing": 3,
+      "name": "Cuba",
+      "stations": 22
+    },
+    "CV": {
+      "bouquet_sha256": "88a74afe1609a643e417986ea710b05b7bad742a4c79b35c401eb463e3aedf3e",
+      "catalog_sha256": "d5a801d0a16c1395e348e0402e004b92c2536db5a35c6f197f7ca82d539c2bf8",
+      "logo_attempted": 17,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 223525,
+        "file": "CV.zip",
+        "sha256": "e252bb14d098d76f30a347787b11e61d2fbf90ef72b1235663840e9bd6e45f4b"
+      },
+      "logos_found": 15,
+      "logos_missing": 2,
+      "name": "Cabo Verde",
+      "stations": 17
+    },
+    "CW": {
+      "bouquet_sha256": "85f05f4a7e8cd4df210bf5e41760a76d126fda49891e10a0cddd31934e784712",
+      "catalog_sha256": "6e15ce3e3ee3168c17f8ebb204310e29b8b48892a55a7c5b6ec357656a57230b",
+      "logo_attempted": 20,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 188740,
+        "file": "CW.zip",
+        "sha256": "62270a3385320d2d9cda17b63ed0d4c7e915cf99474ba8bba5d238cc375a556e"
+      },
+      "logos_found": 11,
+      "logos_missing": 9,
+      "name": "Curacao",
+      "stations": 20
+    },
+    "CX": {
+      "bouquet_sha256": "23a45ea1922fe0947b26ea17b422d0d91b5c273387dd87d625c1880703c7558b",
+      "catalog_sha256": "ff453bb20a78596f4c2c121779ee82e10a4bee0cc93c0ce9bb6007ec3e715d3d",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 20928,
+        "file": "CX.zip",
+        "sha256": "26d9cda0929b08d8a51432a4e35703a6ba516e343709b03c82318241895ebc13"
+      },
+      "logos_found": 1,
+      "logos_missing": 1,
+      "name": "Christmas Island",
+      "stations": 2
+    },
+    "CY": {
+      "bouquet_sha256": "ffdee3e65ab1e1d2a1a81ae129ae248f9c9319482b1d92a311d78f4e8768b196",
+      "catalog_sha256": "dfb6ffb4c32b06a7c6203eb4f73deb97335a35cb1ab8d9827f660b7f7dba5ad6",
+      "logo_attempted": 58,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1005322,
+        "file": "CY.zip",
+        "sha256": "8339b42d8eec5fde38eaacb7d4df4585b9199450f3682793f7ad39d004ce13f3"
+      },
+      "logos_found": 50,
+      "logos_missing": 8,
+      "name": "Cyprus",
+      "stations": 58
+    },
+    "CZ": {
+      "bouquet_sha256": "4f935370635d4cc58d350272e3b0efd7be76c9eec06b47e87e2997a48dac45eb",
+      "catalog_sha256": "32f78a4abec35c08e77ec3e2cd773665ce34833d87ff554407a4fbeb1c8f57e0",
+      "logo_attempted": 229,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2276177,
+        "file": "CZ.zip",
+        "sha256": "276269f4a584a700868b9ba4389c773d948025ba71b5eea903829a3726a847b1"
+      },
+      "logos_found": 211,
+      "logos_missing": 18,
+      "name": "Čechy",
+      "stations": 229
+    },
+    "DE": {
+      "bouquet_sha256": "b4483c89e7d6c7d08ba385af55244b7b4dc6e01183bbf7335fc6ba32caf63a08",
+      "catalog_sha256": "2bd8fbe88723cb814624acbf2385a0a92a676bb75da4322abc200c2146c0a7f8",
+      "logo_attempted": 4863,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 79598835,
+        "file": "DE.zip",
+        "sha256": "5e1e2acb6a113e9f9d18c7a5d586d167354335f437f592bc520c6544d342d949"
+      },
+      "logos_found": 4305,
+      "logos_missing": 558,
+      "name": "Germany",
+      "stations": 4863
+    },
+    "DK": {
+      "bouquet_sha256": "474ebaecc5571b21df52007352529a832640fcc6162c2da48a2916804984242b",
+      "catalog_sha256": "4848cd3df9b76bc4ffa0aabd316062d9b7a11100030083eed7bedc56593f2b98",
+      "logo_attempted": 190,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1738117,
+        "file": "DK.zip",
+        "sha256": "362a3e5f75ba409e9886b5d4fedb610dc50c59f92f20f542de051c243a1804b7"
+      },
+      "logos_found": 176,
+      "logos_missing": 14,
+      "name": "Denmark",
+      "stations": 190
+    },
+    "DM": {
+      "bouquet_sha256": "8f9eb7804c0b8e84279506efa2b1188de4a8240a3c7d354980d38d0423d89999",
+      "catalog_sha256": "531f2ac570926ccd4ceb7ae3bcb6a658729c06e77dbb10cdbe873902040f49a5",
+      "logo_attempted": 5,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 72033,
+        "file": "DM.zip",
+        "sha256": "ed89e30118eba9237fced9eac0380652514c6994af73111a736094655e4e87ad"
+      },
+      "logos_found": 4,
+      "logos_missing": 1,
+      "name": "Dominica",
+      "stations": 5
+    },
+    "DO": {
+      "bouquet_sha256": "de761ffa0136585f008870de7abc4c123bb1806b3fca180156c16839f6cf53a7",
+      "catalog_sha256": "4d7efad2bc50d3bcabd453ad2b67427cf33324dad25e2f44f9be800b603a8b18",
+      "logo_attempted": 106,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2078202,
+        "file": "DO.zip",
+        "sha256": "155f85caa1e1f19951ff1703a7c5f8c47e3df7d43568c1e12272d41a0f47163e"
+      },
+      "logos_found": 96,
+      "logos_missing": 10,
+      "name": "The Dominican Republic",
+      "stations": 106
+    },
+    "DZ": {
+      "bouquet_sha256": "41a13a58bb117b0757d4559def13364fc4caf74f2bb8ccdb8a2c444081471c42",
+      "catalog_sha256": "3462971260f4bad34df0d17caec2c3d7b0195642eadaba712df4d0cb890391ac",
+      "logo_attempted": 92,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2279414,
+        "file": "DZ.zip",
+        "sha256": "6910bceb8eb8e5238326179bf54f1a6c651f16d2037bab29587081da1364c04f"
+      },
+      "logos_found": 80,
+      "logos_missing": 12,
+      "name": "Algeria",
+      "stations": 92
+    },
+    "EC": {
+      "bouquet_sha256": "b8ff55c8931b076dc17929736ac21968d0d17c478e81a9b4bce46e6198b1d94a",
+      "catalog_sha256": "293e852def0c1a45bef1d90c6a9e2cfff466228d1edaadd3795bd02a9e5efc64",
+      "logo_attempted": 150,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2010962,
+        "file": "EC.zip",
+        "sha256": "f61b330c953a461d8614795e916940389d8bb8a819ab745a268f9aa4eb2dc06a"
+      },
+      "logos_found": 129,
+      "logos_missing": 21,
+      "name": "Ecuador",
+      "stations": 150
+    },
+    "EE": {
+      "bouquet_sha256": "e8cfdafe70040ff766c946c04b8b4ee64fe8a0c976beccaaff9dc3d80967f62b",
+      "catalog_sha256": "86de71d359568ea1e8cd1dcf648ac802423409ab4917294f6ce37dcbc6b7a573",
+      "logo_attempted": 114,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1029644,
+        "file": "EE.zip",
+        "sha256": "8dce5ef7441bcea2ae3d4536584c376c1467f5dfba4b68f096d90b16251f5db2"
+      },
+      "logos_found": 103,
+      "logos_missing": 11,
+      "name": "Estonia",
+      "stations": 114
+    },
+    "EG": {
+      "bouquet_sha256": "1c0e36d424e39df94972fea7b5c2417195d1e823b16bf97ec549a6512009487b",
+      "catalog_sha256": "555bf1d224f4e9099463fbea48385dd8e20aedc01aa4b1647ebe57f57712d477",
+      "logo_attempted": 52,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 741168,
+        "file": "EG.zip",
+        "sha256": "527db858832257a49924f8000dd1429e2aa216fb7fe88b69492219d0e9a0684e"
+      },
+      "logos_found": 19,
+      "logos_missing": 33,
+      "name": "Egypt",
+      "stations": 52
+    },
+    "ER": {
+      "bouquet_sha256": "97da85481ed6b0a50b4b6d3d2793d3cd89c0385dcab63a4f85b768e2576a5ccd",
+      "catalog_sha256": "981c4d5b6ac1bd76823240da2b692932ae1a6ebe67de55d0449fdd430f561b65",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 26890,
+        "file": "ER.zip",
+        "sha256": "03931cc5670f2468e4eb1d0b495d68b9475836e8852e8d6f22a950d1d5e53fc9"
+      },
+      "logos_found": 4,
+      "logos_missing": 0,
+      "name": "Eritrea",
+      "stations": 4
+    },
+    "ES": {
+      "bouquet_sha256": "43c3640b988657284c557d7bb89ec9fc1d60a975749da81dc0f1f956fb7ea03a",
+      "catalog_sha256": "78ee15243b8c5ee9d341542a59a67b1ede5765ea70ad38e762f6a03d00789950",
+      "logo_attempted": 1148,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 16760175,
+        "file": "ES.zip",
+        "sha256": "5fd2fde25d1c85997271aaf1cfcf21b15f6cda45ac8820e77876fc594b97b33c"
+      },
+      "logos_found": 990,
+      "logos_missing": 158,
+      "name": "Spain",
+      "stations": 1148
+    },
+    "ET": {
+      "bouquet_sha256": "09cdaa003b3ea74b10f31bc0d3feb71f2a7624d2d8f9aae2e728349c25456147",
+      "catalog_sha256": "d4ab4d47ba3f6a373c4d4e52395c207ae3528338a7e531b71c9997819d24a611",
+      "logo_attempted": 22,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 343561,
+        "file": "ET.zip",
+        "sha256": "cd54b4d6288257746f9a82aebe6de32591cb571480b7a5935e7fec703b75b8cb"
+      },
+      "logos_found": 18,
+      "logos_missing": 4,
+      "name": "Ethiopia",
+      "stations": 22
+    },
+    "FI": {
+      "bouquet_sha256": "a5ddc9b275d6a471b5842f98f791e511522302debfd70c15fd5bac5e161fc25a",
+      "catalog_sha256": "07f6309cb44d8ee295c62a912bd08057e5c4396205f9f9bf0857f76041a7b304",
+      "logo_attempted": 121,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1370610,
+        "file": "FI.zip",
+        "sha256": "8e5909fa8ecd2e1ad5db3840b3f55725604e95bd31e8788de9efdfbc5fa2bc9d"
+      },
+      "logos_found": 104,
+      "logos_missing": 17,
+      "name": "Finland",
+      "stations": 121
+    },
+    "FJ": {
+      "bouquet_sha256": "9cdd413c3d7ed230cbf74d609a279fb37c792dc5f88247e2042880d762ef56e4",
+      "catalog_sha256": "ef0451ab1a07041ab2d7b933cdeb0907d0b568b95bb72308e537e08955d5e47a",
+      "logo_attempted": 13,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 218549,
+        "file": "FJ.zip",
+        "sha256": "d9cae88309c7b5956e2e8007af05b1480bd9767dd227ce861e3a7793f83caac3"
+      },
+      "logos_found": 13,
+      "logos_missing": 0,
+      "name": "Fiji",
+      "stations": 13
+    },
+    "FK": {
+      "bouquet_sha256": "2bdb5c8c8e34e67235f9bff4ee1b1e54e64d6d4bdd172f323b200e1274fab466",
+      "catalog_sha256": "1b84fd8dffea60d24192cc31568ccbe630576b3011ee3d53e1f69036ab7e557f",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 23946,
+        "file": "FK.zip",
+        "sha256": "77352bd94ff9e093b5f99e72b99b6e7f5f4b73d58356da0012d9884216f512c1"
+      },
+      "logos_found": 3,
+      "logos_missing": 0,
+      "name": "The Falkland Islands Malvinas",
+      "stations": 3
+    },
+    "FO": {
+      "bouquet_sha256": "b06163392dca2c8745879a55cb89d2d29e8193fd95be4b1d735736383e27a504",
+      "catalog_sha256": "61c62c57b52a0041b5c086d76a8ff5d2580a878cee25e56938fe992322805f71",
+      "logo_attempted": 12,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 133630,
+        "file": "FO.zip",
+        "sha256": "22c190b773ce65ab80a729e9a9ffdac77add2785679e6040a4d16ecaf73891e1"
+      },
+      "logos_found": 12,
+      "logos_missing": 0,
+      "name": "The Faroe Islands",
+      "stations": 12
+    },
+    "FR": {
+      "bouquet_sha256": "81df4e30596219dc909294ae1256e45a88c563f4d2aae5e7256cc86c6bd24d99",
+      "catalog_sha256": "3f8399e1d2f38e64b95040fe968f50530fe31a939cf8e1bcbf83ac2604024701",
+      "logo_attempted": 2476,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 34678011,
+        "file": "FR.zip",
+        "sha256": "4aae4c1a6c3d9675680bd8b373df62e270da1b857e168529c938ffced974e2d3"
+      },
+      "logos_found": 2323,
+      "logos_missing": 153,
+      "name": "France",
+      "stations": 2476
+    },
+    "GA": {
+      "bouquet_sha256": "8ab933446889de7a352ce77a9572c76065d3ec335772797e15b37007baaa0b4e",
+      "catalog_sha256": "331c9f7958f62c2d26be038e524773e070272d29077a931da09762372514c26d",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 8296,
+        "file": "GA.zip",
+        "sha256": "d30558ee4acb60e4e624b2b70608f6cb71134754c394c40b507bbd0302e9f4b4"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Gabon",
+      "stations": 1
+    },
+    "GB": {
+      "bouquet_sha256": "abfafae00441a126eebd56338544673642c6c0cc82928836bee54d522d3570a7",
+      "catalog_sha256": "44249a8cf1e8e9cc91d51ba4d289cfea5ccdb6a3df35ca323919df6c2351249c",
+      "logo_attempted": 1776,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 31285469,
+        "file": "GB.zip",
+        "sha256": "282a27514f9f381632f54789a153d7bc9475a6d4e2db66f03063e6c7e57d1cee"
+      },
+      "logos_found": 1617,
+      "logos_missing": 159,
+      "name": "United Kingdom",
+      "stations": 1776
+    },
+    "GD": {
+      "bouquet_sha256": "aae42e25fc77a278a4829fc88d76d496109b3efb1177e022ab93653aafdb70f3",
+      "catalog_sha256": "fbdbaba3564ffd7611ee0cd0afab9f49af4c36832401cc9ce8b606974fa9fbfa",
+      "logo_attempted": 5,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 83562,
+        "file": "GD.zip",
+        "sha256": "5a70aa3ace92d1810b4169c23232533fa6a3eda5cadb9459fafedc76a36995dc"
+      },
+      "logos_found": 4,
+      "logos_missing": 1,
+      "name": "Grenada",
+      "stations": 5
+    },
+    "GE": {
+      "bouquet_sha256": "c90601a6dec1786b6ced64bf53f6bf93d6f6aad4f741edf477d959281503fab5",
+      "catalog_sha256": "a92a23dad90a308b14bb4cc7919bd550540b858f4202d33f9235d5087d5c4b10",
+      "logo_attempted": 28,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 341488,
+        "file": "GE.zip",
+        "sha256": "4b4d03bfb085720e799767501b8ed802828c472f5d60a453d97c46079210ba6c"
+      },
+      "logos_found": 24,
+      "logos_missing": 4,
+      "name": "Georgia",
+      "stations": 28
+    },
+    "GF": {
+      "bouquet_sha256": "a1f663099105d1a3cec4ea80106d28b8b2a5422b7b1b5f665c6bfdf1fa4bafec",
+      "catalog_sha256": "ad69ee820eee8156385de0905bcb66baca01fc6b213aef11446e1b2d3cd672b6",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 36297,
+        "file": "GF.zip",
+        "sha256": "78402ffff1e0234fe86df12758162c3fd84bbe1ebd98d77bc8f79cd166da62c6"
+      },
+      "logos_found": 3,
+      "logos_missing": 1,
+      "name": "French Guiana",
+      "stations": 4
+    },
+    "GG": {
+      "bouquet_sha256": "3b28573f597fdd5acb0fb274e121fc984945cbbc83d801241f106f5fe5c9245e",
+      "catalog_sha256": "066a0bfe8bdf119de89b44e93a4ea88e4fb3713b49ec48c876dee9b9b318af2f",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 9960,
+        "file": "GG.zip",
+        "sha256": "beddf5e1638daa0370a911d0375896bad81783c4e9f8ca93218cc47e83ec2f9b"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Guernsey",
+      "stations": 1
+    },
+    "GH": {
+      "bouquet_sha256": "d66d26c4a84735ee718ce5a86da09ecbae7b5be6ed78ed467d0eaaece7bc5813",
+      "catalog_sha256": "d82165214d1839faa8e1b55ad20cad82e7b46e72b24c457224d6eeaa1c3a9f7a",
+      "logo_attempted": 86,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1676484,
+        "file": "GH.zip",
+        "sha256": "ed3ec9bfb98a87ac810fed1d4644a65b6fd63ae246ebc43abd41709136b0bf47"
+      },
+      "logos_found": 77,
+      "logos_missing": 9,
+      "name": "Ghana",
+      "stations": 86
+    },
+    "GI": {
+      "bouquet_sha256": "0c9ad3b4471c1dda2e629e95956fb3f5e42f5abe14bfaeb3c3503987a56ec6c1",
+      "catalog_sha256": "2c4d895cb04601d104c75d9e815778f785461c9d54e4737b6739118b799cd776",
+      "logo_attempted": 6,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 56348,
+        "file": "GI.zip",
+        "sha256": "68acc81d082dbe07faa82050e3f66c7213ce6b0000e13fee1acbfe39affb93c3"
+      },
+      "logos_found": 6,
+      "logos_missing": 0,
+      "name": "Gibraltar",
+      "stations": 6
+    },
+    "GL": {
+      "bouquet_sha256": "dbdff8ceae450d6262a574d8bce1d95759950f74733b71e0e64634aea6cc6ba6",
+      "catalog_sha256": "c7ad9f4d9cb47553ba5d1964a963d8d1e0e42c1942c30ed88b8a07a35e4dda32",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 16861,
+        "file": "GL.zip",
+        "sha256": "e46c33ce39e47ca665e393af7163e19d78cea28dd4a557604997262fb965e4b5"
+      },
+      "logos_found": 4,
+      "logos_missing": 0,
+      "name": "Greenland",
+      "stations": 4
+    },
+    "GN": {
+      "bouquet_sha256": "1c222e79bde606fbc71f971ddcc2396db68f95cc979e6b947b3c844008abc7a2",
+      "catalog_sha256": "6e88200b16b93bb0ee3efc8ff25e4f2a1b728baf1a02dc214cf3ae4b9387aefd",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 17946,
+        "file": "GN.zip",
+        "sha256": "d2e46be0d62c365fa4c11f1162f162747689bf86b0463d196490c1bcacebc6b2"
+      },
+      "logos_found": 4,
+      "logos_missing": 0,
+      "name": "Guinea",
+      "stations": 4
+    },
+    "GP": {
+      "bouquet_sha256": "57a2e6cb0d73bbb0afe78359c6511d76c1b8900d8c6fdb6892c75ae394522b38",
+      "catalog_sha256": "39e7b6bad1a80a75b6db6cd73d16ee3758f261cbfb9e0db69d5d2aadac0b0263",
+      "logo_attempted": 13,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 195680,
+        "file": "GP.zip",
+        "sha256": "dbea61354cfdb87358e507657025d397cdc28edd2d3750f19418a48907095266"
+      },
+      "logos_found": 13,
+      "logos_missing": 0,
+      "name": "Guadeloupe",
+      "stations": 13
+    },
+    "GR": {
+      "bouquet_sha256": "60589aa39bceaba67f47901c33640b36fb4c1f316fc2014750f3f9a3bd9d8a25",
+      "catalog_sha256": "9668fc4c75e8a472749dddfb265ecae24b4234de520468c4ee91bee0bed489dd",
+      "logo_attempted": 1805,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 36074901,
+        "file": "GR.zip",
+        "sha256": "4601177f6640278fe433a0de2fa219394bd2339e3ba7b5fa31ab543555957ad8"
+      },
+      "logos_found": 1641,
+      "logos_missing": 164,
+      "name": "Greece",
+      "stations": 1805
+    },
+    "GT": {
+      "bouquet_sha256": "f90f685e57aeb886cef9499cb14ecd0dfb589896256a90d8c6e5f9b46394d0fb",
+      "catalog_sha256": "d59906c39ea6a5addcc1c44a8029ed5070346832e5df257542620f2ed5ce1213",
+      "logo_attempted": 70,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1272428,
+        "file": "GT.zip",
+        "sha256": "b5740611cd3cdf0c87b24c318b59542308938a85dca7aa39824c2b69260122e8"
+      },
+      "logos_found": 67,
+      "logos_missing": 3,
+      "name": "Guatemala",
+      "stations": 70
+    },
+    "GU": {
+      "bouquet_sha256": "61d996ce155f7f5344524c9eae003eb11fe47d81cca725df95757d4b28cac916",
+      "catalog_sha256": "c2a28a2c18fac9024c74cfa087fb11b253cfb6a921fcb26ece0dda10749f1804",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 44787,
+        "file": "GU.zip",
+        "sha256": "1c25e8f9bc7235f8639ff21916bd6178d4746059365c205646e2639fcc305b34"
+      },
+      "logos_found": 4,
+      "logos_missing": 0,
+      "name": "Guam",
+      "stations": 4
+    },
+    "GW": {
+      "bouquet_sha256": "9e5ef1e8f7a6309cab5974df99eeff6a2878d67fd3abbc573ba879e77a3b7559",
+      "catalog_sha256": "e4c68802db088b3bce20a2de5b6353dbd8b89263a047abab38c730fc0a045446",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 4503,
+        "file": "GW.zip",
+        "sha256": "094712648a4f676e60f200c94357257fbde57720eebecf20935f341362c5c14f"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Guinea Bissau",
+      "stations": 1
+    },
+    "GY": {
+      "bouquet_sha256": "033fec8d994165977ff276f735209a62480d52ed3e38555cb6c9294874d23fb9",
+      "catalog_sha256": "1438acfc8026c9057f367ef7a60dd866bfe9685f26369d38bdcfdb569388a71a",
+      "logo_attempted": 8,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 106680,
+        "file": "GY.zip",
+        "sha256": "c1704975e65131ff84c2afb1614cea5c09b8040bfd3c3c90ce5c7b1eab3f1351"
+      },
+      "logos_found": 6,
+      "logos_missing": 2,
+      "name": "Guyana",
+      "stations": 8
+    },
+    "HK": {
+      "bouquet_sha256": "584f3354769add2a703d0e4a3818a2ef8152a35d4cbba6332d21220c63d60b81",
+      "catalog_sha256": "0da45bd81747087521c8a9c92cd6ee372a33b6941853b7837a3f522ca4b5fe4f",
+      "logo_attempted": 59,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1092953,
+        "file": "HK.zip",
+        "sha256": "98e0cd85a2c51d0e58ba7cddcc2f5b02ec1e1a0712936890d0646f42daa5432d"
+      },
+      "logos_found": 57,
+      "logos_missing": 2,
+      "name": "Hong Kong",
+      "stations": 59
+    },
+    "HN": {
+      "bouquet_sha256": "7d31d71fe206d6d248960a5280639db4fdd4b6fcf5cad83f345439262f10ad6c",
+      "catalog_sha256": "4ef5a7d44e2d4c9a03554e66d14b598bbd237885c736d86b1b41c1b61d5a05f2",
+      "logo_attempted": 38,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 623097,
+        "file": "HN.zip",
+        "sha256": "4eef8b7939d2ba1dbc3438123f27c6e77e085efc382830b65130e6631b055bbe"
+      },
+      "logos_found": 31,
+      "logos_missing": 7,
+      "name": "Honduras",
+      "stations": 38
+    },
+    "HR": {
+      "bouquet_sha256": "9cb17130365912b1e6f175de2ad27773890e57c18d19bd10cb98247227d521bf",
+      "catalog_sha256": "e1a9f9a58874e9efca13cf5d17fbc49a4c26678ded260bf31511d3328631a37a",
+      "logo_attempted": 239,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2660019,
+        "file": "HR.zip",
+        "sha256": "3122761817a0e8c772421e74d3a46bb84dab159bf96e5663358a266beef591b8"
+      },
+      "logos_found": 221,
+      "logos_missing": 18,
+      "name": "Croatia",
+      "stations": 239
+    },
+    "HT": {
+      "bouquet_sha256": "f2f8124bca60f40e428cb1c22de4f932ec6d554091a0ca8a1fd987deed9e8992",
+      "catalog_sha256": "2a76b61a991e5ed59bba4ff3c7a3b8ff16318f5bf1e07641f94a91f728307b7c",
+      "logo_attempted": 29,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 362670,
+        "file": "HT.zip",
+        "sha256": "397d9028acada128ddad5d169bcaa3815b1a7214d3e05e9382ec2de9a7d95a0c"
+      },
+      "logos_found": 23,
+      "logos_missing": 6,
+      "name": "Haiti",
+      "stations": 29
+    },
+    "HU": {
+      "bouquet_sha256": "a5a008f7a74d730a535668fe53ab654e02dea043994f9c24af59343d72e008cd",
+      "catalog_sha256": "913841d253e7fca6eaccec73dc0c67ca9a7d22fae2448fff089ea139d610fa42",
+      "logo_attempted": 295,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 4407849,
+        "file": "HU.zip",
+        "sha256": "5c6e62d9824e8cc05647ad9140323a43af8eb4273c51f166d45f59a2c95c0b8e"
+      },
+      "logos_found": 255,
+      "logos_missing": 40,
+      "name": "Hungary",
+      "stations": 295
+    },
+    "ID": {
+      "bouquet_sha256": "cd6b3043a6407acb386746acfa63924b11e031bb1c84f72e55ea12c5f39ef327",
+      "catalog_sha256": "1af1cc31c705e2fd220c77b861032a472aa784b7f13047a9baa77ac3005c3501",
+      "logo_attempted": 476,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 10702338,
+        "file": "ID.zip",
+        "sha256": "4cd3c244d38e2364eafb405cb7330e78fe6bfa3f5dcdc817fac9b5ddc3175ff7"
+      },
+      "logos_found": 419,
+      "logos_missing": 57,
+      "name": "Indonesia",
+      "stations": 476
+    },
+    "IE": {
+      "bouquet_sha256": "81bf6fbc78f86fef427d0eae9a94b2fd94f9913edd9ce382b8fe35e4f99d1ad6",
+      "catalog_sha256": "d2480a12b29eb1acbf69b046f1c410f05b2a08ff0efed42cf68289d34c9cc27b",
+      "logo_attempted": 171,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3594759,
+        "file": "IE.zip",
+        "sha256": "6feccb8bd5526bcfb9638eb9ad497124731e61f64aab8a9126e75ccb2dd10d43"
+      },
+      "logos_found": 162,
+      "logos_missing": 9,
+      "name": "Ireland",
+      "stations": 171
+    },
+    "IL": {
+      "bouquet_sha256": "d3dce72fb54446c16524b5687bf754a2a1e675a651624c5c8453b92b5b7b05c2",
+      "catalog_sha256": "ae11d5f4b07474e2619366a1af50ddd487bd0fc7592df5fdb35bcfc1bbf6cbd3",
+      "logo_attempted": 123,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2748306,
+        "file": "IL.zip",
+        "sha256": "273857e56158fb45b34babad8f646dc2b2a3ac15229e2fbc80f31e2d253f6565"
+      },
+      "logos_found": 110,
+      "logos_missing": 13,
+      "name": "Israel",
+      "stations": 123
+    },
+    "IM": {
+      "bouquet_sha256": "35e6185435d19e694b3254399d2191b43b41b25fab30067b0cf7752b0305b542",
+      "catalog_sha256": "9ecc55f36afd7ee4f2b32909411665ca0a3286bb981db4f89b0f1c458ef7a784",
+      "logo_attempted": 6,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 36318,
+        "file": "IM.zip",
+        "sha256": "3de10974fd8fc6b22aec86b4c1af2ae6eb70888a6da6dbea83c0e02a2d9e96eb"
+      },
+      "logos_found": 6,
+      "logos_missing": 0,
+      "name": "Isle Of Man",
+      "stations": 6
+    },
+    "IN": {
+      "bouquet_sha256": "330aa7d9aabe10908faae66cec08895a0ddfd1128552b2b12fd22d6ea46a7fea",
+      "catalog_sha256": "621c61e58702c10198bda92553db99228c846783ce176a37cb22be84863fe525",
+      "logo_attempted": 705,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 21431066,
+        "file": "IN.zip",
+        "sha256": "a1580bbb6d981fcba240380bc6d60628469362430de8e09252b4527a82aad289"
+      },
+      "logos_found": 574,
+      "logos_missing": 131,
+      "name": "India",
+      "stations": 705
+    },
+    "IO": {
+      "bouquet_sha256": "01d994addf958c0deb113fda9e661b9466470f4645ff34a52ddfa0218be000d8",
+      "catalog_sha256": "ce27fdfaf51b465909c159e921171f3f3e46cbaf0dcb926a713b677057878be1",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 5215,
+        "file": "IO.zip",
+        "sha256": "56b76de1da707850ca8914d7af5b95926a92f2cc03e5ba65faf98eed6882f6bb"
+      },
+      "logos_found": 1,
+      "logos_missing": 1,
+      "name": "British Indian Ocean Territory",
+      "stations": 2
+    },
+    "IQ": {
+      "bouquet_sha256": "5c0a17c6b786f3930451946b4051bc840303c266b9195082930f934a93d01d5b",
+      "catalog_sha256": "c9489125f075f873e93b6ca5dc512b39a0c85dfc7e3dc033329e806cea1d79bc",
+      "logo_attempted": 20,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 154806,
+        "file": "IQ.zip",
+        "sha256": "ff69a53afc68ddf8025a8656dfb0fea3d32ae90777a72a7610e5c699a571c9f0"
+      },
+      "logos_found": 14,
+      "logos_missing": 6,
+      "name": "Iraq",
+      "stations": 20
+    },
+    "IR": {
+      "bouquet_sha256": "d93a20f3884c17259eff1efd3dd4a2eed3df5fd21aec5b87c499e2988f32f96f",
+      "catalog_sha256": "fa8aede3eecd3fbea96996f8f92a1de7196d53b035b4e7a9c4732b98d6dd49a2",
+      "logo_attempted": 23,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 255948,
+        "file": "IR.zip",
+        "sha256": "a05241fa74c26e3c991358ed4e1a19305cbd8913abb7033b25d48fa9e23b604c"
+      },
+      "logos_found": 16,
+      "logos_missing": 7,
+      "name": "Iran",
+      "stations": 23
+    },
+    "IS": {
+      "bouquet_sha256": "0743ae3953baab6746fca106c4fcac3e8ef2cae334dd5d488764d31b5854fd74",
+      "catalog_sha256": "00cce6ac7258c0960d38056e8ba310c87403dd68ec9e635d264daf203cb11e0d",
+      "logo_attempted": 24,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 227121,
+        "file": "IS.zip",
+        "sha256": "49851a7736be98f3a6661a246011b8c9b20f50210ffce310b86a319d1f4ffdb1"
+      },
+      "logos_found": 18,
+      "logos_missing": 6,
+      "name": "Iceland",
+      "stations": 24
+    },
+    "IT": {
+      "bouquet_sha256": "b24acbcc15da8b8a6fd13d6f723d6b47223a8614d76cccaafe3fcdf15a6b8e54",
+      "catalog_sha256": "d61f55be8fb7263fc354e1b88c1cd4336462569841b43ef7c892ff0b4743a8b3",
+      "logo_attempted": 1445,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 24617109,
+        "file": "IT.zip",
+        "sha256": "3223bbb14ddff2a1b6ca9556b0477728c324afbab2a3039f65f02aa6978e1116"
+      },
+      "logos_found": 1243,
+      "logos_missing": 202,
+      "name": "Italy",
+      "stations": 1445
+    },
+    "JE": {
+      "bouquet_sha256": "81321ef16cc78f8b8d4eebabf24d77d68a3516b8eaaf3b7f3f5673e580a56dd1",
+      "catalog_sha256": "3a4bf1bae1d2a99b0db0dcac6828bd34e848e76aae7c1ffd9732bc9b26505013",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 18474,
+        "file": "JE.zip",
+        "sha256": "255dc7eb6b8aa6a9889fe67f4a4a3985092f84b5d1e947ca5cb4eff99df16a4c"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "Jersey",
+      "stations": 2
+    },
+    "JM": {
+      "bouquet_sha256": "e7856c6a39437103375e4fcb93ccd98674436881e4bc63452f412437b8618c3e",
+      "catalog_sha256": "ecbfd4cd26b1769115afa19bc66fc75efc47d11086894203a243929090dcff35",
+      "logo_attempted": 35,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 500535,
+        "file": "JM.zip",
+        "sha256": "4202f12c19c8d091ca4566b8fffddd29c61030685e4c91603c02cd7014ba435e"
+      },
+      "logos_found": 30,
+      "logos_missing": 5,
+      "name": "Jamaica",
+      "stations": 35
+    },
+    "JO": {
+      "bouquet_sha256": "67b929f56e9c81c56e2facbf9731b20afe2e5eeece65775e836a19250ca04ad1",
+      "catalog_sha256": "9b188b7d94d0df3ea1e69cf21112ef7dc69ac7fbc6e6e4239868945456549ea0",
+      "logo_attempted": 30,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 343590,
+        "file": "JO.zip",
+        "sha256": "57fad23292f29178daacc68fb961d9dc30fbac22ce2ac9190dc638d583c4536e"
+      },
+      "logos_found": 21,
+      "logos_missing": 9,
+      "name": "Jordan",
+      "stations": 30
+    },
+    "JP": {
+      "bouquet_sha256": "47894978bb4be6d59c430d9980fd734a276d5df30db6fd11a3ea8e836681bf09",
+      "catalog_sha256": "508212b4ce98c15344c0a4e77ef6dbba409df08d3904160665b1ceceba1e1c8c",
+      "logo_attempted": 104,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2248605,
+        "file": "JP.zip",
+        "sha256": "bd6c60d24d88f69014f356c05f61a50d25bb1381bf567e9b149ea752c3a30c3b"
+      },
+      "logos_found": 90,
+      "logos_missing": 14,
+      "name": "Japan",
+      "stations": 104
+    },
+    "KE": {
+      "bouquet_sha256": "a01b5966bf3bc0d6bca1d354586bc58f9d3b363c14e177501bad44d34c7c79e9",
+      "catalog_sha256": "f42d8a5516a4ff6b66a2ca6b5943eeeb4ce7b38b0b46724d6b2d5ba44198fc2b",
+      "logo_attempted": 54,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 703790,
+        "file": "KE.zip",
+        "sha256": "4d85b3d44832c802cce5155a391ac8863fa667e3d9b271b81dbc10704c502774"
+      },
+      "logos_found": 29,
+      "logos_missing": 25,
+      "name": "Kenya",
+      "stations": 54
+    },
+    "KG": {
+      "bouquet_sha256": "d57bba91d4f9a691cb0df967ed019e46bdc79b8d302bac848bc79c51b257e4dd",
+      "catalog_sha256": "8610a51be1678905ab83bda585a79e238b298cbf37b122a4b8a3d7384c9589c3",
+      "logo_attempted": 7,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 120008,
+        "file": "KG.zip",
+        "sha256": "07f41c0c839589eff7f0cdc20663f493b878f2d38f39e745cd765c260fbbde74"
+      },
+      "logos_found": 5,
+      "logos_missing": 2,
+      "name": "Kyrgyzstan",
+      "stations": 7
+    },
+    "KH": {
+      "bouquet_sha256": "afa7050f05300b72355d2db8d9d62f34677f66e5e31dd228348f1fe10fd88b53",
+      "catalog_sha256": "6d53007e633de3702b65743e3a52610bbaf8b192fddc6a4da70ca06d170d651f",
+      "logo_attempted": 11,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 110351,
+        "file": "KH.zip",
+        "sha256": "9f2e2776ceae7055ea924c5b4017299d9f4d12731f8146f1b89e193acb1fe95c"
+      },
+      "logos_found": 6,
+      "logos_missing": 5,
+      "name": "Cambodia",
+      "stations": 11
+    },
+    "KI": {
+      "bouquet_sha256": "513bf024e57e53f7ba68ae57816697ba0532a656eda55b76dc659b3eedb834e7",
+      "catalog_sha256": "1dfd9fe3b06a4a00c7946b9c4fdf110985e8284ad44ff6bf449cf5dcf9d3d8d9",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3988,
+        "file": "KI.zip",
+        "sha256": "3f41756e1e290c170e66029a2a68e3d815005450cc2a7007526dedc2d088ae06"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Kiribati",
+      "stations": 1
+    },
+    "KM": {
+      "bouquet_sha256": "628035c05b4731377d15d837588a645cb07c10a3a126479644843d1b453e3fa0",
+      "catalog_sha256": "43929b3214ea28e4eea5564754107cf8941c9bcb101b06a7f63098f7a0e70565",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 59385,
+        "file": "KM.zip",
+        "sha256": "ed5ea4aa0a5fa674850a71e921d9596ca3e8b90551d2eecee5e2365d3bfa39c4"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "The Comoros",
+      "stations": 2
+    },
+    "KN": {
+      "bouquet_sha256": "06bd62fe64a6c7e5e189b07a3788eafbcf35e2a1383c4636ffef24ee7e9dac0d",
+      "catalog_sha256": "6558f74cc184123d5712ba6095f254c6024b0a1f45bba895c4d90d29ced87460",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 43823,
+        "file": "KN.zip",
+        "sha256": "fc99533e64d1612bd9a2bee7eea77abad14c8aa6ea8dc5cb7d8cbf0bc0fe82af"
+      },
+      "logos_found": 3,
+      "logos_missing": 1,
+      "name": "Saint Kitts And Nevis",
+      "stations": 4
+    },
+    "KP": {
+      "bouquet_sha256": "4b980d7ea0da570616a58a2d2352a360fda78da61f9ccf5b7eb1bf23be6d4f2a",
+      "catalog_sha256": "998896f082547139b5bca9f3e7900e423b526e9bb1314fbf67904d97c4f7ee21",
+      "logo_attempted": 6,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 108715,
+        "file": "KP.zip",
+        "sha256": "160b2ffa1243c93e7afcc80207460eaf14d2aba77ae7a80f98fd259d6135621a"
+      },
+      "logos_found": 2,
+      "logos_missing": 4,
+      "name": "North Korea",
+      "stations": 6
+    },
+    "KR": {
+      "bouquet_sha256": "9b483a68c6b9595e62053e17eda5a4e6c66a766e03704721a16da65d9cbf5f57",
+      "catalog_sha256": "dc16d4414083550ae109f68f40953b74b2a4d61c50661ac70900afe24d7249f0",
+      "logo_attempted": 69,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 525609,
+        "file": "KR.zip",
+        "sha256": "36f37ca13c74a2a15efdfe8c60ecc7e6ffe4c2cb9669173b659b1f3cb1d07a5f"
+      },
+      "logos_found": 47,
+      "logos_missing": 22,
+      "name": "South Korea",
+      "stations": 69
+    },
+    "KW": {
+      "bouquet_sha256": "b102ac0ba6f0693b52ae43f34c0988aac624222a79af13aa6c2cd0d642c35904",
+      "catalog_sha256": "c136707573ae488f5cb0462f900d71fd22c752586fcfea8176a2a4c3d14bf5d5",
+      "logo_attempted": 202,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1037174,
+        "file": "KW.zip",
+        "sha256": "6fa754137ff179e62c8ecddf0885a6695fea5544d37068ac3b5895cc7b547bd5"
+      },
+      "logos_found": 201,
+      "logos_missing": 1,
+      "name": "Kuwait",
+      "stations": 202
+    },
+    "KY": {
+      "bouquet_sha256": "22cac530f3d51ab433805ffa4a808d4778b55756a0ef3b1aa0f8a201f3815048",
+      "catalog_sha256": "1d3b72ef009e485c8a6bb641195e3a36dc667800f1279323e72ada79d1b1c42c",
+      "logo_attempted": 7,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 159646,
+        "file": "KY.zip",
+        "sha256": "389faba9fb0450a4bee6d7104a554c8b229b304239809a747883db3fa70a86ab"
+      },
+      "logos_found": 7,
+      "logos_missing": 0,
+      "name": "The Cayman Islands",
+      "stations": 7
+    },
+    "KZ": {
+      "bouquet_sha256": "e7eaccf430e088f763cefe595eae3ee70be5b55966cae2ce5fe76a72bb5c016a",
+      "catalog_sha256": "03f44b8cf9057c1fdef46d05219c05ecee693e07b31f9bcf8706a52c25709660",
+      "logo_attempted": 38,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 390540,
+        "file": "KZ.zip",
+        "sha256": "79568fac0afbc912db35d2c48fe751dc34c1ab2b18e7bc506facb91cd24b2dcb"
+      },
+      "logos_found": 33,
+      "logos_missing": 5,
+      "name": "Kazakhstan",
+      "stations": 38
+    },
+    "LA": {
+      "bouquet_sha256": "87389e3c6c760c7c54ccfd6484adce35a19128e99afb60a979311503f79afe50",
+      "catalog_sha256": "6c02e7a412e0e51c9cb37a689dcd0676a3f1dd166012f081e0a67777a94f8e5d",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 144598,
+        "file": "LA.zip",
+        "sha256": "dd7472fa0a3ef050fc93a6db4aeb4837bda9bd89c05b4da39f9899b46ccb971f"
+      },
+      "logos_found": 3,
+      "logos_missing": 0,
+      "name": "The Lao Peoples Democratic Republic",
+      "stations": 3
+    },
+    "LB": {
+      "bouquet_sha256": "29035e727aa46f115bddd91f0fde47f55e57dd7b2cc17cfe54b1608c575be005",
+      "catalog_sha256": "f4dd0f3ef753be8a630b3c3832fa6525d2d3aac30915cfd371d56b613fe1e754",
+      "logo_attempted": 110,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2825583,
+        "file": "LB.zip",
+        "sha256": "3442a8475a784fe0b10bdd37877d1d040aab822bbcc652b18b5356c7d132e219"
+      },
+      "logos_found": 84,
+      "logos_missing": 26,
+      "name": "Lebanon",
+      "stations": 110
+    },
+    "LC": {
+      "bouquet_sha256": "c87a06a213ef84256e07cfb899b60fcf65dde9e832fc7a178fb936632f5379af",
+      "catalog_sha256": "a65d36a4aaf976979bcf5de78869f5bdf11b224a596d86e2d0bc62a90ea8c190",
+      "logo_attempted": 12,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 261421,
+        "file": "LC.zip",
+        "sha256": "1e1ccaa3028bd71087b9c228b79d939a9f2873ff5d88154ba7e99c38596081d4"
+      },
+      "logos_found": 11,
+      "logos_missing": 1,
+      "name": "Saint Lucia",
+      "stations": 12
+    },
+    "LI": {
+      "bouquet_sha256": "f986404e5b22b06b60b9e60822080e020641ada4fafc7b63ffbff3312e335db9",
+      "catalog_sha256": "d7e565fb6e01e36e0a7613ec13a759ff50d164263850103e097c8c049b1d4a96",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 10813,
+        "file": "LI.zip",
+        "sha256": "4262d4682be69b4a5fe2cb689ef9260b5aae8bcd5f2a2798e68d3f617bbd8d32"
+      },
+      "logos_found": 1,
+      "logos_missing": 1,
+      "name": "Liechtenstein",
+      "stations": 2
+    },
+    "LK": {
+      "bouquet_sha256": "1a42f68b7a7d880a9a6f9658ae55f65556b8d147a0c5acbac877b69bef0c897a",
+      "catalog_sha256": "fd69c40b21ec403c9504f1f8786f61d8147c5765f15250989e387e5b5dff0493",
+      "logo_attempted": 58,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 974870,
+        "file": "LK.zip",
+        "sha256": "b03f6e15e8cefdc05f67ac90ef619bf275554fdc079d7a7b3c663f7ce53688fb"
+      },
+      "logos_found": 49,
+      "logos_missing": 9,
+      "name": "Sri Lanka",
+      "stations": 58
+    },
+    "LR": {
+      "bouquet_sha256": "1623a999df872a230459c947b347646fb6c0fd4285f372b44a05b77a7204c147",
+      "catalog_sha256": "45ca260ecfb5a3344f6f7ff8a14080ea4615d3d42fc99c342ab15421492f7973",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 33304,
+        "file": "LR.zip",
+        "sha256": "02f558f34a4113a30527f8e9c050f95b1f6d4781fa4f06ccc954dc1f68f5dbec"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Liberia",
+      "stations": 1
+    },
+    "LS": {
+      "bouquet_sha256": "135a0c4fbe5005578b6c82f321ccbc6ca22824172d00fb184bcda3eb749bb90e",
+      "catalog_sha256": "fa8479e6ed024710f0e72498a41527ac22e374b70e0af7b0ae624760d8677a0f",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 77309,
+        "file": "LS.zip",
+        "sha256": "3af2d143004edf32a5ac4a5040afda345c2cd46df949b2ba85e65918480a75d3"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Lesotho",
+      "stations": 1
+    },
+    "LT": {
+      "bouquet_sha256": "d9dce46eab868280833f8f7600491012ad72d412ec0b92c99e26c2c97f0987ca",
+      "catalog_sha256": "4ca5a2fe1df4f5b0d6573a3a96e48c38ddfd8940cdf465e5fd5070704c4e3782",
+      "logo_attempted": 104,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 755407,
+        "file": "LT.zip",
+        "sha256": "ef4a441011e158bf97ea384dcf2ae990fc61456be0058e21ae8e45b0da623d47"
+      },
+      "logos_found": 80,
+      "logos_missing": 24,
+      "name": "Lithuania",
+      "stations": 104
+    },
+    "LU": {
+      "bouquet_sha256": "f479c9f9260458013c29b1c64d51e58f4a5a47eb69423783698fcf386fcef6bc",
+      "catalog_sha256": "1c918e703533cd58a19ae222b512067d7677c106c66bb97c6cd7fe4c985468af",
+      "logo_attempted": 27,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 199680,
+        "file": "LU.zip",
+        "sha256": "94b22adbec5d6c0366535a4bee89398923f6a6956eb4d603b5c9906ea6b9e082"
+      },
+      "logos_found": 24,
+      "logos_missing": 3,
+      "name": "Luxembourg",
+      "stations": 27
+    },
+    "LV": {
+      "bouquet_sha256": "4900332cf575f8dfdd3acc30ae48ce5ae6827fc09635692f378a25e2e24e746b",
+      "catalog_sha256": "59d90576808e099cac1d14eb4e42fec6b13c65bcc720ed75faf5f799dbf3c41d",
+      "logo_attempted": 147,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1636916,
+        "file": "LV.zip",
+        "sha256": "f13651d289ac3bf2db6e0dbbbdbe0d49ace2a7ec516e56f69447ea81f396cab4"
+      },
+      "logos_found": 130,
+      "logos_missing": 17,
+      "name": "Latvia",
+      "stations": 147
+    },
+    "LY": {
+      "bouquet_sha256": "7dd9751c3266d2f9f9ebdf286487502651b81052453d7ec26f51f04a3acb3617",
+      "catalog_sha256": "fd410711748f3914f17826e327b685b5873cecb621e6b5320c2220661ba4539d",
+      "logo_attempted": 6,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 11433,
+        "file": "LY.zip",
+        "sha256": "f0ba69ea3f621918fd9dca46a49da38a662a070a2e6c2aa10b0b83fee82ac047"
+      },
+      "logos_found": 5,
+      "logos_missing": 1,
+      "name": "Libya",
+      "stations": 6
+    },
+    "MA": {
+      "bouquet_sha256": "19d77b9366801e74eb0b310ffa73ad4e29710610bb63de7572eeca9850ff9d40",
+      "catalog_sha256": "1cd3f5d9aac433a5e338501dc2f7cbe9b1ca922b521913b7bba89492f7f29a1e",
+      "logo_attempted": 56,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 872194,
+        "file": "MA.zip",
+        "sha256": "031beaa203e0060064042f38293f4f54c57b0b24698c59f9989a0ba99fdff901"
+      },
+      "logos_found": 40,
+      "logos_missing": 16,
+      "name": "Morocco",
+      "stations": 56
+    },
+    "MC": {
+      "bouquet_sha256": "5753fdbbea991a143c28f0480e0c3e97d50d15cb062c7e48cd7eeb0de1090e8b",
+      "catalog_sha256": "6072ecc639863fa224f05b1ed1512fb43fcad6d3e372590cf4fe6632a9a26513",
+      "logo_attempted": 5,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 24591,
+        "file": "MC.zip",
+        "sha256": "ca6574a7bfdaf3be9751d50271487355523add93809329a7f343a5c61f959040"
+      },
+      "logos_found": 5,
+      "logos_missing": 0,
+      "name": "Monaco",
+      "stations": 5
+    },
+    "MD": {
+      "bouquet_sha256": "523de49d4d1a2d84044987cde44703218bacb3adb27c0d04314eea80bda02abb",
+      "catalog_sha256": "344426815560b72770794fb3ea987f5b8b930cf3bb6902ff6fff4be676cbbdc6",
+      "logo_attempted": 83,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1075311,
+        "file": "MD.zip",
+        "sha256": "a061512cda6fe2a9b98725dd7a4bb1c254943793cfdd22f3fb70126b124183e4"
+      },
+      "logos_found": 77,
+      "logos_missing": 6,
+      "name": "Moldova",
+      "stations": 83
+    },
+    "ME": {
+      "bouquet_sha256": "776cdf9b0de76ac4e95ed5a8cd743e72301a93c400a19259a965d7c75e2751f2",
+      "catalog_sha256": "da520fdca8eba966a3b41dbe3efb46ccc2edd561ea82463c246a70d0b54e4668",
+      "logo_attempted": 43,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 523212,
+        "file": "ME.zip",
+        "sha256": "e95b7505d6ffe626403b4d333cc800bbcd59e9f3a1ed38b3a6260d19ba95f336"
+      },
+      "logos_found": 35,
+      "logos_missing": 8,
+      "name": "Montenegro",
+      "stations": 43
+    },
+    "MG": {
+      "bouquet_sha256": "6037240d731fb5f90544206624582928ee82990feb07530e11187dc59bd4ffa2",
+      "catalog_sha256": "0f5a3cf69e968bca93808eb4576ec5b68fff1172c1d739b049060c362303cd99",
+      "logo_attempted": 14,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 306893,
+        "file": "MG.zip",
+        "sha256": "ee36059740945d1e1d56e935d44c0b736c6acda8c14a373288c4a2505b1b9c59"
+      },
+      "logos_found": 12,
+      "logos_missing": 2,
+      "name": "Madagascar",
+      "stations": 14
+    },
+    "MH": {
+      "bouquet_sha256": "91d24a4c83a0575060955cf0c54f12fbe97e07b2b242d6d90ee7441148aa2f43",
+      "catalog_sha256": "51a58279c06b5af8a51877d9debdfeb39679d9b21b4d705f1becfa3401249749",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 99015,
+        "file": "MH.zip",
+        "sha256": "661a79ea6379c5787ad731f41989f970becb7dff97b5f7b0080650c6f7e71a82"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "The Marshall Islands",
+      "stations": 1
+    },
+    "MK": {
+      "bouquet_sha256": "1c3742de3adeb71b3e253400b03cacac63c09322264db00f875f09d30f6c7d07",
+      "catalog_sha256": "fac4e556d3aa6d102b9a3376ce8b1b97688a894ce18467ce9c99e8ebc6c693f4",
+      "logo_attempted": 44,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 456773,
+        "file": "MK.zip",
+        "sha256": "b4bad224f8a79be7751d8fd4b28876f1ec794bb5227f18218167773466c5ba9a"
+      },
+      "logos_found": 33,
+      "logos_missing": 11,
+      "name": "Republic Of North Macedonia",
+      "stations": 44
+    },
+    "ML": {
+      "bouquet_sha256": "49d12da2d22d8c8ab7efade12c357bfec0b7cf115e737677aa94d727e0fc7444",
+      "catalog_sha256": "cf3b46c1685555f8e7c0212166319b73da551ece5b552dabab7546364303604f",
+      "logo_attempted": 13,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 185246,
+        "file": "ML.zip",
+        "sha256": "9bfe8ea5feac737f1c800e761559851174fee55ba82f21e72c1cdb1a52f1745e"
+      },
+      "logos_found": 13,
+      "logos_missing": 0,
+      "name": "Mali",
+      "stations": 13
+    },
+    "MM": {
+      "bouquet_sha256": "b1545826d02be96eb5b1e275c04d9004e59fa66275e87551f3f5aec4674b6066",
+      "catalog_sha256": "de26d84baed53627f775491bc9bc3e0fad3665e19fb16f9dde1f033ab85739c6",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 17600,
+        "file": "MM.zip",
+        "sha256": "62ce3e96dee40094af45d919fc9dc6261c329a1773db43ec0f8eca18fd357b6d"
+      },
+      "logos_found": 2,
+      "logos_missing": 2,
+      "name": "Myanmar",
+      "stations": 4
+    },
+    "MN": {
+      "bouquet_sha256": "fc808cdec505426457ef2583eda15d5f3cf2f832962de0debda275fa10f17a40",
+      "catalog_sha256": "a8c42d7ef2fc238a580c251f0c2b0e9f0230cc31af65de977f1b66c6c3ec6250",
+      "logo_attempted": 9,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 103226,
+        "file": "MN.zip",
+        "sha256": "e743d41b9bbd0cdd38f75d902eb501903fa4e340870d8f72091764022c0db47d"
+      },
+      "logos_found": 6,
+      "logos_missing": 3,
+      "name": "Mongolia",
+      "stations": 9
+    },
+    "MO": {
+      "bouquet_sha256": "ebd9fcfb3a334c5cf91c9d82a654562f83afd1502ce70f64d36a3a48aa0bc79f",
+      "catalog_sha256": "6d8e3bf7b90e47026ff4b7bb249f8b427ed0c23ba19758fa4ddfeff5a18f6171",
+      "logo_attempted": 18,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 240979,
+        "file": "MO.zip",
+        "sha256": "edbdf7c718f7ea1787cf300610d5673bab3abb52ae38b0eca0855ee516d2b680"
+      },
+      "logos_found": 15,
+      "logos_missing": 3,
+      "name": "Macao",
+      "stations": 18
+    },
+    "MQ": {
+      "bouquet_sha256": "b0871cf9ec62d65d08ab4af387f962626db65988e1bed79eb7342cc22f181a84",
+      "catalog_sha256": "18b89eeb86106113c9ce29af916b7849bed53c11437c94790b46727396e4cd99",
+      "logo_attempted": 13,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 151032,
+        "file": "MQ.zip",
+        "sha256": "2ba2e1ff22db66e594d65423b8d8df0da56f1777e7bb8ff7628dab631cb106c0"
+      },
+      "logos_found": 13,
+      "logos_missing": 0,
+      "name": "Martinique",
+      "stations": 13
+    },
+    "MS": {
+      "bouquet_sha256": "6cc7a54783861ddb4112c5b78aedca544da63e90fbc6268f7b823d466e2e2843",
+      "catalog_sha256": "db5fd5f02e8402df02c3f8fc633a04a882559a07de7eeb1772cb0256158dcb29",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 21139,
+        "file": "MS.zip",
+        "sha256": "f422917acd5838a2c0b3d6a1ebda27980b66435a64f6c75823f0a339ac125d07"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Montserrat",
+      "stations": 1
+    },
+    "MT": {
+      "bouquet_sha256": "b2959cb1a38dc3645193f25343ed3c99a5ba3061bf3e7950d185c5845e0979b5",
+      "catalog_sha256": "1c6b8785c26062eb4151b5eab6efa55531d1934d025236265a41ae9bcba402a7",
+      "logo_attempted": 14,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 260481,
+        "file": "MT.zip",
+        "sha256": "e4ff4d5f6c8386b4eeda98baf75671ae2642d9eea0a043f0efca6a53a44079dc"
+      },
+      "logos_found": 13,
+      "logos_missing": 1,
+      "name": "Malta",
+      "stations": 14
+    },
+    "MU": {
+      "bouquet_sha256": "eba309b4312e42244d270b370f8da048f2129c8f5f5c8e33c3683da317b1c734",
+      "catalog_sha256": "7c502c2eec109c83b2e392015e9d9b02f7eb14aff9f7192ff616bd0f773cf530",
+      "logo_attempted": 11,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 147078,
+        "file": "MU.zip",
+        "sha256": "72eed9c0be384bf85a2047960ef8bee996534f6426ebfe138bce786fb2d55f16"
+      },
+      "logos_found": 9,
+      "logos_missing": 2,
+      "name": "Mauritius",
+      "stations": 11
+    },
+    "MV": {
+      "bouquet_sha256": "8fd87c1c11dd0fcadda6cd33ae50b5d360025ef4f8948af1ae4f30e52ce7d111",
+      "catalog_sha256": "fdf7807f4e2159ee1fd309c1364393c39da66ee37ceb4483f47375e330796995",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 15703,
+        "file": "MV.zip",
+        "sha256": "665ddd59aaeebc514d2590f86ad13a64ff98bfe1c2129f64d2985ac9a8c499b7"
+      },
+      "logos_found": 3,
+      "logos_missing": 1,
+      "name": "Maldives",
+      "stations": 4
+    },
+    "MW": {
+      "bouquet_sha256": "4d2a2a41b89521f740c41b1ea1b897b723ba65618c330b9c0b6882c4b71db44e",
+      "catalog_sha256": "538f967550b332af75c0b86bf57882bd7d3c4bce7d086144610796854548e7e6",
+      "logo_attempted": 51,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 372869,
+        "file": "MW.zip",
+        "sha256": "5e638eb961ad35ec1ee811d597d7ffa264f245f19eab49c917564af3929d9c96"
+      },
+      "logos_found": 29,
+      "logos_missing": 22,
+      "name": "Malawi",
+      "stations": 51
+    },
+    "MX": {
+      "bouquet_sha256": "a4bcea4031c1561656aa6538e432452420828d0bdf4c0a320400d3f62cefae3c",
+      "catalog_sha256": "47d8609a2fde344af8a2abd53376b687a27fcf36601cc071e3b1cd08c00ccdd3",
+      "logo_attempted": 1544,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 40167598,
+        "file": "MX.zip",
+        "sha256": "3b002149bfe8f132c3b368e00246a34d6dd462ee0fbc312b7d259daf7ff60eff"
+      },
+      "logos_found": 1375,
+      "logos_missing": 169,
+      "name": "Mexico",
+      "stations": 1544
+    },
+    "MY": {
+      "bouquet_sha256": "48087584c3c6df0f755ed6364111aa6d7967ca3749272ab2312c1c21d5f622cb",
+      "catalog_sha256": "cfb2b3c8fa21a1504878e7a1870bd2f43f891a11e07cfa9d6cee4f56815ed391",
+      "logo_attempted": 76,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1409987,
+        "file": "MY.zip",
+        "sha256": "92a0567ef782e2ce842a466b003655993b8dd7ebd9760f60d1c10beec933a138"
+      },
+      "logos_found": 66,
+      "logos_missing": 10,
+      "name": "Malaysia",
+      "stations": 76
+    },
+    "MZ": {
+      "bouquet_sha256": "bf94d42dc1d222e70e761402499fa102c29295d165e0dde356ed8971f66cb79f",
+      "catalog_sha256": "926378ab5604260612419ec9cd3fea97b1debecdaace362289c0f6b36410ee17",
+      "logo_attempted": 14,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 135664,
+        "file": "MZ.zip",
+        "sha256": "c145b26751273109f57f8f82ef44087771b3d5afbb81c18f4ff2528bb84ebb1b"
+      },
+      "logos_found": 11,
+      "logos_missing": 3,
+      "name": "Mozambique",
+      "stations": 14
+    },
+    "NA": {
+      "bouquet_sha256": "0aa6457cf50a7f77b4d55594eb3f29fe59eddf4593248ecd4306e4dbf9c04a62",
+      "catalog_sha256": "24f33e26ec9f7577f8dccc5f7338282d7200983cd65c4f8e89874e07199aa6f7",
+      "logo_attempted": 13,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 128996,
+        "file": "NA.zip",
+        "sha256": "4b37bfd059f10e2bf164f3dd9994e7873e98a0e01b48498f97888146e7cf2555"
+      },
+      "logos_found": 12,
+      "logos_missing": 1,
+      "name": "Namibia",
+      "stations": 13
+    },
+    "NC": {
+      "bouquet_sha256": "e5f983cf1c7b1d7d4a733ce80fb95256bf0268130cdbec3fe89f0192b1130247",
+      "catalog_sha256": "324d8f0adc818c9560059b1f413985f5908b6cb4488b188693d2d5f5c468d437",
+      "logo_attempted": 7,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 52535,
+        "file": "NC.zip",
+        "sha256": "01b2505a6a3d30cf97ddaf9a99ff566dceb7425052d3ac96a120f8eaa7baae31"
+      },
+      "logos_found": 7,
+      "logos_missing": 0,
+      "name": "New Caledonia",
+      "stations": 7
+    },
+    "NE": {
+      "bouquet_sha256": "aa8b658da93371815f6ca855965989ecce401c50f19a2cb8b43bc22af63e9266",
+      "catalog_sha256": "2c524ebd5d555aac5c1535a596ad16adff44c7b2849cfeffaa705e50e218e4a6",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 22,
+        "file": "NE.zip",
+        "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+      },
+      "logos_found": 0,
+      "logos_missing": 3,
+      "name": "The Niger",
+      "stations": 3
+    },
+    "NG": {
+      "bouquet_sha256": "82e3ab216a31e9883a6224d0f60d5da0cfc7ab75791394f5cb622e5c6d1527d1",
+      "catalog_sha256": "88fa67a517705f713e2137a9036c62d1af16c5c98d12738b0425de204579df18",
+      "logo_attempted": 68,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1574126,
+        "file": "NG.zip",
+        "sha256": "8cc20ab9b05b365ccc2c3d6c90e3cbe78eb1c4bdac3c79be2a0e04627e6bd929"
+      },
+      "logos_found": 62,
+      "logos_missing": 6,
+      "name": "Nigeria",
+      "stations": 68
+    },
+    "NI": {
+      "bouquet_sha256": "34674b79751c3136d47f0b24784d773a2b751b5820daef794fc40b776cb95dfd",
+      "catalog_sha256": "cbce94c509a6c48a907a02ffc86411343c4d0766691e328d515f5f3c764211a4",
+      "logo_attempted": 22,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 389811,
+        "file": "NI.zip",
+        "sha256": "9bcec8c8af0a8e143617d13bee45c8242af3b8e7eb5ee79c615361decb21eaf5"
+      },
+      "logos_found": 20,
+      "logos_missing": 2,
+      "name": "Nicaragua",
+      "stations": 22
+    },
+    "NL": {
+      "bouquet_sha256": "6dc684e10eead5e9ae5d881683c03893f973d74526e709603bde5f6ef3ed828b",
+      "catalog_sha256": "851a3257b329a08b5874e9a35331c0c75acda11d2ffe59f2a70fa04cc6317adc",
+      "logo_attempted": 1051,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 17978480,
+        "file": "NL.zip",
+        "sha256": "a681e7e634a43c058477a766fcda57b04c75dd81c15c8241fa7748930b293a17"
+      },
+      "logos_found": 947,
+      "logos_missing": 104,
+      "name": "The Netherlands",
+      "stations": 1051
+    },
+    "NO": {
+      "bouquet_sha256": "a48a716a52a7341a32e92679cc1edb18029f6619be463f45aa6918d8bb151e34",
+      "catalog_sha256": "d0af11ed6dbd2d4ecb724c6695f2d3f1c03575fcfc2bd85bfb70516513ceaaef",
+      "logo_attempted": 119,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1747808,
+        "file": "NO.zip",
+        "sha256": "72f09b74474c1370bd00b31c5e0b7e3b6e63ba802675c08968b9c9d66f6fb79b"
+      },
+      "logos_found": 114,
+      "logos_missing": 5,
+      "name": "Norway",
+      "stations": 119
+    },
+    "NP": {
+      "bouquet_sha256": "9a23bb0a5619977a7375efca2dc0b900c441e06c9d544b8545d4bfa61e89f143",
+      "catalog_sha256": "8f4b0cd54443d163584952d6a4959f327daaebaa7033cd470d4ef15b623f57d1",
+      "logo_attempted": 146,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 164616,
+        "file": "NP.zip",
+        "sha256": "a73521616067db103c7479824ae26610ebf373fe405971760af2c10a7ee3f015"
+      },
+      "logos_found": 22,
+      "logos_missing": 124,
+      "name": "Nepal",
+      "stations": 146
+    },
+    "NU": {
+      "bouquet_sha256": "e62f5561f6365948ab1f92a020dcfb41a64581bd4168e8f9c586a2e645813f9f",
+      "catalog_sha256": "ea18ed119b6018f2be2f7a7fb6679f7783120f9bb51d84ad54993750d91ad02b",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 5936,
+        "file": "NU.zip",
+        "sha256": "923016047794d478fb060cfe64bfda61e5a21a4b3864f89d8decaefcf6d84be2"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Niue",
+      "stations": 1
+    },
+    "NZ": {
+      "bouquet_sha256": "6d151c537c998f4bae11d085631b4b35a5dd629202089876a876b0699280197f",
+      "catalog_sha256": "124539d8fb1bfa9480e1bf07e5efdfe31fffe732dc1ce9b130c36ebac496f789",
+      "logo_attempted": 186,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3368176,
+        "file": "NZ.zip",
+        "sha256": "1da9429a34dceafedc19e3016b1f8df88b2c95c982730e2dd3944706e299470a"
+      },
+      "logos_found": 166,
+      "logos_missing": 20,
+      "name": "New Zealand",
+      "stations": 186
+    },
+    "OM": {
+      "bouquet_sha256": "8b65ef43c7931409baa668a6af31f3ec38fa3683d792b2b300f39d249170fe22",
+      "catalog_sha256": "22f5c96a6566c1c4b62bef6b384cd1d4c4cdd5e87f333b8bb160ae7ad7795140",
+      "logo_attempted": 8,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 112031,
+        "file": "OM.zip",
+        "sha256": "fa6e36801bdc002ce16b889903b02abfa444efe2a0fb88d6477afa97910b2da1"
+      },
+      "logos_found": 7,
+      "logos_missing": 1,
+      "name": "Oman",
+      "stations": 8
+    },
+    "PA": {
+      "bouquet_sha256": "3c570cf7ed7e8b4f720477442deade69c2a0959cc15efcd07eb1d769f4264126",
+      "catalog_sha256": "f9878b6bd7e890d6da3e037bd55950cb1e1d81fd6544e68e25730991f7f4c4b5",
+      "logo_attempted": 30,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 505364,
+        "file": "PA.zip",
+        "sha256": "c690e2d432054c1d2f39bbfc6eb6be13a72ce7a79f3b01855edca84a0d65131f"
+      },
+      "logos_found": 27,
+      "logos_missing": 3,
+      "name": "Panama",
+      "stations": 30
+    },
+    "PE": {
+      "bouquet_sha256": "413091e0a4ceb20c2d295fbae3eff99b3f35b8ba2ea9f15ecc49a815d157e0c1",
+      "catalog_sha256": "eeff05f15ba2a75a3144681efd49c12a1a6e273065b1c3ad20d1fa8aa3432e63",
+      "logo_attempted": 240,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 5363398,
+        "file": "PE.zip",
+        "sha256": "257b943420584207217d5d89fa689111e565dc2996b2868212bd00c2aca2c9c0"
+      },
+      "logos_found": 208,
+      "logos_missing": 32,
+      "name": "Peru",
+      "stations": 240
+    },
+    "PF": {
+      "bouquet_sha256": "0dced8632841fdca5f36295548132811be710760a279e12c4218f373c4f5d656",
+      "catalog_sha256": "5e0a8ba9fd22875e6c7a7d20bb21b15c27a82298410287e598cd33f9e46cea9a",
+      "logo_attempted": 5,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 47240,
+        "file": "PF.zip",
+        "sha256": "b43f2ccd4d7f3215dd4f704adfec29f09573d9de75ca376f4bd9920020c09e05"
+      },
+      "logos_found": 4,
+      "logos_missing": 1,
+      "name": "French Polynesia",
+      "stations": 5
+    },
+    "PG": {
+      "bouquet_sha256": "e6d98c599d3d267d38bf0609c14ec535887de7d2b628129eb3a52924b7de610b",
+      "catalog_sha256": "9c3ca6e0590b68d7cae7f4b1f64633b07a9f6fb83a1edbd06ff03e999497a174",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 46070,
+        "file": "PG.zip",
+        "sha256": "714ff5a139f49db25e8d9b037ada1262310d2aec9f5af2fa81580cacbd5cae75"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "Papua New Guinea",
+      "stations": 2
+    },
+    "PH": {
+      "bouquet_sha256": "fd5a865b450ed04776d24cfdcfd87b9c480b00891fd6da67ec6e8e1060bb83f7",
+      "catalog_sha256": "ea67208058b923859d613dcd741aef9e14ce74d1c731254accbf015302adc905",
+      "logo_attempted": 623,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 14843433,
+        "file": "PH.zip",
+        "sha256": "82f8f34cd369a020084961f9a2634a2339fb8c394dcd2b4d5193274effc8f31b"
+      },
+      "logos_found": 573,
+      "logos_missing": 50,
+      "name": "The Philippines",
+      "stations": 623
+    },
+    "PK": {
+      "bouquet_sha256": "52423da1607751db8a18cee52c5ded6d59675e4e2d4fb6e2fc6980cd50e8fe23",
+      "catalog_sha256": "57f708a0de45a971120065f4b0850dc2d4ae08f8a963047e28ed4de21645c06f",
+      "logo_attempted": 58,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 554320,
+        "file": "PK.zip",
+        "sha256": "e1dc3b83373dd92ebc0c7698a06c65fa1058325c6979ac387ab7babc90a49431"
+      },
+      "logos_found": 41,
+      "logos_missing": 17,
+      "name": "Pakistan",
+      "stations": 58
+    },
+    "PL": {
+      "bouquet_sha256": "86325d6be308d97a1021da1b330dd29bea95228739af92bed099fb7b95d60f21",
+      "catalog_sha256": "0b79217d4d182c570139a51beac2e0a98c1b2fca320821be2b3a47d8ec00c243",
+      "logo_attempted": 833,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 10102368,
+        "file": "PL.zip",
+        "sha256": "3b20443fa77ed3ebf85f2c0986c57c274aa0c39e84b93b7a99d3f220cdadeb3a"
+      },
+      "logos_found": 695,
+      "logos_missing": 138,
+      "name": "Poland",
+      "stations": 833
+    },
+    "PM": {
+      "bouquet_sha256": "9f07706dc7be9620ba2aad2e32a8886091a43a40e5df923c0769f10213267c05",
+      "catalog_sha256": "fc06a4895f26d93cd43ddd88ec13a97403704ce08ff6019d9cebc800878377e0",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 13734,
+        "file": "PM.zip",
+        "sha256": "4ed682b5e3179c7df88f06682de073376d072f98a36ed48d63515c175d421faa"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "Saint Pierre And Miquelon",
+      "stations": 2
+    },
+    "PR": {
+      "bouquet_sha256": "662eee1676b891785cad8500318b69eb06b25dac3f1975545df9bbc4d4bbdd1a",
+      "catalog_sha256": "77ef18b0fa065748e3ee6cf48eb0f5c13ccb70121a48f6d58ca38f91bedb9656",
+      "logo_attempted": 47,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 802951,
+        "file": "PR.zip",
+        "sha256": "7b761652140e72dd035138e0aa9159d7fa77dae4042def82dff6f3ca95480db9"
+      },
+      "logos_found": 36,
+      "logos_missing": 11,
+      "name": "Puerto Rico",
+      "stations": 47
+    },
+    "PS": {
+      "bouquet_sha256": "0e58607294131063ade4f31f9d74d90d2283b81d3ab5f14ab5cf8327558699d9",
+      "catalog_sha256": "cc7fb1b04cd71ea49e3ada301d08c8e025623eb766147b20fcbb4f3962b07f48",
+      "logo_attempted": 9,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 180351,
+        "file": "PS.zip",
+        "sha256": "a70d228d16245a89eb27e9432464db5bd585d189240632e6c515129d0e3e1eb9"
+      },
+      "logos_found": 7,
+      "logos_missing": 2,
+      "name": "State Of Palestine",
+      "stations": 9
+    },
+    "PT": {
+      "bouquet_sha256": "f799f8de722416f8e97d403d321e269f87b34d41df4a2c09e19aadfde788acab",
+      "catalog_sha256": "1cbcc13e1e6f5d378966ae477372344396e890391baaaa253517b5c42726fb80",
+      "logo_attempted": 304,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 4530062,
+        "file": "PT.zip",
+        "sha256": "86f40e8ec701681051a315c70f1c0fa80d7b135bd866e25c2c94f1b4ec53a3d4"
+      },
+      "logos_found": 263,
+      "logos_missing": 41,
+      "name": "Portugal",
+      "stations": 304
+    },
+    "PW": {
+      "bouquet_sha256": "85e694a01a790c96fbfdc9f6e0025fea6851dcedf49c5664e7f4fc9e9f795097",
+      "catalog_sha256": "1cd17a119e3adfb5fda2ca5fd8897987d64302ef5c56543f0e262c6a7c7981ac",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3596,
+        "file": "PW.zip",
+        "sha256": "d450f380678fd1d4101a2cde4724a0712ef3906ea120586bb93972ebc664e4a4"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Palau",
+      "stations": 1
+    },
+    "PY": {
+      "bouquet_sha256": "59a6f36889d4286276755822688aaeccbece7d1be9e2699fc6b2a00638a839ee",
+      "catalog_sha256": "dbbefdb0fd9caa67f815e984a75927aae6b35ffea7b0f0db688347b9deb9fd85",
+      "logo_attempted": 61,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 837774,
+        "file": "PY.zip",
+        "sha256": "2973762e08f8650b231bcb9c0fbbd648249a3a5f0024aa09948d7ab18a52be33"
+      },
+      "logos_found": 48,
+      "logos_missing": 13,
+      "name": "Paraguay",
+      "stations": 61
+    },
+    "QA": {
+      "bouquet_sha256": "3fe145a04a6ebde9af8cd2cee51f9c482cec9069767732009b91d63fb8faa1c1",
+      "catalog_sha256": "f107130b2a0aff821a33c782604b729bd095beb121928edcde3549975e1fbad4",
+      "logo_attempted": 17,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 425044,
+        "file": "QA.zip",
+        "sha256": "1f36b2cbcc594c9b67c189d9bbd430b404ca74b90eb04657ff809ed0809de6cc"
+      },
+      "logos_found": 15,
+      "logos_missing": 2,
+      "name": "Qatar",
+      "stations": 17
+    },
+    "RE": {
+      "bouquet_sha256": "56406f88672575d17f192465495718c58c88af63997f9ed0b3609b6836e2c371",
+      "catalog_sha256": "13f11ef8f9289719209333274ab749c1e0f8a5e4603bf83b2cb8a5237f849eb1",
+      "logo_attempted": 34,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 707779,
+        "file": "RE.zip",
+        "sha256": "3408e2c5f7ce0c9ae89060845b2ab9ae943277e5ca6b89952d607ae78483414b"
+      },
+      "logos_found": 31,
+      "logos_missing": 3,
+      "name": "Reunion",
+      "stations": 34
+    },
+    "RO": {
+      "bouquet_sha256": "332142216a2b75ce49ab7df70088b7ca571fae2fd8c611008ce53d81a84594fc",
+      "catalog_sha256": "1b2f2a3899ee22df0cd43d41c21b57e6d37c389b1a21e3e1299c0fcae8e91a8e",
+      "logo_attempted": 792,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 18857251,
+        "file": "RO.zip",
+        "sha256": "005b508b196b1f0e4dff0bb363aa25da35beedda36808a6b8a50879710d40549"
+      },
+      "logos_found": 725,
+      "logos_missing": 67,
+      "name": "Romania",
+      "stations": 792
+    },
+    "RS": {
+      "bouquet_sha256": "ab69c1a20fe2c6922b29db09e0d008cae18aee0c97b0383f00656ecb7a759d34",
+      "catalog_sha256": "bc13f7234776f161643c5d85cbff46b674f0ac417331afff8c66e0a21c23fa8a",
+      "logo_attempted": 328,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3857355,
+        "file": "RS.zip",
+        "sha256": "a346300af97588b20f189577c4ff7a5e53658667578e9294eac5aad321548932"
+      },
+      "logos_found": 234,
+      "logos_missing": 94,
+      "name": "Serbia",
+      "stations": 328
+    },
+    "RU": {
+      "bouquet_sha256": "fbf1f97695263c571bcf720a50223b61a2979ef9905e20992ece280146779829",
+      "catalog_sha256": "26bd4b4a6dc417e54112b5ac7de7e6414fcbb73035b90ea7fe116f81f1a3a5c2",
+      "logo_attempted": 2351,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 22189578,
+        "file": "RU.zip",
+        "sha256": "19ffe14e8cca2691b3a293c38bb948fccb3e5176d9d91f66f706c221fba4a41d"
+      },
+      "logos_found": 1576,
+      "logos_missing": 775,
+      "name": "Russia",
+      "stations": 2351
+    },
+    "RW": {
+      "bouquet_sha256": "2fe7c0466af9c3fb8b7902954a73b8e5a06a8e1aa33d56ba8fc00dc9e8eda115",
+      "catalog_sha256": "890b39d06095f75678d361d1814e1433bc0ecbda54184226810317219fd54eba",
+      "logo_attempted": 7,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 92388,
+        "file": "RW.zip",
+        "sha256": "82062714f06e0cc063aa72dec28052fc1185db18faf2efb7baeb66dcc6d4b8d4"
+      },
+      "logos_found": 5,
+      "logos_missing": 2,
+      "name": "Rwanda",
+      "stations": 7
+    },
+    "SA": {
+      "bouquet_sha256": "3a5fccb8bdcb08ca75feb6de037f25a8d14cf994f519d2acc5720eab168ddfd1",
+      "catalog_sha256": "c938dccecce5d5e49490f2cd07b66ac9c2e5ea555c87a91166d9dc6951f007e4",
+      "logo_attempted": 46,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 743713,
+        "file": "SA.zip",
+        "sha256": "fba847f080409302ab33731aea4a865754d074b244d87b75472fbdf632dc23fa"
+      },
+      "logos_found": 32,
+      "logos_missing": 14,
+      "name": "Saudi Arabia",
+      "stations": 46
+    },
+    "SC": {
+      "bouquet_sha256": "cc8351e1ff205cf414f936c0c4214ad887cd3ffdd8c61fba1cefb3ce689bec37",
+      "catalog_sha256": "7dfc4cc9bd63c4cd157aaa26b50cab71d965923102274682baf3f39783a12957",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 45895,
+        "file": "SC.zip",
+        "sha256": "d767926e9cdcda7c0b209ee091d12c57bfa10f168fe418026e14ad6e0bd11ed9"
+      },
+      "logos_found": 3,
+      "logos_missing": 0,
+      "name": "Seychelles",
+      "stations": 3
+    },
+    "SD": {
+      "bouquet_sha256": "d37e1078a34dceb866a2fb2a938aac085c1f9b7e50ba342a5f0e7155c56d5fcd",
+      "catalog_sha256": "535e2e97851a69661f5a91b9ec26829b933002c1fbdccfac8621d6d07e9eb166",
+      "logo_attempted": 5,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 41249,
+        "file": "SD.zip",
+        "sha256": "2efad8844045c03effe763142724beecab49557245e916bf42e7ccd7a23718b3"
+      },
+      "logos_found": 3,
+      "logos_missing": 2,
+      "name": "The Sudan",
+      "stations": 5
+    },
+    "SE": {
+      "bouquet_sha256": "bdfa27ea62873454bea6ae6eb620b9906310293d3f7c9a25f699af3b1aedfd38",
+      "catalog_sha256": "1713e6917d70d00d6d34bb9af2f6cbe516d6f8af83d8a9916f4161dd8980090c",
+      "logo_attempted": 177,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2144395,
+        "file": "SE.zip",
+        "sha256": "364156de58a00b3dfa3f0805b1500520d4eae0a9bf97e74c32ccd3e03a19abd5"
+      },
+      "logos_found": 157,
+      "logos_missing": 20,
+      "name": "Sweden",
+      "stations": 177
+    },
+    "SG": {
+      "bouquet_sha256": "b13561664b363b0ae3080e4340c47d7003d52affb8be9e92fa42a45834c1cefa",
+      "catalog_sha256": "e639e9be63c08e7fa1d80e463aff89c6daaa01817d139018f3e99c6826b55690",
+      "logo_attempted": 52,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 653641,
+        "file": "SG.zip",
+        "sha256": "5952c4e518e54a5fa0e0cfff27aaa5038edd383c6b301a874fc2a5ea632bfef3"
+      },
+      "logos_found": 46,
+      "logos_missing": 6,
+      "name": "Singapore",
+      "stations": 52
+    },
+    "SH": {
+      "bouquet_sha256": "334ade7afa4fa507e741e0aadddc0e0756e2679626f3c8462ff6f563ea8dfd29",
+      "catalog_sha256": "362e6b73c8a9dff7f362abfab9bfc6a38ada370f55bfb8a406af297639f75eb7",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 36647,
+        "file": "SH.zip",
+        "sha256": "7f3968ef00022a4f99b195192b544a895b4a52aac732d2899a25860417733ae7"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "Ascension And Tristan Da Cunha Saint Helena",
+      "stations": 2
+    },
+    "SI": {
+      "bouquet_sha256": "f3f135e7b126677fc18f80ff71b7159ab66a6d87b62ee52039e2f1eb386588b1",
+      "catalog_sha256": "1494345b56675a1a7d88e7256ac28be713873d55532a1021ebe306d83d45653a",
+      "logo_attempted": 112,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 983598,
+        "file": "SI.zip",
+        "sha256": "01330506b44379bc0449c1317616c603f84cd3cb90d2319b51063a505be00186"
+      },
+      "logos_found": 104,
+      "logos_missing": 8,
+      "name": "Slovenia",
+      "stations": 112
+    },
+    "SK": {
+      "bouquet_sha256": "f95ef38476e3c61a17c31c14b930cecbe0e93206543491e8107cf999aa797b83",
+      "catalog_sha256": "d81f865a398e242630c5a72049b5aea0e5ef3e211765ce3b66a4379fc544dbfb",
+      "logo_attempted": 123,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1463913,
+        "file": "SK.zip",
+        "sha256": "84f67e2a269e03e1c9a45737018254c6b42ce13fd342c66c3cd208d120a5e19e"
+      },
+      "logos_found": 120,
+      "logos_missing": 3,
+      "name": "Slovensko",
+      "stations": 123
+    },
+    "SL": {
+      "bouquet_sha256": "46e427c6998768e3f7b085681d9b00bde3f4e90a83c60e117ad3cbe804f67768",
+      "catalog_sha256": "5f95352b07341c895f51bbad447651e60cb339478f892a3d852072715588efc0",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 13747,
+        "file": "SL.zip",
+        "sha256": "272464ebc46c95cec261bdf878965cc30878e61db259c7030c71f379ccf4ed13"
+      },
+      "logos_found": 2,
+      "logos_missing": 1,
+      "name": "Sierra Leone",
+      "stations": 3
+    },
+    "SM": {
+      "bouquet_sha256": "24080ab33360d9ee4b22a2fe343ea943412fe62f06b58bbb75b26c78265cdfd2",
+      "catalog_sha256": "94a01cecd3f7ffd389160f5b593e58a1aaea28ececc9d7ae16f58a9a39e5fd77",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 30484,
+        "file": "SM.zip",
+        "sha256": "10a4536a06bccaaf1ca2ab80be2eefaa644555ef83e7a1e0f37b198b4c356192"
+      },
+      "logos_found": 3,
+      "logos_missing": 1,
+      "name": "San Marino",
+      "stations": 4
+    },
+    "SN": {
+      "bouquet_sha256": "1ce3050a8932c4528e12c9da5e9f98e957c90de8d4e2eea555111660bd81cd2e",
+      "catalog_sha256": "479ef0139096a97420e0aa1247d32aa08cafe83b45b7c37efaff6fc57892b658",
+      "logo_attempted": 29,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 522043,
+        "file": "SN.zip",
+        "sha256": "00b3aa872123ddb41971f7d2906709bf0a34a4d595613f6aa144acd79cb476ec"
+      },
+      "logos_found": 28,
+      "logos_missing": 1,
+      "name": "Senegal",
+      "stations": 29
+    },
+    "SO": {
+      "bouquet_sha256": "b10fccca42e160ee0569db5c5e52ad609099ac2971c83ffb6ec7b3c287cba40b",
+      "catalog_sha256": "496764f31abd37d489aaa0eacc2180804b8f444b19eb9e32070c87c2b512f044",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 4503,
+        "file": "SO.zip",
+        "sha256": "00ea32f1bb26978f08cc342cfd01ceb7d79c2b2a09c84f0de80655aecccdff95"
+      },
+      "logos_found": 1,
+      "logos_missing": 1,
+      "name": "Somalia",
+      "stations": 2
+    },
+    "SR": {
+      "bouquet_sha256": "95d4e11f2aec62db88c5b1ffe9c48c74e5030ef74a1676fab3193443e0a15b44",
+      "catalog_sha256": "d588e57e5512ce47cf9d5ae35f42381c869fbb86719a77a97750973faaa3ecf1",
+      "logo_attempted": 5,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 157074,
+        "file": "SR.zip",
+        "sha256": "e406e847d44351d0708e4196e127c38139e1c74efbfa89e1f705829991d5bb63"
+      },
+      "logos_found": 5,
+      "logos_missing": 0,
+      "name": "Suriname",
+      "stations": 5
+    },
+    "SS": {
+      "bouquet_sha256": "0cf5973692197ab7938575ef105b70b77d0ae87c236f546d86567fbddd3c4f07",
+      "catalog_sha256": "76db7102b7d3af1af5dcde079e232f36efc60e03116ea045c488ea018d64d94a",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 43598,
+        "file": "SS.zip",
+        "sha256": "93f40e03577de6b5fba685f848a6a05a99d75fec05e83176817d6574eca1b3ac"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "South Sudan",
+      "stations": 2
+    },
+    "SV": {
+      "bouquet_sha256": "193a10efd7d399d18f5f7ae869278f660742991f00e562200d22924a5cbc9d53",
+      "catalog_sha256": "78064575884b807bd882d377870f577fb46b7dd280318dde667a34c251ecf1d3",
+      "logo_attempted": 56,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 739184,
+        "file": "SV.zip",
+        "sha256": "b7cc35f695e0a416bfd32837866ab19b832eeed6d3446f7a706c596769ec8f33"
+      },
+      "logos_found": 48,
+      "logos_missing": 8,
+      "name": "El Salvador",
+      "stations": 56
+    },
+    "SX": {
+      "bouquet_sha256": "45663a3f411564735de57ae60c4dbbf9be886f6b1a0086ffd9358a11afbdd1ad",
+      "catalog_sha256": "76f6a36e7cd88fb91bf806ec9f2490e758b1e4f93c0e02e2b202e0bdf6f83e48",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 22,
+        "file": "SX.zip",
+        "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+      },
+      "logos_found": 0,
+      "logos_missing": 1,
+      "name": "Sint Maarten (Dutch part)",
+      "stations": 1
+    },
+    "SY": {
+      "bouquet_sha256": "139c6fe756604168ec3689add67a98776d533675bdf0a9a846d9a085754302c5",
+      "catalog_sha256": "e2d6bbef8558e6bab2ce74a224d325de91d2cd90f6b8ce9a91079766326217dc",
+      "logo_attempted": 20,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 465517,
+        "file": "SY.zip",
+        "sha256": "d828e6913bb43b8def5c93655c6f93cd0dce69efcffa9dad7ff01bd4a8169365"
+      },
+      "logos_found": 17,
+      "logos_missing": 3,
+      "name": "Syrian Arab Republic",
+      "stations": 20
+    },
+    "TD": {
+      "bouquet_sha256": "2a726fea6c1854cf247c8e24ef3833d3f1eea4f9f88a2c1471e6cf6d6c6edc3e",
+      "catalog_sha256": "183de9529ecf858cea01f1393dfc9f05321b0ec95c0afa854f5db4cf759afa43",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 42607,
+        "file": "TD.zip",
+        "sha256": "70b83424110b80998f8527069b72a826d26a5c3b18f573628d0d2248e05079e7"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Chad",
+      "stations": 1
+    },
+    "TF": {
+      "bouquet_sha256": "067de3825894d90f7966f81870f700a260282dcad58e35223737e71eec89fd35",
+      "catalog_sha256": "aa021757f42f56a90a76e87064548687a36c88505be17812a8b8a7d28b0b1428",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 21932,
+        "file": "TF.zip",
+        "sha256": "e9fd535c67304fb0f9f7883ef42c7901ba0d618ad922b58bb2f28f1974fa7b79"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "The French Southern Territories",
+      "stations": 2
+    },
+    "TG": {
+      "bouquet_sha256": "56ec5927f1b525196b5b1584b63f8dff687c69e3bc2084b2ae6e359f633511e0",
+      "catalog_sha256": "8554bf2dc33faa0e1aace08f1ddb607efde4c5ce2b9aa9d1b64f2ee27fe0b2fd",
+      "logo_attempted": 6,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 115316,
+        "file": "TG.zip",
+        "sha256": "0bc97701b55222ff6a9106720d8ab04351f5a36f2dce045d99d64ee03b451456"
+      },
+      "logos_found": 4,
+      "logos_missing": 2,
+      "name": "Togo",
+      "stations": 6
+    },
+    "TH": {
+      "bouquet_sha256": "c1dff77dbec058f18d76f5b10b13b9a0837af833e1cdbed3caba89af483a89e0",
+      "catalog_sha256": "ce3a07bb333f665e29a3cd8642a7694584f0a6db0acd4cc5e9322ca3336f3aa2",
+      "logo_attempted": 94,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1001665,
+        "file": "TH.zip",
+        "sha256": "d0a3d2a4fa36ec82a1415897b64a9fe8aa92842ed1e3894e5ff95410a9031c68"
+      },
+      "logos_found": 63,
+      "logos_missing": 31,
+      "name": "Thailand",
+      "stations": 94
+    },
+    "TM": {
+      "bouquet_sha256": "c8a79837ee51fecdda55e57510a440ea81c6f0bb73ef2b6e1e381f5cb21a27ff",
+      "catalog_sha256": "6619debeab54faa5d6fe016f15fd8a35dbcae834610162a94b02e54bac87d52a",
+      "logo_attempted": 4,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 132642,
+        "file": "TM.zip",
+        "sha256": "223e0f54483f74d80ec435364107d9cd00b120e07f379c5f132a1109ff0f5b1f"
+      },
+      "logos_found": 3,
+      "logos_missing": 1,
+      "name": "Turkmenistan",
+      "stations": 4
+    },
+    "TN": {
+      "bouquet_sha256": "ab92072d9bca133eaa9115588161790e0d55519128fed0148e58d748b8145e8b",
+      "catalog_sha256": "6d7495edf22567e72ff7042fbbaacc7bafb05530cc7b06e29df7a558594cb0f4",
+      "logo_attempted": 52,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 251455,
+        "file": "TN.zip",
+        "sha256": "0031f69d954a4c425ba12d392769b0964310b2b844dc5e318b51fd4eef6229c9"
+      },
+      "logos_found": 27,
+      "logos_missing": 25,
+      "name": "Tunisia",
+      "stations": 52
+    },
+    "TO": {
+      "bouquet_sha256": "1ac2c41c161a36a1003bac4a1ce742e347af5198925cebfee49bf306c42aaf3a",
+      "catalog_sha256": "6fe3ef3918b23473189801f9dc8c5d9091c959b1c8bb576324b9196cd09f62c9",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 27586,
+        "file": "TO.zip",
+        "sha256": "3339187bc567a69fd961f03dcae24f31be280c40ae16854a14e2b2c323295edf"
+      },
+      "logos_found": 3,
+      "logos_missing": 0,
+      "name": "Tonga",
+      "stations": 3
+    },
+    "TR": {
+      "bouquet_sha256": "fbd3dcea06ec17eba6153051c8d6883d96483d9f8f2d29994b718960579c19c0",
+      "catalog_sha256": "ac9c9aedb87f21598728b01a3d4f30bbcb00938678f65d64c6fc7f7daecefea2",
+      "logo_attempted": 608,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 7346692,
+        "file": "TR.zip",
+        "sha256": "f87f753ab6b8154c2bb5535d16f2c1e6391cda8bc938e7e90b1f263faadf8f5c"
+      },
+      "logos_found": 393,
+      "logos_missing": 215,
+      "name": "Türkiye",
+      "stations": 608
+    },
+    "TT": {
+      "bouquet_sha256": "d5442db26576ad380930dbc99c53bf10acfd274c25f7baba751723092464c5c6",
+      "catalog_sha256": "0d6fcfc0a77fc531d3c5eb19c7151d4d8b7e6b17c0c333c977cf86b20cdc5ca5",
+      "logo_attempted": 21,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 293643,
+        "file": "TT.zip",
+        "sha256": "591ff40447c3e21dc991851cc4a837f6831024a3dcbf0ccb084f62dc1a8e225c"
+      },
+      "logos_found": 17,
+      "logos_missing": 4,
+      "name": "Trinidad And Tobago",
+      "stations": 21
+    },
+    "TW": {
+      "bouquet_sha256": "4d4be4f5a3f2e20adeeb3b58835bf2ff722a93b1ce904933cc9caea7dcbbd4d6",
+      "catalog_sha256": "f5c32d41690883fab4dca3f249b117bc8c8916f96cc6b7ce32df16a8fa868be8",
+      "logo_attempted": 162,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 3201912,
+        "file": "TW.zip",
+        "sha256": "d181e63ca7b4a5f0c9c7f9cac07612d54dd3d5f87a98ae25f950802c1c4d89b1"
+      },
+      "logos_found": 124,
+      "logos_missing": 38,
+      "name": "Taiwan",
+      "stations": 162
+    },
+    "TZ": {
+      "bouquet_sha256": "b132a5b5e6b6ac76060cd174898f4e20fc6b73ed661435772c22649c5e222ba7",
+      "catalog_sha256": "cd86af0ea6d9cc112e5c3893e5698256af0f4f06b947c4490d6bc3f0e9c38433",
+      "logo_attempted": 20,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 399234,
+        "file": "TZ.zip",
+        "sha256": "754b42eb5a79190cdc7e64717ac96d86dbc6c733bbe514fc61e12bffe539d4ee"
+      },
+      "logos_found": 17,
+      "logos_missing": 3,
+      "name": "Tanzania",
+      "stations": 20
+    },
+    "UA": {
+      "bouquet_sha256": "9f4049b30af866ef95ca86b7c6552fb9b4ffc4536317a7fb2644057de5464ae0",
+      "catalog_sha256": "249ee6688f34ba2de8d156f09909f9de9bba13ab7d6ce0edb6aa452b44e582c2",
+      "logo_attempted": 265,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2850791,
+        "file": "UA.zip",
+        "sha256": "40fb497be47f6934c774e42e3b823d5fb853347802eaa27c2989f6bd527b11fc"
+      },
+      "logos_found": 200,
+      "logos_missing": 65,
+      "name": "Ukraine",
+      "stations": 265
+    },
+    "UG": {
+      "bouquet_sha256": "619799444f5e06a0634489d45f7a0fdd84339198a91fcfbba0122614d2a4ce88",
+      "catalog_sha256": "7044e727e0df2aa3869971e0174b82c3dbb2a9eec00af70671420d4343db4572",
+      "logo_attempted": 146,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2039436,
+        "file": "UG.zip",
+        "sha256": "f00cae6cba73b1a4fe9c50552fbfc345fa31dc19a14cb214856aa94f28b4ad69"
+      },
+      "logos_found": 92,
+      "logos_missing": 54,
+      "name": "Uganda",
+      "stations": 146
+    },
+    "UM": {
+      "bouquet_sha256": "707e30ba5773f35563f77e2195ce2d88101796e236904ea544b5a1af7fc66735",
+      "catalog_sha256": "d2756b646de2b81c3968418cb9494e1de58e4cd10f0d6abfe668ebf7ed01788a",
+      "logo_attempted": 25,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 265546,
+        "file": "UM.zip",
+        "sha256": "c117518c54b99dd8e749de1f54b2f86a2af5f441a8338b8d08823e3cc82f92c2"
+      },
+      "logos_found": 16,
+      "logos_missing": 9,
+      "name": "The United States Minor Outlying Islands",
+      "stations": 25
+    },
+    "UN": {
+      "bouquet_sha256": "fe661997cd8639b79a8ebd8edba9a6501f625e2de5aca6c248e4c3d9352e8490",
+      "catalog_sha256": "2fd816bddafba0f450b97d5662799e92ae96e004380fa932de0bf4c936844acf",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 110113,
+        "file": "UN.zip",
+        "sha256": "c5b331a525fa03e232082c6075474b44b0bb9a0cb9cb0213e643c64a7782218f"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "UN",
+      "stations": 1
+    },
+    "US": {
+      "bouquet_sha256": "30973a124e7a947e5fdf85b9a479a1c41f53ec678200e185e73f687b9989e99f",
+      "catalog_sha256": "7920fd0351ecb755f753aa5b6d06428bd4f87a2fa8f167ec3af33c845f947a65",
+      "logo_attempted": 6749,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 135137717,
+        "file": "US.zip",
+        "sha256": "17693576d11dae3de26de448dad778df3d3fba656d7533fa37d4229ddc926568"
+      },
+      "logos_found": 5884,
+      "logos_missing": 865,
+      "name": "United States",
+      "stations": 6749
+    },
+    "UY": {
+      "bouquet_sha256": "3230d03018a7644511b65e37ddeeaedd9ae83a9b2c8bb407e464ec2705272b8d",
+      "catalog_sha256": "32be0d1ba34bad60e016b6c9e8288aa791b4287b9b23b5e33a99e8d99ce6f6d9",
+      "logo_attempted": 119,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 1613708,
+        "file": "UY.zip",
+        "sha256": "d832023ad85f78657083764deb16443e738e95b942e399376c1341eff38f409a"
+      },
+      "logos_found": 96,
+      "logos_missing": 23,
+      "name": "Uruguay",
+      "stations": 119
+    },
+    "UZ": {
+      "bouquet_sha256": "b11aac720e335a91649d7af2b3cd1c9bd2cfb0edce7ed1d01ff1681745cda907",
+      "catalog_sha256": "d88a54579568c59c0a75abc1d9c3f7664a8d8326175a51752cb81bd64f54af5b",
+      "logo_attempted": 10,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 180420,
+        "file": "UZ.zip",
+        "sha256": "3649730a4b183417b3e8a95a421f68cf35bc8732838cf7f11fc2b0b8c2f8eeee"
+      },
+      "logos_found": 8,
+      "logos_missing": 2,
+      "name": "Uzbekistan",
+      "stations": 10
+    },
+    "VA": {
+      "bouquet_sha256": "74104a07482d88945d9a6b4cbe607b74482afd5b83a23ef22f4eef9486f60400",
+      "catalog_sha256": "fc70ec06ac367cb2e081d91d8dcc057c22e7e59a1b6029ba0493e87a8ec25738",
+      "logo_attempted": 13,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 121898,
+        "file": "VA.zip",
+        "sha256": "fa888d55c3a6bc4382f87aa40fdf29a39fb9633754897b0280a1ac43b803dab0"
+      },
+      "logos_found": 13,
+      "logos_missing": 0,
+      "name": "The Holy See",
+      "stations": 13
+    },
+    "VC": {
+      "bouquet_sha256": "7c6b5469ec70f76cc7a555ab3ba3ffd4b0d5a74fd9a757461ae3ed0c37cd63c9",
+      "catalog_sha256": "73f49509660f583d1b253a1acb6d655265971ccb32966aee98b433c86b2c5e13",
+      "logo_attempted": 10,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 362864,
+        "file": "VC.zip",
+        "sha256": "d95cdbc552008184f1167025dee4664940e9f418151ac86aac035fa873cef4f1"
+      },
+      "logos_found": 9,
+      "logos_missing": 1,
+      "name": "Saint Vincent And The Grenadines",
+      "stations": 10
+    },
+    "VE": {
+      "bouquet_sha256": "cb4618bf53fb37dbad95544e3a1cce98a23b6c939efde2e53127ef9ef9c069b5",
+      "catalog_sha256": "575c4d2b3f2068d275ba66233c4a03b7de9a74117d0d1a8bead79d09ead3e813",
+      "logo_attempted": 165,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 4238696,
+        "file": "VE.zip",
+        "sha256": "688a59cde2fd053c8521a9ad4e6955eaf68b06021e0180de324312e94dec013f"
+      },
+      "logos_found": 153,
+      "logos_missing": 12,
+      "name": "Venezuela",
+      "stations": 165
+    },
+    "VG": {
+      "bouquet_sha256": "d46ea830f67215f7c22254617a1c1a4ad8da3154d8c5cb017856aa0985f128bb",
+      "catalog_sha256": "a24f7818903a5967c794107a0576dae51c48f43066c38d5eac0b42e428abfb00",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 81043,
+        "file": "VG.zip",
+        "sha256": "b0d9c62bb9b5fe4c475c03df1343bc40c35a7bbfea3e0abdccd9c9316aadd8fa"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "British Virgin Islands",
+      "stations": 2
+    },
+    "VI": {
+      "bouquet_sha256": "f55e2c44df16f800f39a5c4147802384672186dba64bacac75a1371d777b49b6",
+      "catalog_sha256": "ba6d9dff6d9f3248a5b376ef7db871fe7f30031552268053963ba045ddf04ebb",
+      "logo_attempted": 8,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 125502,
+        "file": "VI.zip",
+        "sha256": "da0a4b954082522de7c6ff71a9406c29200b8bb7900f5f29fea6dad72aa8d66c"
+      },
+      "logos_found": 5,
+      "logos_missing": 3,
+      "name": "US Virgin Islands",
+      "stations": 8
+    },
+    "VN": {
+      "bouquet_sha256": "0aa9196c3820855d91bb115f55ed96079927e903b56521721dad54e2628235ab",
+      "catalog_sha256": "9a7d938a7fc487ea6a99345812e4f694cad4414a14dee033cb7134483fbb9ff8",
+      "logo_attempted": 30,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 78752,
+        "file": "VN.zip",
+        "sha256": "3a42648f9ce1e2d82914628cc07823d118310591c9408fd5a21cd9fca1cf46ee"
+      },
+      "logos_found": 11,
+      "logos_missing": 19,
+      "name": "Vietnam",
+      "stations": 30
+    },
+    "VU": {
+      "bouquet_sha256": "fa994d675e3dea3026c24ad802de11a6888de601751efb3e4fb615122c9bf36d",
+      "catalog_sha256": "bdc2cc9a33d3946ca7617b01937475be8b85d82c2c3fa9e696ec3cd29237b8fb",
+      "logo_attempted": 3,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 59880,
+        "file": "VU.zip",
+        "sha256": "caf51de6183d5830087271e13d7d3f4d99cbe25867cdd6c3bacb90f45bbf85ae"
+      },
+      "logos_found": 3,
+      "logos_missing": 0,
+      "name": "Vanuatu",
+      "stations": 3
+    },
+    "WF": {
+      "bouquet_sha256": "288a36e675b39137c936d6921ea6cba4d8fccfeccc62d6a042beffbbe3329fd7",
+      "catalog_sha256": "b5173580a7ebbd88a7b829b4fde6b5030a13bf2e48471e1c84dda39e42487382",
+      "logo_attempted": 1,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 4546,
+        "file": "WF.zip",
+        "sha256": "12988108fc85ecf006225ad966a5f3524e10dc10ab784566081ed8c22956aa7d"
+      },
+      "logos_found": 1,
+      "logos_missing": 0,
+      "name": "Wallis And Futuna",
+      "stations": 1
+    },
+    "XK": {
+      "bouquet_sha256": "62c0abd9d76143ef730731c20ad6bcb910878f785ac8d0b03c4094cfbcc78f0e",
+      "catalog_sha256": "8b3f021c9a71a4d68a2a23351b040804b38ddee49ed4d21230324f0524f8aa10",
+      "logo_attempted": 14,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 173146,
+        "file": "XK.zip",
+        "sha256": "eab184f54ea33b737b9cbcb397b90c600b5e5626149331c326b381dde7c4f6c5"
+      },
+      "logos_found": 11,
+      "logos_missing": 3,
+      "name": "Kosovo",
+      "stations": 14
+    },
+    "YE": {
+      "bouquet_sha256": "ea21f7c01a024ad8233922d8cc2d9b5826c1847f56929fb1d64cc8f98af6baa5",
+      "catalog_sha256": "830a4fb1dbb7937dd8ff950b8d05ea08608891a8e9ba9d6ba6ad947de9dd2380",
+      "logo_attempted": 12,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 96959,
+        "file": "YE.zip",
+        "sha256": "2c747b89aa7362cc81eca6439f5975faeb5b3d1c15460a70f056c1e849c8ab1f"
+      },
+      "logos_found": 8,
+      "logos_missing": 4,
+      "name": "Yemen",
+      "stations": 12
+    },
+    "YT": {
+      "bouquet_sha256": "6d9fc39540c65a3b67d04277ee4054c0cb6e290199e633450b201c43746fc61c",
+      "catalog_sha256": "63657eb63db1051164291318eeb6d6bd8c53b4bd354d29c3f91922c9fc16058e",
+      "logo_attempted": 2,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 8435,
+        "file": "YT.zip",
+        "sha256": "de476f3288b4290681191b79cd254ec3baf2b048c3e3bf7903dda456b624bdb9"
+      },
+      "logos_found": 2,
+      "logos_missing": 0,
+      "name": "Mayotte",
+      "stations": 2
+    },
+    "ZA": {
+      "bouquet_sha256": "72051d72bf759b2ae260cff45f47a3670b169ff832880bf2b73da53aec745855",
+      "catalog_sha256": "21eae964a1b07d547155f891c41d54b0b5b9ff5a11c7754e88865a190b6712fc",
+      "logo_attempted": 184,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 2872974,
+        "file": "ZA.zip",
+        "sha256": "40af8567de683b01a8b53012bab2a86dfe9cd09211662f4e8239c849d51d1573"
+      },
+      "logos_found": 161,
+      "logos_missing": 23,
+      "name": "South Africa",
+      "stations": 184
+    },
+    "ZM": {
+      "bouquet_sha256": "36ca87989a7226bd7c1a421ab64df4ab2ef5ebf88d8ed5a58cce7b752722e5a4",
+      "catalog_sha256": "8ed20eda52c85d284c6c059a6fdd9bbbac1c9845f9a88379cca97b4d40ee4c11",
+      "logo_attempted": 81,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 342438,
+        "file": "ZM.zip",
+        "sha256": "a1f65ddaae201d75f933c812adc337382fb42096553792457360907c01456d9f"
+      },
+      "logos_found": 38,
+      "logos_missing": 43,
+      "name": "Zambia",
+      "stations": 81
+    },
+    "ZW": {
+      "bouquet_sha256": "1406a34b4c134c1e841fd64755e97ddfd0986a61044a7227129108b432438dd9",
+      "catalog_sha256": "3b73f65cc911390b9f1fcc20ca1fa5aee61752ff2224a830e2b974255db02149",
+      "logo_attempted": 25,
+      "logo_package_complete": true,
+      "logos": {
+        "bytes": 260324,
+        "file": "ZW.zip",
+        "sha256": "75f3ce74a7125bf72963ca4292723d645d0c278cdb616b4e790b0add444bb666"
+      },
+      "logos_found": 22,
+      "logos_missing": 3,
+      "name": "Zimbabwe",
+      "stations": 25
+    }
+  },
+  "country_count": 224,
+  "release_tag": "radio-country-20261122",
+  "schema": 1,
+  "source": "WarderRadio.RadioBrowser",
+  "station_count": 48219,
+  "world": {
+    "bytes": 6664493,
+    "file": "radio-countries-bouquets.zip",
+    "sha256": "771953b41ceab46f8852f5e3219338cb1369d7f653ed7d329ad551e481f88d68"
+  }
+}
