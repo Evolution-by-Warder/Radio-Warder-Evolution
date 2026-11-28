@@ -3,15 +3,15 @@
   "product": "Warder Radio",
   "channel": "stable",
   "release": {
-    "version": "0.2.3",
-    "tag": "warder-radio-v0.2.3",
-    "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.2.3/enigma2-plugin-extensions-radio-warder-evolution_0.2.3_all.ipk",
-    "sha256": "2869051fd335d934558e8584dddc2ad82d11bb765ce9db98675cc7379ce00d59",
+    "version": "0.2.4",
+    "tag": "warder-radio-v0.2.4",
+    "url": "https://github.com/Evolution-by-Warder/Radio-Warder-Evolution/releases/download/warder-radio-v0.2.4/enigma2-plugin-extensions-radio-warder-evolution_0.2.4_all.ipk",
+    "sha256": "5dc30e6f8c51600ca0ec9acbb911eb17026431d56421058a63ac28d606073f90",
     "warder_signature": {
-      "manifest_b64": "eyJiYWxpayI6ImVuaWdtYTItcGx1Z2luLWV4dGVuc2lvbnMtcmFkaW8td2FyZGVyLWV2b2x1dGlvbiIsImNvbW1pdCI6ImQyN2NkYzE2MjAxMTk2NTVmN2M4MzhkMTFkOGZmNmY0ZGNkZThhNmYiLCJrYW5hbCI6InN0YWJsZSIsInByb2pla3QiOiJFdm9sdXRpb24tYnktV2FyZGVyL1JhZGlvLVdhcmRlci1Fdm9sdXRpb24iLCJzY2hlbWEiOjEsInNoYTI1NiI6IjI4NjkwNTFmZDMzNWQ5MzQ1NThlODU4NGRkZGMyYWQ4MmQxMWJiNzY1Y2U5ZGI5ODY3NWNjNzM3OWNlMDBkNTkiLCJ2ZXJ6aWEiOiIwLjIuMyIsInZlcnppYV9iYWxpa2EiOiIwLjIuMy0xIn0K",
-      "podpis_b64": "/ki06DU8tVvOHEhguauv8CJAidNq1tPMP1Jx8JXAV0cKJeWekXfDD455K+e9TekuqwQRYAjfM2K1852UiXDyAw=="
+      "manifest_b64": "eyJiYWxpayI6ImVuaWdtYTItcGx1Z2luLWV4dGVuc2lvbnMtcmFkaW8td2FyZGVyLWV2b2x1dGlvbiIsImNvbW1pdCI6IjVkMzE5OThmNzgwNjc3ZGFlYTAzN2ZkMzhhNWY1OWU2YjIxODg5ZmIiLCJrYW5hbCI6InN0YWJsZSIsInByb2pla3QiOiJFdm9sdXRpb24tYnktV2FyZGVyL1JhZGlvLVdhcmRlci1Fdm9sdXRpb24iLCJzY2hlbWEiOjEsInNoYTI1NiI6IjVkYzMwZTZmOGM1MTYwMGNhMGVjOWFjYmI5MTFlYjE3MDI2NDMxZDU2NDIxMDU4YTYzYWMyOGQ2MDYwNzNmOTAiLCJ2ZXJ6aWEiOiIwLjIuNCIsInZlcnppYV9iYWxpa2EiOiIwLjIuNC0xIn0K",
+      "podpis_b64": "B3D0RaTSRxm/G32wC9bckMYmIR8Jjw5b2SHrnAen2ZF8Z7cQ4NvloDo/O0UBUzM3raLI3q2RwTsCDl6xne23BQ=="
     },
-    "bytes": 10774762,
+    "bytes": 10769804,
     "notes": "Natívna ochrana modulov pre šesť architektúr prijímačov.",
     "notes_i18n": {
       "sk": "Natívna ochrana modulov pre šesť architektúr prijímačov.",
